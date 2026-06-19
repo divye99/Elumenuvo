@@ -258,15 +258,45 @@ export const compatibilityRules = pgTable("compatibility_rules", {
 /* 2. TENANTS  (buyer organisations + users)                          */
 /* ================================================================== */
 
-export const organizations = pgTable("organizations", {
+export const organizations = pgTable(
+  "organizations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: text("name").notNull(),
+    slug: text("slug").notNull().unique(),
+    type: orgTypeEnum("type").default("contractor").notNull(),
+    gstin: text("gstin"),
+    city: text("city"),
+    state: text("state"),
+    addressLine: text("address_line"),
+    // ── Sandbox / trial fields ──────────────────────────────────────
+    // `isTemplate` marks the seeded org that per-visitor sandboxes clone from.
+    isTemplate: boolean("is_template").default(false).notNull(),
+    // `isSandbox` marks an ephemeral per-visitor trial workspace.
+    isSandbox: boolean("is_sandbox").default(false).notNull(),
+    // The template this sandbox was cloned from (provenance).
+    templateOrgId: uuid("template_org_id"),
+    // When a sandbox should be reaped (null for real/template orgs).
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => ({
+    sandboxIdx: index("organizations_sandbox_idx").on(t.isSandbox, t.expiresAt),
+  })
+);
+
+// Lead capture — marketing contact + "save my workspace" trial conversion.
+export const leads = pgTable("leads", {
   id: uuid("id").defaultRandom().primaryKey(),
-  name: text("name").notNull(),
-  slug: text("slug").notNull().unique(),
-  type: orgTypeEnum("type").default("contractor").notNull(),
-  gstin: text("gstin"),
-  city: text("city"),
-  state: text("state"),
-  addressLine: text("address_line"),
+  name: text("name"),
+  email: text("email").notNull(),
+  company: text("company"),
+  phone: text("phone"),
+  // Where the lead came from: "contact", "save_workspace", "demo_request", etc.
+  source: text("source").default("contact").notNull(),
+  message: text("message"),
+  // If captured from inside a trial, the sandbox org they were exploring.
+  sandboxOrgId: uuid("sandbox_org_id"),
   ...timestamps,
 });
 

@@ -478,6 +478,8 @@ async function main() {
       city: "Noida",
       state: "Uttar Pradesh",
       addressLine: "B-42, Sector 63, Noida",
+      // This org is the template that every per-visitor sandbox is cloned from.
+      isTemplate: true,
     })
     .returning();
 

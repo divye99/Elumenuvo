@@ -13,16 +13,21 @@
     "db:seed": "tsx src/lib/db/seed.ts"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.4.0",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.2",
+    "framer-motion": "^12.40.0",
     "lucide-react": "^1.21.0",
     "next": "14.2.35",
     "postgres": "^3.4.9",
     "react": "^18",
     "react-dom": "^18",
+    "react-hook-form": "^7.79.0",
+    "recharts": "^3.8.1",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^4.4.3"

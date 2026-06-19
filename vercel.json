@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/reap-sandboxes",
+      "schedule": "0 * * * *"
+    }
+  ]
+}

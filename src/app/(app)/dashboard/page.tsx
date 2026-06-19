@@ -5,6 +5,7 @@ import { getCurrentOrgId } from "@/lib/auth/session";
 import { getPortfolioSummary, getProjectRollups } from "@/lib/queries/dashboard";
 import { formatINRCompact, formatINR } from "@/lib/utils";
 import { Building2, Truck, CreditCard, Wallet } from "lucide-react";
+import { SpendByProjectChart } from "@/components/charts/SpendByProjectChart";
 
 export const dynamic = "force-dynamic";
 
@@ -113,6 +114,20 @@ export default async function DashboardPage() {
               <span>{formatINR(summary.creditUtilised)} used</span>
               <span>{formatINR(summary.creditLimit - summary.creditUtilised)} available</span>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Committed vs budget chart */}
+        <Card>
+          <CardContent className="pt-5">
+            <div className="mb-2 text-sm font-semibold">Committed spend vs budget, by site</div>
+            <SpendByProjectChart
+              data={rollups.map((r) => ({
+                name: r.name,
+                committed: r.committed,
+                budget: r.budget,
+              }))}
+            />
           </CardContent>
         </Card>
 
