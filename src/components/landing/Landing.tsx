@@ -45,7 +45,7 @@ export default function Landing() {
     const el = document.getElementById(id);
     if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 80, behavior: "smooth" });
   };
-  const goCatalogue = () => scrollTo("catalogue");
+  const goCatalogue = () => router.push("/catalogue");
 
   const annualSpend = spend * 12;
   const annualSave = annualSpend * 0.08;
@@ -56,7 +56,7 @@ export default function Landing() {
   const showcase = HOME_CATALOGUE.filter((p) => catCat === "All" || p.cat === catCat);
 
   const navLinks = [
-    { label: "Catalogue", go: () => scrollTo("catalogue") },
+    { label: "Catalogue", go: () => router.push("/catalogue") },
     { label: "Pricing", go: () => scrollTo("pricing") },
     { label: "How it works", go: () => scrollTo("how") },
     { label: "Savings", go: () => scrollTo("calc") },
