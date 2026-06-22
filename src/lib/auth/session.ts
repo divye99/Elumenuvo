@@ -28,7 +28,7 @@ export type CurrentOrg = {
 
 /** Resolves the current org, or null if there's no valid sandbox/session. */
 export async function resolveCurrentOrg(): Promise<CurrentOrg | null> {
-  const token = cookies().get(SANDBOX_COOKIE)?.value;
+  const token = (await cookies()).get(SANDBOX_COOKIE)?.value;
   const orgId = readSandboxToken(token);
   if (!orgId) return null;
 

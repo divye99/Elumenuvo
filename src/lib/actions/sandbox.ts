@@ -17,8 +17,9 @@ import {
   readSandboxToken,
 } from "@/lib/sandbox/cookie";
 
-function setSandboxCookie(orgId: string, expiresAt: Date) {
-  cookies().set(SANDBOX_COOKIE, makeSandboxToken(orgId, expiresAt.getTime()), {
+async function setSandboxCookie(orgId: string, expiresAt: Date) {
+  const store = await cookies();
+  store.set(SANDBOX_COOKIE, makeSandboxToken(orgId, expiresAt.getTime()), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -30,15 +31,15 @@ function setSandboxCookie(orgId: string, expiresAt: Date) {
 /** Provision a fresh sandbox and drop the visitor into the app. */
 export async function startTrial() {
   const { orgId, expiresAt } = await provisionSandbox();
-  setSandboxCookie(orgId, expiresAt);
-  redirect("/dashboard");
+  await setSandboxCookie(orgId, expiresAt);
+  redirect("/app");
 }
 
 /** Wipe the current sandbox and hand back a clean copy. */
 export async function resetSandbox() {
-  const current = readSandboxToken(cookies().get(SANDBOX_COOKIE)?.value);
+  const current = readSandboxToken((await cookies()).get(SANDBOX_COOKIE)?.value);
   if (current) await deleteSandbox(current);
   const { orgId, expiresAt } = await provisionSandbox();
-  setSandboxCookie(orgId, expiresAt);
-  redirect("/dashboard");
+  await setSandboxCookie(orgId, expiresAt);
+  redirect("/app");
 }

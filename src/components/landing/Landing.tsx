@@ -101,6 +101,12 @@ export default function Landing() {
               </span>
             ))}
             <span
+              onClick={() => router.push("/space")}
+              style={{ fontSize: 14, fontWeight: 500, color: "#56627A", cursor: "pointer" }}
+            >
+              Space
+            </span>
+            <span
               onClick={() => goApp()}
               style={{ fontSize: 14, fontWeight: 600, color: "#19202E", cursor: "pointer" }}
             >

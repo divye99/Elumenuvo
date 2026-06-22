@@ -1,46 +1,45 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-/* ── Elume design system — ported from the Claude Design prototype ── */
+/* ── Theme tokens (Tailwind 4, CSS-first) ────────────────────────── */
+@theme {
+  /* Elume (FMEG) prototype fonts */
+  --font-sans: var(--font-hanken), "Hanken Grotesk", sans-serif;
+  --font-grotesk: var(--font-space-grotesk), "Space Grotesk", sans-serif;
+  --font-mono: var(--font-space-mono), "Space Mono", monospace;
+  --font-inter: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* Elumenuvo (space) palette — deep navy + single blue accent */
+  --color-navy: #0b1a2f;
+  --color-navy-deep: #081325;
+  --color-navy-soft: #13294a;
+  --color-ink: #0a0f18;
+  --color-accent: #3b82f6;
+  --color-accent-hover: #2563eb;
+}
+
+/* Font-family CSS values used by the Elume design components via inline styles
+   (lib/fonts.ts → GROTESK/MONO). Backed by next/font variables from layout.tsx. */
 :root {
-  /* Font-family CSS values (backed by next/font variables from layout.tsx) */
   --hanken: var(--font-hanken), "Hanken Grotesk", sans-serif;
   --space-grotesk: var(--font-space-grotesk), "Space Grotesk", sans-serif;
   --space-mono: var(--font-space-mono), "Space Mono", monospace;
-
-  /* Palette tokens (HSL) for Tailwind-based components — match the prototype */
-  --background: 0 0% 100%;
-  --foreground: 222 32% 14%; /* #19202e */
-  --card: 0 0% 100%;
-  --card-foreground: 222 32% 14%;
-  --muted: 220 27% 97%; /* #f5f6f9 */
-  --muted-foreground: 222 17% 47%; /* #56627a */
-  --border: 223 27% 92%; /* #e8ebf1 */
-  --input: 223 24% 90%; /* #e0e4ed */
-  --primary: 233 67% 58%; /* #4e5bdc */
-  --primary-foreground: 0 0% 100%;
-  --accent: 152 67% 37%; /* #1f9d63 */
-  --accent-foreground: 0 0% 100%;
-  --success: 152 67% 37%; /* #1f9d63 */
-  --warning: 35 75% 44%; /* #c5841c */
-  --destructive: 18 76% 52%; /* #e0612a */
-  --ring: 233 67% 58%;
-  --radius: 0.75rem;
 }
 
 * {
   box-sizing: border-box;
-  border-color: hsl(var(--border));
 }
 html,
 body {
   margin: 0;
   padding: 0;
 }
+html {
+  scroll-behavior: smooth;
+}
 body {
   font-family: var(--hanken), "Hanken Grotesk", sans-serif;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   color: #19202e;
   background: #fff;
 }
@@ -60,7 +59,7 @@ a {
   border: 3px solid #fff;
 }
 
-/* Range input (savings calculator) */
+/* Range input (Elume savings calculator) */
 input[type="range"].elume-range {
   -webkit-appearance: none;
   appearance: none;
@@ -91,7 +90,27 @@ input[type="range"].elume-range::-moz-range-thumb {
   cursor: pointer;
 }
 
-/* Keyframes used by the ported components */
+/* Elumenuvo (space) — engineered grid texture for dark hero sections */
+.grid-texture {
+  background-image: linear-gradient(
+      rgba(255, 255, 255, 0.04) 1px,
+      transparent 1px
+    ),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(
+    ellipse 80% 70% at 50% 0%,
+    #000 40%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, #000 40%, transparent 100%);
+}
+.focus-ring:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+/* Keyframes used by the Elume design components */
 @keyframes elumeFadeUp {
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: none; }
@@ -118,10 +137,4 @@ input[type="range"].elume-range::-moz-range-thumb {
 }
 @keyframes elumeSpin {
   to { transform: rotate(360deg); }
-}
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
 }
