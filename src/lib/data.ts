@@ -25,6 +25,21 @@ export const PRODUCTS: Product[] = [
   { id: "poly15",   brand: "Polycab",   name: "FRLS Wire 1.5 mm²",       spec: "90 m coil · 1100 V · blue", sku: "POLY-FRLS-1.5", cat: "Wires & Cables", price: 1180, market: 1290, unit: "coil" },
   { id: "havpanel", brand: "Havells",   name: "LED Panel 18W · DW",      spec: "Recessed · square",         sku: "HAV-LED-18",    cat: "Lighting",       price: 420,  market: 485,  unit: "pc" },
   { id: "schliv",   brand: "Schneider", name: "Livia 2M Socket",         spec: "16A · modular",             sku: "SCH-LIV-2M",    cat: "Modular",        price: 210,  market: 240,  unit: "pc" },
+
+  // ── CMI WIRES & CABLES · GreenShield single-core copper house wires (90 m coil) ──
+  // From the CMI Amazon brand store: price = store price, market = MRP.
+  { id: "cmi-gs-10-red", brand: "CMI", name: "GreenShield House Wire 1.0 sq mm — Red",    spec: "90 m coil · single-core copper · FR PVC · 10-yr warranty", sku: "CMI-GS-1.0-RED", cat: "Wires & Cables", price: 1659, market: 3000, unit: "coil" },
+  { id: "cmi-gs-15-red", brand: "CMI", name: "GreenShield House Wire 1.5 sq mm — Red",    spec: "90 m coil · single-core copper · FR PVC · 10-yr warranty", sku: "CMI-GS-1.5-RED", cat: "Wires & Cables", price: 2426, market: 4480, unit: "coil" },
+  { id: "cmi-gs-25-red", brand: "CMI", name: "GreenShield House Wire 2.5 sq mm — Red",    spec: "90 m coil · single-core copper · FR PVC · 10-yr warranty", sku: "CMI-GS-2.5-RED", cat: "Wires & Cables", price: 3840, market: 6080, unit: "coil" },
+  { id: "cmi-gs-10-blu", brand: "CMI", name: "GreenShield House Wire 1.0 sq mm — Blue",   spec: "90 m coil · single-core copper · FR PVC · 10-yr warranty", sku: "CMI-GS-1.0-BLU", cat: "Wires & Cables", price: 1659, market: 3000, unit: "coil" },
+  { id: "cmi-gs-15-blu", brand: "CMI", name: "GreenShield House Wire 1.5 sq mm — Blue",   spec: "90 m coil · single-core copper · FR PVC · 10-yr warranty", sku: "CMI-GS-1.5-BLU", cat: "Wires & Cables", price: 2426, market: 4480, unit: "coil" },
+  { id: "cmi-gs-25-blu", brand: "CMI", name: "GreenShield House Wire 2.5 sq mm — Blue",   spec: "90 m coil · single-core copper · FR PVC · 10-yr warranty", sku: "CMI-GS-2.5-BLU", cat: "Wires & Cables", price: 3840, market: 6080, unit: "coil" },
+  { id: "cmi-gs-10-blk", brand: "CMI", name: "GreenShield House Wire 1.0 sq mm — Black",  spec: "90 m coil · single-core copper · FR PVC · 10-yr warranty", sku: "CMI-GS-1.0-BLK", cat: "Wires & Cables", price: 1659, market: 3000, unit: "coil" },
+  { id: "cmi-gs-15-blk", brand: "CMI", name: "GreenShield House Wire 1.5 sq mm — Black",  spec: "90 m coil · single-core copper · FR PVC · 10-yr warranty", sku: "CMI-GS-1.5-BLK", cat: "Wires & Cables", price: 2426, market: 4480, unit: "coil" },
+  { id: "cmi-gs-25-blk", brand: "CMI", name: "GreenShield House Wire 2.5 sq mm — Black",  spec: "90 m coil · single-core copper · FR PVC · 10-yr warranty", sku: "CMI-GS-2.5-BLK", cat: "Wires & Cables", price: 3840, market: 6080, unit: "coil" },
+  { id: "cmi-gs-10-yel", brand: "CMI", name: "GreenShield House Wire 1.0 sq mm — Yellow", spec: "90 m coil · single-core copper · FR PVC · 10-yr warranty", sku: "CMI-GS-1.0-YEL", cat: "Wires & Cables", price: 1659, market: 3000, unit: "coil" },
+  { id: "cmi-gs-15-yel", brand: "CMI", name: "GreenShield House Wire 1.5 sq mm — Yellow", spec: "90 m coil · single-core copper · FR PVC · 10-yr warranty", sku: "CMI-GS-1.5-YEL", cat: "Wires & Cables", price: 2426, market: 4480, unit: "coil" },
+  { id: "cmi-gs-25-yel", brand: "CMI", name: "GreenShield House Wire 2.5 sq mm — Yellow", spec: "90 m coil · single-core copper · FR PVC · 10-yr warranty", sku: "CMI-GS-2.5-YEL", cat: "Wires & Cables", price: 4249, market: 7000, unit: "coil" },
 ];
 
 export type ShowcaseItem = {
