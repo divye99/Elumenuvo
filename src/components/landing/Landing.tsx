@@ -810,6 +810,36 @@ export default function Landing() {
         </div>
       </div>
 
+      {/* ===================== SPACE VERTICAL ===================== */}
+      <div style={{ position: "relative", overflow: "hidden", background: "#0b1a2f", color: "#fff" }}>
+        <div className="grid-texture" style={{ position: "absolute", inset: 0, pointerEvents: "none" }} />
+        <div style={{ position: "relative", maxWidth: 1080, margin: "0 auto", padding: "76px 32px", textAlign: "center" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 11.5, fontWeight: 700, letterSpacing: "0.6px", textTransform: "uppercase", color: "#7aa2f7", marginBottom: 16 }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#3b82f6" }} />
+            Another Elume Nuvotech vertical
+          </div>
+          <h2 style={{ fontFamily: GROTESK, fontSize: 38, lineHeight: 1.1, letterSpacing: "-1px", margin: "0 auto 16px", maxWidth: 640 }}>
+            We also procure for India&apos;s space-tech.
+          </h2>
+          <p style={{ fontSize: 16, lineHeight: 1.65, color: "rgba(255,255,255,0.66)", margin: "0 auto 26px", maxWidth: 560 }}>
+            Elumenuvo is our procurement partner for India&apos;s space companies — flight-grade parts and
+            materials, vendor management, and imports &amp; customs handled end to end, so engineers stay
+            on the hardware, not the purchase orders.
+          </p>
+          <div style={{ display: "flex", gap: 26, justifyContent: "center", flexWrap: "wrap", marginBottom: 32, fontSize: 13.5, color: "rgba(255,255,255,0.78)" }}>
+            <span>◦ Source it</span>
+            <span>◦ Manage it</span>
+            <span>◦ Move it</span>
+          </div>
+          <button
+            onClick={() => router.push("/space")}
+            style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 15, fontWeight: 600, color: "#fff", background: "#3b82f6", border: "none", padding: "14px 26px", borderRadius: 12, cursor: "pointer", boxShadow: "0 12px 32px rgba(59,130,246,0.35)" }}
+          >
+            Visit Elumenuvo Space →
+          </button>
+        </div>
+      </div>
+
       {/* ===================== FOOTER ===================== */}
       <div style={{ background: "#11151F" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 32px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
