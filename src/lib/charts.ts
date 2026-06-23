@@ -1,6 +1,6 @@
 // SVG price-history chart engine — ported 1:1 from the prototype.
 import { fmt } from "./format";
-import { HOMECHART, type HomeChartSeries, type Product } from "./data";
+import { type HomeChartSeries, type Product } from "./data";
 
 export type ChartModel = {
   brand?: string;
@@ -27,8 +27,8 @@ export function homeElumeSeries(p: HomeChartSeries): number[] {
 }
 
 // Landing pricing engine — fixed 580×230 viewBox.
-export function buildHomeChart(id: string): ChartModel {
-  const p = HOMECHART[id];
+export function buildHomeChart(series: Record<string, HomeChartSeries>, id: string): ChartModel {
+  const p = series[id] ?? Object.values(series)[0];
   const market = p.market;
   const elume = homeElumeSeries(p);
   const all = market.concat(elume);

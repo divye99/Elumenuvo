@@ -7,7 +7,8 @@ import ImageSlot from "@/components/ImageSlot";
 import { GROTESK, MONO } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import ProductDetail from "@/components/app/ProductDetail";
-import { CATS, AUTOPO, tileFor, type Product } from "@/lib/data";
+import { tileFor, type Product } from "@/lib/data";
+import { type SiteContent } from "@/lib/content";
 import { unitPriceFor, WHOLESALE_MIN_QTY } from "@/lib/pricing";
 
 type Screen = "portfolio" | "catalogue" | "product" | "project" | "smartbom" | "cart" | "confirm";
@@ -37,25 +38,6 @@ const ACT_COLORS: Record<string, [string, string]> = {
   mute: ["#F5F6F9", "#56627A"],
 };
 
-type ProjectRow = {
-  name: string;
-  loc: string;
-  stage: string;
-  committed: string;
-  pct: string;
-  credit: string;
-  action: string;
-  kind: keyof typeof ACT_COLORS;
-};
-const PROJECTS: ProjectRow[] = [
-  { name: "Aurelia Towers", loc: "Noida · Sec 150", stage: "Wiring", committed: "₹64.0L", pct: "72", credit: "₹18.0L · 28d", action: "PO due · Switchgear", kind: "warn" },
-  { name: "Greenscape Residency", loc: "Ghaziabad · Raj Nagar Ext", stage: "Panel & DB", committed: "₹41.2L", pct: "55", credit: "₹9.0L · 41d", action: "On track", kind: "ok" },
-  { name: "Meadows Phase 2", loc: "Gr. Noida West", stage: "Finishing", committed: "₹78.5L", pct: "88", credit: "₹14.0L · 12d", action: "Reorder · Fans", kind: "info" },
-  { name: "Civic Square Mall", loc: "Meerut · Shastri Nagar", stage: "Rough-in", committed: "₹52.0L", pct: "31", credit: "₹6.0L · 60d", action: "BOM review", kind: "warn" },
-  { name: "Riverside Heights", loc: "Noida · Sec 137", stage: "Finishing", committed: "₹39.0L", pct: "94", credit: "₹5.0L · 4d", action: "Closing", kind: "mute" },
-  { name: "Lotus Enclave", loc: "Gr. Noida · Sec 1", stage: "Wiring", committed: "₹27.8L", pct: "48", credit: "₹7.0L · 33d", action: "On track", kind: "ok" },
-];
-
 type StageVisual = {
   dotBg: string;
   dotBorder: string;
@@ -71,43 +53,15 @@ const STAGE_KINDS: Record<string, StageVisual> = {
   due: { dotBg: "#fff", dotBorder: "2px solid #E0B968", dotGlow: "0 0 0 4px #FBF1E0", fg: "#C5841C", weight: "600", tagBg: "#FBF1E0", tagFg: "#C5841C" },
   next: { dotBg: "#fff", dotBorder: "2px solid #D6DBE6", dotGlow: "none", fg: "#8A93A6", weight: "500", tagBg: "#F5F6F9", tagFg: "#8A93A6" },
 };
-const STAGES = [
-  { label: "Rough-in", value: "₹6.2L", tag: "Delivered", kind: "done", lineL: "transparent", lineR: "#1F9D63" },
-  { label: "Wiring", value: "₹11.4L", tag: "Active · Jun", kind: "active", lineL: "#1F9D63", lineR: "#cfd5e2" },
-  { label: "Panel & DB", value: "₹8.4L", tag: "Releases Jul 2", kind: "due", lineL: "#cfd5e2", lineR: "#E8EBF1" },
-  { label: "Finishing", value: "₹14.0L", tag: "Scheduled Aug", kind: "next", lineL: "#E8EBF1", lineR: "transparent" },
-];
-
-const BOM_ROWS = [
-  { name: "FRLS Wire 2.5 mm² · red", sku: "POLY-FRLS-2.5", brand: "Polycab", stage: "Wiring", qty: "180 coil", total: "₹3.32L" },
-  { name: "FRLS Wire 1.5 mm² · blue", sku: "POLY-FRLS-1.5", brand: "Polycab", stage: "Wiring", qty: "120 coil", total: "₹1.42L" },
-  { name: "DP MCB 32A 'C'", sku: "HAV-MCB-32C", brand: "Havells", stage: "Panel & DB", qty: "420 pc", total: "₹2.04L" },
-  { name: "Acti9 RCCB 40A 30mA", sku: "SCH-A9-RCCB40", brand: "Schneider", stage: "Panel & DB", qty: "160 pc", total: "₹3.49L" },
-  { name: "8-way DB · SPN", sku: "ABB-DB-8SPN", brand: "ABB", stage: "Panel & DB", qty: "120 pc", total: "₹1.70L" },
-];
-
-const PARSED_ROWS = [
-  { raw: "2.5sqmm FR red wire", match: "Polycab FRLS Wire 2.5 mm²", sku: "POLY-FRLS-2.5", qty: "180 coil", price: "₹3.32L" },
-  { raw: "MCB 32amp DP", match: "Havells DP MCB 32A 'C'", sku: "HAV-MCB-32C", qty: "420 pc", price: "₹2.04L" },
-  { raw: "RCCB 40A 30ma 4p", match: "Schneider Acti9 RCCB 40A", sku: "SCH-A9-RCCB40", qty: "160 pc", price: "₹3.49L" },
-  { raw: "dist board 8way", match: "ABB 8-way DB · SPN", sku: "ABB-DB-8SPN", qty: "120 pc", price: "₹1.70L" },
-  { raw: "1200 ceiling fan", match: "Crompton Hill Briz 1200mm", sku: "CRM-HB-1200", qty: "96 pc", price: "₹1.57L" },
-];
-
 type TrackVisual = { bg: string; border: string; fg: string; weight: string };
 const TRACK_KINDS: Record<string, TrackVisual> = {
   done: { bg: "#1F9D63", border: "none", fg: "#1F9D63", weight: "600" },
   active: { bg: "#4E5BDC", border: "none", fg: "#19202E", weight: "700" },
   next: { bg: "#fff", border: "2px solid #D6DBE6", fg: "#8A93A6", weight: "500" },
 };
-const TRACK_STEPS = [
-  { label: "Confirmed", sub: "Today, 10:24", kind: "done", lineL: "transparent", lineR: "#1F9D63" },
-  { label: "Dispatched", sub: "Tomorrow", kind: "active", lineL: "#1F9D63", lineR: "#cfd5e2" },
-  { label: "Out for delivery", sub: "Wed", kind: "next", lineL: "#cfd5e2", lineR: "#E8EBF1" },
-  { label: "Delivered", sub: "ETA Thu", kind: "next", lineL: "#E8EBF1", lineR: "transparent" },
-];
 
-export default function AppShell({ products }: { products: Product[] }) {
+export default function AppShell({ products, content }: { products: Product[]; content: SiteContent }) {
+  const { projects: PROJECTS, stages: STAGES, bomRows: BOM_ROWS, parsedRows: PARSED_ROWS, trackSteps: TRACK_STEPS, categories: CATS, autoPo: AUTOPO } = content;
   const router = useRouter();
   const params = useSearchParams();
   const initial: Screen = params.get("screen") === "catalogue" ? "catalogue" : "portfolio";
@@ -313,11 +267,11 @@ export default function AppShell({ products }: { products: Product[] }) {
 
         {/* CONTENT */}
         <div ref={contentRef} style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
-          {screen === "portfolio" && <Portfolio onProject={() => nav("project")} onReleaseAutoPO={releaseAutoPO} />}
-          {screen === "catalogue" && <Catalogue products={catProducts} cat={cat} setCat={setCat} onOpen={openProduct} onAdd={add} />}
+          {screen === "portfolio" && <Portfolio projects={PROJECTS} onProject={() => nav("project")} onReleaseAutoPO={releaseAutoPO} />}
+          {screen === "catalogue" && <Catalogue products={catProducts} cats={CATS} cat={cat} setCat={setCat} onOpen={openProduct} onAdd={add} />}
           {screen === "product" && pd && <ProductDetail p={pd} qty={pdQty} setQty={setPdQty} onAdd={() => addQty(pd, pdQty)} onCatalogue={() => nav("catalogue")} onProject={() => nav("smartbom")} />}
-          {screen === "project" && <ProjectDetail onReleaseAutoPO={releaseAutoPO} onSmartBom={() => nav("smartbom")} />}
-          {screen === "smartbom" && <SmartBom state={bomState} onUpload={uploadBOQ} onProject={() => nav("project")} />}
+          {screen === "project" && <ProjectDetail stages={STAGES} bomRows={BOM_ROWS} onReleaseAutoPO={releaseAutoPO} onSmartBom={() => nav("smartbom")} />}
+          {screen === "smartbom" && <SmartBom parsedRows={PARSED_ROWS} state={bomState} onUpload={uploadBOQ} onProject={() => nav("project")} />}
           {screen === "cart" && (
             <Cart
               cart={cart}
@@ -330,7 +284,7 @@ export default function AppShell({ products }: { products: Product[] }) {
               onPlace={placeOrder}
             />
           )}
-          {screen === "confirm" && order && <Confirmation order={order} onPortfolio={() => nav("portfolio")} />}
+          {screen === "confirm" && order && <Confirmation trackSteps={TRACK_STEPS} order={order} onPortfolio={() => nav("portfolio")} />}
         </div>
       </div>
 
@@ -346,7 +300,7 @@ export default function AppShell({ products }: { products: Product[] }) {
 }
 
 /* ============================ PORTFOLIO ============================ */
-function Portfolio({ onProject, onReleaseAutoPO }: { onProject: () => void; onReleaseAutoPO: () => void }) {
+function Portfolio({ projects: PROJECTS, onProject, onReleaseAutoPO }: { projects: SiteContent["projects"]; onProject: () => void; onReleaseAutoPO: () => void }) {
   return (
     <div style={{ padding: "26px 30px", animation: "elumeFade .35s ease" }}>
       {/* KPI ROW */}
@@ -449,12 +403,14 @@ function Portfolio({ onProject, onReleaseAutoPO }: { onProject: () => void; onRe
 /* ============================ CATALOGUE ============================ */
 function Catalogue({
   products,
+  cats: CATS,
   cat,
   setCat,
   onOpen,
   onAdd,
 }: {
   products: Product[];
+  cats: SiteContent["categories"];
   cat: string;
   setCat: (c: string) => void;
   onOpen: (p: Product) => void;
@@ -513,7 +469,7 @@ function Catalogue({
 
 
 /* ============================ PROJECT DETAIL ============================ */
-function ProjectDetail({ onReleaseAutoPO, onSmartBom }: { onReleaseAutoPO: () => void; onSmartBom: () => void }) {
+function ProjectDetail({ stages: STAGES, bomRows: BOM_ROWS, onReleaseAutoPO, onSmartBom }: { stages: SiteContent["stages"]; bomRows: SiteContent["bomRows"]; onReleaseAutoPO: () => void; onSmartBom: () => void }) {
   return (
     <div style={{ padding: "24px 30px", animation: "elumeFade .35s ease" }}>
       {/* project header */}
@@ -609,7 +565,7 @@ function HeaderStat({ label, value, color = "#19202E" }: { label: string; value:
 }
 
 /* ============================ SMART BOM ============================ */
-function SmartBom({ state, onUpload, onProject }: { state: BomState; onUpload: () => void; onProject: () => void }) {
+function SmartBom({ parsedRows: PARSED_ROWS, state, onUpload, onProject }: { parsedRows: SiteContent["parsedRows"]; state: BomState; onUpload: () => void; onProject: () => void }) {
   return (
     <div style={{ padding: "24px 30px", maxWidth: 1080, animation: "elumeFade .35s ease" }}>
       {state === "idle" && (
@@ -831,7 +787,7 @@ function Cart({
 }
 
 /* ============================ CONFIRMATION ============================ */
-function Confirmation({ order, onPortfolio }: { order: { id: string; total: string; pay: string; eta: string }; onPortfolio: () => void }) {
+function Confirmation({ trackSteps: TRACK_STEPS, order, onPortfolio }: { trackSteps: SiteContent["trackSteps"]; order: { id: string; total: string; pay: string; eta: string }; onPortfolio: () => void }) {
   return (
     <div style={{ padding: "34px 30px", maxWidth: 760, margin: "0 auto", animation: "elumeFade .4s ease" }}>
       <div style={{ textAlign: "center", marginBottom: 26 }}>

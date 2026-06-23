@@ -134,3 +134,44 @@ export const MINI_ROWS = [
   { name: "Greenscape Residency", loc: "Ghaziabad", tag: "On track", bg: "#E6F5EE", fg: "#1F9D63" },
   { name: "Meadows Phase 2", loc: "Gr. Noida West", tag: "Reorder", bg: "#EEF0FD", fg: "#4E5BDC" },
 ];
+
+/* ── Dashboard sample data (illustrative; becomes real per-user data with auth) ── */
+export type ProjectRow = { name: string; loc: string; stage: string; committed: string; pct: string; credit: string; action: string; kind: string };
+export const PROJECTS: ProjectRow[] = [
+  { name: "Aurelia Towers", loc: "Noida · Sec 150", stage: "Wiring", committed: "₹64.0L", pct: "72", credit: "₹18.0L · 28d", action: "PO due · Switchgear", kind: "warn" },
+  { name: "Greenscape Residency", loc: "Ghaziabad · Raj Nagar Ext", stage: "Panel & DB", committed: "₹41.2L", pct: "55", credit: "₹9.0L · 41d", action: "On track", kind: "ok" },
+  { name: "Meadows Phase 2", loc: "Gr. Noida West", stage: "Finishing", committed: "₹78.5L", pct: "88", credit: "₹14.0L · 12d", action: "Reorder · Fans", kind: "info" },
+  { name: "Civic Square Mall", loc: "Meerut · Shastri Nagar", stage: "Rough-in", committed: "₹52.0L", pct: "31", credit: "₹6.0L · 60d", action: "BOM review", kind: "warn" },
+  { name: "Riverside Heights", loc: "Noida · Sec 137", stage: "Finishing", committed: "₹39.0L", pct: "94", credit: "₹5.0L · 4d", action: "Closing", kind: "mute" },
+  { name: "Lotus Enclave", loc: "Gr. Noida · Sec 1", stage: "Wiring", committed: "₹27.8L", pct: "48", credit: "₹7.0L · 33d", action: "On track", kind: "ok" },
+];
+
+export const STAGES = [
+  { label: "Rough-in", value: "₹6.2L", tag: "Delivered", kind: "done", lineL: "transparent", lineR: "#1F9D63" },
+  { label: "Wiring", value: "₹11.4L", tag: "Active · Jun", kind: "active", lineL: "#1F9D63", lineR: "#cfd5e2" },
+  { label: "Panel & DB", value: "₹8.4L", tag: "Releases Jul 2", kind: "due", lineL: "#cfd5e2", lineR: "#E8EBF1" },
+  { label: "Finishing", value: "₹14.0L", tag: "Scheduled Aug", kind: "next", lineL: "#E8EBF1", lineR: "transparent" },
+];
+
+export const BOM_ROWS = [
+  { name: "FRLS Wire 2.5 mm² · red", sku: "POLY-FRLS-2.5", brand: "Polycab", stage: "Wiring", qty: "180 coil", total: "₹3.32L" },
+  { name: "FRLS Wire 1.5 mm² · blue", sku: "POLY-FRLS-1.5", brand: "Polycab", stage: "Wiring", qty: "120 coil", total: "₹1.42L" },
+  { name: "DP MCB 32A 'C'", sku: "HAV-MCB-32C", brand: "Havells", stage: "Panel & DB", qty: "420 pc", total: "₹2.04L" },
+  { name: "Acti9 RCCB 40A 30mA", sku: "SCH-A9-RCCB40", brand: "Schneider", stage: "Panel & DB", qty: "160 pc", total: "₹3.49L" },
+  { name: "8-way DB · SPN", sku: "ABB-DB-8SPN", brand: "ABB", stage: "Panel & DB", qty: "120 pc", total: "₹1.70L" },
+];
+
+export const PARSED_ROWS = [
+  { raw: "2.5sqmm FR red wire", match: "Polycab FRLS Wire 2.5 mm²", sku: "POLY-FRLS-2.5", qty: "180 coil", price: "₹3.32L" },
+  { raw: "MCB 32amp DP", match: "Havells DP MCB 32A 'C'", sku: "HAV-MCB-32C", qty: "420 pc", price: "₹2.04L" },
+  { raw: "RCCB 40A 30ma 4p", match: "Schneider Acti9 RCCB 40A", sku: "SCH-A9-RCCB40", qty: "160 pc", price: "₹3.49L" },
+  { raw: "dist board 8way", match: "ABB 8-way DB · SPN", sku: "ABB-DB-8SPN", qty: "120 pc", price: "₹1.70L" },
+  { raw: "1200 ceiling fan", match: "Crompton Hill Briz 1200mm", sku: "CRM-HB-1200", qty: "96 pc", price: "₹1.57L" },
+];
+
+export const TRACK_STEPS = [
+  { label: "Confirmed", sub: "Today, 10:24", kind: "done", lineL: "transparent", lineR: "#1F9D63" },
+  { label: "Dispatched", sub: "Tomorrow", kind: "active", lineL: "#1F9D63", lineR: "#cfd5e2" },
+  { label: "Out for delivery", sub: "Wed", kind: "next", lineL: "#cfd5e2", lineR: "#E8EBF1" },
+  { label: "Delivered", sub: "ETA Thu", kind: "next", lineL: "#E8EBF1", lineR: "transparent" },
+];

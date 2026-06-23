@@ -7,16 +7,7 @@ import { GROTESK, MONO } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import { fmtCr } from "@/lib/format";
 import { buildHomeChart, homeElumeSeries } from "@/lib/charts";
-import {
-  HOMECHART,
-  HOME_CATS,
-  HERO_CATS,
-  HOME_CATALOGUE,
-  HOME_BRANDS,
-  FEATURE_TAGS,
-  STEPS,
-  MINI_ROWS,
-} from "@/lib/data";
+import { type SiteContent } from "@/lib/content";
 
 type Modal = false | "form" | "success";
 
@@ -29,7 +20,17 @@ const FEATURES = [
 
 const SITE_VALUES = ["1–4", "5–10", "11–25", "25+"];
 
-export default function Landing() {
+export default function Landing({ content }: { content: SiteContent }) {
+  const {
+    homeCatalogue: HOME_CATALOGUE,
+    homeChart: HOMECHART,
+    homeCats: HOME_CATS,
+    heroCats: HERO_CATS,
+    homeBrands: HOME_BRANDS,
+    featureTags: FEATURE_TAGS,
+    steps: STEPS,
+    miniRows: MINI_ROWS,
+  } = content;
   const router = useRouter();
   const [catCat, setCatCat] = useState("All");
   const [chartSku, setChartSku] = useState("poly25");
@@ -52,7 +53,7 @@ export default function Landing() {
   const capitalFreed = spend;
   const spendLabel = fmtCr(spend).replace(" Cr", "").replace(" L", "");
 
-  const chart = buildHomeChart(chartSku);
+  const chart = buildHomeChart(HOMECHART, chartSku);
   const showcase = HOME_CATALOGUE.filter((p) => catCat === "All" || p.cat === catCat);
 
   const navLinks = [
