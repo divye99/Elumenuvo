@@ -1,12 +1,15 @@
 import { Suspense } from "react";
 import AppShell from "@/components/app/AppShell";
+import { fetchProducts } from "@/lib/products";
+
+export const dynamic = "force-dynamic";
 
 // The buyer app (portfolio, catalogue, product, project, Smart BOM, cart, tracking).
-// Ported from the prototype; AppShell reads ?screen= so it needs a Suspense boundary.
-export default function Page() {
+export default async function Page() {
+  const products = await fetchProducts();
   return (
     <Suspense fallback={null}>
-      <AppShell />
+      <AppShell products={products} />
     </Suspense>
   );
 }

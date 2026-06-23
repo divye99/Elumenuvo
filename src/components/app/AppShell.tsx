@@ -7,7 +7,7 @@ import ImageSlot from "@/components/ImageSlot";
 import { GROTESK, MONO } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import ProductDetail from "@/components/app/ProductDetail";
-import { PRODUCTS, CATS, AUTOPO, tileFor, type Product } from "@/lib/data";
+import { CATS, AUTOPO, tileFor, type Product } from "@/lib/data";
 import { unitPriceFor, WHOLESALE_MIN_QTY } from "@/lib/pricing";
 
 type Screen = "portfolio" | "catalogue" | "product" | "project" | "smartbom" | "cart" | "confirm";
@@ -107,7 +107,7 @@ const TRACK_STEPS = [
   { label: "Delivered", sub: "ETA Thu", kind: "next", lineL: "#E8EBF1", lineR: "transparent" },
 ];
 
-export default function AppShell() {
+export default function AppShell({ products }: { products: Product[] }) {
   const router = useRouter();
   const params = useSearchParams();
   const initial: Screen = params.get("screen") === "catalogue" ? "catalogue" : "portfolio";
@@ -172,7 +172,7 @@ export default function AppShell() {
 
   const releaseAutoPO = () => {
     const next = AUTOPO.map((a) => {
-      const p = PRODUCTS.find((x) => x.id === a.id)!;
+      const p = products.find((x) => x.id === a.id)!;
       return { ...p, qty: a.qty };
     });
     setCart(next);
@@ -218,7 +218,7 @@ export default function AppShell() {
   const cartCount = cart.reduce((a, i) => a + i.qty, 0);
   const credit = pay === "credit";
 
-  const catProducts = PRODUCTS.filter((p) => cat === "All" || p.cat === cat);
+  const catProducts = products.filter((p) => cat === "All" || p.cat === cat);
 
   return (
     <div style={{ height: "100vh", display: "flex", overflow: "hidden", fontFamily: "var(--hanken)", color: "#19202E", background: "#F5F6F9" }}>
