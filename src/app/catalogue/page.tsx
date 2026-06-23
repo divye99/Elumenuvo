@@ -30,8 +30,8 @@ export default function CataloguePage() {
           The FMEG catalogue
         </h1>
         <p style={{ fontSize: 15, color: "#56627A", margin: "8px 0 0", maxWidth: 640 }}>
-          Every major brand in one place — wires, switchgear, lighting, fans and more, each priced
-          transparently against the market rate Elume tracks daily.
+          Every major brand in one place — wires, switchgear, lighting, fans and more. Each shows
+          the MRP, our Elume price, and a wholesale rate at 15+ units.
         </p>
       </div>
 
@@ -118,7 +118,7 @@ export default function CataloguePage() {
                 <div style={{ fontFamily: MONO, fontSize: 10.5, color: "#8A93A6", marginBottom: 13 }}>{p.spec}</div>
                 <div style={{ marginTop: "auto" }}>
                   <div style={{ fontFamily: GROTESK, fontSize: 19, fontWeight: 600, color: "#19202E" }}>{fmt(p.price)}</div>
-                  <div style={{ fontSize: 11.5, color: "#A0A7B5", textDecoration: "line-through" }}>{fmt(p.market)} market</div>
+                  <div style={{ fontSize: 11.5, color: "#A0A7B5" }}>MRP <span style={{ textDecoration: "line-through" }}>{fmt(p.market)}</span></div>
                 </div>
               </div>
             </Link>

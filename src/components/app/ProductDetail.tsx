@@ -5,6 +5,12 @@ import { GROTESK, MONO } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import { buildProductChart } from "@/lib/charts";
 import { tileFor, type Product } from "@/lib/data";
+import {
+  wholesalePrice,
+  unitPriceFor,
+  offMrpPct,
+  WHOLESALE_MIN_QTY,
+} from "@/lib/pricing";
 
 /**
  * Shared product-detail view. Used by BOTH the signed-in dashboard (variant
@@ -31,7 +37,10 @@ export default function ProductDetail({
   onSignIn?: () => void;
 }) {
   const chart = buildProductChart(p);
-  const save = Math.round((1 - p.price / p.market) * 100) + "%";
+  const off = offMrpPct(p.price, p.market) + "%";
+  const ws = wholesalePrice(p.price);
+  const isWholesale = qty >= WHOLESALE_MIN_QTY;
+  const lineTotal = unitPriceFor(p.price, qty) * qty;
   const specs = [
     { k: "Brand", v: p.brand },
     { k: "Category", v: p.cat },
@@ -52,7 +61,7 @@ export default function ProductDetail({
             <div style={{ height: 230, position: "relative" }}>
               <ImageSlot id={`img-${p.sku}`} tile={tileFor(p.cat)} />
               <span style={{ position: "absolute", left: 14, bottom: 14, zIndex: 2, pointerEvents: "none", fontFamily: MONO, fontSize: 10.5, color: "#6b748c", background: "rgba(255,255,255,0.9)", padding: "4px 8px", borderRadius: 6 }}>{p.sku}</span>
-              <span style={{ position: "absolute", right: 14, bottom: 14, zIndex: 2, pointerEvents: "none", fontSize: 12, fontWeight: 700, color: "#1F9D63", background: "#fff", padding: "5px 10px", borderRadius: 7 }}>↓ {save} below market</span>
+              <span style={{ position: "absolute", right: 14, bottom: 14, zIndex: 2, pointerEvents: "none", fontSize: 12, fontWeight: 700, color: "#1F9D63", background: "#fff", padding: "5px 10px", borderRadius: 7 }}>↓ {off} off MRP</span>
             </div>
           </div>
           <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "6px 18px" }}>
@@ -75,13 +84,27 @@ export default function ProductDetail({
             </div>
             <h2 style={{ fontFamily: GROTESK, fontSize: 25, fontWeight: 600, letterSpacing: "-0.5px", margin: "0 0 16px" }}>{p.name}</h2>
 
-            <div style={{ display: "flex", alignItems: "flex-end", gap: 14, marginBottom: 6 }}>
+            {/* Elume price (single unit) */}
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 10, marginBottom: 4 }}>
               <span style={{ fontFamily: GROTESK, fontSize: 34, fontWeight: 600, letterSpacing: "-1px", color: "#19202E" }}>{fmt(p.price)}</span>
               <span style={{ fontSize: 14, color: "#8A93A6", marginBottom: 6 }}>/{p.unit}</span>
-              <span style={{ fontSize: 15, color: "#A0A7B5", textDecoration: "line-through", marginBottom: 7 }}>{fmt(p.market)}</span>
-              <span style={{ fontSize: 12.5, fontWeight: 700, color: "#1F9D63", background: "#E6F5EE", padding: "5px 10px", borderRadius: 8, marginBottom: 6 }}>Save {fmt(p.market - p.price)}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.3px", color: "#4E5BDC", background: "#EEF0FD", padding: "4px 9px", borderRadius: 7, marginBottom: 7 }}>ELUME PRICE</span>
             </div>
-            <div style={{ fontSize: 12.5, color: "#56627A", marginBottom: 22 }}>Transparent price · {save} below the market rate Elume tracks daily. GST extra.</div>
+            {/* MRP reference */}
+            <div style={{ fontSize: 13, color: "#56627A", marginBottom: 14 }}>
+              MRP <span style={{ textDecoration: "line-through", color: "#A0A7B5" }}>{fmt(p.market)}</span>
+              <span style={{ color: "#1F9D63", fontWeight: 700, marginLeft: 8 }}>{off} off</span> · GST extra
+            </div>
+            {/* Wholesale tier */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, background: "#F5F6F9", border: "1px solid #E8EBF1", borderRadius: 11, padding: "11px 14px", marginBottom: 20 }}>
+              <div>
+                <div style={{ fontSize: 11.5, color: "#8A93A6" }}>Wholesale · {WHOLESALE_MIN_QTY}+ units</div>
+                <div style={{ fontFamily: GROTESK, fontSize: 17, fontWeight: 600, color: "#19202E" }}>
+                  {fmt(ws)} <span style={{ fontSize: 12, color: "#8A93A6", fontWeight: 400 }}>/{p.unit}</span>
+                </div>
+              </div>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#1F9D63", background: "#E6F5EE", padding: "5px 10px", borderRadius: 8 }}>save 5%</span>
+            </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
               <div style={{ display: "flex", alignItems: "center", border: "1px solid #E8EBF1", borderRadius: 11, overflow: "hidden" }}>
@@ -91,13 +114,18 @@ export default function ProductDetail({
               </div>
               {variant === "app" ? (
                 <>
-                  <div onClick={onAdd} style={{ flex: 1, background: "#4E5BDC", color: "#fff", fontWeight: 600, fontSize: 14.5, textAlign: "center", padding: 14, borderRadius: 11, cursor: "pointer" }}>Add to PO · {fmt(p.price * qty)}</div>
+                  <div onClick={onAdd} style={{ flex: 1, background: "#4E5BDC", color: "#fff", fontWeight: 600, fontSize: 14.5, textAlign: "center", padding: 14, borderRadius: 11, cursor: "pointer" }}>Add to PO · {fmt(lineTotal)}</div>
                   <div onClick={onProject} style={{ background: "#fff", border: "1.5px solid #E0E4ED", color: "#19202E", fontWeight: 600, fontSize: 13.5, padding: "13px 18px", borderRadius: 11, cursor: "pointer", whiteSpace: "nowrap" }}>Add to a project</div>
                 </>
               ) : (
-                <div onClick={onSignIn} style={{ flex: 1, background: "#4E5BDC", color: "#fff", fontWeight: 600, fontSize: 14.5, textAlign: "center", padding: 14, borderRadius: 11, cursor: "pointer" }}>Sign in to order · {fmt(p.price * qty)}</div>
+                <div onClick={onSignIn} style={{ flex: 1, background: "#4E5BDC", color: "#fff", fontWeight: 600, fontSize: 14.5, textAlign: "center", padding: 14, borderRadius: 11, cursor: "pointer" }}>Sign in to order · {fmt(lineTotal)}</div>
               )}
             </div>
+            {isWholesale && (
+              <div style={{ fontSize: 12.5, color: "#1F9D63", fontWeight: 600, marginTop: 10 }}>
+                ✓ Wholesale price applied — {fmt(ws)}/{p.unit} on {qty} units ({WHOLESALE_MIN_QTY}+)
+              </div>
+            )}
             {variant === "public" && (
               <div style={{ fontSize: 12, color: "#8A93A6", marginTop: 12 }}>
                 Ordering, purchase orders, and 30-day NBFC credit are available to signed-in buyers.
@@ -110,12 +138,12 @@ export default function ProductDetail({
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 14 }}>
               <div>
                 <div style={{ fontFamily: GROTESK, fontWeight: 600, fontSize: 15 }}>Price history · last 12 months</div>
-                <div style={{ fontSize: 12, color: "#8A93A6", marginTop: 2 }}>Elume tracks this SKU&apos;s market price daily — buy when you&apos;re below the line.</div>
+                <div style={{ fontSize: 12, color: "#8A93A6", marginTop: 2 }}>Elume price vs MRP over the past year. Other-platform prices coming soon.</div>
               </div>
               <div style={{ display: "flex", gap: 18, fontSize: 11, color: "#56627A" }}>
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span style={{ width: 15, height: 3, borderRadius: 2, background: "#4E5BDC", display: "inline-block" }} />Elume</span>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span style={{ width: 15, height: 0, borderTop: "2px dashed #AEB6C4", display: "inline-block" }} />Market</span>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span style={{ width: 13, height: 9, borderRadius: 3, background: "rgba(31,157,99,0.16)", display: "inline-block" }} />Saving</span>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span style={{ width: 15, height: 0, borderTop: "2px dashed #AEB6C4", display: "inline-block" }} />MRP</span>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "#A0A7B5" }}><span style={{ width: 15, height: 3, borderRadius: 2, background: "#D7DCE6", display: "inline-block" }} />Other platforms · soon</span>
               </div>
             </div>
             <svg viewBox={`0 0 ${chart.vbW} ${chart.vbH}`} style={{ width: "100%", height: "auto", display: "block" }}>
@@ -133,7 +161,7 @@ export default function ProductDetail({
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginTop: 18, paddingTop: 18, borderTop: "1px solid #F0F2F6" }}>
               <PdStat label="Elume today" value={chart.cur} />
-              <PdStat label="Market today" value={chart.mkt} color="#56627A" />
+              <PdStat label="MRP today" value={chart.mkt} color="#56627A" />
               <PdStat label="12-mo low" value={chart.low} />
               <PdStat label="12-mo average" value={chart.avg} />
             </div>

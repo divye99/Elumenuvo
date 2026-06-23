@@ -372,7 +372,7 @@ function Portfolio({ onProject, onReleaseAutoPO }: { onProject: () => void; onRe
           </div>
         </div>
         <div style={{ background: "#10271C", border: "1px solid #1a4530", borderRadius: 14, padding: "17px 18px" }}>
-          <div style={{ fontSize: 11.5, color: "#8fd9b3", marginBottom: 10 }}>Saved vs market · YTD</div>
+          <div style={{ fontSize: 11.5, color: "#8fd9b3", marginBottom: 10 }}>Saved vs MRP · YTD</div>
           <div style={{ fontFamily: GROTESK, fontSize: 27, fontWeight: 600, color: "#fff", letterSpacing: "-0.6px" }}>
             ₹17.8<span style={{ fontSize: 16, color: "#8fd9b3" }}> L</span>
           </div>
@@ -471,7 +471,7 @@ function Catalogue({
           })}
         </div>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "#E6F5EE", color: "#1F9D63", fontWeight: 700, fontSize: 12, padding: "7px 13px", borderRadius: 20 }}>
-          ▼ Transparent pricing · avg 9% below market
+          ▼ Transparent pricing · avg 9% below MRP
         </div>
       </div>
 
@@ -495,7 +495,7 @@ function Catalogue({
                 <div style={{ marginTop: "auto", display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
                   <div>
                     <div style={{ fontFamily: GROTESK, fontSize: 19, fontWeight: 600, color: "#19202E" }}>{fmt(p.price)}</div>
-                    <div style={{ fontSize: 11.5, color: "#A0A7B5", textDecoration: "line-through" }}>{fmt(p.market)} market</div>
+                    <div style={{ fontSize: 11.5, color: "#A0A7B5" }}>MRP <span style={{ textDecoration: "line-through" }}>{fmt(p.market)}</span></div>
                   </div>
                   <div onClick={(e) => { e.stopPropagation(); onAdd(p); }} style={{ background: "#EEF0FD", color: "#4E5BDC", fontWeight: 700, fontSize: 13, width: 38, height: 38, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>+</div>
                 </div>
@@ -557,7 +557,7 @@ function ProjectDetail({ onReleaseAutoPO, onSmartBom }: { onReleaseAutoPO: () =>
         <div>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "rgba(224,97,42,0.22)", color: "#ffb98f", fontWeight: 700, fontSize: 11, letterSpacing: "0.4px", padding: "5px 11px", borderRadius: 20, marginBottom: 11 }}>● AUTO-PO READY · PANEL STAGE</div>
           <div style={{ fontFamily: GROTESK, fontSize: 19, fontWeight: 600, color: "#fff" }}>Switchgear &amp; DBs · ₹8.42L</div>
-          <div style={{ fontSize: 13, color: "#cdc6e0", marginTop: 5 }}>160× RCCBs, 420× MCBs, 120× DBs · Elume saved you ₹1.09L vs market on this order.</div>
+          <div style={{ fontSize: 13, color: "#cdc6e0", marginTop: 5 }}>160× RCCBs, 420× MCBs, 120× DBs · Elume saved you ₹1.09L vs MRP on this order.</div>
         </div>
         <div onClick={onReleaseAutoPO} style={{ background: "#fff", color: "#3a1d52", fontWeight: 700, fontSize: 13.5, padding: "13px 22px", borderRadius: 11, cursor: "pointer", whiteSpace: "nowrap" }}>Review &amp; release →</div>
       </div>
@@ -635,7 +635,7 @@ function SmartBom({ state, onUpload, onProject }: { state: BomState; onUpload: (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
             <div>
               <div style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600, letterSpacing: "-0.4px" }}>BOQ parsed · 142 items matched</div>
-              <div style={{ fontSize: 13, color: "#56627A", marginTop: 4 }}>100% matched to catalogue · 2 compatibility flags · priced ₹4.1L below market.</div>
+              <div style={{ fontSize: 13, color: "#56627A", marginTop: 4 }}>100% matched to catalogue · 2 compatibility flags · priced ₹4.1L below MRP.</div>
             </div>
             <div onClick={onProject} style={{ background: "#4E5BDC", color: "#fff", fontWeight: 600, fontSize: 13, padding: "11px 18px", borderRadius: 10, cursor: "pointer" }}>Add all to project →</div>
           </div>
@@ -649,7 +649,7 @@ function SmartBom({ state, onUpload, onProject }: { state: BomState; onUpload: (
               <div style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 600, color: "#C5841C" }}>2 to review</div>
             </div>
             <div style={{ background: "#10271C", border: "1px solid #1a4530", borderRadius: 12, padding: "15px 16px" }}>
-              <div style={{ fontSize: 11.5, color: "#8fd9b3" }}>Priced below market</div>
+              <div style={{ fontSize: 11.5, color: "#8fd9b3" }}>Priced below MRP</div>
               <div style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 600, color: "#fff" }}>₹4.1L</div>
             </div>
           </div>
@@ -766,7 +766,7 @@ function Cart({
               <span style={{ color: "#1F9D63", fontWeight: 600 }}>Free</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#E6F5EE", borderRadius: 9, padding: "10px 12px", margin: "13px 0" }}>
-              <span style={{ fontSize: 12.5, color: "#137a4b", fontWeight: 600 }}>You save vs market</span>
+              <span style={{ fontSize: 12.5, color: "#137a4b", fontWeight: 600 }}>You save vs MRP</span>
               <span style={{ fontFamily: GROTESK, fontSize: 15, fontWeight: 700, color: "#1F9D63" }}>{fmt(calc.save)}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", borderTop: "1px solid #F0F2F6", paddingTop: 13 }}>
