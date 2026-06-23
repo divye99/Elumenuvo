@@ -8,6 +8,7 @@ import { GROTESK, MONO } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import ProductDetail from "@/components/app/ProductDetail";
 import { PRODUCTS, CATS, AUTOPO, tileFor, type Product } from "@/lib/data";
+import { unitPriceFor, WHOLESALE_MIN_QTY } from "@/lib/pricing";
 
 type Screen = "portfolio" | "catalogue" | "product" | "project" | "smartbom" | "cart" | "confirm";
 type CartItem = Product & { qty: number };
@@ -187,10 +188,12 @@ export default function AppShell() {
   };
 
   const calc = useMemo(() => {
-    const sub = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    // Wholesale (−5%) applies per line at 15+ units.
+    const sub = cart.reduce((s, i) => s + unitPriceFor(i.price, i.qty) * i.qty, 0);
     const mkt = cart.reduce((s, i) => s + i.market * i.qty, 0);
+    const list = cart.reduce((s, i) => s + i.price * i.qty, 0); // pre-wholesale Elume total
     const gst = sub * 0.18;
-    return { sub, mkt, save: mkt - sub, gst, total: sub + gst };
+    return { sub, mkt, list, wholesaleSaved: list - sub, save: mkt - sub, gst, total: sub + gst };
   }, [cart]);
 
   const placeOrder = () => {
@@ -693,7 +696,7 @@ function Cart({
   onPlace,
 }: {
   cart: CartItem[];
-  calc: { sub: number; mkt: number; save: number; gst: number; total: number };
+  calc: { sub: number; mkt: number; list: number; wholesaleSaved: number; save: number; gst: number; total: number };
   credit: boolean;
   setPay: (p: Pay) => void;
   onCatalogue: () => void;
@@ -732,7 +735,12 @@ function Cart({
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 11, color: "#8A93A6", fontWeight: 600 }}>{it.brand}</div>
                 <div style={{ fontSize: 13.5, fontWeight: 600, color: "#19202E" }}>{it.name}</div>
-                <div style={{ fontFamily: MONO, fontSize: 10.5, color: "#8A93A6" }}>{it.sku} · {fmt(it.price)} each</div>
+                <div style={{ fontFamily: MONO, fontSize: 10.5, color: "#8A93A6" }}>
+                  {it.sku} · {fmt(unitPriceFor(it.price, it.qty))} each
+                  {it.qty >= WHOLESALE_MIN_QTY && (
+                    <span style={{ fontFamily: GROTESK, color: "#1F9D63", fontWeight: 700, marginLeft: 6 }}>· wholesale</span>
+                  )}
+                </div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 0, border: "1px solid #E8EBF1", borderRadius: 9, overflow: "hidden" }}>
                 <div onClick={() => onQty(it.id, -1)} style={{ width: 30, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#56627A", fontSize: 16 }}>−</div>
@@ -740,8 +748,8 @@ function Cart({
                 <div onClick={() => onQty(it.id, 1)} style={{ width: 30, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#56627A", fontSize: 16 }}>+</div>
               </div>
               <div style={{ width: 96, textAlign: "right" }}>
-                <div style={{ fontFamily: GROTESK, fontSize: 14, fontWeight: 600 }}>{fmt(it.price * it.qty)}</div>
-                <div style={{ fontSize: 11, color: "#1F9D63", fontWeight: 600 }}>save {fmt((it.market - it.price) * it.qty)}</div>
+                <div style={{ fontFamily: GROTESK, fontSize: 14, fontWeight: 600 }}>{fmt(unitPriceFor(it.price, it.qty) * it.qty)}</div>
+                <div style={{ fontSize: 11, color: "#1F9D63", fontWeight: 600 }}>save {fmt((it.market - unitPriceFor(it.price, it.qty)) * it.qty)}</div>
               </div>
               <div onClick={() => onRemove(it.id)} style={{ color: "#C7CEDC", cursor: "pointer", fontSize: 18, width: 20, textAlign: "center" }}>×</div>
             </div>
@@ -757,6 +765,12 @@ function Cart({
               <span>Subtotal</span>
               <span style={{ fontFamily: GROTESK, color: "#19202E" }}>{fmt(calc.sub)}</span>
             </div>
+            {calc.wholesaleSaved > 0 && (
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#56627A", marginBottom: 9 }}>
+                <span>Wholesale discount <span style={{ fontSize: 11, color: "#8A93A6" }}>(15+ units)</span></span>
+                <span style={{ fontFamily: GROTESK, color: "#1F9D63", fontWeight: 600 }}>−{fmt(calc.wholesaleSaved)}</span>
+              </div>
+            )}
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#56627A", marginBottom: 9 }}>
               <span>GST (18%)</span>
               <span style={{ fontFamily: GROTESK, color: "#19202E" }}>{fmt(calc.gst)}</span>
