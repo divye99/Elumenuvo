@@ -7,20 +7,25 @@ import { GROTESK, MONO } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import { PRODUCTS, CATS, tileFor } from "@/lib/data";
 
+// Brand filter options, derived from the catalogue.
+const BRANDS = ["All", ...Array.from(new Set(PRODUCTS.map((p) => p.brand))).sort()];
+
 export default function CataloguePage() {
   const [cat, setCat] = useState("All");
+  const [brand, setBrand] = useState("All");
   const [q, setQ] = useState("");
 
   const products = useMemo(() => {
     const needle = q.trim().toLowerCase();
     return PRODUCTS.filter((p) => {
       const inCat = cat === "All" || p.cat === cat;
+      const inBrand = brand === "All" || p.brand === brand;
       const inSearch =
         !needle ||
         `${p.brand} ${p.name} ${p.spec} ${p.sku} ${p.cat}`.toLowerCase().includes(needle);
-      return inCat && inSearch;
+      return inCat && inBrand && inSearch;
     });
-  }, [cat, q]);
+  }, [cat, brand, q]);
 
   return (
     <main style={{ maxWidth: 1240, margin: "0 auto", padding: "32px 28px 56px" }}>
@@ -59,7 +64,7 @@ export default function CataloguePage() {
       </div>
 
       {/* Category chips */}
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "20px 0 24px" }}>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "20px 0 10px" }}>
         {CATS.map((label) => {
           const active = cat === label;
           return (
@@ -75,6 +80,32 @@ export default function CataloguePage() {
                 background: active ? "#19202E" : "#fff",
                 color: active ? "#fff" : "#56627A",
                 border: `1px solid ${active ? "#19202E" : "#E8EBF1"}`,
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Brand chips */}
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", margin: "0 0 24px" }}>
+        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.4px", color: "#8A93A6", textTransform: "uppercase", marginRight: 4 }}>Brand</span>
+        {BRANDS.map((label) => {
+          const active = brand === label;
+          return (
+            <button
+              key={label}
+              onClick={() => setBrand(label)}
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                padding: "6px 13px",
+                borderRadius: 20,
+                cursor: "pointer",
+                background: active ? "#4E5BDC" : "#fff",
+                color: active ? "#fff" : "#56627A",
+                border: `1px solid ${active ? "#4E5BDC" : "#E8EBF1"}`,
               }}
             >
               {label}
