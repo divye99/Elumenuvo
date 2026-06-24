@@ -13,6 +13,7 @@ export type ProductRow = {
   unit: string;
   sort_order: number;
   is_active: boolean;
+  image_url: string | null;
 };
 
 // Prefer the service-role client (sees inactive rows too); fall back to anon read.

@@ -41,8 +41,24 @@ export async function upsertProduct(formData: FormData): Promise<void> {
   const db = adminClient();
   if (!db) redirect("/admin/products?error=service-role-missing");
 
+  const id = String(formData.get("id") ?? "").trim();
+
+  // Optional image upload → Supabase Storage (bucket: product-images).
+  let image_url: string | null = String(formData.get("current_image_url") ?? "") || null;
+  const file = formData.get("image");
+  if (file instanceof File && file.size > 0) {
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const path = `${id}-${Date.now()}.${ext}`;
+    const buf = Buffer.from(await file.arrayBuffer());
+    const { error: upErr } = await db.storage
+      .from("product-images")
+      .upload(path, buf, { contentType: file.type || "image/jpeg", upsert: true });
+    if (upErr) redirect(`/admin/products?error=${encodeURIComponent("Image upload: " + upErr.message)}`);
+    image_url = db.storage.from("product-images").getPublicUrl(path).data.publicUrl;
+  }
+
   const row = {
-    id: String(formData.get("id") ?? "").trim(),
+    id,
     sku: String(formData.get("sku") ?? "").trim(),
     name: String(formData.get("name") ?? "").trim(),
     brand: String(formData.get("brand") ?? "").trim(),
@@ -53,6 +69,7 @@ export async function upsertProduct(formData: FormData): Promise<void> {
     unit: String(formData.get("unit") ?? "pc").trim() || "pc",
     sort_order: Number(formData.get("sort_order") ?? 0),
     is_active: formData.get("is_active") === "on",
+    image_url,
   };
   const { error } = await db.from("products").upsert(row);
   if (error) redirect(`/admin/products?error=${encodeURIComponent(error.message)}`);

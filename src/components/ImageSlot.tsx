@@ -31,15 +31,20 @@ export default function ImageSlot({
   tile,
   placeholder = "Drop product photo",
   radius = 0,
+  imageUrl,
 }: {
   id: string;
   tile: string;
   placeholder?: string;
   radius?: number;
+  imageUrl?: string;
 }) {
-  const [src, setSrc] = useState<string | null>(null);
+  const [localSrc, setSrc] = useState<string | null>(null);
   const [over, setOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  // A real uploaded image (Supabase Storage) takes priority over a locally
+  // dropped preview.
+  const src = imageUrl ?? localSrc;
 
   useEffect(() => {
     // Hydrate any previously-dropped image for this slot from localStorage.

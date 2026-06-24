@@ -139,7 +139,7 @@ export default function CatalogueBrowser({ products }: { products: Product[] }) 
               }}
             >
               <div style={{ height: 150, position: "relative" }}>
-                <ImageSlot id={`img-${p.sku}`} tile={tileFor(p.cat)} />
+                <ImageSlot id={`img-${p.sku}`} tile={tileFor(p.cat)} imageUrl={p.image} />
                 <span style={{ position: "absolute", left: 11, bottom: 11, zIndex: 2, pointerEvents: "none", fontFamily: MONO, fontSize: 9.5, color: "#6b748c", background: "rgba(255,255,255,0.88)", padding: "3px 6px", borderRadius: 5 }}>{p.sku}</span>
                 <span style={{ position: "absolute", right: 11, bottom: 11, zIndex: 2, pointerEvents: "none", fontSize: 11, fontWeight: 700, color: "#1F9D63", background: "#fff", padding: "4px 8px", borderRadius: 6 }}>↓ {save}</span>
               </div>

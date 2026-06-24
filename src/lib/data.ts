@@ -10,6 +10,7 @@ export type Product = {
   price: number;
   market: number;
   unit: string;
+  image?: string;
 };
 
 export const PRODUCTS: Product[] = [

@@ -17,6 +17,7 @@ type Row = {
   mrp: number | string;
   elume_price: number | string;
   unit: string;
+  image_url?: string | null;
 };
 
 const toProduct = (r: Row): Product => ({
@@ -29,6 +30,7 @@ const toProduct = (r: Row): Product => ({
   price: Number(r.elume_price),
   market: Number(r.mrp),
   unit: r.unit,
+  image: r.image_url ?? undefined,
 });
 
 function client() {

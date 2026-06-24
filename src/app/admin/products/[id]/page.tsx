@@ -57,6 +57,18 @@ export default async function ProductForm({ params }: { params: Promise<{ id: st
         <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13.5, color: "#19202e" }}>
           <input type="checkbox" name="is_active" defaultChecked={row?.is_active ?? true} /> Active (visible in the catalogue)
         </label>
+        <div>
+          <label style={labelStyle}>Product photo</label>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <div style={{ width: 64, height: 64, borderRadius: 10, background: row?.image_url ? `center/cover no-repeat url(${row.image_url})` : "#F0F2F6", border: "1px solid #E8EBF1", flex: "none" }} />
+            <div style={{ flex: 1 }}>
+              <input type="hidden" name="current_image_url" value={row?.image_url ?? ""} />
+              <input type="file" name="image" accept="image/*" style={{ fontSize: 13 }} />
+              <div style={{ fontSize: 11.5, color: "#8A93A6", marginTop: 3 }}>JPG / PNG / WebP. Leave empty to keep the current photo.</div>
+            </div>
+          </div>
+        </div>
         <div style={{ fontSize: 12, color: "#8A93A6" }}>Wholesale is automatic: 5% below the Elume price at 15+ units.</div>
         <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
           <button style={{ background: "#4E5BDC", color: "#fff", fontWeight: 600, fontSize: 14, border: "none", padding: "11px 22px", borderRadius: 10, cursor: "pointer" }}>{isNew ? "Create product" : "Save changes"}</button>
