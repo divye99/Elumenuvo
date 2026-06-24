@@ -64,16 +64,18 @@ export default function Landing({ content }: { content: SiteContent }) {
   ];
 
   return (
-    <div style={{ fontFamily: "var(--hanken)", background: "#fff" }}>
+    <div style={{ fontFamily: "var(--hanken)", background: "#fff", position: "relative" }}>
       {/* ===================== NAV ===================== */}
       <div
         style={{
           position: "sticky",
           top: 0,
           zIndex: 40,
-          background: "rgba(255,255,255,0.86)",
-          backdropFilter: "blur(12px)",
-          borderBottom: "1px solid #EEF0F4",
+          background: "rgba(255,255,255,0.62)",
+          backdropFilter: "blur(22px) saturate(180%)",
+          WebkitBackdropFilter: "blur(22px) saturate(180%)",
+          borderBottom: "1px solid rgba(255,255,255,0.5)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.6), 0 6px 24px rgba(20,24,45,0.05)",
         }}
       >
         <div
@@ -119,10 +121,11 @@ export default function Landing({ content }: { content: SiteContent }) {
                 fontSize: 14,
                 fontWeight: 600,
                 color: "#fff",
-                background: "#4E5BDC",
+                background: "linear-gradient(180deg, #5965e3, #4E5BDC)",
                 padding: "10px 18px",
                 borderRadius: 10,
                 cursor: "pointer",
+                boxShadow: "0 6px 18px rgba(78,91,220,0.35), inset 0 1px 0 rgba(255,255,255,0.25)",
               }}
             >
               Request access
@@ -132,8 +135,16 @@ export default function Landing({ content }: { content: SiteContent }) {
       </div>
 
       {/* ===================== HERO ===================== */}
+      {/* ambient liquid-glass backdrop orbs */}
+      <div style={{ position: "absolute", inset: 0, top: 0, height: 920, overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
+        <div className="elume-orb" style={{ width: 520, height: 520, top: -120, left: -80, background: "radial-gradient(circle, rgba(78,91,220,0.34), transparent 70%)" }} />
+        <div className="elume-orb" style={{ width: 460, height: 460, top: 40, right: -60, background: "radial-gradient(circle, rgba(59,130,246,0.30), transparent 70%)" }} />
+        <div className="elume-orb" style={{ width: 420, height: 420, top: 380, left: "38%", background: "radial-gradient(circle, rgba(31,157,99,0.18), transparent 70%)" }} />
+      </div>
       <div
         style={{
+          position: "relative",
+          zIndex: 1,
           maxWidth: 1200,
           margin: "0 auto",
           padding: "70px 32px 40px",
@@ -145,12 +156,11 @@ export default function Landing({ content }: { content: SiteContent }) {
       >
         <div style={{ animation: "elumeFadeUp .6s ease" }}>
           <div
+            className="elume-glass"
             style={{
               display: "inline-flex",
               alignItems: "center",
               gap: 8,
-              background: "#F2F3FB",
-              border: "1px solid #E4E7F6",
               borderRadius: 20,
               padding: "7px 14px",
               marginBottom: 24,
@@ -185,17 +195,15 @@ export default function Landing({ content }: { content: SiteContent }) {
           <div style={{ display: "flex", gap: 10, maxWidth: 480, marginBottom: 14 }}>
             <div
               onClick={goCatalogue}
+              className="elume-glass elume-glass-hover"
               style={{
                 flex: 1,
                 height: 52,
-                background: "#fff",
-                border: "1.5px solid #E0E4ED",
                 borderRadius: 13,
                 display: "flex",
                 alignItems: "center",
                 gap: 11,
                 padding: "0 16px",
-                boxShadow: "0 6px 18px rgba(20,24,45,.06)",
                 cursor: "pointer",
               }}
             >
@@ -228,12 +236,11 @@ export default function Landing({ content }: { content: SiteContent }) {
                   setCatCat(label);
                   scrollTo("catalogue");
                 }}
+                className="elume-glass elume-glass-hover"
                 style={{
                   fontSize: 12.5,
                   fontWeight: 600,
                   color: "#56627A",
-                  background: "#fff",
-                  border: "1px solid #E8EBF1",
                   padding: "8px 14px",
                   borderRadius: 20,
                   cursor: "pointer",
@@ -260,12 +267,11 @@ export default function Landing({ content }: { content: SiteContent }) {
             </div>
             <div
               onClick={() => goApp()}
+              className="elume-glass elume-glass-hover"
               style={{
                 fontSize: 15,
                 fontWeight: 600,
                 color: "#19202E",
-                background: "#fff",
-                border: "1.5px solid #E0E4ED",
                 padding: "14px 24px",
                 borderRadius: 12,
                 cursor: "pointer",
@@ -384,7 +390,12 @@ export default function Landing({ content }: { content: SiteContent }) {
       </div>
 
       {/* ===================== CATALOGUE SHOWCASE ===================== */}
-      <div id="catalogue" style={{ maxWidth: 1200, margin: "0 auto", padding: "90px 32px 6px" }}>
+      <div id="catalogue" style={{ position: "relative", maxWidth: 1200, margin: "0 auto", padding: "90px 32px 6px" }}>
+        <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
+          <div className="elume-orb" style={{ width: 480, height: 480, top: 120, left: -120, background: "radial-gradient(circle, rgba(78,91,220,0.20), transparent 70%)" }} />
+          <div className="elume-orb" style={{ width: 440, height: 440, top: 280, right: -100, background: "radial-gradient(circle, rgba(31,157,99,0.16), transparent 70%)" }} />
+        </div>
+        <div style={{ position: "relative", zIndex: 1 }}>
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 24, flexWrap: "wrap", marginBottom: 28 }}>
           <div style={{ maxWidth: 580 }}>
             <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "1px", color: "#4E5BDC", textTransform: "uppercase", marginBottom: 14 }}>
@@ -423,15 +434,17 @@ export default function Landing({ content }: { content: SiteContent }) {
               <div
                 key={label}
                 onClick={() => setCatCat(label)}
+                className={on ? undefined : "elume-glass elume-glass-hover"}
                 style={{
                   fontSize: 13,
                   fontWeight: 600,
                   padding: "9px 16px",
                   borderRadius: 20,
                   cursor: "pointer",
-                  background: on ? "#161D2B" : "#fff",
                   color: on ? "#fff" : "#56627A",
-                  border: `1.5px solid ${on ? "#161D2B" : "#E0E4ED"}`,
+                  ...(on
+                    ? { background: "#161D2B", border: "1.5px solid #161D2B" }
+                    : {}),
                 }}
               >
                 {label}
@@ -446,9 +459,8 @@ export default function Landing({ content }: { content: SiteContent }) {
             return (
               <div
                 key={p.sku}
+                className="elume-glass elume-glass-hover"
                 style={{
-                  background: "#fff",
-                  border: "1px solid #E8EBF1",
                   borderRadius: 16,
                   overflow: "hidden",
                   display: "flex",
@@ -512,11 +524,14 @@ export default function Landing({ content }: { content: SiteContent }) {
             );
           })}
         </div>
+        </div>
       </div>
 
       {/* ===================== PRICING ENGINE ===================== */}
-      <div id="pricing" style={{ background: "#F7F8FB", marginTop: 86, borderTop: "1px solid #EEF0F4", borderBottom: "1px solid #EEF0F4" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "80px 32px" }}>
+      <div id="pricing" style={{ position: "relative", overflow: "hidden", background: "#F7F8FB", marginTop: 86, borderTop: "1px solid #EEF0F4", borderBottom: "1px solid #EEF0F4" }}>
+        <div className="elume-orb" style={{ width: 520, height: 520, top: -80, right: -120, background: "radial-gradient(circle, rgba(59,130,246,0.20), transparent 70%)" }} />
+        <div className="elume-orb" style={{ width: 460, height: 460, bottom: -120, left: -100, background: "radial-gradient(circle, rgba(78,91,220,0.16), transparent 70%)" }} />
+        <div style={{ position: "relative", zIndex: 1, maxWidth: 1200, margin: "0 auto", padding: "80px 32px" }}>
           <div style={{ maxWidth: 620, marginBottom: 40 }}>
             <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "1px", color: "#4E5BDC", textTransform: "uppercase", marginBottom: 14 }}>
               Pricing engine
@@ -545,15 +560,20 @@ export default function Landing({ content }: { content: SiteContent }) {
                     <div
                       key={id}
                       onClick={() => setChartSku(id)}
+                      className="elume-glass elume-glass-hover"
                       style={{
-                        border: `1.5px solid ${on ? "#4E5BDC" : "#E8EBF1"}`,
-                        background: on ? "#F2F3FB" : "#fff",
                         borderRadius: 12,
                         padding: "12px 14px",
                         cursor: "pointer",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
+                        ...(on
+                          ? {
+                              border: "1.5px solid rgba(78,91,220,0.55)",
+                              boxShadow: "0 10px 30px rgba(78,91,220,0.16), inset 0 1px 0 rgba(255,255,255,0.8)",
+                            }
+                          : {}),
                       }}
                     >
                       <div style={{ minWidth: 0 }}>
@@ -580,7 +600,7 @@ export default function Landing({ content }: { content: SiteContent }) {
             </div>
 
             {/* chart card */}
-            <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 18, padding: "24px 26px 22px" }}>
+            <div className="elume-glass-solid" style={{ borderRadius: 18, padding: "24px 26px 22px" }}>
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 18 }}>
                 <div>
                   <div style={{ fontSize: 12, color: "#8A93A6", fontWeight: 600 }}>{chart.brand}</div>
@@ -670,8 +690,9 @@ export default function Landing({ content }: { content: SiteContent }) {
       </div>
 
       {/* ===================== HOW IT WORKS ===================== */}
-      <div id="how" style={{ background: "#F7F8FB", marginTop: 80, borderTop: "1px solid #EEF0F4", borderBottom: "1px solid #EEF0F4" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "80px 32px" }}>
+      <div id="how" style={{ position: "relative", overflow: "hidden", background: "#F7F8FB", marginTop: 80, borderTop: "1px solid #EEF0F4", borderBottom: "1px solid #EEF0F4" }}>
+        <div className="elume-orb" style={{ width: 500, height: 500, top: -100, left: "30%", background: "radial-gradient(circle, rgba(123,91,220,0.16), transparent 70%)" }} />
+        <div style={{ position: "relative", zIndex: 1, maxWidth: 1200, margin: "0 auto", padding: "80px 32px" }}>
           <div style={{ textAlign: "center", maxWidth: 580, margin: "0 auto 50px" }}>
             <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "1px", color: "#4E5BDC", textTransform: "uppercase", marginBottom: 14 }}>
               How it works
@@ -682,7 +703,7 @@ export default function Landing({ content }: { content: SiteContent }) {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
             {STEPS.map((s) => (
-              <div key={s.n} style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "26px 24px" }}>
+              <div key={s.n} className="elume-glass elume-glass-hover" style={{ borderRadius: 16, padding: "26px 24px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 16 }}>
                   <span
                     style={{
@@ -757,11 +778,11 @@ export default function Landing({ content }: { content: SiteContent }) {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <div style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "24px 26px" }}>
+            <div className="elume-glass-dark" style={{ borderRadius: 16, padding: "24px 26px" }}>
               <div style={{ fontSize: 13, color: "#aab2c8", marginBottom: 8 }}>Estimated annual saving · ~8% landed price</div>
               <div style={{ fontFamily: GROTESK, fontSize: 40, fontWeight: 600, color: "#4fd591", letterSpacing: "-1px" }}>₹{fmtCr(annualSave)}</div>
             </div>
-            <div style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "24px 26px" }}>
+            <div className="elume-glass-dark" style={{ borderRadius: 16, padding: "24px 26px" }}>
               <div style={{ fontSize: 13, color: "#aab2c8", marginBottom: 8 }}>Working capital freed · 30-day credit</div>
               <div style={{ fontFamily: GROTESK, fontSize: 40, fontWeight: 600, color: "#fff", letterSpacing: "-1px" }}>₹{fmtCr(capitalFreed)}</div>
             </div>
@@ -794,12 +815,11 @@ export default function Landing({ content }: { content: SiteContent }) {
             </div>
             <div
               onClick={() => goApp()}
+              className="elume-glass-dark elume-glass-dark-hover"
               style={{
                 fontSize: 15,
                 fontWeight: 600,
                 color: "#fff",
-                background: "rgba(255,255,255,0.08)",
-                border: "1px solid rgba(255,255,255,0.16)",
                 padding: "14px 26px",
                 borderRadius: 12,
                 cursor: "pointer",
@@ -861,8 +881,9 @@ export default function Landing({ content }: { content: SiteContent }) {
             position: "fixed",
             inset: 0,
             zIndex: 100,
-            background: "rgba(20,24,40,0.5)",
-            backdropFilter: "blur(4px)",
+            background: "rgba(20,24,40,0.42)",
+            backdropFilter: "blur(10px) saturate(140%)",
+            WebkitBackdropFilter: "blur(10px) saturate(140%)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -872,12 +893,15 @@ export default function Landing({ content }: { content: SiteContent }) {
         >
           <div
             style={{
-              background: "#fff",
+              background: "rgba(255,255,255,0.72)",
+              backdropFilter: "blur(30px) saturate(180%)",
+              WebkitBackdropFilter: "blur(30px) saturate(180%)",
+              border: "1px solid rgba(255,255,255,0.65)",
               borderRadius: 22,
               width: "100%",
               maxWidth: 480,
               padding: 36,
-              boxShadow: "0 30px 80px rgba(0,0,0,.3)",
+              boxShadow: "0 30px 80px rgba(20,24,45,0.30), inset 0 1px 0 rgba(255,255,255,0.85)",
               animation: "elumeModalIn .3s ease",
             }}
           >

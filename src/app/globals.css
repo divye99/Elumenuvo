@@ -110,6 +110,95 @@ input[type="range"].elume-range::-moz-range-thumb {
   outline-offset: 2px;
 }
 
+/* ── Liquid Glass (Apple-style glassmorphism) ─────────────────────────
+   Soft ambient colour orbs sit *behind* translucent frosted surfaces so
+   the blur has something to refract. Surfaces layer a faint top highlight
+   over a backdrop blur for a sense of light passing through the panel. */
+
+/* Ambient colour blobs placed behind glass panels */
+.elume-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(72px);
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Frosted surface on light backgrounds (cards, panels) */
+.elume-glass {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(20px) saturate(165%);
+  -webkit-backdrop-filter: blur(20px) saturate(165%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 10px 34px rgba(20, 24, 45, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+/* Slightly more opaque variant for content-dense surfaces */
+.elume-glass-solid {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 12px 38px rgba(20, 24, 45, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* Frosted surface on dark backgrounds (hero mockup, calculator, CTA) */
+.elume-glass-dark {
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+/* Subtle interactive lift for glass chips / ghost buttons */
+.elume-glass-hover {
+  transition: background 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease, transform 0.2s ease;
+}
+.elume-glass-hover:hover {
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 14px 40px rgba(20, 24, 45, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transform: translateY(-1px);
+}
+
+/* Dark-surface hover (keeps dark glass dark on hover) */
+.elume-glass-dark-hover {
+  transition: background 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease, transform 0.2s ease;
+}
+.elume-glass-dark-hover:hover {
+  background: rgba(255, 255, 255, 0.13);
+  border-color: rgba(255, 255, 255, 0.26);
+  transform: translateY(-1px);
+}
+
+/* Graceful fallback where backdrop-filter is unsupported: stay legible */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .elume-glass,
+  .elume-glass-solid {
+    background: rgba(255, 255, 255, 0.94);
+  }
+  .elume-glass-dark {
+    background: rgba(28, 34, 52, 0.82);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .elume-glass-hover {
+    transition: none;
+  }
+  .elume-glass-hover:hover {
+    transform: none;
+  }
+}
+
 /* Keyframes used by the Elume design components */
 @keyframes elumeFadeUp {
   from { opacity: 0; transform: translateY(14px); }
