@@ -60,8 +60,12 @@ const TRACK_KINDS: Record<string, TrackVisual> = {
   next: { bg: "#fff", border: "2px solid #D6DBE6", fg: "#8A93A6", weight: "500" },
 };
 
-export default function AppShell({ products, content }: { products: Product[]; content: SiteContent }) {
+export default function AppShell({ products, content, user }: { products: Product[]; content: SiteContent; user?: { email: string } }) {
   const { projects: PROJECTS, stages: STAGES, bomRows: BOM_ROWS, parsedRows: PARSED_ROWS, trackSteps: TRACK_STEPS, categories: CATS, autoPo: AUTOPO } = content;
+  const userEmail = user?.email ?? "";
+  const userInitials = userEmail ? userEmail.slice(0, 2).toUpperCase() : "RM";
+  const userName = userEmail ? userEmail.split("@")[0] : "Rohit Malhotra";
+  const userOrg = userEmail ? userEmail.split("@")[1] ?? "Signed in" : "Meridian Developments";
   const router = useRouter();
   const params = useSearchParams();
   const initial: Screen = params.get("screen") === "catalogue" ? "catalogue" : "portfolio";
@@ -256,11 +260,16 @@ export default function AppShell({ products, content }: { products: Product[]; c
               )}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 9, paddingLeft: 6 }}>
-              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#3a2d6b,#E0612A)", color: "#fff", fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>RM</div>
+              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#3a2d6b,#E0612A)", color: "#fff", fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>{userInitials}</div>
               <div style={{ lineHeight: 1.2 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 600, color: "#19202E" }}>Rohit Malhotra</div>
-                <div style={{ fontSize: 11, color: "#8A93A6" }}>Meridian Developments</div>
+                <div style={{ fontSize: 12.5, fontWeight: 600, color: "#19202E" }}>{userName}</div>
+                <div style={{ fontSize: 11, color: "#8A93A6" }}>{userOrg}</div>
               </div>
+              {userEmail && (
+                <form action="/auth/signout" method="post" style={{ marginLeft: 4 }}>
+                  <button title="Sign out" style={{ background: "none", border: "none", cursor: "pointer", color: "#8A93A6", fontSize: 12, fontWeight: 600 }}>Sign out</button>
+                </form>
+              )}
             </div>
           </div>
         </div>

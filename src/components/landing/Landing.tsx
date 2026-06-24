@@ -108,7 +108,7 @@ export default function Landing({ content }: { content: SiteContent }) {
               Space
             </span>
             <span
-              onClick={() => goApp()}
+              onClick={() => router.push("/signin")}
               style={{ fontSize: 14, fontWeight: 600, color: "#19202E", cursor: "pointer" }}
             >
               Sign in

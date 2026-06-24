@@ -42,7 +42,7 @@ export default function CatalogueLayout({ children }: { children: React.ReactNod
               Space
             </Link>
             <Link
-              href="/app"
+              href="/signin"
               style={{
                 fontSize: 14,
                 fontWeight: 600,
@@ -75,7 +75,7 @@ export default function CatalogueLayout({ children }: { children: React.ReactNod
           }}
         >
           <span>© {new Date().getFullYear()} Elume Nuvotech Private Limited · Prices indicative, GST extra.</span>
-          <Link href="/app" style={{ color: "#4E5BDC", fontWeight: 600 }}>
+          <Link href="/signin" style={{ color: "#4E5BDC", fontWeight: 600 }}>
             Sign in to order →
           </Link>
         </div>
