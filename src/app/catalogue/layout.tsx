@@ -38,6 +38,9 @@ export default function CatalogueLayout({ children }: { children: React.ReactNod
             <Link href="/catalogue" style={{ fontSize: 14, fontWeight: 600, color: "#19202E" }}>
               Catalogue
             </Link>
+            <Link href="/blog" style={{ fontSize: 14, fontWeight: 500, color: "#56627A" }}>
+              Blog
+            </Link>
             <Link href="/space" style={{ fontSize: 14, fontWeight: 500, color: "#56627A" }}>
               Space
             </Link>

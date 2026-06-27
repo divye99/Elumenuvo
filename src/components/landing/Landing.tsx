@@ -58,6 +58,7 @@ export default function Landing({ content }: { content: SiteContent }) {
 
   const navLinks = [
     { label: "Catalogue", go: () => router.push("/catalogue") },
+    { label: "Blog", go: () => router.push("/blog") },
     { label: "Pricing", go: () => scrollTo("pricing") },
     { label: "How it works", go: () => scrollTo("how") },
     { label: "Savings", go: () => scrollTo("calc") },
