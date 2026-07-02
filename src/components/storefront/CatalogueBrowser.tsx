@@ -39,7 +39,7 @@ export default function CatalogueBrowser({
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [q, setQ] = useState(initialQ);
   const [sort, setSort] = useState<Sort>("featured");
-  const [open, setOpen] = useState<"brand" | "sort" | null>(null);
+  const [open, setOpen] = useState<"cat" | "brand" | "sort" | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
   const brands = useMemo(
@@ -49,6 +49,11 @@ export default function CatalogueBrowser({
   const brandCount = useMemo(() => {
     const m: Record<string, number> = {};
     for (const p of products) m[p.brand] = (m[p.brand] ?? 0) + 1;
+    return m;
+  }, [products]);
+  const catCount = useMemo(() => {
+    const m: Record<string, number> = { All: products.length };
+    for (const p of products) m[p.cat] = (m[p.cat] ?? 0) + 1;
     return m;
   }, [products]);
 
@@ -181,37 +186,54 @@ export default function CatalogueBrowser({
           )}
         </div>
 
-        {/* Category pills */}
-        <div style={{ display: "flex", gap: 6, overflowX: "auto", scrollbarWidth: "none", flex: "2 1 300px", minWidth: 0 }}>
-          {CATS.map((label) => {
-            const active = cat === label;
-            return (
-              <button
-                key={label}
-                onClick={() => setCat(label)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  fontSize: 12.5,
-                  fontWeight: 600,
-                  padding: "8px 13px",
-                  borderRadius: 11,
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                  flexShrink: 0,
-                  transition: "background .15s, color .15s",
-                  background: active ? "#19202E" : "transparent",
-                  color: active ? "#fff" : "#56627A",
-                  border: "1px solid transparent",
-                }}
-              >
-                <span style={{ fontSize: 12 }}>{CAT_ICONS[label]}</span>
-                {label}
-              </button>
-            );
-          })}
+        {/* Category popover */}
+        <div style={{ position: "relative" }}>
+          <button onClick={() => setOpen(open === "cat" ? null : "cat")} style={popBtn(cat !== "All" || open === "cat")}>
+            <span style={{ fontSize: 12 }}>{CAT_ICONS[cat]}</span>
+            {cat === "All" ? "Category" : cat}
+            <span style={{ fontSize: 10, opacity: 0.7 }}>▾</span>
+          </button>
+          {open === "cat" && (
+            <div style={{ ...panel, right: "auto", left: 0 }}>
+              {CATS.map((label) => {
+                const on = cat === label;
+                return (
+                  <button
+                    key={label}
+                    onClick={() => {
+                      setCat(label);
+                      setOpen(null);
+                    }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 12,
+                      width: "100%",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      padding: "9px 11px",
+                      borderRadius: 9,
+                      cursor: "pointer",
+                      border: "none",
+                      textAlign: "left",
+                      background: on ? "#EEF0FE" : "transparent",
+                      color: on ? "#4E5BDC" : "#3A4358",
+                    }}
+                  >
+                    <span style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                      <span style={{ fontSize: 13, width: 18, textAlign: "center" }}>{CAT_ICONS[label]}</span>
+                      {label === "All" ? "All categories" : label}
+                    </span>
+                    <span style={{ fontSize: 11.5, color: on ? "#8A93F0" : "#A0A7B5", fontWeight: 500 }}>{catCount[label] ?? 0}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
+
+        <div style={{ flex: 1 }} />
 
         {/* Brand popover */}
         <div style={{ position: "relative" }}>

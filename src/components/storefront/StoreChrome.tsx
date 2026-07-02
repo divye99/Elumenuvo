@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Mark, Wordmark } from "@/components/Brand";
 import HeaderSearch from "@/components/storefront/HeaderSearch";
+import ScrollTopButton from "@/components/storefront/ScrollTopButton";
 
 /**
  * Shared public-store chrome (Amazon-style): sticky header with search + footer.
@@ -66,6 +67,8 @@ export default function StoreChrome({ children }: { children: React.ReactNode })
       </header>
 
       {children}
+
+      <ScrollTopButton />
 
       <footer style={{ borderTop: "1px solid #EEF0F4", background: "#fff" }}>
         <div
