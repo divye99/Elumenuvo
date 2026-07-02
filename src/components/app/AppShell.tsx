@@ -9,7 +9,7 @@ import { fmt } from "@/lib/format";
 import ProductDetail from "@/components/app/ProductDetail";
 import { tileFor, type Product } from "@/lib/data";
 import { type SiteContent } from "@/lib/content";
-import { unitPriceFor, WHOLESALE_MIN_QTY } from "@/lib/pricing";
+import { unitPriceFor, WHOLESALE_MIN_QTY, exGst, GST_RATE } from "@/lib/pricing";
 
 type Screen = "portfolio" | "catalogue" | "product" | "project" | "smartbom" | "cart" | "confirm";
 type CartItem = Product & { qty: number };
@@ -146,12 +146,15 @@ export default function AppShell({ products, content, user }: { products: Produc
   };
 
   const calc = useMemo(() => {
-    // Wholesale (−5%) applies per line at 15+ units.
+    // Wholesale (−5%) applies per line at 15+ units. All prices are
+    // GST-INCLUSIVE: the payable total = subtotal; GST billing merely splits
+    // out the tax contained in it (taxable value + GST = total).
     const sub = cart.reduce((s, i) => s + unitPriceFor(i.price, i.qty) * i.qty, 0);
     const mkt = cart.reduce((s, i) => s + i.market * i.qty, 0);
     const list = cart.reduce((s, i) => s + i.price * i.qty, 0); // pre-wholesale Elume total
-    const gst = sub * 0.18;
-    return { sub, mkt, list, wholesaleSaved: list - sub, save: mkt - sub, gst, total: sub + gst };
+    const taxable = exGst(sub);
+    const gst = sub - taxable;
+    return { sub, mkt, list, wholesaleSaved: list - sub, save: mkt - sub, taxable, gst, total: sub };
   }, [cart]);
 
   const placeOrder = () => {
@@ -661,7 +664,7 @@ function Cart({
   onPlace,
 }: {
   cart: CartItem[];
-  calc: { sub: number; mkt: number; list: number; wholesaleSaved: number; save: number; gst: number; total: number };
+  calc: { sub: number; mkt: number; list: number; wholesaleSaved: number; save: number; taxable: number; gst: number; total: number };
   credit: boolean;
   setPay: (p: Pay) => void;
   onCatalogue: () => void;
@@ -671,6 +674,10 @@ function Cart({
 }) {
   const sel = (on: boolean) => ({ bd: on ? "#4E5BDC" : "#E8EBF1", bg: on ? "#F7F8FF" : "#fff", dot: on ? "#4E5BDC" : "#C7CEDC", fill: on ? "#4E5BDC" : "transparent" });
   const pn = sel(!credit);
+  // GST billing: split the GST-inclusive total into taxable value + tax on the
+  // invoice (total payable stays the same).
+  const [gstBilling, setGstBilling] = useState(false);
+  const [gstin, setGstin] = useState("");
 
   if (cart.length === 0) {
     return (
@@ -726,8 +733,8 @@ function Cart({
           <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "18px 20px" }}>
             <div style={{ fontFamily: GROTESK, fontWeight: 600, fontSize: 14.5, marginBottom: 14 }}>Order summary</div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#56627A", marginBottom: 9 }}>
-              <span>Subtotal</span>
-              <span style={{ fontFamily: GROTESK, color: "#19202E" }}>{fmt(calc.sub)}</span>
+              <span>Subtotal <span style={{ fontSize: 11, color: "#8A93A6" }}>(incl. GST)</span></span>
+              <span style={{ fontFamily: GROTESK, color: "#19202E" }}>{fmt(calc.list)}</span>
             </div>
             {calc.wholesaleSaved > 0 && (
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#56627A", marginBottom: 9 }}>
@@ -736,19 +743,53 @@ function Cart({
               </div>
             )}
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#56627A", marginBottom: 9 }}>
-              <span>GST (18%)</span>
-              <span style={{ fontFamily: GROTESK, color: "#19202E" }}>{fmt(calc.gst)}</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#56627A", marginBottom: 9 }}>
               <span>Delivery · Noida</span>
               <span style={{ color: "#1F9D63", fontWeight: 600 }}>Free</span>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#E6F5EE", borderRadius: 9, padding: "10px 12px", margin: "13px 0" }}>
+
+            {/* GST billing toggle — splits tax out on the invoice */}
+            <div style={{ border: `1.5px solid ${gstBilling ? "#C9CFF6" : "#EEF0F4"}`, background: gstBilling ? "#F7F8FF" : "#FAFBFD", borderRadius: 10, padding: "11px 12px", margin: "4px 0 11px" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={gstBilling}
+                  onChange={(e) => setGstBilling(e.target.checked)}
+                  style={{ width: 15, height: 15, accentColor: "#4E5BDC", cursor: "pointer" }}
+                />
+                <span style={{ fontSize: 12.5, fontWeight: 600, color: "#19202E" }}>
+                  GST billing <span style={{ fontSize: 11, color: "#8A93A6", fontWeight: 500 }}>· invoice with tax shown separately</span>
+                </span>
+              </label>
+              {gstBilling && (
+                <div style={{ marginTop: 10 }}>
+                  <input
+                    value={gstin}
+                    onChange={(e) => setGstin(e.target.value.toUpperCase())}
+                    placeholder="GSTIN (e.g. 09AABCS1429K1Z5)"
+                    maxLength={15}
+                    style={{ width: "100%", border: "1px solid #E0E4ED", borderRadius: 8, padding: "9px 11px", fontSize: 12.5, fontFamily: MONO, color: "#19202E", outline: "none", background: "#fff" }}
+                  />
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: "#56627A", marginTop: 11 }}>
+                    <span>Taxable value</span>
+                    <span style={{ fontFamily: GROTESK, color: "#19202E" }}>{fmt(calc.taxable)}</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: "#56627A", marginTop: 6 }}>
+                    <span>GST ({Math.round(GST_RATE * 100)}%)</span>
+                    <span style={{ fontFamily: GROTESK, color: "#19202E" }}>{fmt(calc.gst)}</span>
+                  </div>
+                  <div style={{ fontSize: 11, color: "#8A93A6", marginTop: 7 }}>
+                    Both appear on your invoice — the total payable doesn&apos;t change.
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#E6F5EE", borderRadius: 9, padding: "10px 12px", margin: "0 0 13px" }}>
               <span style={{ fontSize: 12.5, color: "#137a4b", fontWeight: 600 }}>You save vs MRP</span>
               <span style={{ fontFamily: GROTESK, fontSize: 15, fontWeight: 700, color: "#1F9D63" }}>{fmt(calc.save)}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", borderTop: "1px solid #F0F2F6", paddingTop: 13 }}>
-              <span style={{ fontWeight: 600, fontSize: 14 }}>Total</span>
+              <span style={{ fontWeight: 600, fontSize: 14 }}>Total <span style={{ fontSize: 11, color: "#8A93A6", fontWeight: 500 }}>incl. GST</span></span>
               <span style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 700 }}>{fmt(calc.total)}</span>
             </div>
           </div>

@@ -92,7 +92,7 @@ export default function StoreChrome({ children }: { children: React.ReactNode })
             color: "#8A93A6",
           }}
         >
-          <span>© {new Date().getFullYear()} Elume Nuvotech Private Limited · Pan-India delivery · Prices indicative, GST extra.</span>
+          <span>© {new Date().getFullYear()} Elume Nuvotech Private Limited · Pan-India delivery · All prices include GST.</span>
           <span style={{ display: "flex", gap: 18 }}>
             <Link href="/space" style={{ color: "#56627A" }}>
               Space procurement

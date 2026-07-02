@@ -24,3 +24,20 @@ export function offMrpPct(elumePrice: number, mrp: number): number {
   if (!mrp || mrp <= 0) return 0;
   return Math.round((1 - elumePrice / mrp) * 100);
 }
+
+/**
+ * GST — all displayed prices (MRP, Elume, wholesale) are GST-INCLUSIVE.
+ * "GST billing" splits the inclusive amount into taxable value + tax for the
+ * invoice; the payable total never changes.
+ */
+export const GST_RATE = 0.18; // standard FMEG rate
+
+/** Taxable (ex-GST) value inside a GST-inclusive amount. */
+export function exGst(inclusive: number): number {
+  return inclusive / (1 + GST_RATE);
+}
+
+/** GST amount contained in a GST-inclusive amount. */
+export function gstPart(inclusive: number): number {
+  return inclusive - exGst(inclusive);
+}

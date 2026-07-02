@@ -103,7 +103,7 @@ export default function ProductDetail({
             {/* MRP reference */}
             <div style={{ fontSize: 13, color: "#56627A", marginBottom: 14 }}>
               MRP <span style={{ textDecoration: "line-through", color: "#A0A7B5" }}>{fmt(p.market)}</span>
-              <span style={{ color: "#1F9D63", fontWeight: 700, marginLeft: 8 }}>{off} off</span> · GST extra
+              <span style={{ color: "#1F9D63", fontWeight: 700, marginLeft: 8 }}>{off} off</span> · incl. GST
             </div>
             {/* Wholesale tier */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, background: "#F5F6F9", border: "1px solid #E8EBF1", borderRadius: 11, padding: "11px 14px", marginBottom: 20 }}>
