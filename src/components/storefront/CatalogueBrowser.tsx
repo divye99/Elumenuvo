@@ -15,9 +15,12 @@ const CAT_ICONS: Record<string, string> = {
   "DB & Panels": "🗄️",
 };
 
-type Sort = "featured" | "price-asc" | "price-desc" | "save-desc";
+type Sort = "featured" | "recommended" | "top-sellers" | "top-rated" | "price-asc" | "price-desc" | "save-desc";
 const SORTS: { key: Sort; label: string }[] = [
   { key: "featured", label: "Featured" },
+  { key: "recommended", label: "Recommended" },
+  { key: "top-sellers", label: "Top sellers" },
+  { key: "top-rated", label: "Top rated" },
   { key: "save-desc", label: "Biggest savings" },
   { key: "price-asc", label: "Price: low to high" },
   { key: "price-desc", label: "Price: high to low" },
@@ -68,6 +71,14 @@ export default function CatalogueBrowser({
       return inCat && inBrand && inSearch;
     });
     switch (sort) {
+      case "recommended":
+        return [...list].sort((a, b) => Number(b.recommended ?? false) - Number(a.recommended ?? false));
+      case "top-sellers":
+        return [...list].sort((a, b) => (b.unitsSold ?? 0) - (a.unitsSold ?? 0));
+      case "top-rated":
+        return [...list].sort(
+          (a, b) => (b.rating ?? 0) - (a.rating ?? 0) || (b.ratingCount ?? 0) - (a.ratingCount ?? 0)
+        );
       case "price-asc":
         return [...list].sort((a, b) => a.price - b.price);
       case "price-desc":

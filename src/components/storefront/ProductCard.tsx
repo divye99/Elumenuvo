@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ImageSlot from "@/components/ImageSlot";
+import Stars from "@/components/storefront/Stars";
 import { GROTESK, MONO } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import { tileFor, type Product } from "@/lib/data";
@@ -43,6 +44,11 @@ export default function ProductCard({ p, fixedWidth }: { p: Product; fixedWidth?
           <span style={{ fontSize: 11, color: "#8A93A6", fontWeight: 600, letterSpacing: "0.2px" }}>{p.brand}</span>
         </div>
         <div style={{ fontSize: 14, fontWeight: 600, color: "#19202E", margin: "4px 0", lineHeight: 1.3 }}>{p.name}</div>
+        {p.rating && p.ratingCount ? (
+          <div style={{ margin: "1px 0 4px" }}>
+            <Stars rating={p.rating} count={p.ratingCount} size={12} />
+          </div>
+        ) : null}
         <div style={{ fontFamily: MONO, fontSize: 10.5, color: "#8A93A6", marginBottom: 13 }}>{p.spec}</div>
         <div style={{ marginTop: "auto" }}>
           <div style={{ fontFamily: GROTESK, fontSize: 19, fontWeight: 600, color: "#19202E" }}>{fmt(p.price)}</div>

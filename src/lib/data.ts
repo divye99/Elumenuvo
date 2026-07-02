@@ -11,6 +11,15 @@ export type Product = {
   market: number;
   unit: string;
   image?: string;
+  /** Avg star rating (1–5) from customer reviews; undefined until reviewed. */
+  rating?: number;
+  ratingCount?: number;
+  /** Sort signals (Supabase-managed; default 0/false for static fallback). */
+  unitsSold?: number;
+  recommended?: boolean;
+  /** Variant family — siblings share a group and differ by `attrs` (Size/Colour/Length/Quality…). */
+  variantGroup?: string;
+  attrs?: Record<string, string>;
 };
 
 export const PRODUCTS: Product[] = [

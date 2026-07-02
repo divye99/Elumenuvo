@@ -289,7 +289,7 @@ export default function Landing({ content }: { content: SiteContent }) {
             <div style={{ width: 1, background: "#EEF0F4" }} />
             <Stat value="~8%" label="avg landed-price saving" />
             <div style={{ width: 1, background: "#EEF0F4" }} />
-            <Stat value="30-day" label="credit, built in" />
+            <Stat value="30-day" label="credit · coming soon" />
           </div>
         </div>
 
@@ -361,7 +361,9 @@ export default function Landing({ content }: { content: SiteContent }) {
           >
             <div style={{ fontSize: 10.5, color: "#ffb98f", fontWeight: 700, letterSpacing: "0.4px" }}>● PO AUTO-RELEASED</div>
             <div style={{ fontFamily: GROTESK, fontSize: 15, fontWeight: 600, color: "#fff", marginTop: 4 }}>Switchgear · ₹8.42L</div>
-            <div style={{ fontSize: 11, color: "#cdc6e0", marginTop: 2 }}>30-day credit · ₹0 today</div>
+            <div onClick={() => router.push("/credit")} style={{ fontSize: 11, color: "#cdc6e0", marginTop: 2, cursor: "pointer" }}>
+              30-day credit · coming soon <span style={{ color: "#ffb98f", fontWeight: 700 }}>· waitlist →</span>
+            </div>
           </div>
         </div>
       </div>
@@ -784,7 +786,7 @@ export default function Landing({ content }: { content: SiteContent }) {
               <div style={{ fontFamily: GROTESK, fontSize: 40, fontWeight: 600, color: "#4fd591", letterSpacing: "-1px" }}>₹{fmtCr(annualSave)}</div>
             </div>
             <div className="elume-glass-dark" style={{ borderRadius: 16, padding: "24px 26px" }}>
-              <div style={{ fontSize: 13, color: "#aab2c8", marginBottom: 8 }}>Working capital freed · 30-day credit</div>
+              <div style={{ fontSize: 13, color: "#aab2c8", marginBottom: 8 }}>Working capital freed · 30-day credit (coming soon)</div>
               <div style={{ fontFamily: GROTESK, fontSize: 40, fontWeight: 600, color: "#fff", letterSpacing: "-1px" }}>₹{fmtCr(capitalFreed)}</div>
             </div>
             <div

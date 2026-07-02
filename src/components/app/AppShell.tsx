@@ -135,7 +135,7 @@ export default function AppShell({ products, content, user }: { products: Produc
     });
     setCart(next);
     setScreen("cart");
-    setPay("credit");
+    setPay("now"); // credit is waitlist-only until the NBFC feature ships
     scrollTop();
     flash("Auto-PO loaded · review and release");
   };
@@ -213,16 +213,16 @@ export default function AppShell({ products, content, user }: { products: Produc
           );
         })}
 
-        <div style={{ marginTop: "auto", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 14 }}>
-          <div style={{ fontSize: 11, color: "#9aa3b8", marginBottom: 7 }}>NBFC credit line</div>
-          <div style={{ fontFamily: GROTESK, fontSize: 16, color: "#fff", fontWeight: 600 }}>
-            ₹52.0L <span style={{ color: "#6b748c", fontSize: 12 }}>/ ₹1.2Cr</span>
+        <a href="/credit" style={{ display: "block", marginTop: "auto", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 7 }}>
+            <span style={{ fontSize: 11, color: "#9aa3b8" }}>NBFC credit line</span>
+            <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "0.5px", color: "#9DB0FF", background: "rgba(110,123,240,0.16)", padding: "2px 7px", borderRadius: 8, textTransform: "uppercase" }}>Coming soon</span>
           </div>
-          <div style={{ height: 5, background: "rgba(255,255,255,0.12)", borderRadius: 3, marginTop: 9, overflow: "hidden" }}>
-            <div style={{ width: "43%", height: "100%", background: "linear-gradient(90deg,#5b3aa6,#e0612a)" }} />
+          <div style={{ fontFamily: GROTESK, fontSize: 14.5, color: "#fff", fontWeight: 600, lineHeight: 1.35 }}>
+            30-day purchase credit with NBFC partners.
           </div>
-          <div style={{ fontSize: 10.5, color: "#6b748c", marginTop: 7 }}>₹68.0L available · via Elume NBFC partners</div>
-        </div>
+          <div style={{ fontSize: 10.5, color: "#9DB0FF", marginTop: 8, fontWeight: 600 }}>Join the waitlist →</div>
+        </a>
       </div>
 
       {/* ===================== MAIN ===================== */}
@@ -671,7 +671,6 @@ function Cart({
 }) {
   const sel = (on: boolean) => ({ bd: on ? "#4E5BDC" : "#E8EBF1", bg: on ? "#F7F8FF" : "#fff", dot: on ? "#4E5BDC" : "#C7CEDC", fill: on ? "#4E5BDC" : "transparent" });
   const pn = sel(!credit);
-  const cr = sel(credit);
 
   if (cart.length === 0) {
     return (
@@ -766,24 +765,21 @@ function Cart({
                 <div style={{ fontSize: 11.5, color: "#8A93A6" }}>Settle the full amount when goods arrive</div>
               </div>
             </div>
-            <div onClick={() => setPay("credit")} style={{ border: `1.5px solid ${cr.bd}`, background: cr.bg, borderRadius: 11, padding: 13, cursor: "pointer" }}>
+            <a href="/credit" style={{ display: "block", border: "1.5px solid #E8EBF1", background: "#FAFBFD", borderRadius: 11, padding: 13, cursor: "pointer" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
-                <div style={{ width: 18, height: 18, borderRadius: "50%", border: `2px solid ${cr.dot}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: cr.fill }} />
+                <div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #D5DAE4", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: "transparent" }} />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600 }}>
-                    Elume Credit · 30 days <span style={{ fontSize: 10, color: "#4E5BDC", background: "#EEF0FD", padding: "2px 7px", borderRadius: 10, marginLeft: 4 }}>NBFC partner</span>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#56627A" }}>
+                    Elume Credit · 30 days <span style={{ fontSize: 10, fontWeight: 700, color: "#4E5BDC", background: "#EEF0FD", padding: "2px 7px", borderRadius: 10, marginLeft: 4, letterSpacing: "0.4px", textTransform: "uppercase" }}>Coming soon</span>
                   </div>
-                  <div style={{ fontSize: 11.5, color: "#8A93A6" }}>Pre-approved · pay nothing today</div>
+                  <div style={{ fontSize: 11.5, color: "#8A93A6" }}>
+                    30-day NBFC credit is in development — <span style={{ color: "#4E5BDC", fontWeight: 600 }}>join the waitlist →</span>
+                  </div>
                 </div>
               </div>
-              {credit && (
-                <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px dashed #E0E4ED", fontSize: 12, color: "#56627A", lineHeight: 1.6 }}>
-                  Due Thu, 25 Jul · 0% for 30 days, then 1.5%/mo. Funded by Elume&apos;s NBFC partner — approval powered by your on-platform repayment history.
-                </div>
-              )}
-            </div>
+            </a>
           </div>
 
           <div onClick={onPlace} style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14.5, textAlign: "center", padding: 15, borderRadius: 12, cursor: "pointer" }}>

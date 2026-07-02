@@ -26,6 +26,8 @@ export default function ProductDetail({
   onAdd,
   onProject,
   onSignIn,
+  ratingSummary,
+  variantSlot,
 }: {
   p: Product;
   qty: number;
@@ -35,6 +37,10 @@ export default function ProductDetail({
   onAdd?: () => void;
   onProject?: () => void;
   onSignIn?: () => void;
+  /** Optional slots (public storefront): star summary next to the brand row,
+   *  and a variant picker rendered between the title and the price. */
+  ratingSummary?: React.ReactNode;
+  variantSlot?: React.ReactNode;
 }) {
   const chart = buildProductChart(p);
   const off = offMrpPct(p.price, p.market) + "%";
@@ -47,6 +53,7 @@ export default function ProductDetail({
     { k: "Specification", v: p.spec },
     { k: "SKU", v: p.sku },
     { k: "Availability", v: "In stock · ships in 24h" },
+    { k: "Delivery", v: "Pan-India · 3–7 working days" },
   ];
   return (
     <div style={{ padding: "22px 30px 40px", maxWidth: 1120, margin: "0 auto", animation: "elumeFade .35s ease" }}>
@@ -81,8 +88,11 @@ export default function ProductDetail({
               <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#1F9D63" }} />
               <span style={{ fontSize: 12.5, color: "#8A93A6", fontWeight: 600 }}>{p.brand}</span>
               <span style={{ fontSize: 11, color: "#1F9D63", fontWeight: 600 }}>· In stock</span>
+              {ratingSummary && <span style={{ marginLeft: 6 }}>{ratingSummary}</span>}
             </div>
             <h2 style={{ fontFamily: GROTESK, fontSize: 25, fontWeight: 600, letterSpacing: "-0.5px", margin: "0 0 16px" }}>{p.name}</h2>
+
+            {variantSlot}
 
             {/* Elume price (single unit) */}
             <div style={{ display: "flex", alignItems: "flex-end", gap: 10, marginBottom: 4 }}>
@@ -128,7 +138,11 @@ export default function ProductDetail({
             )}
             {variant === "public" && (
               <div style={{ fontSize: 12, color: "#8A93A6", marginTop: 12 }}>
-                Ordering, purchase orders, and 30-day NBFC credit are available to signed-in buyers.
+                🚚 Delivered pan-India · 30-day NBFC credit is coming soon —{" "}
+                <a href="/credit" style={{ color: "#4E5BDC", fontWeight: 600 }}>
+                  join the waitlist
+                </a>
+                .
               </div>
             )}
           </div>

@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { fetchProduct } from "@/lib/products";
+import { fetchProduct, fetchVariantSiblings } from "@/lib/products";
+import { fetchReviews } from "@/lib/reviews";
 import { wholesalePrice } from "@/lib/pricing";
 import PublicProductView from "@/components/storefront/PublicProductView";
+import ReviewsSection from "@/components/storefront/ReviewsSection";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +31,11 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   const product = await fetchProduct(id);
   if (!product) notFound();
 
+  const [siblings, reviews] = await Promise.all([
+    product.variantGroup ? fetchVariantSiblings(product.variantGroup) : Promise.resolve([]),
+    fetchReviews(product.id),
+  ]);
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -38,12 +45,17 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     brand: { "@type": "Brand", name: product.brand },
     description: product.spec || product.name,
     image: product.image ? [product.image] : undefined,
+    aggregateRating:
+      product.rating && product.ratingCount
+        ? { "@type": "AggregateRating", ratingValue: product.rating, reviewCount: product.ratingCount }
+        : undefined,
     offers: {
       "@type": "Offer",
       url: `${SITE}/catalogue/${product.id}`,
       priceCurrency: "INR",
       price: product.price,
       availability: "https://schema.org/InStock",
+      areaServed: { "@type": "Country", name: "India" },
       seller: { "@type": "Organization", name: "Elume" },
     },
   };
@@ -51,7 +63,8 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <PublicProductView p={product} />
+      <PublicProductView p={product} siblings={siblings} />
+      <ReviewsSection productId={product.id} reviews={reviews} />
     </>
   );
 }
