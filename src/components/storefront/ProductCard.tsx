@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import ImageSlot from "@/components/ImageSlot";
 import Rating from "@/components/storefront/Rating";
 import { GROTESK, MONO } from "@/lib/fonts";
@@ -16,7 +15,8 @@ const MAX_SWATCHES = 5;
  * Product tile used across the public store — catalogue grid and home shelves.
  * `fixedWidth` pins the card for horizontal-scroll shelves; grids leave it off.
  * When `siblings` (variant family) is passed, hovering the card reveals
- * Amazon-style colour/size swatches that jump straight to that variant.
+ * Amazon-style colour/size swatches. Clicking a swatch swaps THIS CARD to
+ * that variant in place (name, price, SKU, link all update) — no navigation.
  */
 export default function ProductCard({
   p,
@@ -27,11 +27,12 @@ export default function ProductCard({
   fixedWidth?: number;
   siblings?: Product[];
 }) {
-  const router = useRouter();
   const [hover, setHover] = useState(false);
-  const save = Math.round((1 - p.price / p.market) * 100) + "%";
+  // The variant currently shown on this card — swatch clicks swap it in place.
+  const [shown, setShown] = useState(p);
+  const save = Math.round((1 - shown.price / shown.market) * 100) + "%";
 
-  const hasVariants = siblings.length > 1 && !!p.attrs;
+  const hasVariants = siblings.length > 1 && !!shown.attrs;
   const colours = hasVariants ? valuesOf(siblings, "Colour") : [];
   const sizes = hasVariants ? valuesOf(siblings, "Size") : [];
   const showSwatches = hover && (colours.length > 1 || sizes.length > 1);
@@ -39,13 +40,13 @@ export default function ProductCard({
   const jump = (e: React.MouseEvent, dim: string, value: string) => {
     e.preventDefault();
     e.stopPropagation();
-    const best = bestMatch(p, siblings, dim, value);
-    if (best) router.push(`/catalogue/${best.id}`);
+    const best = bestMatch(shown, siblings, dim, value);
+    if (best) setShown(best);
   };
 
   return (
     <Link
-      href={`/catalogue/${p.id}`}
+      href={`/catalogue/${shown.id}`}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       style={{
@@ -63,11 +64,11 @@ export default function ProductCard({
       }}
     >
       <div style={{ height: 150, position: "relative" }}>
-        <ImageSlot id={`img-${p.sku}`} tile={tileFor(p.cat)} imageUrl={p.image} />
+        <ImageSlot id={`img-${shown.sku}`} tile={tileFor(shown.cat)} imageUrl={shown.image} />
         <span
           style={{ position: "absolute", left: 11, bottom: 11, zIndex: 2, pointerEvents: "none", fontFamily: MONO, fontSize: 9.5, color: "#6b748c", background: "rgba(255,255,255,0.88)", padding: "3px 6px", borderRadius: 5 }}
         >
-          {p.sku}
+          {shown.sku}
         </span>
         <span
           style={{ position: "absolute", right: 11, bottom: 11, zIndex: 2, pointerEvents: "none", fontSize: 11, fontWeight: 700, color: "#1F9D63", background: "#fff", padding: "4px 8px", borderRadius: 6 }}
@@ -95,7 +96,7 @@ export default function ProductCard({
             {colours.length > 1 && (
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 {colours.slice(0, MAX_SWATCHES).map((v) => {
-                  const active = p.attrs?.Colour === v;
+                  const active = shown.attrs?.Colour === v;
                   return (
                     <button
                       key={v}
@@ -123,7 +124,7 @@ export default function ProductCard({
             {sizes.length > 1 && (
               <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
                 {sizes.slice(0, MAX_SWATCHES).map((v) => {
-                  const active = p.attrs?.Size === v;
+                  const active = shown.attrs?.Size === v;
                   return (
                     <button
                       key={v}
@@ -156,24 +157,24 @@ export default function ProductCard({
       <div style={{ padding: "15px 16px 16px", flex: 1, display: "flex", flexDirection: "column" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#1F9D63" }} />
-          <span style={{ fontSize: 11, color: "#8A93A6", fontWeight: 600, letterSpacing: "0.2px" }}>{p.brand}</span>
+          <span style={{ fontSize: 11, color: "#8A93A6", fontWeight: 600, letterSpacing: "0.2px" }}>{shown.brand}</span>
           {hasVariants && (
             <span style={{ fontSize: 10, fontWeight: 700, color: "#4E5BDC", background: "#EEF0FE", padding: "2px 7px", borderRadius: 8, marginLeft: "auto" }}>
               {siblings.length} options
             </span>
           )}
         </div>
-        <div style={{ fontSize: 14, fontWeight: 600, color: "#19202E", margin: "4px 0", lineHeight: 1.3 }}>{p.name}</div>
-        {p.rating && p.ratingCount ? (
+        <div style={{ fontSize: 14, fontWeight: 600, color: "#19202E", margin: "4px 0", lineHeight: 1.3 }}>{shown.name}</div>
+        {shown.rating && shown.ratingCount ? (
           <div style={{ margin: "1px 0 4px" }}>
-            <Rating rating={p.rating} count={p.ratingCount} size={12} />
+            <Rating rating={shown.rating} count={shown.ratingCount} size={12} />
           </div>
         ) : null}
-        <div style={{ fontFamily: MONO, fontSize: 10.5, color: "#8A93A6", marginBottom: 13 }}>{p.spec}</div>
+        <div style={{ fontFamily: MONO, fontSize: 10.5, color: "#8A93A6", marginBottom: 13 }}>{shown.spec}</div>
         <div style={{ marginTop: "auto" }}>
-          <div style={{ fontFamily: GROTESK, fontSize: 19, fontWeight: 600, color: "#19202E" }}>{fmt(p.price)}</div>
+          <div style={{ fontFamily: GROTESK, fontSize: 19, fontWeight: 600, color: "#19202E" }}>{fmt(shown.price)}</div>
           <div style={{ fontSize: 11.5, color: "#A0A7B5" }}>
-            MRP <span style={{ textDecoration: "line-through" }}>{fmt(p.market)}</span>
+            MRP <span style={{ textDecoration: "line-through" }}>{fmt(shown.market)}</span>
           </div>
         </div>
       </div>
