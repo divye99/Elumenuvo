@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ProductDetail from "@/components/app/ProductDetail";
 import VariantPicker from "@/components/storefront/VariantPicker";
-import Stars from "@/components/storefront/Stars";
+import Rating from "@/components/storefront/Rating";
 import type { Product } from "@/lib/data";
 
 /** Public wrapper around the shared dashboard ProductDetail (browse-only),
@@ -21,7 +21,7 @@ export default function PublicProductView({ p, siblings = [] }: { p: Product; si
       onCatalogue={() => router.push("/catalogue")}
       onSignIn={() => router.push("/app")}
       ratingSummary={
-        p.rating && p.ratingCount ? <Stars rating={p.rating} count={p.ratingCount} /> : undefined
+        p.rating && p.ratingCount ? <Rating rating={p.rating} count={p.ratingCount} /> : undefined
       }
       variantSlot={<VariantPicker p={p} siblings={siblings} />}
     />

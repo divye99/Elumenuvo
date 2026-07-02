@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import { fetchProduct, fetchFamily } from "@/lib/products";
 import { fetchReviews } from "@/lib/reviews";
 import { wholesalePrice } from "@/lib/pricing";
+import { getAllPosts, CATEGORY_TO_CATALOGUE } from "@/lib/blog";
 import PublicProductView from "@/components/storefront/PublicProductView";
+import ProductDeepDive from "@/components/storefront/ProductDeepDive";
 import ReviewsSection from "@/components/storefront/ReviewsSection";
 
 export const dynamic = "force-dynamic";
@@ -33,6 +35,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
   // Family = parent + all variations, whichever member this page is.
   const [siblings, reviews] = await Promise.all([fetchFamily(product), fetchReviews(product.id)]);
+  const guide = getAllPosts().find((post) => CATEGORY_TO_CATALOGUE[post.category] === product.cat) ?? null;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -62,6 +65,9 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <PublicProductView p={product} siblings={siblings} />
+      <div style={{ height: 18 }} />
+      <ProductDeepDive p={product} siblings={siblings} post={guide} />
+      <div style={{ height: 18 }} />
       <ReviewsSection productId={product.id} reviews={reviews} />
     </>
   );

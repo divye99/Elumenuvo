@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ImageSlot from "@/components/ImageSlot";
-import Stars from "@/components/storefront/Stars";
+import Rating from "@/components/storefront/Rating";
 import { GROTESK, MONO } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import { tileFor, type Product } from "@/lib/data";
@@ -166,7 +166,7 @@ export default function ProductCard({
         <div style={{ fontSize: 14, fontWeight: 600, color: "#19202E", margin: "4px 0", lineHeight: 1.3 }}>{p.name}</div>
         {p.rating && p.ratingCount ? (
           <div style={{ margin: "1px 0 4px" }}>
-            <Stars rating={p.rating} count={p.ratingCount} size={12} />
+            <Rating rating={p.rating} count={p.ratingCount} size={12} />
           </div>
         ) : null}
         <div style={{ fontFamily: MONO, fontSize: 10.5, color: "#8A93A6", marginBottom: 13 }}>{p.spec}</div>
