@@ -88,13 +88,14 @@ export async function fetchProduct(id: string): Promise<Product | null> {
 
 /** Sibling products in the same variant family (includes the product itself). */
 export async function fetchVariantSiblings(group: string): Promise<Product[]> {
+  const staticSiblings = FALLBACK.filter((p) => p.variantGroup === group);
   const c = client();
-  if (!c) return [];
+  if (!c) return staticSiblings;
   try {
     const { data, error } = await selectProducts(c, (q) => q.eq("variant_group", group).eq("is_active", true).order("sort_order"));
-    if (error || !data) return [];
+    if (error || !data || data.length === 0) return staticSiblings;
     return (data as Row[]).map(toProduct);
   } catch {
-    return [];
+    return staticSiblings;
   }
 }

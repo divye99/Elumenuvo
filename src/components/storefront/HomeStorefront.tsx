@@ -2,6 +2,7 @@ import Link from "next/link";
 import ProductCard from "@/components/storefront/ProductCard";
 import { GROTESK, MONO } from "@/lib/fonts";
 import { tileFor, type Product } from "@/lib/data";
+import { groupVariants } from "@/lib/variants";
 import type { BlogPost } from "@/lib/blog";
 
 const CATS = ["Wires & Cables", "Switchgear", "Modular", "Lighting", "Fans", "DB & Panels"];
@@ -15,7 +16,19 @@ const CAT_ICONS: Record<string, string> = {
   "DB & Panels": "🗄️",
 };
 
-function Shelf({ title, sub, products, seeAll }: { title: string; sub?: string; products: Product[]; seeAll: string }) {
+function Shelf({
+  title,
+  sub,
+  products,
+  seeAll,
+  groups,
+}: {
+  title: string;
+  sub?: string;
+  products: Product[];
+  seeAll: string;
+  groups: Record<string, Product[]>;
+}) {
   if (products.length === 0) return null;
   return (
     <section style={{ marginTop: 36 }}>
@@ -30,7 +43,7 @@ function Shelf({ title, sub, products, seeAll }: { title: string; sub?: string; 
       </div>
       <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 8, scrollbarWidth: "thin" }}>
         {products.map((p) => (
-          <ProductCard key={p.id} p={p} fixedWidth={236} />
+          <ProductCard key={p.id} p={p} fixedWidth={236} siblings={p.variantGroup ? groups[p.variantGroup] : undefined} />
         ))}
       </div>
     </section>
@@ -45,6 +58,7 @@ export default function HomeStorefront({ products, posts }: { products: Product[
   const deals = byDiscount.slice(0, 8);
   const brands = Array.from(new Set(products.map((p) => p.brand))).sort();
   const countFor = (cat: string) => products.filter((p) => p.cat === cat).length;
+  const groups = groupVariants(products);
 
   return (
     <main style={{ maxWidth: 1280, margin: "0 auto", padding: "0 28px 64px" }}>
@@ -119,6 +133,7 @@ export default function HomeStorefront({ products, posts }: { products: Product[
         sub="Deepest savings off MRP across the catalogue right now."
         products={deals}
         seeAll="/catalogue"
+        groups={groups}
       />
 
       {/* ── Category shelves ── */}
@@ -128,6 +143,7 @@ export default function HomeStorefront({ products, posts }: { products: Product[
           title={cat}
           products={products.filter((p) => p.cat === cat).slice(0, 8)}
           seeAll={`/catalogue?cat=${encodeURIComponent(cat)}`}
+          groups={groups}
         />
       ))}
 
