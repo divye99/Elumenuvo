@@ -72,36 +72,14 @@ export default function HomeStorefront({ products, posts }: { products: Product[
             <br />
             One transparent price list.
           </h1>
-          <p style={{ fontSize: 15.5, color: "#C6CDE2", margin: "14px 0 22px", lineHeight: 1.55, maxWidth: 520 }}>
-            Wires, switchgear, switches, lighting, fans and panels — MRP shown on every product, the
-            Elume price below it, and a wholesale rate that kicks in automatically at 15+ units.
-          </p>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <div style={{ marginTop: 22 }}>
             <Link
               href="/catalogue"
-              style={{ background: "#fff", color: "#19202E", fontSize: 14, fontWeight: 700, padding: "12px 22px", borderRadius: 11 }}
+              style={{ display: "inline-block", background: "#fff", color: "#19202E", fontSize: 14, fontWeight: 700, padding: "12px 22px", borderRadius: 11 }}
             >
               Shop the catalogue
             </Link>
-            <Link
-              href="/blog"
-              style={{ border: "1px solid rgba(255,255,255,0.35)", color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 22px", borderRadius: 11 }}
-            >
-              Read buying guides
-            </Link>
           </div>
-        </div>
-        <div style={{ display: "flex", gap: 12 }}>
-          {[
-            ["MRP", "printed price", "#8A93A6"],
-            ["Elume", "our price", "#9DB0FF"],
-            ["Wholesale", "−5% at 15+ units", "#7EE2AE"],
-          ].map(([k, v, c]) => (
-            <div key={k} style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 14, padding: "16px 18px", minWidth: 118 }}>
-              <div style={{ fontFamily: GROTESK, fontSize: 17, fontWeight: 600, color: c as string }}>{k}</div>
-              <div style={{ fontSize: 11.5, color: "#AAB3C9", marginTop: 4 }}>{v}</div>
-            </div>
-          ))}
         </div>
       </section>
 

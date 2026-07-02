@@ -44,10 +44,6 @@ export default function CatalogueBrowser({
         <h1 style={{ fontFamily: GROTESK, fontSize: 32, fontWeight: 600, letterSpacing: "-0.8px", margin: 0 }}>
           The FMEG catalogue
         </h1>
-        <p style={{ fontSize: 15, color: "#56627A", margin: "8px 0 0", maxWidth: 640 }}>
-          Every major brand in one place — wires, switchgear, lighting, fans and more. Each shows
-          the MRP, our Elume price, and a wholesale rate at 15+ units.
-        </p>
       </div>
 
       {/* Search */}
