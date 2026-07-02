@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { fetchProduct, fetchVariantSiblings } from "@/lib/products";
+import { fetchProduct, fetchFamily } from "@/lib/products";
 import { fetchReviews } from "@/lib/reviews";
 import { wholesalePrice } from "@/lib/pricing";
 import PublicProductView from "@/components/storefront/PublicProductView";
@@ -31,10 +31,8 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   const product = await fetchProduct(id);
   if (!product) notFound();
 
-  const [siblings, reviews] = await Promise.all([
-    product.variantGroup ? fetchVariantSiblings(product.variantGroup) : Promise.resolve([]),
-    fetchReviews(product.id),
-  ]);
+  // Family = parent + all variations, whichever member this page is.
+  const [siblings, reviews] = await Promise.all([fetchFamily(product), fetchReviews(product.id)]);
 
   const jsonLd = {
     "@context": "https://schema.org",

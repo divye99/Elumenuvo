@@ -1,7 +1,8 @@
 import type { Product } from "@/lib/data";
 
 /** Shared variant logic — used by the detail-page picker and the catalogue
- *  hover swatches. Siblings share `variantGroup` and differ by `attrs`. */
+ *  hover swatches. Variations point at their parent product via `parentId`;
+ *  a family is the parent + all its children, differing by `attrs`. */
 
 export const DIM_ORDER = ["Size", "Colour", "Length", "Quality"];
 
@@ -49,12 +50,19 @@ export function bestMatch(current: Product, siblings: Product[], dim: string, va
   return [...candidates].sort((a, b) => score(b) - score(a))[0];
 }
 
-/** Group a product list by variantGroup (groups with 2+ members only). */
+/** Family key for a product: its parent's id (or its own id if it IS the
+ *  parent / standalone). */
+export function familyKey(p: Product): string {
+  return p.parentId ?? p.id;
+}
+
+/** Group a product list into variant families keyed by the parent id.
+ *  A family = parent + children; families with fewer than 2 members are
+ *  dropped (standalone products have no swatches/picker). */
 export function groupVariants(products: Product[]): Record<string, Product[]> {
   const groups: Record<string, Product[]> = {};
   for (const p of products) {
-    if (!p.variantGroup) continue;
-    (groups[p.variantGroup] ??= []).push(p);
+    (groups[familyKey(p)] ??= []).push(p);
   }
   for (const key of Object.keys(groups)) {
     if (groups[key].length < 2) delete groups[key];

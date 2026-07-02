@@ -2,7 +2,7 @@ import Link from "next/link";
 import ProductCard from "@/components/storefront/ProductCard";
 import { GROTESK, MONO } from "@/lib/fonts";
 import { tileFor, type Product } from "@/lib/data";
-import { groupVariants } from "@/lib/variants";
+import { groupVariants, familyKey } from "@/lib/variants";
 import type { BlogPost } from "@/lib/blog";
 
 const CATS = ["Wires & Cables", "Switchgear", "Modular", "Lighting", "Fans", "DB & Panels"];
@@ -43,7 +43,7 @@ function Shelf({
       </div>
       <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 8, scrollbarWidth: "thin" }}>
         {products.map((p) => (
-          <ProductCard key={p.id} p={p} fixedWidth={236} siblings={p.variantGroup ? groups[p.variantGroup] : undefined} />
+          <ProductCard key={p.id} p={p} fixedWidth={236} siblings={groups[familyKey(p)]} />
         ))}
       </div>
     </section>

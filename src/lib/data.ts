@@ -17,87 +17,15 @@ export type Product = {
   /** Sort signals (Supabase-managed; default 0/false for static fallback). */
   unitsSold?: number;
   recommended?: boolean;
-  /** Variant family — siblings share a group and differ by `attrs` (Size/Colour/Length/Quality…). */
-  variantGroup?: string;
+  /** Variant family — variations point at their parent product via parentId
+   *  (null/undefined = parent or standalone). Family = parent + children. */
+  parentId?: string;
   attrs?: Record<string, string>;
 };
 
-export const PRODUCTS: Product[] = [
-  { id: "poly25",   brand: "Polycab",   name: "FRLS Wire 2.5 mm²",       spec: "90 m coil · 1100 V · red",  sku: "POLY-FRLS-2.5", cat: "Wires & Cables", price: 1842, market: 1995, unit: "coil", variantGroup: "polycab-housewire", attrs: { Size: "2.5 sq mm", Length: "90 m", Quality: "FRLS" } },
-  { id: "hav32",    brand: "Havells",   name: "DP MCB 32A 'C' curve",    spec: "10 kA · 2-pole · BIS",      sku: "HAV-MCB-32C",   cat: "Switchgear",     price: 486,  market: 540,  unit: "pc" },
-  { id: "schrccb",  brand: "Schneider", name: "Acti9 RCCB 40A 30mA",     spec: "4-pole · Type AC",          sku: "SCH-A9-RCCB40", cat: "Switchgear",     price: 2180, market: 2460, unit: "pc" },
-  { id: "leg1w",    brand: "Legrand",   name: "Myrius 1-way Switch 16A", spec: "Modular · white",           sku: "LEG-MYR-1W16",  cat: "Modular",        price: 128,  market: 148,  unit: "pc" },
-  { id: "crmfan",   brand: "Crompton",  name: "Hill Briz 1200mm Fan",    spec: "BLDC · 28 W · brown",       sku: "CRM-HB-1200",   cat: "Fans",           price: 1640, market: 1820, unit: "pc" },
-  { id: "finfr4",   brand: "Finolex",   name: "FR Wire 4 mm²",           spec: "90 m coil · 1100 V",        sku: "FIN-FR-4.0",    cat: "Wires & Cables", price: 2910, market: 3150, unit: "coil", variantGroup: "finolex-fr", attrs: { Size: "4.0 sq mm", Length: "90 m", Quality: "FR" } },
-  { id: "abbdb8",   brand: "ABB",       name: "8-way DB · SPN",          spec: "IP43 · double door",        sku: "ABB-DB-8SPN",   cat: "DB & Panels",    price: 1420, market: 1610, unit: "pc" },
-  { id: "sysled",   brand: "Syska",     name: "LED Bulb 9W (pack of 4)", spec: "6500 K · B22",              sku: "SYS-LED-9",     cat: "Lighting",       price: 540,  market: 620,  unit: "pack" },
-  { id: "ancroma",  brand: "Anchor",    name: "Roma 6A Socket",          spec: "Modular · 2/3-pin",         sku: "ANC-ROMA-6",    cat: "Modular",        price: 96,   market: 112,  unit: "pc" },
-  { id: "poly15",   brand: "Polycab",   name: "FRLS Wire 1.5 mm²",       spec: "90 m coil · 1100 V · blue", sku: "POLY-FRLS-1.5", cat: "Wires & Cables", price: 1180, market: 1290, unit: "coil", variantGroup: "polycab-housewire", attrs: { Size: "1.5 sq mm", Length: "90 m", Quality: "FRLS" } },
-  { id: "havpanel", brand: "Havells",   name: "LED Panel 18W · DW",      spec: "Recessed · square",         sku: "HAV-LED-18",    cat: "Lighting",       price: 420,  market: 485,  unit: "pc" },
-  { id: "schliv",   brand: "Schneider", name: "Livia 2M Socket",         spec: "16A · modular",             sku: "SCH-LIV-2M",    cat: "Modular",        price: 210,  market: 240,  unit: "pc" },
+// The catalogue lives in Supabase (public.products) — no static copy here.
+// See supabase/catalogue-v2.sql for schema + seed.
 
-  // ── CMI WIRES & CABLES · GreenShield single-core copper house wires (90 m coil) ──
-  // From the CMI Amazon brand store: price = store price, market = MRP.
-  { id: "cmi-gs-10-red", brand: "CMI", name: "GreenShield House Wire 1.0 sq mm — Red",    spec: "90 m coil · single-core copper · FR PVC · 10-yr warranty", sku: "CMI-GS-1.0-RED", cat: "Wires & Cables", price: 1659, market: 3000, unit: "coil", variantGroup: "cmi-greenshield", attrs: { Size: "1.0 sq mm", Colour: "Red", Length: "90 m", Quality: "FR" } },
-  { id: "cmi-gs-15-red", brand: "CMI", name: "GreenShield House Wire 1.5 sq mm — Red",    spec: "90 m coil · single-core copper · FR PVC · 10-yr warranty", sku: "CMI-GS-1.5-RED", cat: "Wires & Cables", price: 2426, market: 4480, unit: "coil", variantGroup: "cmi-greenshield", attrs: { Size: "1.5 sq mm", Colour: "Red", Length: "90 m", Quality: "FR" } },
-  { id: "cmi-gs-25-red", brand: "CMI", name: "GreenShield House Wire 2.5 sq mm — Red",    spec: "90 m coil · single-core copper · FR PVC · 10-yr warranty", sku: "CMI-GS-2.5-RED", cat: "Wires & Cables", price: 3840, market: 6080, unit: "coil", variantGroup: "cmi-greenshield", attrs: { Size: "2.5 sq mm", Colour: "Red", Length: "90 m", Quality: "FR" } },
-  { id: "cmi-gs-10-blu", brand: "CMI", name: "GreenShield House Wire 1.0 sq mm — Blue",   spec: "90 m coil · single-core copper · FR PVC · 10-yr warranty", sku: "CMI-GS-1.0-BLU", cat: "Wires & Cables", price: 1659, market: 3000, unit: "coil", variantGroup: "cmi-greenshield", attrs: { Size: "1.0 sq mm", Colour: "Blue", Length: "90 m", Quality: "FR" } },
-  { id: "cmi-gs-15-blu", brand: "CMI", name: "GreenShield House Wire 1.5 sq mm — Blue",   spec: "90 m coil · single-core copper · FR PVC · 10-yr warranty", sku: "CMI-GS-1.5-BLU", cat: "Wires & Cables", price: 2426, market: 4480, unit: "coil", variantGroup: "cmi-greenshield", attrs: { Size: "1.5 sq mm", Colour: "Blue", Length: "90 m", Quality: "FR" } },
-  { id: "cmi-gs-25-blu", brand: "CMI", name: "GreenShield House Wire 2.5 sq mm — Blue",   spec: "90 m coil · single-core copper · FR PVC · 10-yr warranty", sku: "CMI-GS-2.5-BLU", cat: "Wires & Cables", price: 3840, market: 6080, unit: "coil", variantGroup: "cmi-greenshield", attrs: { Size: "2.5 sq mm", Colour: "Blue", Length: "90 m", Quality: "FR" } },
-  { id: "cmi-gs-10-blk", brand: "CMI", name: "GreenShield House Wire 1.0 sq mm — Black",  spec: "90 m coil · single-core copper · FR PVC · 10-yr warranty", sku: "CMI-GS-1.0-BLK", cat: "Wires & Cables", price: 1659, market: 3000, unit: "coil", variantGroup: "cmi-greenshield", attrs: { Size: "1.0 sq mm", Colour: "Black", Length: "90 m", Quality: "FR" } },
-  { id: "cmi-gs-15-blk", brand: "CMI", name: "GreenShield House Wire 1.5 sq mm — Black",  spec: "90 m coil · single-core copper · FR PVC · 10-yr warranty", sku: "CMI-GS-1.5-BLK", cat: "Wires & Cables", price: 2426, market: 4480, unit: "coil", variantGroup: "cmi-greenshield", attrs: { Size: "1.5 sq mm", Colour: "Black", Length: "90 m", Quality: "FR" } },
-  { id: "cmi-gs-25-blk", brand: "CMI", name: "GreenShield House Wire 2.5 sq mm — Black",  spec: "90 m coil · single-core copper · FR PVC · 10-yr warranty", sku: "CMI-GS-2.5-BLK", cat: "Wires & Cables", price: 3840, market: 6080, unit: "coil", variantGroup: "cmi-greenshield", attrs: { Size: "2.5 sq mm", Colour: "Black", Length: "90 m", Quality: "FR" } },
-  { id: "cmi-gs-10-yel", brand: "CMI", name: "GreenShield House Wire 1.0 sq mm — Yellow", spec: "90 m coil · single-core copper · FR PVC · 10-yr warranty", sku: "CMI-GS-1.0-YEL", cat: "Wires & Cables", price: 1659, market: 3000, unit: "coil", variantGroup: "cmi-greenshield", attrs: { Size: "1.0 sq mm", Colour: "Yellow", Length: "90 m", Quality: "FR" } },
-  { id: "cmi-gs-15-yel", brand: "CMI", name: "GreenShield House Wire 1.5 sq mm — Yellow", spec: "90 m coil · single-core copper · FR PVC · 10-yr warranty", sku: "CMI-GS-1.5-YEL", cat: "Wires & Cables", price: 2426, market: 4480, unit: "coil", variantGroup: "cmi-greenshield", attrs: { Size: "1.5 sq mm", Colour: "Yellow", Length: "90 m", Quality: "FR" } },
-  { id: "cmi-gs-25-yel", brand: "CMI", name: "GreenShield House Wire 2.5 sq mm — Yellow", spec: "90 m coil · single-core copper · FR PVC · 10-yr warranty", sku: "CMI-GS-2.5-YEL", cat: "Wires & Cables", price: 4249, market: 7000, unit: "coil", variantGroup: "cmi-greenshield", attrs: { Size: "2.5 sq mm", Colour: "Yellow", Length: "90 m", Quality: "FR" } },
-  // ── Catalogue expansion (mirrors supabase/catalogue-additions.sql) ──
-  { id: "kei-fr-15", brand: "KEI", name: "Conflame FR Wire 1.5 sq mm", spec: "90 m coil · single-core copper · 1100 V", sku: "KEI-FR-1.5", cat: "Wires & Cables", price: 1290, market: 2149, unit: "coil", variantGroup: "kei-conflame", attrs: { Size: "1.5 sq mm", Length: "90 m", Quality: "FR" } },
-  { id: "kei-fr-25", brand: "KEI", name: "Conflame FR Wire 2.5 sq mm", spec: "90 m coil · single-core copper · 1100 V", sku: "KEI-FR-2.5", cat: "Wires & Cables", price: 2100, market: 3499, unit: "coil", variantGroup: "kei-conflame", attrs: { Size: "2.5 sq mm", Length: "90 m", Quality: "FR" } },
-  { id: "rr-fr-15", brand: "RR Kabel", name: "Superex FR Wire 1.5 sq mm", spec: "90 m coil · single-core copper · HR PVC", sku: "RR-SFR-1.5", cat: "Wires & Cables", price: 1350, market: 2260, unit: "coil", variantGroup: "rr-superex", attrs: { Size: "1.5 sq mm", Length: "90 m", Quality: "FR" } },
-  { id: "rr-fr-25", brand: "RR Kabel", name: "Superex FR Wire 2.5 sq mm", spec: "90 m coil · single-core copper · HR PVC", sku: "RR-SFR-2.5", cat: "Wires & Cables", price: 2230, market: 3690, unit: "coil", variantGroup: "rr-superex", attrs: { Size: "2.5 sq mm", Length: "90 m", Quality: "FR" } },
-  { id: "hav-ll-15", brand: "Havells", name: "Life Line FR Wire 1.5 sq mm", spec: "90 m coil · single-core copper · FR PVC", sku: "HAV-LL-1.5", cat: "Wires & Cables", price: 1420, market: 2249, unit: "coil", variantGroup: "havells-lifeline", attrs: { Size: "1.5 sq mm", Length: "90 m", Quality: "FR" } },
-  { id: "hav-ll-25", brand: "Havells", name: "Life Line FR Wire 2.5 sq mm", spec: "90 m coil · single-core copper · FR PVC", sku: "HAV-LL-2.5", cat: "Wires & Cables", price: 2350, market: 3699, unit: "coil", variantGroup: "havells-lifeline", attrs: { Size: "2.5 sq mm", Length: "90 m", Quality: "FR" } },
-  { id: "fin-fr-10", brand: "Finolex", name: "FR Wire 1.0 sq mm", spec: "90 m coil · single-core copper · 1100 V", sku: "FIN-FR-1.0", cat: "Wires & Cables", price: 999, market: 1539, unit: "coil", variantGroup: "finolex-fr", attrs: { Size: "1.0 sq mm", Length: "90 m", Quality: "FR" } },
-  { id: "poly-fr-60", brand: "Polycab", name: "FRLS Wire 6.0 sq mm", spec: "90 m coil · single-core copper · 1100 V", sku: "POLY-FR-6.0", cat: "Wires & Cables", price: 4480, market: 6999, unit: "coil", variantGroup: "polycab-housewire", attrs: { Size: "6.0 sq mm", Length: "90 m", Quality: "FR" } },
-  { id: "poly-flex-3c15", brand: "Polycab", name: "Flexible Cable 3-core 1.5 sq mm", spec: "100 m · round sheathed · copper", sku: "POLY-FLX-3C1.5", cat: "Wires & Cables", price: 4340, market: 6200, unit: "coil" },
-  { id: "hav-mcb-6b", brand: "Havells", name: "SP MCB 6A 'B' curve", spec: "10 kA · 1-pole · IS/IEC 60898", sku: "HAV-MCB-6B", cat: "Switchgear", price: 132, market: 190, unit: "pc" },
-  { id: "hav-mcb-16c", brand: "Havells", name: "SP MCB 16A 'C' curve", spec: "10 kA · 1-pole · IS/IEC 60898", sku: "HAV-MCB-16C", cat: "Switchgear", price: 142, market: 205, unit: "pc" },
-  { id: "hav-mcb-32c-sp", brand: "Havells", name: "SP MCB 32A 'C' curve", spec: "10 kA · 1-pole · IS/IEC 60898", sku: "HAV-MCB-32C-SP", cat: "Switchgear", price: 149, market: 215, unit: "pc" },
-  { id: "sch-mcb-32", brand: "Schneider", name: "Acti9 SP MCB 32A", spec: "10 kA · 1-pole · C curve", sku: "SCH-A9-MCB32", cat: "Switchgear", price: 218, market: 302, unit: "pc" },
-  { id: "leg-mcb-16", brand: "Legrand", name: "DX3 SP MCB 16A", spec: "10 kA · 1-pole · C curve", sku: "LEG-DX3-16C", cat: "Switchgear", price: 188, market: 268, unit: "pc" },
-  { id: "abb-mcb-10", brand: "ABB", name: "SP MCB 10A", spec: "10 kA · 1-pole · C curve", sku: "ABB-SB201-10", cat: "Switchgear", price: 158, market: 226, unit: "pc" },
-  { id: "anc-mcb-16", brand: "Anchor", name: "UNO SP MCB 16A", spec: "6 kA · 1-pole · C curve", sku: "ANC-UNO-16C", cat: "Switchgear", price: 99, market: 145, unit: "pc" },
-  { id: "hav-rccb-40", brand: "Havells", name: "RCCB 40A 30mA DP", spec: "2-pole · Type AC", sku: "HAV-RCCB-40DP", cat: "Switchgear", price: 1490, market: 2100, unit: "pc" },
-  { id: "leg-rccb-63", brand: "Legrand", name: "RCCB 63A 30mA 4P", spec: "4-pole · Type AC", sku: "LEG-RCCB-63-4P", cat: "Switchgear", price: 3420, market: 4980, unit: "pc" },
-  { id: "hav-iso-40", brand: "Havells", name: "DP Isolator 40A", spec: "2-pole · switch disconnector", sku: "HAV-ISO-40DP", cat: "Switchgear", price: 335, market: 480, unit: "pc" },
-  { id: "anc-roma-16sw", brand: "Anchor", name: "Roma 16A 1-way Switch", spec: "Modular · white · urea back", sku: "ANC-ROMA-16SW", cat: "Modular", price: 105, market: 155, unit: "pc" },
-  { id: "anc-roma-2w6", brand: "Anchor", name: "Roma 6A 2-way Switch", spec: "Modular · white", sku: "ANC-ROMA-2W6", cat: "Modular", price: 63, market: 92, unit: "pc" },
-  { id: "anc-roma-reg", brand: "Anchor", name: "Roma Fan Regulator", spec: "Modular · 5-step · EME", sku: "ANC-ROMA-REG", cat: "Modular", price: 340, market: 495, unit: "pc" },
-  { id: "anc-roma-2m", brand: "Anchor", name: "Roma 2M Cover Plate", spec: "Modular · white", sku: "ANC-ROMA-2MPL", cat: "Modular", price: 45, market: 65, unit: "pc" },
-  { id: "leg-myr-6s", brand: "Legrand", name: "Myrius 6A Socket", spec: "Modular · 2/3-pin · shuttered", sku: "LEG-MYR-6S", cat: "Modular", price: 95, market: 135, unit: "pc" },
-  { id: "leg-myr-16s", brand: "Legrand", name: "Myrius 16A Socket", spec: "Modular · 6-pin · shuttered", sku: "LEG-MYR-16S", cat: "Modular", price: 168, market: 240, unit: "pc" },
-  { id: "gm-gera-1w", brand: "GM Modular", name: "G-Era 6A 1-way Switch", spec: "Modular · white", sku: "GM-GERA-1W6", cat: "Modular", price: 54, market: 78, unit: "pc" },
-  { id: "hav-coral-6", brand: "Havells", name: "Coral 6A 1-way Switch", spec: "Modular · white", sku: "HAV-CORAL-6SW", cat: "Modular", price: 38, market: 55, unit: "pc" },
-  { id: "sch-liv-6sw", brand: "Schneider", name: "Livia 6A 1-way Switch", spec: "Modular · white", sku: "SCH-LIV-6SW", cat: "Modular", price: 61, market: 88, unit: "pc" },
-  { id: "phi-led-9x2", brand: "Philips", name: "9W LED Bulb B22 (pack of 2)", spec: "6500 K · cool daylight", sku: "PHI-LED-9X2", cat: "Lighting", price: 315, market: 499, unit: "pack" },
-  { id: "crm-led-10", brand: "Crompton", name: "10W LED Bulb B22", spec: "6500 K · high lumen", sku: "CRM-LED-10", cat: "Lighting", price: 199, market: 349, unit: "pc" },
-  { id: "wip-bat-20", brand: "Wipro", name: "Garnet 20W LED Batten 4ft", spec: "6500 K · slim profile", sku: "WIP-GAR-20", cat: "Lighting", price: 385, market: 599, unit: "pc" },
-  { id: "sys-bat-20", brand: "Syska", name: "20W LED Batten 4ft", spec: "6500 K · polycarbonate", sku: "SYS-BAT-20", cat: "Lighting", price: 355, market: 550, unit: "pc" },
-  { id: "hav-pnl-15r", brand: "Havells", name: "15W LED Panel · Round", spec: "Recessed · 6500 K", sku: "HAV-PNL-15R", cat: "Lighting", price: 470, market: 750, unit: "pc" },
-  { id: "sys-fld-30", brand: "Syska", name: "30W LED Flood Light", spec: "IP66 · 6500 K", sku: "SYS-FLD-30", cat: "Lighting", price: 940, market: 1499, unit: "pc" },
-  { id: "phi-str-24", brand: "Philips", name: "24W LED Street Light", spec: "IP65 · 6500 K · driver on board", sku: "PHI-STR-24", cat: "Lighting", price: 1690, market: 2450, unit: "pc" },
-  { id: "atm-ren-1200", brand: "Atomberg", name: "Renesa 1200mm BLDC Fan", spec: "BLDC · 28 W · remote · 5-star", sku: "ATM-REN-1200", cat: "Fans", price: 3290, market: 4700, unit: "pc" },
-  { id: "hav-amb-1200", brand: "Havells", name: "Ambrose 1200mm Fan", spec: "Decorative · premium finish", sku: "HAV-AMB-1200", cat: "Fans", price: 3230, market: 4870, unit: "pc" },
-  { id: "usha-racer-1200", brand: "Usha", name: "Racer 1200mm Fan", spec: "High speed · 400 RPM", sku: "USHA-RACER-1200", cat: "Fans", price: 1780, market: 2570, unit: "pc" },
-  { id: "ori-aero-1200", brand: "Orient", name: "Aeroquiet 1200mm Fan", spec: "Silent aerodynamic · 18-pole motor", sku: "ORI-AERO-1200", cat: "Fans", price: 3950, market: 5730, unit: "pc" },
-  { id: "crm-exh-250", brand: "Crompton", name: "Brizair 250mm Exhaust Fan", spec: "High air delivery · white", sku: "CRM-BRIZ-250", cat: "Fans", price: 1230, market: 1850, unit: "pc" },
-  { id: "hav-vent-230", brand: "Havells", name: "Ventilair 230mm Exhaust Fan", spec: "DSP · grey", sku: "HAV-VENT-230", cat: "Fans", price: 1440, market: 2145, unit: "pc" },
-  { id: "hav-db-8spn", brand: "Havells", name: "8-way SPN DB · Double Door", spec: "IP43 · CRCA steel · powder coated", sku: "HAV-DB-8SPN", cat: "DB & Panels", price: 1160, market: 1720, unit: "pc" },
-  { id: "leg-db-12spn", brand: "Legrand", name: "Ekinoxe 12-way SPN DB", spec: "IP43 · double door", sku: "LEG-EKX-12SPN", cat: "DB & Panels", price: 1690, market: 2480, unit: "pc" },
-  { id: "abb-db-4spn", brand: "ABB", name: "4-way SPN DB", spec: "IP43 · single door", sku: "ABB-DB-4SPN", cat: "DB & Panels", price: 690, market: 980, unit: "pc" },
-  { id: "sch-db-8tpn", brand: "Schneider", name: "Easy9 8-way TPN DB", spec: "IP43 · double door", sku: "SCH-E9-8TPN", cat: "DB & Panels", price: 2980, market: 4350, unit: "pc" },
-  { id: "hav-db-6tpn", brand: "Havells", name: "6-way TPN DB · Double Door", spec: "IP43 · CRCA steel", sku: "HAV-DB-6TPN", cat: "DB & Panels", price: 2320, market: 3390, unit: "pc" },
-];
 
 export type ShowcaseItem = {
   brand: string;

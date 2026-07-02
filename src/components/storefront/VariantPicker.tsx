@@ -5,7 +5,7 @@ import type { Product } from "@/lib/data";
 import { dimsOf, valuesOf, bestMatch, COLOUR_HEX } from "@/lib/variants";
 
 /**
- * Variant selector — siblings share a variant_group and differ by attrs
+ * Variant selector — the family (parent + variations) differs by attrs
  * (Size / Colour / Length / Quality…). Picking a value navigates to the
  * sibling that matches it best, so price/SKU/stock update naturally.
  */

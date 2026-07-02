@@ -1,11 +1,13 @@
 /**
- * Catalogue data access — reads products from Supabase (public `products` table,
- * anon read via RLS). Falls back to the static list in lib/data.ts if Supabase
- * isn't configured or the table is empty, so the storefront never breaks during
- * the migration.
+ * Catalogue data access — Supabase (public `products` table, anon read via
+ * RLS) is the single source of truth. No static fallback: if Supabase is
+ * unreachable the storefront renders an empty catalogue rather than stale data.
+ *
+ * Variant model: variations are normal product rows whose `parent_id` points
+ * at the family's parent product (parent_id NULL = parent/standalone).
  */
 import { createClient } from "@supabase/supabase-js";
-import { PRODUCTS as FALLBACK, type Product } from "@/lib/data";
+import type { Product } from "@/lib/data";
 
 type Row = {
   id: string;
@@ -20,7 +22,7 @@ type Row = {
   image_url?: string | null;
   units_sold?: number | null;
   is_recommended?: boolean | null;
-  variant_group?: string | null;
+  parent_id?: string | null;
   attrs?: Record<string, string> | null;
   reviews?: { rating: number }[];
 };
@@ -42,7 +44,7 @@ const toProduct = (r: Row): Product => {
     ratingCount: ratings.length,
     unitsSold: r.units_sold ?? 0,
     recommended: r.is_recommended ?? false,
-    variantGroup: r.variant_group ?? undefined,
+    parentId: r.parent_id ?? undefined,
     attrs: r.attrs ?? undefined,
   };
 };
@@ -64,38 +66,43 @@ async function selectProducts(c: NonNullable<ReturnType<typeof client>>, applyFi
 
 export async function fetchProducts(): Promise<Product[]> {
   const c = client();
-  if (!c) return FALLBACK;
+  if (!c) return [];
   try {
     const { data, error } = await selectProducts(c, (q) => q.eq("is_active", true).order("sort_order"));
-    if (error || !data || data.length === 0) return FALLBACK;
+    if (error || !data) return [];
     return (data as Row[]).map(toProduct);
   } catch {
-    return FALLBACK;
+    return [];
   }
 }
 
 export async function fetchProduct(id: string): Promise<Product | null> {
   const c = client();
-  if (!c) return FALLBACK.find((p) => p.id === id) ?? null;
+  if (!c) return null;
   try {
     const { data, error } = await selectProducts(c, (q) => q.eq("id", id).maybeSingle());
-    if (error || !data) return FALLBACK.find((p) => p.id === id) ?? null;
+    if (error || !data) return null;
     return toProduct(data as Row);
   } catch {
-    return FALLBACK.find((p) => p.id === id) ?? null;
+    return null;
   }
 }
 
-/** Sibling products in the same variant family (includes the product itself). */
-export async function fetchVariantSiblings(group: string): Promise<Product[]> {
-  const staticSiblings = FALLBACK.filter((p) => p.variantGroup === group);
+/**
+ * Full variant family for a product: the parent + every variation, whichever
+ * member you start from. Returns [] when the product has no family.
+ */
+export async function fetchFamily(p: Pick<Product, "id" | "parentId">): Promise<Product[]> {
   const c = client();
-  if (!c) return staticSiblings;
+  if (!c) return [];
+  const root = p.parentId ?? p.id;
   try {
-    const { data, error } = await selectProducts(c, (q) => q.eq("variant_group", group).eq("is_active", true).order("sort_order"));
-    if (error || !data || data.length === 0) return staticSiblings;
+    const { data, error } = await selectProducts(c, (q) =>
+      q.or(`id.eq.${root},parent_id.eq.${root}`).eq("is_active", true).order("sort_order")
+    );
+    if (error || !data || data.length < 2) return [];
     return (data as Row[]).map(toProduct);
   } catch {
-    return staticSiblings;
+    return [];
   }
 }

@@ -4,7 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import ProductCard from "@/components/storefront/ProductCard";
 import { GROTESK } from "@/lib/fonts";
 import { CATS, type Product } from "@/lib/data";
-import { groupVariants } from "@/lib/variants";
+import { groupVariants, familyKey } from "@/lib/variants";
 
 const CAT_ICONS: Record<string, string> = {
   All: "◈",
@@ -397,7 +397,7 @@ export default function CatalogueBrowser({
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(232px, 1fr))", gap: 16 }}>
           {filtered.map((p) => (
-            <ProductCard key={p.id} p={p} siblings={p.variantGroup ? variantGroups[p.variantGroup] : undefined} />
+            <ProductCard key={p.id} p={p} siblings={variantGroups[familyKey(p)]} />
           ))}
         </div>
       )}
