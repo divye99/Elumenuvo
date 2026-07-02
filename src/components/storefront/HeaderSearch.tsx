@@ -21,6 +21,7 @@ export default function HeaderSearch({ compact = false }: { compact?: boolean })
       }}
       style={{
         flex: 1,
+        minWidth: 170,
         maxWidth: compact ? 420 : 560,
         display: "flex",
         alignItems: "center",
