@@ -12,7 +12,11 @@ export const metadata: Metadata = {
   openGraph: { title: "Elume FMEG Catalogue", description: "Multi-brand electrical goods with transparent pricing.", url: "https://elumenuvo.com/catalogue", type: "website" },
 };
 
-export default async function CataloguePage() {
-  const products = await fetchProducts();
-  return <CatalogueBrowser products={products} />;
+export default async function CataloguePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; cat?: string }>;
+}) {
+  const [{ q, cat }, products] = await Promise.all([searchParams, fetchProducts()]);
+  return <CatalogueBrowser products={products} initialQ={q ?? ""} initialCat={cat ?? "All"} />;
 }

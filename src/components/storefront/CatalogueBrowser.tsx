@@ -1,18 +1,25 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
-import ImageSlot from "@/components/ImageSlot";
-import { GROTESK, MONO } from "@/lib/fonts";
-import { fmt } from "@/lib/format";
-import { CATS, tileFor, type Product } from "@/lib/data";
+import ProductCard from "@/components/storefront/ProductCard";
+import { GROTESK } from "@/lib/fonts";
+import { CATS, type Product } from "@/lib/data";
 
 /** Public catalogue browser — search + category + brand filters over a product
- *  list supplied by the server (read from Supabase, static fallback). */
-export default function CatalogueBrowser({ products }: { products: Product[] }) {
-  const [cat, setCat] = useState("All");
+ *  list supplied by the server (read from Supabase, static fallback). Initial
+ *  search/category arrive via URL params so the home page can deep-link. */
+export default function CatalogueBrowser({
+  products,
+  initialQ = "",
+  initialCat = "All",
+}: {
+  products: Product[];
+  initialQ?: string;
+  initialCat?: string;
+}) {
+  const [cat, setCat] = useState(CATS.includes(initialCat) ? initialCat : "All");
   const [brand, setBrand] = useState("All");
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(initialQ);
 
   const brands = useMemo(
     () => ["All", ...Array.from(new Set(products.map((p) => p.brand))).sort()],
@@ -32,7 +39,7 @@ export default function CatalogueBrowser({ products }: { products: Product[] }) 
   }, [products, cat, brand, q]);
 
   return (
-    <main style={{ maxWidth: 1240, margin: "0 auto", padding: "32px 28px 56px" }}>
+    <main style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 28px 56px" }}>
       <div style={{ marginBottom: 22 }}>
         <h1 style={{ fontFamily: GROTESK, fontSize: 32, fontWeight: 600, letterSpacing: "-0.8px", margin: 0 }}>
           The FMEG catalogue
@@ -123,41 +130,9 @@ export default function CatalogueBrowser({ products }: { products: Product[] }) 
 
       {/* Grid */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
-        {filtered.map((p) => {
-          const save = Math.round((1 - p.price / p.market) * 100) + "%";
-          return (
-            <Link
-              key={p.id}
-              href={`/catalogue/${p.id}`}
-              style={{
-                background: "#fff",
-                border: "1px solid #E8EBF1",
-                borderRadius: 14,
-                overflow: "hidden",
-                display: "flex",
-                flexDirection: "column",
-              }}
-            >
-              <div style={{ height: 150, position: "relative" }}>
-                <ImageSlot id={`img-${p.sku}`} tile={tileFor(p.cat)} imageUrl={p.image} />
-                <span style={{ position: "absolute", left: 11, bottom: 11, zIndex: 2, pointerEvents: "none", fontFamily: MONO, fontSize: 9.5, color: "#6b748c", background: "rgba(255,255,255,0.88)", padding: "3px 6px", borderRadius: 5 }}>{p.sku}</span>
-                <span style={{ position: "absolute", right: 11, bottom: 11, zIndex: 2, pointerEvents: "none", fontSize: 11, fontWeight: 700, color: "#1F9D63", background: "#fff", padding: "4px 8px", borderRadius: 6 }}>↓ {save}</span>
-              </div>
-              <div style={{ padding: "15px 16px 16px", flex: 1, display: "flex", flexDirection: "column" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#1F9D63" }} />
-                  <span style={{ fontSize: 11, color: "#8A93A6", fontWeight: 600, letterSpacing: "0.2px" }}>{p.brand}</span>
-                </div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "#19202E", margin: "4px 0", lineHeight: 1.3 }}>{p.name}</div>
-                <div style={{ fontFamily: MONO, fontSize: 10.5, color: "#8A93A6", marginBottom: 13 }}>{p.spec}</div>
-                <div style={{ marginTop: "auto" }}>
-                  <div style={{ fontFamily: GROTESK, fontSize: 19, fontWeight: 600, color: "#19202E" }}>{fmt(p.price)}</div>
-                  <div style={{ fontSize: 11.5, color: "#A0A7B5" }}>MRP <span style={{ textDecoration: "line-through" }}>{fmt(p.market)}</span></div>
-                </div>
-              </div>
-            </Link>
-          );
-        })}
+        {filtered.map((p) => (
+          <ProductCard key={p.id} p={p} />
+        ))}
       </div>
     </main>
   );
