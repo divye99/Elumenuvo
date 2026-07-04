@@ -34,7 +34,10 @@ export default function ProductCard({
 
   const hasVariants = siblings.length > 1 && !!shown.attrs;
   const colours = hasVariants ? valuesOf(siblings, "Colour") : [];
-  const sizes = hasVariants ? valuesOf(siblings, "Size") : [];
+  // Size chips for wires/switchgear; fans vary by Sweep instead.
+  const plainSizes = hasVariants ? valuesOf(siblings, "Size") : [];
+  const sizeDim = plainSizes.length > 1 ? "Size" : "Sweep";
+  const sizes = hasVariants ? (plainSizes.length > 1 ? plainSizes : valuesOf(siblings, "Sweep")) : [];
   const showSwatches = hover && (colours.length > 1 || sizes.length > 1);
 
   const jump = (e: React.MouseEvent, dim: string, value: string) => {
@@ -124,11 +127,11 @@ export default function ProductCard({
             {sizes.length > 1 && (
               <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
                 {sizes.slice(0, MAX_SWATCHES).map((v) => {
-                  const active = shown.attrs?.Size === v;
+                  const active = shown.attrs?.[sizeDim] === v;
                   return (
                     <button
                       key={v}
-                      onClick={(e) => jump(e, "Size", v)}
+                      onClick={(e) => jump(e, sizeDim, v)}
                       title={`Size ${v}`}
                       style={{
                         fontSize: 10,
@@ -142,7 +145,7 @@ export default function ProductCard({
                         boxShadow: "0 2px 6px rgba(20,24,45,.08)",
                       }}
                     >
-                      {v.replace(" sq mm", "")}
+                      {v.replace(" sq mm", "").replace(" mm", "mm")}
                     </button>
                   );
                 })}

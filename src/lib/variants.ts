@@ -4,9 +4,9 @@ import type { Product } from "@/lib/data";
  *  hover swatches. Variations point at their parent product via `parentId`;
  *  a family is the parent + all its children, differing by `attrs`. */
 
-export const DIM_ORDER = ["Size", "Colour", "Length", "Quality"];
+export const DIM_ORDER = ["Size", "Sweep", "Colour", "Length", "Quality"];
 
-/** Swatch colours for known Colour attr values. */
+/** Swatch colours for known Colour/finish attr values. */
 export const COLOUR_HEX: Record<string, string> = {
   Red: "#D93025",
   Blue: "#1A73E8",
@@ -16,6 +16,22 @@ export const COLOUR_HEX: Record<string, string> = {
   White: "#FFFFFF",
   Grey: "#9AA0A6",
   Brown: "#8B5E3C",
+  // Atomberg fan finishes
+  "Pearl White": "#F2F1EC",
+  "Marble White": "#EFEFEA",
+  "Midnight Black": "#1C1E22",
+  "Matte Black": "#26282B",
+  "Earth Brown": "#6B4A32",
+  "Matte Brown": "#5E4633",
+  "Ivory & Black": "#E8E4D5",
+  "Metallic Gold": "#C9A24B",
+  "Dark Teakwood": "#4E3423",
+  "Sand Grey": "#B3AFA5",
+  // Norisys modular finishes
+  "Frost White": "#F4F5F7",
+  "Quartz Grey": "#8D9299",
+  "Charcoal Black": "#2B2E33",
+  "Scarlet Red": "#C62828",
 };
 
 /** Dimensions present across a sibling set, in display order. */
