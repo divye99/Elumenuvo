@@ -12,6 +12,10 @@ export const dynamic = "force-dynamic";
 
 const SITE = "https://elumenuvo.com";
 
+/** Image URLs stored as site-relative paths (/products/x.jpg) need the origin
+ *  prefixed for OG tags and JSON-LD. */
+const absImage = (u?: string) => (u ? (u.startsWith("http") ? u : `${SITE}${u}`) : undefined);
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const p = await fetchProduct(id);
@@ -23,7 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     title,
     description,
     alternates: { canonical: url },
-    openGraph: { title, description, url, type: "website", images: p.image ? [p.image] : undefined },
+    openGraph: { title, description, url, type: "website", images: p.image ? [absImage(p.image)!] : undefined },
     twitter: { card: "summary_large_image", title, description },
   };
 }
@@ -45,7 +49,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     category: product.cat,
     brand: { "@type": "Brand", name: product.brand },
     description: product.spec || product.name,
-    image: product.image ? [product.image] : undefined,
+    image: product.image ? [absImage(product.image)!] : undefined,
     aggregateRating:
       product.rating && product.ratingCount
         ? { "@type": "AggregateRating", ratingValue: product.rating, reviewCount: product.ratingCount }
