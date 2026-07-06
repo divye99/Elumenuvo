@@ -60,12 +60,15 @@ const TRACK_KINDS: Record<string, TrackVisual> = {
   next: { bg: "#fff", border: "2px solid #D6DBE6", fg: "#8A93A6", weight: "500" },
 };
 
-export default function AppShell({ products, content, user }: { products: Product[]; content: SiteContent; user?: { email: string } }) {
+export default function AppShell({ products, content, user }: { products: Product[]; content: SiteContent; user?: { email: string; name?: string; org?: string; accountType?: "business" | "individual"; gstin?: string } }) {
   const { projects: PROJECTS, stages: STAGES, bomRows: BOM_ROWS, parsedRows: PARSED_ROWS, trackSteps: TRACK_STEPS, categories: CATS, autoPo: AUTOPO } = content;
   const userEmail = user?.email ?? "";
-  const userInitials = userEmail ? userEmail.slice(0, 2).toUpperCase() : "RM";
-  const userName = userEmail ? userEmail.split("@")[0] : "Rohit Malhotra";
-  const userOrg = userEmail ? userEmail.split("@")[1] ?? "Signed in" : "Meridian Developments";
+  const isBusiness = user?.accountType === "business";
+  const userInitials = (user?.name || userEmail || "U").slice(0, 2).toUpperCase();
+  const userName = user?.name || (userEmail ? userEmail.split("@")[0] : "Guest");
+  const userOrg = user?.org || (isBusiness ? "Business account" : "Individual account");
+  // Individuals get a simpler workspace — no Smart BOM / Projects.
+  const NAV = isBusiness ? NAV_META : NAV_META.filter((n) => !["smartbom", "project"].includes(n.key));
   const router = useRouter();
   const params = useSearchParams();
   const initial: Screen = params.get("screen") === "catalogue" ? "catalogue" : "portfolio";
@@ -190,7 +193,7 @@ export default function AppShell({ products, content, user }: { products: Produc
           <Wordmark height={17} white opacity={0.96} />
         </div>
 
-        {NAV_META.map((n) => {
+        {NAV.map((n) => {
           const active = n.key === screen;
           return (
             <div
@@ -281,7 +284,7 @@ export default function AppShell({ products, content, user }: { products: Produc
         <div ref={contentRef} style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
           {screen === "portfolio" && <Portfolio projects={PROJECTS} onProject={() => nav("project")} onReleaseAutoPO={releaseAutoPO} />}
           {screen === "catalogue" && <Catalogue products={catProducts} cats={CATS} cat={cat} setCat={setCat} onOpen={openProduct} onAdd={add} />}
-          {screen === "product" && pd && <ProductDetail p={pd} qty={pdQty} setQty={setPdQty} onAdd={() => addQty(pd, pdQty)} onCatalogue={() => nav("catalogue")} onProject={() => nav("smartbom")} />}
+          {screen === "product" && pd && <ProductDetail p={pd} qty={pdQty} setQty={setPdQty} onAdd={() => addQty(pd, pdQty)} onCatalogue={() => nav("catalogue")} onProject={() => nav("smartbom")} showGst={isBusiness} />}
           {screen === "project" && <ProjectDetail stages={STAGES} bomRows={BOM_ROWS} onReleaseAutoPO={releaseAutoPO} onSmartBom={() => nav("smartbom")} />}
           {screen === "smartbom" && <SmartBom parsedRows={PARSED_ROWS} state={bomState} onUpload={uploadBOQ} onProject={() => nav("project")} />}
           {screen === "cart" && (
@@ -294,6 +297,8 @@ export default function AppShell({ products, content, user }: { products: Produc
               onQty={setQty}
               onRemove={remove}
               onPlace={placeOrder}
+              business={isBusiness}
+              gstinDefault={user?.gstin ?? ""}
             />
           )}
           {screen === "confirm" && order && <Confirmation trackSteps={TRACK_STEPS} order={order} onPortfolio={() => nav("portfolio")} />}
@@ -662,6 +667,8 @@ function Cart({
   onQty,
   onRemove,
   onPlace,
+  business = false,
+  gstinDefault = "",
 }: {
   cart: CartItem[];
   calc: { sub: number; mkt: number; list: number; wholesaleSaved: number; save: number; taxable: number; gst: number; total: number };
@@ -671,13 +678,15 @@ function Cart({
   onQty: (id: string, d: number) => void;
   onRemove: (id: string) => void;
   onPlace: () => void;
+  business?: boolean;
+  gstinDefault?: string;
 }) {
   const sel = (on: boolean) => ({ bd: on ? "#4E5BDC" : "#E8EBF1", bg: on ? "#F7F8FF" : "#fff", dot: on ? "#4E5BDC" : "#C7CEDC", fill: on ? "#4E5BDC" : "transparent" });
   const pn = sel(!credit);
   // GST billing: split the GST-inclusive total into taxable value + tax on the
-  // invoice (total payable stays the same).
-  const [gstBilling, setGstBilling] = useState(false);
-  const [gstin, setGstin] = useState("");
+  // invoice. Business accounts get it on by default with their GSTIN prefilled.
+  const [gstBilling, setGstBilling] = useState(business);
+  const [gstin, setGstin] = useState(gstinDefault);
 
   if (cart.length === 0) {
     return (
@@ -797,6 +806,17 @@ function Cart({
           {/* payment / credit */}
           <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "18px 20px" }}>
             <div style={{ fontFamily: GROTESK, fontWeight: 600, fontSize: 14.5, marginBottom: 13 }}>Payment</div>
+            {/* Elume-branded online payment (Razorpay powers it — coming soon) */}
+            <div style={{ display: "flex", alignItems: "center", gap: 11, border: "1.5px solid #E8EBF1", background: "#FAFBFD", borderRadius: 11, padding: 13, marginBottom: 10 }}>
+              <div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #D5DAE4" }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#56627A" }}>
+                  Pay online <span style={{ fontSize: 10, fontWeight: 700, color: "#4E5BDC", background: "#EEF0FD", padding: "2px 7px", borderRadius: 10, marginLeft: 4, letterSpacing: "0.4px", textTransform: "uppercase" }}>Coming soon</span>
+                </div>
+                <div style={{ fontSize: 11.5, color: "#8A93A6" }}>UPI, cards &amp; netbanking — secure Elume checkout</div>
+              </div>
+              <span style={{ fontSize: 10, color: "#A0A7B5" }}>🔒</span>
+            </div>
             <div onClick={() => setPay("now")} style={{ display: "flex", alignItems: "center", gap: 11, border: `1.5px solid ${pn.bd}`, background: pn.bg, borderRadius: 11, padding: 13, marginBottom: 10, cursor: "pointer" }}>
               <div style={{ width: 18, height: 18, borderRadius: "50%", border: `2px solid ${pn.dot}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <div style={{ width: 8, height: 8, borderRadius: "50%", background: pn.fill }} />

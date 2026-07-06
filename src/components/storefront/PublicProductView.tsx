@@ -12,7 +12,7 @@ import type { MarketPoint } from "@/lib/competitor-history";
 /** Public wrapper around the shared dashboard ProductDetail (browse-only),
  *  with storefront extras: star summary, variant picker, and a compact
  *  price-history bar under the specs. */
-export default function PublicProductView({ p, siblings = [], marketHistory = [] }: { p: Product; siblings?: Product[]; marketHistory?: MarketPoint[] }) {
+export default function PublicProductView({ p, siblings = [], marketHistory = [], business = false }: { p: Product; siblings?: Product[]; marketHistory?: MarketPoint[]; business?: boolean }) {
   const router = useRouter();
   const [qty, setQty] = useState(1);
   return (
@@ -28,6 +28,7 @@ export default function PublicProductView({ p, siblings = [], marketHistory = []
       }
       variantSlot={<VariantPicker p={p} siblings={siblings} />}
       priceHistorySlot={marketHistory.length ? <CompetitorPriceChart series={marketHistory} mrp={p.market} compact /> : undefined}
+      showGst={business}
     />
   );
 }

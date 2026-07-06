@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { fetchProduct, fetchFamily } from "@/lib/products";
 import { fetchReviews } from "@/lib/reviews";
 import { fetchMarketHistory } from "@/lib/competitor-history";
+import { getProfile, isBusiness } from "@/lib/profile";
 import { wholesalePrice } from "@/lib/pricing";
 import { getAllPosts, CATEGORY_TO_CATALOGUE } from "@/lib/blog";
 import PublicProductView from "@/components/storefront/PublicProductView";
@@ -39,11 +40,13 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   if (!product) notFound();
 
   // Family = parent + all variations, whichever member this page is.
-  const [siblings, reviews, marketHistory] = await Promise.all([
+  const [siblings, reviews, marketHistory, profile] = await Promise.all([
     fetchFamily(product),
     fetchReviews(product.id),
     fetchMarketHistory(product.id),
+    getProfile(),
   ]);
+  const business = isBusiness(profile);
   const guide = getAllPosts().find((post) => CATEGORY_TO_CATALOGUE[post.category] === product.cat) ?? null;
 
   const jsonLd = {
@@ -73,7 +76,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <PublicProductView p={product} siblings={siblings} marketHistory={marketHistory} />
+      <PublicProductView p={product} siblings={siblings} marketHistory={marketHistory} business={business} />
       <div style={{ height: 18 }} />
       <ProductDeepDive p={product} siblings={siblings} post={guide} />
       <div style={{ height: 18 }} />

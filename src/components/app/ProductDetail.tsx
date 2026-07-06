@@ -9,6 +9,9 @@ import {
   unitPriceFor,
   offMrpPct,
   WHOLESALE_MIN_QTY,
+  exGst,
+  gstPart,
+  GST_RATE,
 } from "@/lib/pricing";
 
 /**
@@ -28,6 +31,7 @@ export default function ProductDetail({
   ratingSummary,
   variantSlot,
   priceHistorySlot,
+  showGst = false,
 }: {
   p: Product;
   qty: number;
@@ -43,6 +47,8 @@ export default function ProductDetail({
   ratingSummary?: React.ReactNode;
   variantSlot?: React.ReactNode;
   priceHistorySlot?: React.ReactNode;
+  /** Business accounts see the price split into base + GST. */
+  showGst?: boolean;
 }) {
   const off = offMrpPct(p.price, p.market) + "%";
   const ws = wholesalePrice(p.price);
@@ -104,10 +110,19 @@ export default function ProductDetail({
               <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.3px", color: "#4E5BDC", background: "#EEF0FD", padding: "4px 9px", borderRadius: 7, marginBottom: 7 }}>ELUME PRICE</span>
             </div>
             {/* MRP reference */}
-            <div style={{ fontSize: 13, color: "#56627A", marginBottom: 14 }}>
+            <div style={{ fontSize: 13, color: "#56627A", marginBottom: showGst ? 8 : 14 }}>
               MRP <span style={{ textDecoration: "line-through", color: "#A0A7B5" }}>{fmt(p.market)}</span>
               <span style={{ color: "#1F9D63", fontWeight: 700, marginLeft: 8 }}>{off} off</span> · incl. GST
             </div>
+            {/* GST breakdown for business accounts */}
+            {showGst && (
+              <div style={{ display: "flex", gap: 18, flexWrap: "wrap", background: "#F5F6F9", border: "1px solid #E8EBF1", borderRadius: 10, padding: "9px 13px", marginBottom: 14, fontSize: 12.5 }}>
+                <span style={{ color: "#56627A" }}>Base <b style={{ color: "#19202E" }}>{fmt(exGst(p.price))}</b></span>
+                <span style={{ color: "#56627A" }}>GST {Math.round(GST_RATE * 100)}% <b style={{ color: "#19202E" }}>{fmt(gstPart(p.price))}</b></span>
+                <span style={{ color: "#56627A" }}>Total <b style={{ color: "#19202E" }}>{fmt(p.price)}</b></span>
+                <span style={{ fontSize: 11, color: "#4E5BDC", fontWeight: 600 }}>Business · GST invoice</span>
+              </div>
+            )}
             {/* Wholesale tier */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, background: "#F5F6F9", border: "1px solid #E8EBF1", borderRadius: 11, padding: "11px 14px", marginBottom: 20 }}>
               <div>
