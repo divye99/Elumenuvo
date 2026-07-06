@@ -47,33 +47,61 @@ async function searchVashi(query, size = 10) {
   }
 }
 
+// Type signatures per our category — the candidate must look like the same
+// product TYPE, not just share a brand (a Havells wire ≠ a Havells LED light).
+const TYPE = {
+  wire: /(sq\s*mm|sqmm|\bcore\b|conductor|frls|frlsh|\bhouse wire\b|flexible cable)/,
+  light: /\b(led|light|lamp|lumen|batten|panel light|bulb|downlight|flood|street ?light|luminaire)\b/,
+  switchgear: /\b(mcb|rccb|rcbo|isolator|circuit breaker|elcb|changeover)\b/,
+  db: /\b(distribution board|\bdb\b|\bspn\b|\btpn\b|enclosure|db box)\b/,
+  modular: /\b(switch|socket|modular|regulator|dimmer|cover plate|frame)\b/,
+  fan: /\b(fan|ceiling fan|exhaust|bldc)\b/,
+};
+function ourType(cat) {
+  if (cat === "Wires & Cables") return "wire";
+  if (cat === "Lighting") return "light";
+  if (cat === "Switchgear") return "switchgear";
+  if (cat === "DB & Panels") return "db";
+  if (cat === "Modular") return "modular";
+  if (cat === "Fans") return "fan";
+  return null;
+}
+
 // Score a candidate against our product (higher = better). Brand-only is NOT
-// enough — we require a real spec/type signal to avoid cross-category garbage
-// (e.g. a Havells wire matching a Havells LED light).
+// enough — the candidate must match the product TYPE for its category, else it's
+// disqualified (avoids Havells-wire→Havells-LED style garbage across all cats).
 function score(our, cand) {
   const oName = `${our.brand} ${our.name} ${our.attrs?.Size ?? ""} ${our.attrs?.Quality ?? ""}`.toLowerCase();
   const cName = `${cand.brand} ${cand.name}`.toLowerCase();
-  const isWire = our.category === "Wires & Cables";
+  const t = ourType(our.category);
   let s = 0;
 
-  if (cand.brand && our.brand && cand.brand.toLowerCase() === our.brand.toLowerCase()) s += 5;
+  const brandMatch = cand.brand && our.brand && cand.brand.toLowerCase() === our.brand.toLowerCase();
+  if (brandMatch) s += 5;
 
-  // Hard category guards — a mismatched product type is disqualifying.
-  const candIsLight = /\b(led|light|lamp|lumen|\d+\s*w\b|batten|panel|bulb|downlight)\b/.test(cName);
-  const candIsWire = /(sq\s*mm|sqmm|core|cable|conductor|frls|frlsh)/.test(cName);
-  if (isWire && candIsLight) return -100;
-  if (isWire && !candIsWire) return -100;
-  if (!isWire && candIsWire && /\bcore\b|sq\s*mm/.test(cName)) return -100;
-
-  const size = our.attrs?.Size?.match(/([\d.]+)/)?.[1];
-  if (size && new RegExp(`\\b${size}\\s*(sq\\s*mm|sqmm)`).test(cName)) s += 5;
-  else if (isWire) s -= 4; // wire without a matching gauge is a weak match
-
-  for (const kw of ["fr", "frls", "flexible", "single core", "1 core", "pvc", "copper"]) {
-    if (oName.includes(kw) && cName.includes(kw)) s += 1;
+  // The candidate must be the right product type, and must NOT look like a
+  // different electrical type we recognise.
+  if (t) {
+    if (!TYPE[t].test(cName)) return -100;
+    for (const [k, re] of Object.entries(TYPE)) if (k !== t && re.test(cName) && !TYPE[t].test(cName)) return -100;
   }
-  if (/\b(2|3|4|5|7|12|19)\s*core/.test(cName) && isWire) s -= 3; // multi-core armoured ≠ our house wire
-  if (/1\s*core|single core/.test(cName)) s += 2;
+
+  // Wire specifics: gauge match + single-core preference.
+  if (t === "wire") {
+    const size = our.attrs?.Size?.match(/([\d.]+)/)?.[1];
+    if (size && new RegExp(`\\b${size}\\s*(sq\\s*mm|sqmm)`).test(cName)) s += 5; else s -= 4;
+    if (/1\s*core|single core/.test(cName)) s += 2;
+    if (/\b(2|3|4|5|7|12|19)\s*core/.test(cName)) s -= 3;
+    for (const kw of ["fr", "frls", "flexible", "pvc", "copper"]) if (oName.includes(kw) && cName.includes(kw)) s += 1;
+  } else {
+    // Non-wire: reward shared rating / wattage / size tokens.
+    const amp = our.name.match(/(\d+)\s*a\b/i)?.[1];
+    if (amp && new RegExp(`\\b${amp}\\s*a\\b`).test(cName)) s += 3;
+    const watt = our.name.match(/(\d+)\s*w\b/i)?.[1];
+    if (watt && new RegExp(`\\b${watt}\\s*w\\b`).test(cName)) s += 3;
+    const mm = our.name.match(/(\d{3,4})\s*mm/)?.[1];
+    if (mm && cName.includes(mm)) s += 3;
+  }
   return s;
 }
 
