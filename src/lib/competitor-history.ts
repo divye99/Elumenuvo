@@ -12,6 +12,29 @@ function client() {
   return createClient(url, key, { auth: { persistSession: false } });
 }
 
+/** Public-safe market series: our price + the blended market average per
+ *  capture. Competitor identity (source, per-competitor prices) is aggregated
+ *  away server-side so it never reaches the browser. */
+export type MarketPoint = { at: string; our: number | null; marketAvg: number | null };
+
+export async function fetchMarketHistory(productId: string): Promise<MarketPoint[]> {
+  const points = await fetchCompetitorHistory(productId);
+  const byTime = new Map<string, { our: number | null; comps: number[] }>();
+  for (const p of points) {
+    const e = byTime.get(p.at) ?? { our: null, comps: [] };
+    if (p.our != null) e.our = p.our;
+    if (p.comparable != null) e.comps.push(p.comparable);
+    byTime.set(p.at, e);
+  }
+  return [...byTime.entries()]
+    .sort(([a], [b]) => (a < b ? -1 : 1))
+    .map(([at, e]) => ({
+      at,
+      our: e.our,
+      marketAvg: e.comps.length ? Math.round((e.comps.reduce((a, b) => a + b, 0) / e.comps.length) * 100) / 100 : null,
+    }));
+}
+
 export async function fetchCompetitorHistory(productId: string): Promise<CompetitorPoint[]> {
   const c = client();
   if (!c) return [];

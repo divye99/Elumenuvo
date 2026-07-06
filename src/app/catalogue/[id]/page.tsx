@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { fetchProduct, fetchFamily } from "@/lib/products";
 import { fetchReviews } from "@/lib/reviews";
-import { fetchCompetitorHistory } from "@/lib/competitor-history";
+import { fetchMarketHistory } from "@/lib/competitor-history";
 import CompetitorPriceChart from "@/components/storefront/CompetitorPriceChart";
 import { wholesalePrice } from "@/lib/pricing";
 import { getAllPosts, CATEGORY_TO_CATALOGUE } from "@/lib/blog";
@@ -40,10 +40,10 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   if (!product) notFound();
 
   // Family = parent + all variations, whichever member this page is.
-  const [siblings, reviews, competitorHistory] = await Promise.all([
+  const [siblings, reviews, marketHistory] = await Promise.all([
     fetchFamily(product),
     fetchReviews(product.id),
-    fetchCompetitorHistory(product.id),
+    fetchMarketHistory(product.id),
   ]);
   const guide = getAllPosts().find((post) => CATEGORY_TO_CATALOGUE[post.category] === product.cat) ?? null;
 
@@ -75,9 +75,9 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <PublicProductView p={product} siblings={siblings} />
-      {competitorHistory.length > 0 && (
+      {marketHistory.length > 0 && (
         <div style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px" }}>
-          <CompetitorPriceChart points={competitorHistory} mrp={product.market} />
+          <CompetitorPriceChart series={marketHistory} mrp={product.market} />
         </div>
       )}
       <div style={{ height: 18 }} />
