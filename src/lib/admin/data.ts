@@ -71,14 +71,17 @@ export async function listImportLog(limit = 20): Promise<ImportLogRow[]> {
   return data as ImportLogRow[];
 }
 
-/* ── Competitor price radar (Vashi) ── */
-export type CompetitorMapRow = { product_id: string; vashi_code: string; unit_factor: number; note: string | null };
+/* ── Competitor price radar (multi-source) ── */
+export type CompetitorSource = { id: string; name: string; site_url: string | null; enabled: boolean; needs_login: boolean; sort_order: number };
+export type CompetitorMapRow = { product_id: string; source: string; competitor_code: string; competitor_url: string | null; unit_factor: number; note: string | null };
 export type CompetitorPriceRow = {
   product_id: string;
-  vashi_code: string | null;
-  vashi_name: string | null;
-  vashi_url: string | null;
-  vashi_price: number | null;
+  source: string;
+  competitor_code: string | null;
+  competitor_name: string | null;
+  competitor_url: string | null;
+  list_price: number | null;
+  net_price: number | null;
   unit_factor: number | null;
   comparable_price: number | null;
   suggested_price: number | null;
@@ -87,6 +90,13 @@ export type CompetitorPriceRow = {
   in_stock: boolean | null;
   fetched_at: string;
 };
+
+export async function listCompetitorSources(): Promise<CompetitorSource[]> {
+  const db = reader();
+  if (!db) return [];
+  const { data } = await db.from("competitor_sources").select("*").order("sort_order");
+  return (data ?? []) as CompetitorSource[];
+}
 
 export async function listCompetitorMap(): Promise<CompetitorMapRow[]> {
   const db = reader();
@@ -102,7 +112,7 @@ export async function listCompetitorPrices(): Promise<CompetitorPriceRow[]> {
   return (data ?? []) as CompetitorPriceRow[];
 }
 
-export async function lastCompetitorSync(): Promise<{ created_at: string; mapped: number; fetched: number; failed: number; suggestions: number; source: string } | null> {
+export async function lastCompetitorSync(): Promise<{ created_at: string; mapped: number; fetched: number; failed: number; suggestions: number; run_source: string; source: string } | null> {
   const db = reader();
   if (!db) return null;
   const { data } = await db.from("competitor_sync_log").select("*").order("created_at", { ascending: false }).limit(1);

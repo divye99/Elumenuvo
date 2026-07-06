@@ -1,29 +1,39 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
-import { listProductRows, listCompetitorMap, listCompetitorPrices, lastCompetitorSync } from "@/lib/admin/data";
-import RadarClient, { type RadarRow } from "@/app/admin/radar/RadarClient";
+import {
+  listProductRows,
+  listCompetitorSources,
+  listCompetitorMap,
+  listCompetitorPrices,
+  lastCompetitorSync,
+} from "@/lib/admin/data";
+import RadarClient, { type RadarRow, type SourceInfo } from "@/app/admin/radar/RadarClient";
 
 export const dynamic = "force-dynamic";
 
-/** Guess the per-metre → our-unit factor from a wire's Length attr (Vashi
- *  prices wire per metre; our coils are 90 m etc.). 1 for non-length products. */
 function guessFactor(attrs: Record<string, string> | null): number {
-  const len = attrs?.Length;
-  const m = len?.match(/(\d+)\s*m/);
+  const m = attrs?.Length?.match(/(\d+)\s*m/);
   return m ? Number(m[1]) : 1;
 }
 
 export default async function RadarPage() {
   await requireAdmin();
-  const [products, maps, prices, sync] = await Promise.all([
+  const [products, sources, maps, prices, sync] = await Promise.all([
     listProductRows(),
+    listCompetitorSources(),
     listCompetitorMap(),
     listCompetitorPrices(),
     lastCompetitorSync(),
   ]);
 
-  const mapById = new Map(maps.map((m) => [m.product_id, m]));
-  const priceById = new Map(prices.map((p) => [p.product_id, p]));
+  // Fallback source list if the sources table isn't seeded yet.
+  const srcList: SourceInfo[] = (sources.length ? sources : [{ id: "vashi", name: "Vashi", site_url: "https://vashiisl.com", enabled: true, needs_login: true, sort_order: 1 }]).map((s) => ({
+    id: s.id, name: s.name, siteUrl: s.site_url, enabled: s.enabled, needsLogin: s.needs_login,
+  }));
+
+  const mapKey = (pid: string, src: string) => `${pid}::${src}`;
+  const mapByKey = new Map(maps.map((m) => [mapKey(m.product_id, m.source), m]));
+  const priceByKey = new Map(prices.map((p) => [mapKey(p.product_id, p.source), p]));
 
   const rows: RadarRow[] = products.map((p) => ({
     id: p.id,
@@ -33,8 +43,9 @@ export default async function RadarPage() {
     unit: p.unit,
     ourPrice: p.elume_price,
     suggestedFactor: guessFactor(p.attrs),
-    map: mapById.get(p.id) ?? null,
-    price: priceById.get(p.id) ?? null,
+    perSource: Object.fromEntries(
+      srcList.map((s) => [s.id, { map: mapByKey.get(mapKey(p.id, s.id)) ?? null, price: priceByKey.get(mapKey(p.id, s.id)) ?? null }])
+    ),
   }));
 
   return (
@@ -43,13 +54,13 @@ export default async function RadarPage() {
         <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>Competitor price radar</h1>
         <Link href="/admin" style={{ fontSize: 13, color: "#8A93A6" }}>← Dashboard</Link>
       </div>
-      <p style={{ fontSize: 13.5, color: "#56627A", margin: "0 0 18px", maxWidth: 720 }}>
-        Tracks <b>vashiisl.com</b> prices monthly. Map each product to a Vashi item once (with a unit
-        factor — Vashi prices wire per metre, so a 90 m coil uses ×90). Each month we refetch those prices and
-        suggest setting your Elume price to <b>₹1 under</b> theirs — you approve each one.
+      <p style={{ fontSize: 13.5, color: "#56627A", margin: "0 0 16px", maxWidth: 760 }}>
+        Track competitor prices and get <b>₹1-under</b> suggestions you approve. Map each product to a
+        competitor item once; the monthly sync refetches prices (their real logged-in price when a login
+        is configured) and flags where you could adjust.
       </p>
 
-      <RadarClient rows={rows} lastSync={sync} />
+      <RadarClient rows={rows} sources={srcList} lastSync={sync} />
     </div>
   );
 }

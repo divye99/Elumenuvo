@@ -1,47 +1,61 @@
-# Competitor price radar (Vashi)
+# Competitor price radar (multi-source)
 
-Monthly price intelligence against **vashiisl.com**. It fetches the live price of
-each product you've mapped, and suggests setting your Elume price to **₹1 under**
-theirs — you approve each change. Nothing is ever auto-applied.
+Tracks competitor prices and suggests setting your Elume price **₹1 under** — you
+approve each change. Built to add more sites (Amazon, Moglix…) with just an
+adapter. **Vashi** is live today.
+
+## Key facts about Vashi pricing
+
+- Vashi's **public API only exposes the list/MRP price** (e.g. ₹92.75).
+- The **real B2B selling price** (e.g. ₹43.78) is shown only to a **logged-in
+  account**. The sync logs in with your Vashi credentials (if configured) to read
+  it; otherwise it falls back to the list price and flags "list price only".
+- Vashi prices wire **per metre**, so a 90 m coil uses a **unit factor of 90**
+  (`comparable = competitor price × unit_factor`).
 
 ## How it works
 
-1. **Map** each Elume product to one Vashi product (admin → **Price radar** →
-   *Map to Vashi*). The picker searches Vashi's live catalogue; pick the match and
-   set a **unit factor** — Vashi prices wire **per metre**, so a 90 m coil uses
-   **×90** (pieces/packs usually ×1). Stored in `competitor_map`.
-2. **Sync** — monthly (GitHub Action) or on demand (*Sync now*). It refetches each
-   mapped code's price, computes `comparable = vashi_price × factor` and
-   `suggested = round(comparable) − 1`, and writes `competitor_prices`.
+1. **Map** each product to one competitor item (per source) — admin → **Price
+   radar** → *Map to …*. The picker searches the site live; set the unit factor.
+2. **Sync** — monthly (GitHub Action) or *Sync now*. Refetches each mapped item's
+   price (net when logged in, else list), computes `comparable` and
+   `suggested = round(comparable) − 1`, upserts the snapshot, and appends a
+   **history** row.
 3. **Review** — the radar shows every product where your price differs from the
-   ₹1-under target. **Accept** sets the Elume price; **Dismiss** hides it until
-   Vashi's price changes again.
+   ₹1-under target. **Accept** sets the Elume price; **Dismiss** hides it until the
+   competitor price changes.
+4. **Chart** — every product page shows a *Price vs competitors* chart built from
+   the captured history (public read).
 
 ## One-time setup
 
-1. **Run the SQL:** `supabase/competitor-pricing.sql` (creates `competitor_map`,
-   `competitor_prices`, `competitor_sync_log`).
-2. **GitHub Action secrets** (repo → Settings → Secrets and variables → Actions):
-   - `SUPABASE_URL` — your project URL (`https://…supabase.co`)
-   - `SUPABASE_SERVICE_ROLE_KEY` — the service-role key (server-only; **never**
-     the anon key)
-   The workflow `.github/workflows/competitor-price-sync.yml` runs on the **1st of
-   each month** and can also be triggered by hand from the **Actions** tab
-   (*Run workflow*).
-3. **Vercel:** `SUPABASE_SERVICE_ROLE_KEY` must already be set (it gates all admin
-   writes) for *Sync now* / Accept to work in the dashboard.
+1. **Run the SQL** (in order):
+   - `supabase/competitor-pricing-v2.sql` — tables (map, prices, history, sources,
+     log). Replaces the old competitor-pricing.sql.
+   - `supabase/competitor-map-seed.sql` — 15 auto-generated Vashi mappings (wire
+     products; review/fix the rest in the admin).
+2. **GitHub Action secrets** (repo → Settings → Secrets → Actions):
+   - `SUPABASE_URL` — `https://<project>.supabase.co` (no path/slash)
+   - `SUPABASE_SERVICE_ROLE_KEY` — the service-role key
+   - `VASHI_USERNAME` + `VASHI_PASSWORD` — *(optional)* your Vashi B2B login;
+     unlocks the real net price. Without them, list price is used.
+   The workflow runs on the **1st of each month** and can be run by hand from the
+   **Actions** tab.
+3. **Vercel:** the same `SUPABASE_SERVICE_ROLE_KEY` gates admin writes; add
+   `VASHI_USERNAME` / `VASHI_PASSWORD` there too if you want *Sync now* to fetch
+   net prices from the dashboard.
 
-## Manual run (local)
+## Adding another source (Amazon, Moglix…)
+
+1. Write an adapter in `src/lib/competitors/<source>.ts` implementing
+   `CompetitorAdapter` (search + fetchByCode, and login if it gates prices).
+2. Register it in `src/lib/competitors/index.ts`.
+3. Enable its row in `competitor_sources` (`update … set enabled = true`).
+The admin, sync, suggestions and chart are all source-agnostic — no other changes.
+
+## Manual runs (local)
 
 ```bash
-node --env-file=.env.local scripts/competitor-sync.mjs
+node --env-file=.env.local scripts/competitor-sync.mjs     # sync prices
+node scripts/auto-map-vashi.mjs                            # regenerate mappings
 ```
-
-## Notes
-
-- The unit factor is the whole game — a wrong factor makes the comparison
-  meaningless. Set it once per product; the monthly job reuses it.
-- A prior Accept/Dismiss is remembered while Vashi's price is unchanged; when
-  their price moves, the row becomes a fresh suggestion.
-- Data source: Vashi's public SAP Commerce OCC API
-  (`prodapi.vashiisl.com/occ/v2/visl`). Read-only, once a month, politely paced.

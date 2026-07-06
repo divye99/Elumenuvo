@@ -1,78 +1,87 @@
 /**
- * Competitor sync core — refetch every mapped Vashi code's live price, compute
- * the ₹1-under suggestion, and upsert competitor_prices. Used by both the admin
- * "Sync now" action and the monthly GitHub Action (which reimplements the same
- * loop in plain JS). Takes any Supabase client so it works with the service-role
- * client server-side.
+ * Competitor sync core — for one source: log in (if it gates net price),
+ * refetch every mapped item's live price, compute the ₹1-under suggestion,
+ * upsert the latest snapshot, and append a history row (for the per-product
+ * price chart). Used by the admin "Sync now" action and the monthly GitHub
+ * Action (which reimplements the same loop for Vashi in plain JS).
  */
-import { fetchVashiProduct, computeSuggestion } from "@/lib/admin/vashi";
+import { getAdapter, credsFor } from "@/lib/competitors";
 
-type SupaLike = {
-  from: (t: string) => any;
-};
-
+type SupaLike = { from: (t: string) => any };
 export type SyncResult = { mapped: number; fetched: number; failed: number; suggestions: number };
 
-export async function runCompetitorSync(db: SupaLike, source: "cron" | "manual"): Promise<SyncResult> {
-  const { data: maps } = await db.from("competitor_map").select("product_id, vashi_code, unit_factor");
+export async function runCompetitorSync(db: SupaLike, source: string, runSource: "cron" | "manual"): Promise<SyncResult> {
+  const adapter = getAdapter(source);
+  if (!adapter) throw new Error(`Unknown competitor source: ${source}`);
+
+  // Authenticate once if this source gates the net price and creds are set.
+  let token: string | null = null;
+  if (adapter.needsLogin && adapter.login) {
+    const creds = credsFor(source);
+    if (creds) token = await adapter.login(creds.username, creds.password);
+  }
+
+  const { data: maps } = await db.from("competitor_map").select("product_id, competitor_code, unit_factor").eq("source", source);
   const { data: products } = await db.from("products").select("id, elume_price");
-  const { data: prev } = await db.from("competitor_prices").select("product_id, vashi_price, status");
+  const { data: prev } = await db.from("competitor_prices").select("product_id, comparable_price, status").eq("source", source);
 
   const priceById = new Map<string, number>((products ?? []).map((p: any) => [p.id, Number(p.elume_price)]));
-  const prevById = new Map<string, { vashi_price: number | null; status: string }>(
-    (prev ?? []).map((r: any) => [r.product_id, { vashi_price: r.vashi_price, status: r.status }])
+  const prevById = new Map<string, { comparable: number | null; status: string }>(
+    (prev ?? []).map((r: any) => [r.product_id, { comparable: r.comparable_price, status: r.status }])
   );
 
   let fetched = 0, failed = 0, suggestions = 0;
   const rows = maps ?? [];
+  const nowIso = new Date().toISOString();
 
   for (const m of rows) {
-    const vp = await fetchVashiProduct(m.vashi_code);
-    if (!vp || vp.price == null) { failed++; continue; }
+    const item = await adapter.fetchByCode(m.competitor_code, token);
+    const effective = item ? (item.netPrice ?? item.listPrice) : null;
+    if (!item || effective == null) { failed++; continue; }
     fetched++;
 
     const factor = Number(m.unit_factor) || 1;
-    const { comparable, suggested } = computeSuggestion(vp.price, factor);
+    const comparable = Math.round(effective * factor * 100) / 100;
+    const suggested = Math.max(1, Math.round(comparable) - 1);
     const ourPrice = priceById.get(m.product_id) ?? null;
 
-    // Preserve a prior accept/dismiss decision while the Vashi price is unchanged;
-    // reset to "pending" when their price moved (a fresh call to action).
+    // Keep a prior accept/dismiss while the comparable price is unchanged.
     const before = prevById.get(m.product_id);
-    const priceUnchanged = before && before.vashi_price != null && Math.abs(Number(before.vashi_price) - vp.price) < 0.005;
+    const unchanged = before && before.comparable != null && Math.abs(Number(before.comparable) - comparable) < 0.005;
     let status = "pending";
-    if (priceUnchanged && (before!.status === "accepted" || before!.status === "dismissed")) status = before!.status;
-
-    // A row is only an actionable suggestion when it's pending AND our price
-    // differs from the ₹1-under target.
-    const actionable = status === "pending" && ourPrice != null && Math.round(ourPrice) !== suggested;
-    if (actionable) suggestions++;
+    if (unchanged && (before!.status === "accepted" || before!.status === "dismissed")) status = before!.status;
+    if (status === "pending" && ourPrice != null && Math.round(ourPrice) !== suggested) suggestions++;
 
     await db.from("competitor_prices").upsert({
       product_id: m.product_id,
-      vashi_code: vp.code,
-      vashi_name: vp.name,
-      vashi_url: vp.url,
-      vashi_price: vp.price,
+      source,
+      competitor_code: item.code,
+      competitor_name: item.name,
+      competitor_url: item.url,
+      list_price: item.listPrice,
+      net_price: item.netPrice,
       unit_factor: factor,
       comparable_price: comparable,
       suggested_price: suggested,
       our_price: ourPrice,
       status,
-      in_stock: vp.inStock,
-      fetched_at: new Date().toISOString(),
+      in_stock: item.inStock,
+      fetched_at: nowIso,
     });
 
-    // Gentle pacing — we only run monthly, no need to hammer their API.
+    await db.from("competitor_price_history").insert({
+      product_id: m.product_id,
+      source,
+      list_price: item.listPrice,
+      net_price: item.netPrice,
+      comparable_price: comparable,
+      our_price: ourPrice,
+      captured_at: nowIso,
+    });
+
     await new Promise((r) => setTimeout(r, 250));
   }
 
-  await db.from("competitor_sync_log").insert({
-    mapped: rows.length,
-    fetched,
-    failed,
-    suggestions,
-    source,
-  });
-
+  await db.from("competitor_sync_log").insert({ source, mapped: rows.length, fetched, failed, suggestions, run_source: runSource });
   return { mapped: rows.length, fetched, failed, suggestions };
 }

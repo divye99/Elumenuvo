@@ -177,25 +177,29 @@ export async function deleteProduct(formData: FormData): Promise<void> {
   redirect("/admin/products?ok=deleted");
 }
 
-/* ── Competitor price radar (Vashi) ── */
+/* ── Competitor price radar (multi-source) ── */
 
-/** Proxy the Vashi OCC search for the admin's "find match" picker. */
-export async function searchVashiAction(query: string) {
+/** Proxy a competitor's catalogue search for the admin's match picker. */
+export async function searchCompetitorAction(source: string, query: string) {
   if (!(await isAdmin())) return [];
-  const { searchVashi } = await import("@/lib/admin/vashi");
-  return searchVashi(query);
+  const { getAdapter } = await import("@/lib/competitors");
+  const adapter = getAdapter(source);
+  if (!adapter) return [];
+  return adapter.search(query);
 }
 
-/** Create/update the Vashi mapping for one of our products. */
-export async function saveCompetitorMap(input: { product_id: string; vashi_code: string; unit_factor: number; note?: string }): Promise<ActionResult> {
+/** Create/update the mapping for one of our products, for a given source. */
+export async function saveCompetitorMap(input: { product_id: string; source: string; competitor_code: string; competitor_url?: string | null; unit_factor: number; note?: string }): Promise<ActionResult> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
   const db = adminClient();
   if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
-  if (!input.product_id || !input.vashi_code) return { ok: false, error: "Product and Vashi code are required." };
+  if (!input.product_id || !input.source || !input.competitor_code) return { ok: false, error: "Product, source and competitor code are required." };
   const factor = Number(input.unit_factor);
   const { error } = await db.from("competitor_map").upsert({
     product_id: input.product_id,
-    vashi_code: input.vashi_code.trim(),
+    source: input.source,
+    competitor_code: input.competitor_code.trim(),
+    competitor_url: input.competitor_url?.trim() || null,
     unit_factor: Number.isFinite(factor) && factor > 0 ? factor : 1,
     note: input.note?.trim() || null,
     updated_at: new Date().toISOString(),
@@ -205,50 +209,50 @@ export async function saveCompetitorMap(input: { product_id: string; vashi_code:
   return { ok: true };
 }
 
-export async function removeCompetitorMap(productId: string): Promise<ActionResult> {
+export async function removeCompetitorMap(productId: string, source: string): Promise<ActionResult> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
   const db = adminClient();
   if (!db) return { ok: false, error: "Service-role key missing." };
-  await db.from("competitor_map").delete().eq("product_id", productId);
-  await db.from("competitor_prices").delete().eq("product_id", productId);
+  await db.from("competitor_map").delete().eq("product_id", productId).eq("source", source);
+  await db.from("competitor_prices").delete().eq("product_id", productId).eq("source", source);
   revalidatePath("/admin/radar");
   return { ok: true };
 }
 
 /** Accept a suggestion → set the Elume price to the ₹1-under target. */
-export async function acceptSuggestion(productId: string): Promise<ActionResult> {
+export async function acceptSuggestion(productId: string, source: string): Promise<ActionResult> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
   const db = adminClient();
   if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
-  const { data: row } = await db.from("competitor_prices").select("suggested_price").eq("product_id", productId).maybeSingle();
+  const { data: row } = await db.from("competitor_prices").select("suggested_price").eq("product_id", productId).eq("source", source).maybeSingle();
   const suggested = row?.suggested_price;
   if (suggested == null) return { ok: false, error: "No suggestion to apply." };
   const { error } = await db.from("products").update({ elume_price: suggested }).eq("id", productId);
   if (error) return { ok: false, error: error.message };
-  await db.from("competitor_prices").update({ status: "accepted", our_price: suggested }).eq("product_id", productId);
+  await db.from("competitor_prices").update({ status: "accepted", our_price: suggested }).eq("product_id", productId).eq("source", source);
   revalidatePath("/admin/radar");
   revalidatePath("/admin/products");
   revalidatePath("/catalogue");
   return { ok: true };
 }
 
-export async function dismissSuggestion(productId: string): Promise<ActionResult> {
+export async function dismissSuggestion(productId: string, source: string): Promise<ActionResult> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
   const db = adminClient();
   if (!db) return { ok: false, error: "Service-role key missing." };
-  await db.from("competitor_prices").update({ status: "dismissed" }).eq("product_id", productId);
+  await db.from("competitor_prices").update({ status: "dismissed" }).eq("product_id", productId).eq("source", source);
   revalidatePath("/admin/radar");
   return { ok: true };
 }
 
-/** Run the whole sync now (same core the monthly GitHub Action uses). */
-export async function syncCompetitorNow(): Promise<ActionResult & { result?: { mapped: number; fetched: number; failed: number; suggestions: number } }> {
+/** Run the sync for one source now (same core the monthly GitHub Action uses). */
+export async function syncCompetitorNow(source: string): Promise<ActionResult & { result?: { mapped: number; fetched: number; failed: number; suggestions: number } }> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
   const db = adminClient();
   if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
   const { runCompetitorSync } = await import("@/lib/admin/competitor-sync");
   try {
-    const result = await runCompetitorSync(db, "manual");
+    const result = await runCompetitorSync(db, source, "manual");
     revalidatePath("/admin/radar");
     return { ok: true, result };
   } catch (e) {

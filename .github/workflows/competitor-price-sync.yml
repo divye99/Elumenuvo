@@ -25,4 +25,8 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # Optional — unlocks Vashi's real net (logged-in) price. Without these
+          # the sync uses the public list/MRP price.
+          VASHI_USERNAME: ${{ secrets.VASHI_USERNAME }}
+          VASHI_PASSWORD: ${{ secrets.VASHI_PASSWORD }}
         run: node scripts/competitor-sync.mjs
