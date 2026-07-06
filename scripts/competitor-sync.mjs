@@ -11,17 +11,29 @@
  */
 import { createClient } from "@supabase/supabase-js";
 
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Trim — GitHub secrets often carry a trailing newline from copy-paste, which
+// makes createClient throw "Invalid supabaseUrl".
+const SUPABASE_URL = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
+const SERVICE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
 const VASHI_BASE = "https://prodapi.vashiisl.com/occ/v2/visl";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36";
 
 if (!SUPABASE_URL || !SERVICE_KEY) {
-  console.error("Missing SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY");
+  console.error("Missing SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY (set them as GitHub Action secrets).");
+  process.exit(1);
+}
+if (!/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(SUPABASE_URL)) {
+  console.error(`SUPABASE_URL looks wrong: "${SUPABASE_URL}". It should be just https://<project>.supabase.co (no path, no trailing slash).`);
   process.exit(1);
 }
 
-const db = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
+let db;
+try {
+  db = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
+} catch (e) {
+  console.error("Could not create the Supabase client:", e instanceof Error ? e.message : e);
+  process.exit(1);
+}
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function fetchVashiProduct(code) {
@@ -44,10 +56,35 @@ async function fetchVashiProduct(code) {
   }
 }
 
+function explainDbError(err, table) {
+  if (!err) return;
+  const msg = String(err.message || err);
+  if (/relation .* does not exist|could not find the table|schema cache/i.test(msg)) {
+    console.error(`Table "public.${table}" is missing. Run supabase/competitor-pricing.sql in the Supabase SQL Editor first.`);
+  } else if (/JWT|api key|invalid.*key|permission denied/i.test(msg)) {
+    console.error(`Supabase rejected the key while reading "${table}": ${msg}. Make sure SUPABASE_SERVICE_ROLE_KEY is the service-role key (not anon).`);
+  } else {
+    console.error(`Error reading "${table}": ${msg}`);
+  }
+  process.exit(1);
+}
+
 async function main() {
-  const { data: maps } = await db.from("competitor_map").select("product_id, vashi_code, unit_factor");
-  const { data: products } = await db.from("products").select("id, elume_price");
-  const { data: prev } = await db.from("competitor_prices").select("product_id, vashi_price, status");
+  const mapsRes = await db.from("competitor_map").select("product_id, vashi_code, unit_factor");
+  explainDbError(mapsRes.error, "competitor_map");
+  const productsRes = await db.from("products").select("id, elume_price");
+  explainDbError(productsRes.error, "products");
+  const prevRes = await db.from("competitor_prices").select("product_id, vashi_price, status");
+  explainDbError(prevRes.error, "competitor_prices");
+  const maps = mapsRes.data;
+  const products = productsRes.data;
+  const prev = prevRes.data;
+
+  if (!maps || maps.length === 0) {
+    console.log("No products mapped yet — nothing to sync. Map products in /admin/radar, then re-run.");
+    await db.from("competitor_sync_log").insert({ mapped: 0, fetched: 0, failed: 0, suggestions: 0, source: "cron" });
+    return;
+  }
 
   const priceById = new Map((products ?? []).map((p) => [p.id, Number(p.elume_price)]));
   const prevById = new Map((prev ?? []).map((r) => [r.product_id, { vashi_price: r.vashi_price, status: r.status }]));
