@@ -49,14 +49,40 @@ export default async function ProductForm({ params }: { params: Promise<{ id: st
         <datalist id="brands">{brands.map((b) => <option key={b} value={b} />)}</datalist>
         <datalist id="cats">{cats.map((c) => <option key={c} value={c} />)}</datalist>
         <Field label="Spec" name="spec" defaultValue={row?.spec ?? ""} placeholder="90 m coil · single-core copper · FR PVC" />
+
+        {/* Packaging & variant attributes (map to attrs jsonb) */}
+        <div style={{ border: "1px solid #EEF0F4", borderRadius: 12, padding: "14px 16px", background: "#FBFCFE" }}>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: "#3A4358", marginBottom: 4 }}>Packaging &amp; variant options</div>
+          <div style={{ fontSize: 11.5, color: "#8A93A6", marginBottom: 12 }}>
+            These drive the swatch pickers and make length/pack pricing clear. <b>Length</b> for wire coils
+            (90 m, 180 m, 45 m…), <b>Pack</b> for multi-packs (e.g. 4 = pack of 4).
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+            <Field label="Size" name="attr_size" defaultValue={row?.attrs?.Size ?? ""} list="sizes" placeholder="2.5 sq mm" />
+            <Field label="Length" name="attr_length" defaultValue={row?.attrs?.Length ?? ""} list="lengths" placeholder="90 m" />
+            <Field label="Pack (qty)" name="attr_pack" defaultValue={row?.attrs?.Pack ?? ""} placeholder="4" />
+            <Field label="Colour" name="attr_colour" defaultValue={row?.attrs?.Colour ?? ""} placeholder="Red" />
+            <Field label="Quality" name="attr_quality" defaultValue={row?.attrs?.Quality ?? ""} placeholder="FRLS" />
+            <Field label="Variant of (parent id)" name="parent_id" defaultValue={row?.parent_id ?? ""} list="parents" placeholder="e.g. poly25" />
+          </div>
+          <datalist id="lengths"><option value="45 m" /><option value="90 m" /><option value="180 m" /><option value="200 m" /><option value="270 m" /><option value="300 m" /></datalist>
+          <datalist id="sizes"><option value="1.0 sq mm" /><option value="1.5 sq mm" /><option value="2.5 sq mm" /><option value="4.0 sq mm" /><option value="6.0 sq mm" /><option value="10 sq mm" /></datalist>
+          <datalist id="parents">{all.filter((p) => !p.parent_id).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</datalist>
+        </div>
+
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }}>
           <Field label="MRP (₹)" name="mrp" type="number" defaultValue={row?.mrp} required />
           <Field label="Elume price (₹)" name="elume_price" type="number" defaultValue={row?.elume_price} required />
           <Field label="Sort order" name="sort_order" type="number" defaultValue={row?.sort_order ?? all.length} />
         </div>
-        <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13.5, color: "#19202e" }}>
-          <input type="checkbox" name="is_active" defaultChecked={row?.is_active ?? true} /> Active (visible in the catalogue)
-        </label>
+        <div style={{ display: "flex", gap: 22, flexWrap: "wrap" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13.5, color: "#19202e" }}>
+            <input type="checkbox" name="is_active" defaultChecked={row?.is_active ?? true} /> Active (visible in the catalogue)
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13.5, color: "#19202e" }}>
+            <input type="checkbox" name="is_recommended" defaultChecked={row?.is_recommended ?? false} /> Recommended (featured in sort)
+          </label>
+        </div>
         <div>
           <label style={labelStyle}>Product photo</label>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>

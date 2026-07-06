@@ -57,6 +57,18 @@ export async function upsertProduct(formData: FormData): Promise<void> {
     image_url = db.storage.from("product-images").getPublicUrl(path).data.publicUrl;
   }
 
+  // Packaging / variant attributes → attrs jsonb.
+  const attrs: Record<string, string> = {};
+  const attrField = (form: string, key: string) => {
+    const v = String(formData.get(form) ?? "").trim();
+    if (v) attrs[key] = v;
+  };
+  attrField("attr_size", "Size");
+  attrField("attr_length", "Length");
+  attrField("attr_colour", "Colour");
+  attrField("attr_quality", "Quality");
+  attrField("attr_pack", "Pack");
+
   const row = {
     id,
     sku: String(formData.get("sku") ?? "").trim(),
@@ -69,6 +81,9 @@ export async function upsertProduct(formData: FormData): Promise<void> {
     unit: String(formData.get("unit") ?? "pc").trim() || "pc",
     sort_order: Number(formData.get("sort_order") ?? 0),
     is_active: formData.get("is_active") === "on",
+    is_recommended: formData.get("is_recommended") === "on",
+    parent_id: String(formData.get("parent_id") ?? "").trim() || null,
+    attrs: Object.keys(attrs).length ? attrs : null,
     image_url,
   };
   const { error } = await db.from("products").upsert(row);
@@ -76,6 +91,78 @@ export async function upsertProduct(formData: FormData): Promise<void> {
   revalidatePath("/admin/products");
   revalidatePath("/catalogue");
   redirect("/admin/products?ok=1");
+}
+
+/** Inline bulk pricing save — body is JSON [{id, mrp, elume_price}]. */
+export async function bulkUpdatePricing(edits: { id: string; mrp: number; elume_price: number }[]): Promise<ActionResult> {
+  if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
+  const db = adminClient();
+  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  const clean = edits.filter((e) => e.id && Number.isFinite(e.mrp) && Number.isFinite(e.elume_price) && e.mrp > 0 && e.elume_price > 0);
+  if (clean.length === 0) return { ok: false, error: "No valid rows to save." };
+  for (const e of clean) {
+    const { error } = await db.from("products").update({ mrp: e.mrp, elume_price: e.elume_price }).eq("id", e.id);
+    if (error) return { ok: false, error: `${e.id}: ${error.message}` };
+  }
+  revalidatePath("/admin/products");
+  revalidatePath("/catalogue");
+  return { ok: true };
+}
+
+/** Parse + diff an uploaded CSV against the live catalogue (no writes). */
+export async function previewImport(csvText: string) {
+  if (!(await isAdmin())) return { diffs: [], errors: ["Not signed in."] };
+  const { listProductRows } = await import("@/lib/admin/data");
+  const { diffFromCsv } = await import("@/lib/admin/import");
+  const existing = await listProductRows();
+  return diffFromCsv(csvText, existing);
+}
+
+/** Apply a parsed CSV import (add/update/remove) in one go, then log it. The
+ *  parsed `diffs` come from lib/admin/import.ts and are re-validated here. */
+export async function applyImport(
+  diffs: {
+    action: "add" | "update" | "remove";
+    id: string;
+    summary: string;
+    payload: Record<string, unknown> | null;
+  }[],
+  filename: string
+): Promise<ActionResult & { applied?: number }> {
+  if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
+  const db = adminClient();
+  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  if (!diffs.length) return { ok: false, error: "Nothing to apply." };
+
+  let added = 0, updated = 0, removed = 0;
+  for (const d of diffs) {
+    if (d.action === "remove") {
+      const { error } = await db.from("products").delete().eq("id", d.id);
+      if (error) return { ok: false, error: `Remove ${d.id}: ${error.message}` };
+      removed++;
+    } else if (d.payload) {
+      const { error } = await db.from("products").upsert(d.payload);
+      if (error) return { ok: false, error: `${d.action} ${d.id}: ${error.message}` };
+      if (d.action === "add") added++; else updated++;
+    }
+  }
+
+  // Change log (best-effort — never blocks the import if the table is absent).
+  try {
+    await db.from("import_log").insert({
+      actor: "admin",
+      filename,
+      added,
+      updated,
+      removed,
+      summary: diffs.map((d) => `[${d.action}] ${d.summary}`).slice(0, 500),
+    });
+  } catch { /* import_log table not created yet — ignore */ }
+
+  revalidatePath("/admin/products");
+  revalidatePath("/admin/products/import");
+  revalidatePath("/catalogue");
+  return { ok: true, applied: added + updated + removed };
 }
 
 export async function deleteProduct(formData: FormData): Promise<void> {
