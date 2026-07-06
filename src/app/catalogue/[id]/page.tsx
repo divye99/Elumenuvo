@@ -77,7 +77,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       <PublicProductView p={product} siblings={siblings} />
       {competitorHistory.length > 0 && (
         <div style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px" }}>
-          <CompetitorPriceChart points={competitorHistory} />
+          <CompetitorPriceChart points={competitorHistory} mrp={product.market} />
         </div>
       )}
       <div style={{ height: 18 }} />
