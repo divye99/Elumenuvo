@@ -25,17 +25,21 @@ async function loadProducts() {
   return r.json();
 }
 
+const PINCODE = process.env.VASHI_PINCODE || "400001";
+const HDRS = { "User-Agent": UA, Accept: "application/json", "X-Custom-Country": "IN", "X-Custom-Pincode": PINCODE, "X-Custom-Dealer": "" };
+
 async function searchVashi(query, size = 10) {
   const url = `${VASHI}/products/search?query=${encodeURIComponent(query)}&fields=FULL&currentPage=0&pageSize=${size}&lang=en&curr=INR`;
   try {
-    const r = await fetch(url, { headers: { "User-Agent": UA, Accept: "application/json" } });
+    const r = await fetch(url, { headers: HDRS });
     if (!r.ok) return [];
     const d = await r.json();
     return (d.products ?? []).map((p) => ({
       code: String(p.code ?? ""),
       name: String(p.name ?? ""),
       brand: String(p.manufacturer ?? ""),
-      price: p.price?.value ?? null,
+      price: p.price?.value ?? null, // net (incl GST) with pincode
+      mrp: p.price?.mrp ?? null,
       url: typeof p.url === "string" ? p.url : null,
     }));
   } catch {
@@ -97,8 +101,8 @@ async function main() {
       if (sc > bestScore) { bestScore = sc; best = c; }
     }
     if (best && bestScore >= 8) {
-      rows.push({ id: p.id, code: best.code, url: best.url, factor: factorFor(p), score: bestScore, vashiName: best.name });
-      console.log(`  ✓ ${p.id} → ${best.code} (score ${bestScore}) ×${factorFor(p)}`);
+      rows.push({ id: p.id, code: best.code, url: best.url, factor: factorFor(p), score: bestScore, vashiName: best.name, net: best.price });
+      console.log(`  ✓ ${p.id} → ${best.code} net ₹${best.price} (score ${bestScore}) ×${factorFor(p)}`);
     } else {
       unmatched.push(p.id);
       console.log(`  · ${p.id} — no confident match (best ${bestScore})`);
@@ -110,7 +114,7 @@ async function main() {
 -- Review and fix in /admin/radar. Run in Supabase → SQL Editor.
 insert into public.competitor_map (product_id, source, competitor_code, competitor_url, unit_factor, note)
 values
-${rows.map((r) => `  ('${r.id}', 'vashi', '${esc(r.code)}', ${r.url ? `'https://vashiisl.com${esc(r.url)}'` : "null"}, ${r.factor}, 'auto · score ${r.score}')`).join(",\n")}
+${rows.map((r) => `  ('${r.id}', 'vashi', '${esc(r.code)}', ${r.url ? `'https://vashiisl.com${esc(r.url)}'` : "null"}, ${r.factor}, 'auto · score ${r.score} · net ₹${r.net}')`).join(",\n")}
 on conflict (product_id, source) do update set
   competitor_code = excluded.competitor_code,
   competitor_url = excluded.competitor_url,

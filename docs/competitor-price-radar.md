@@ -6,12 +6,14 @@ adapter. **Vashi** is live today.
 
 ## Key facts about Vashi pricing
 
-- Vashi's **public API only exposes the list/MRP price** (e.g. ₹92.75).
-- The **real B2B selling price** (e.g. ₹43.78) is shown only to a **logged-in
-  account**. The sync logs in with your Vashi credentials (if configured) to read
-  it; otherwise it falls back to the list price and flags "list price only".
+- Vashi's **real net price is public** — no login. The API returns it when the
+  `X-Custom-Pincode` header is sent (the adapter does this automatically):
+  `value` = net price **incl GST** (e.g. ₹43.78), `mrp` = list price (₹92.75).
+- Our Elume prices are GST-inclusive too, so `value` is directly comparable.
 - Vashi prices wire **per metre**, so a 90 m coil uses a **unit factor of 90**
-  (`comparable = competitor price × unit_factor`).
+  (`comparable = net price × unit_factor`).
+- The net price is quoted for a pincode — default `400001` (Mumbai); override
+  with the `VASHI_PINCODE` env/secret.
 
 ## How it works
 
@@ -37,13 +39,10 @@ adapter. **Vashi** is live today.
 2. **GitHub Action secrets** (repo → Settings → Secrets → Actions):
    - `SUPABASE_URL` — `https://<project>.supabase.co` (no path/slash)
    - `SUPABASE_SERVICE_ROLE_KEY` — the service-role key
-   - `VASHI_USERNAME` + `VASHI_PASSWORD` — *(optional)* your Vashi B2B login;
-     unlocks the real net price. Without them, list price is used.
+   - `VASHI_PINCODE` — *(optional)* pincode net prices are quoted for (default 400001).
    The workflow runs on the **1st of each month** and can be run by hand from the
    **Actions** tab.
-3. **Vercel:** the same `SUPABASE_SERVICE_ROLE_KEY` gates admin writes; add
-   `VASHI_USERNAME` / `VASHI_PASSWORD` there too if you want *Sync now* to fetch
-   net prices from the dashboard.
+3. **Vercel:** the same `SUPABASE_SERVICE_ROLE_KEY` gates admin writes; optionally add `VASHI_PINCODE` there too.
 
 ## Adding another source (Amazon, Moglix…)
 

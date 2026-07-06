@@ -93,6 +93,40 @@ export async function upsertProduct(formData: FormData): Promise<void> {
   redirect("/admin/products?ok=1");
 }
 
+/** Save one product's editable details (the "Details" tab of the product hub). */
+export async function updateProductDetails(input: {
+  id: string;
+  name: string;
+  spec: string;
+  unit: string;
+  mrp: number;
+  elume_price: number;
+  is_active: boolean;
+  is_recommended: boolean;
+  attrs: Record<string, string>;
+}): Promise<ActionResult> {
+  if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
+  const db = adminClient();
+  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  if (!input.id) return { ok: false, error: "Missing product id." };
+  if (!(input.mrp > 0) || !(input.elume_price > 0)) return { ok: false, error: "MRP and Elume price must be positive." };
+  const attrs = Object.fromEntries(Object.entries(input.attrs).filter(([, v]) => v && v.trim()));
+  const { error } = await db.from("products").update({
+    name: input.name.trim(),
+    spec: input.spec.trim() || null,
+    unit: input.unit.trim() || "pc",
+    mrp: input.mrp,
+    elume_price: input.elume_price,
+    is_active: input.is_active,
+    is_recommended: input.is_recommended,
+    attrs: Object.keys(attrs).length ? attrs : null,
+  }).eq("id", input.id);
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/admin/products");
+  revalidatePath("/catalogue");
+  return { ok: true };
+}
+
 /** Inline bulk pricing save — body is JSON [{id, mrp, elume_price}]. */
 export async function bulkUpdatePricing(edits: { id: string; mrp: number; elume_price: number }[]): Promise<ActionResult> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };

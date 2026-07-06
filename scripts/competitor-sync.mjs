@@ -1,12 +1,11 @@
 /**
- * Monthly competitor price sync (Vashi). Logs in with a Vashi B2B account (if
- * credentials are set) to read the real net price, refetches every mapped
- * product's price, writes ₹1-under suggestions + a history row (for the
- * per-product price chart). Run by the GitHub Action monthly, or manually:
+ * Monthly competitor price sync (Vashi). Reads Vashi's real net price publicly
+ * via the X-Custom-Pincode header (no login), refetches every mapped product's
+ * price, writes ₹1-under suggestions + a history row (per-product price chart).
  *   node --env-file=.env.local scripts/competitor-sync.mjs
  *
  * Env: SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL) + SUPABASE_SERVICE_ROLE_KEY.
- * Optional (unlocks net price): VASHI_USERNAME + VASHI_PASSWORD.
+ * Optional: VASHI_PINCODE (default 400001).
  *
  * Mirrors src/lib/admin/competitor-sync.ts + src/lib/competitors/vashi.ts.
  */
@@ -14,14 +13,12 @@ import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
 const SERVICE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
-const V_USER = (process.env.VASHI_USERNAME || "").trim();
-const V_PASS = (process.env.VASHI_PASSWORD || "").trim();
-const V_CLIENT_ID = (process.env.VASHI_CLIENT_ID || "mobile_android").trim();
-const V_CLIENT_SECRET = (process.env.VASHI_CLIENT_SECRET || "vislsecret").trim();
+const PINCODE = (process.env.VASHI_PINCODE || "400001").trim();
 const SOURCE = "vashi";
-const BASE = "https://prodapi.vashiisl.com";
-const OCC = `${BASE}/occ/v2/visl`;
+const OCC = "https://prodapi.vashiisl.com/occ/v2/visl";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36";
+// Vashi returns the real net price publicly when the pincode header is sent.
+const HDRS = { "User-Agent": UA, Accept: "application/json", "X-Custom-Country": "IN", "X-Custom-Pincode": PINCODE, "X-Custom-Dealer": "" };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 if (!SUPABASE_URL || !SERVICE_KEY) { console.error("Missing SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY."); process.exit(1); }
@@ -33,32 +30,18 @@ catch (e) { console.error("Bad Supabase client:", e.message || e); process.exit(
 
 const num = (v) => { if (v == null) return null; const n = typeof v === "string" ? Number(v.replace(/[₹,\s]/g, "")) : Number(v); return Number.isFinite(n) ? n : null; };
 
-async function login() {
-  if (!V_USER || !V_PASS) { console.log("No VASHI_USERNAME/PASSWORD — using public list prices only."); return null; }
-  const body = new URLSearchParams({ grant_type: "password", client_id: V_CLIENT_ID, client_secret: V_CLIENT_SECRET, username: V_USER, password: V_PASS });
+async function fetchByCode(code) {
   try {
-    const r = await fetch(`${BASE}/authorizationserver/oauth/token`, { method: "POST", headers: { "User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" }, body });
-    if (!r.ok) { console.warn(`Vashi login failed (HTTP ${r.status}) — falling back to list prices.`); return null; }
-    const d = await r.json();
-    console.log("Logged in to Vashi — reading net prices.");
-    return d.access_token ?? null;
-  } catch (e) { console.warn("Vashi login error:", e.message || e); return null; }
-}
-
-async function fetchByCode(code, token) {
-  const h = { "User-Agent": UA, Accept: "application/json" };
-  if (token) h.Authorization = `Bearer ${token}`;
-  try {
-    const r = await fetch(`${OCC}/products/${encodeURIComponent(code)}?fields=FULL&lang=en&curr=INR`, { headers: h });
+    const r = await fetch(`${OCC}/products/${encodeURIComponent(code)}?fields=FULL&lang=en&curr=INR`, { headers: HDRS });
     if (!r.ok) return null;
     const d = await r.json();
     if (!d.code) return null;
     const price = d.price ?? {};
-    const list = num(price.mrp ?? price.mrpValue ?? price.value);
-    const selling = num(price.value ?? price.sellingPrice);
-    const net = selling != null && list != null && selling < list ? selling : null;
+    const list = num(price.mrp ?? price.mrpValue);
+    const value = num(price.value ?? price.sellingPrice); // net (incl GST) with pincode
+    const net = value != null && list != null && value < list ? value : null;
     const rel = typeof d.url === "string" ? d.url : null;
-    return { code: String(d.code), name: String(d.name ?? ""), listPrice: list ?? selling, netPrice: net, url: rel ? (rel.startsWith("http") ? rel : `https://vashiisl.com${rel}`) : null, inStock: d.stock?.stockLevelStatus ? d.stock.stockLevelStatus !== "outOfStock" : null };
+    return { code: String(d.code), name: String(d.name ?? ""), listPrice: list ?? value, netPrice: net, url: rel ? (rel.startsWith("http") ? rel : `https://vashiisl.com${rel}`) : null, inStock: d.stock?.stockLevelStatus ? d.stock.stockLevelStatus !== "outOfStock" : null };
   } catch { return null; }
 }
 
@@ -76,7 +59,7 @@ async function main() {
     return;
   }
 
-  const token = await login();
+
   const priceById = new Map((productsRes.data ?? []).map((p) => [p.id, Number(p.elume_price)]));
   const prevById = new Map((prevRes.data ?? []).map((r) => [r.product_id, { comparable: r.comparable_price, status: r.status }]));
 
@@ -85,7 +68,7 @@ async function main() {
   console.log(`Syncing ${maps.length} mapped products…`);
 
   for (const m of maps) {
-    const item = await fetchByCode(m.competitor_code, token);
+    const item = await fetchByCode(m.competitor_code);
     const effective = item ? (item.netPrice ?? item.listPrice) : null;
     if (!item || effective == null) { failed++; console.warn(`  ✗ ${m.product_id} (${m.competitor_code})`); await sleep(250); continue; }
     fetched++;
