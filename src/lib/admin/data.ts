@@ -129,6 +129,13 @@ export async function countPendingSuggestions(): Promise<number> {
   return prices.filter(isActionable).length;
 }
 
+export async function listRepricingRules(): Promise<import("@/lib/admin/repricing").RepricingRule[]> {
+  const db = reader();
+  if (!db) return [];
+  const { data } = await db.from("repricing_settings").select("*");
+  return (data ?? []) as import("@/lib/admin/repricing").RepricingRule[];
+}
+
 export async function listContentRows(): Promise<{ key: string; data: unknown }[]> {
   const db = reader();
   if (!db) return [];

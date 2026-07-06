@@ -6,7 +6,9 @@ import {
   listCompetitorMap,
   listCompetitorPrices,
   lastCompetitorSync,
+  listRepricingRules,
 } from "@/lib/admin/data";
+import { recommend, DEFAULT_RULE, type RepricingRule } from "@/lib/admin/repricing";
 import RadarClient, { type RadarRow, type SourceInfo } from "@/app/admin/radar/RadarClient";
 
 export const dynamic = "force-dynamic";
@@ -18,16 +20,17 @@ function guessFactor(attrs: Record<string, string> | null): number {
 
 export default async function RadarPage() {
   await requireAdmin();
-  const [products, sources, maps, prices, sync] = await Promise.all([
+  const [products, sources, maps, prices, sync, rulesRaw] = await Promise.all([
     listProductRows(),
     listCompetitorSources(),
     listCompetitorMap(),
     listCompetitorPrices(),
     lastCompetitorSync(),
+    listRepricingRules(),
   ]);
+  const rules: RepricingRule[] = rulesRaw.length ? rulesRaw : [DEFAULT_RULE];
 
-  // Fallback source list if the sources table isn't seeded yet.
-  const srcList: SourceInfo[] = (sources.length ? sources : [{ id: "vashi", name: "Vashi", site_url: "https://vashiisl.com", enabled: true, needs_login: true, sort_order: 1 }]).map((s) => ({
+  const srcList: SourceInfo[] = (sources.length ? sources : [{ id: "vashi", name: "Vashi", site_url: "https://vashiisl.com", enabled: true, needs_login: false, sort_order: 1 }]).map((s) => ({
     id: s.id, name: s.name, siteUrl: s.site_url, enabled: s.enabled, needsLogin: s.needs_login,
   }));
 
@@ -35,18 +38,25 @@ export default async function RadarPage() {
   const mapByKey = new Map(maps.map((m) => [mapKey(m.product_id, m.source), m]));
   const priceByKey = new Map(prices.map((p) => [mapKey(p.product_id, p.source), p]));
 
-  const rows: RadarRow[] = products.map((p) => ({
-    id: p.id,
-    name: p.name,
-    brand: p.brand,
-    category: p.category,
-    unit: p.unit,
-    ourPrice: p.elume_price,
-    suggestedFactor: guessFactor(p.attrs),
-    perSource: Object.fromEntries(
+  const rows: RadarRow[] = products.map((p) => {
+    const perSource = Object.fromEntries(
       srcList.map((s) => [s.id, { map: mapByKey.get(mapKey(p.id, s.id)) ?? null, price: priceByKey.get(mapKey(p.id, s.id)) ?? null }])
-    ),
-  }));
+    );
+    const comparables = srcList
+      .map((s) => perSource[s.id].price?.comparable_price)
+      .filter((v): v is number => v != null && v > 0);
+    const rec = comparables.length
+      ? recommend({ ourPrice: p.elume_price, mrp: p.mrp, category: p.category, comparables }, rules)
+      : null;
+    return {
+      id: p.id, name: p.name, brand: p.brand, category: p.category, unit: p.unit,
+      ourPrice: p.elume_price, mrp: p.mrp, suggestedFactor: guessFactor(p.attrs),
+      perSource,
+      rec: rec ? { basisPrice: rec.basisPrice, target: rec.target, changePct: Math.round(rec.changePct), blocked: rec.blocked, basis: rec.rule.basis } : null,
+    };
+  });
+
+  const categories = Array.from(new Set(products.map((p) => p.category))).sort();
 
   return (
     <div>
@@ -55,12 +65,11 @@ export default async function RadarPage() {
         <Link href="/admin" style={{ fontSize: 13, color: "#8A93A6" }}>← Dashboard</Link>
       </div>
       <p style={{ fontSize: 13.5, color: "#56627A", margin: "0 0 16px", maxWidth: 760 }}>
-        Track competitor prices and get <b>₹1-under</b> suggestions you approve. Map each product to a
-        competitor item once; the monthly sync refetches prices (their real logged-in price when a login
-        is configured) and flags where you could adjust.
+        Track competitor prices and get repricing recommendations you approve. Set your strategy and
+        guardrails below; map each product once and the monthly sync keeps prices fresh.
       </p>
 
-      <RadarClient rows={rows} sources={srcList} lastSync={sync} />
+      <RadarClient rows={rows} sources={srcList} lastSync={sync} rules={rules} categories={categories} />
     </div>
   );
 }

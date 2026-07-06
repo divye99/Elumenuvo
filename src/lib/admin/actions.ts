@@ -279,6 +279,68 @@ export async function dismissSuggestion(productId: string, source: string): Prom
   return { ok: true };
 }
 
+/** Save a repricing rule (global or per-category). */
+export async function saveRepricingRule(input: {
+  scope: string;
+  basis: "market_avg" | "cheapest";
+  delta: number;
+  delta_type: "rupees" | "percent";
+  max_change_pct: number;
+  never_above_mrp: boolean;
+  enabled: boolean;
+}): Promise<ActionResult> {
+  if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
+  const db = adminClient();
+  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  const { error } = await db.from("repricing_settings").upsert({
+    scope: input.scope.trim() || "global",
+    basis: input.basis,
+    delta: Number(input.delta) || 0,
+    delta_type: input.delta_type,
+    max_change_pct: Number(input.max_change_pct) || 0,
+    never_above_mrp: input.never_above_mrp,
+    enabled: input.enabled,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/admin/radar");
+  return { ok: true };
+}
+
+export async function deleteRepricingRule(scope: string): Promise<ActionResult> {
+  if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
+  const db = adminClient();
+  if (!db) return { ok: false, error: "Service-role key missing." };
+  if (scope === "global") return { ok: false, error: "The global rule can't be deleted." };
+  await db.from("repricing_settings").delete().eq("scope", scope);
+  revalidatePath("/admin/radar");
+  return { ok: true };
+}
+
+/** Apply a rule-recommended price to a product. Re-validates the guardrails
+ *  server-side (never above MRP) so a stale client can't push a bad price. */
+export async function applyRecommendedPrice(productId: string, target: number): Promise<ActionResult> {
+  if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
+  const db = adminClient();
+  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  if (!(target > 0)) return { ok: false, error: "Invalid price." };
+  const { data: prod } = await db.from("products").select("mrp, category").eq("id", productId).maybeSingle();
+  if (!prod) return { ok: false, error: "Product not found." };
+  const { listRepricingRules } = await import("@/lib/admin/data");
+  const { resolveRule } = await import("@/lib/admin/repricing");
+  const rule = resolveRule(prod.category, await listRepricingRules());
+  if (rule.never_above_mrp && Number(prod.mrp) > 0 && target > Number(prod.mrp)) {
+    return { ok: false, error: `Blocked: ₹${target} is above MRP ₹${prod.mrp}.` };
+  }
+  const { error } = await db.from("products").update({ elume_price: target }).eq("id", productId);
+  if (error) return { ok: false, error: error.message };
+  await db.from("competitor_prices").update({ status: "accepted", our_price: target }).eq("product_id", productId);
+  revalidatePath("/admin/radar");
+  revalidatePath("/admin/products");
+  revalidatePath("/catalogue");
+  return { ok: true };
+}
+
 /** Run the sync for one source now (same core the monthly GitHub Action uses). */
 export async function syncCompetitorNow(source: string): Promise<ActionResult & { result?: { mapped: number; fetched: number; failed: number; suggestions: number } }> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
