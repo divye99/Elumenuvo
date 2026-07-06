@@ -3,7 +3,6 @@
 import ImageSlot from "@/components/ImageSlot";
 import { GROTESK, MONO } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
-import { buildProductChart } from "@/lib/charts";
 import { tileFor, type Product } from "@/lib/data";
 import {
   wholesalePrice,
@@ -28,6 +27,7 @@ export default function ProductDetail({
   onSignIn,
   ratingSummary,
   variantSlot,
+  priceHistorySlot,
 }: {
   p: Product;
   qty: number;
@@ -38,11 +38,12 @@ export default function ProductDetail({
   onProject?: () => void;
   onSignIn?: () => void;
   /** Optional slots (public storefront): star summary next to the brand row,
-   *  and a variant picker rendered between the title and the price. */
+   *  a variant picker between the title and price, and a compact price-history
+   *  bar under the specs (left column). */
   ratingSummary?: React.ReactNode;
   variantSlot?: React.ReactNode;
+  priceHistorySlot?: React.ReactNode;
 }) {
-  const chart = buildProductChart(p);
   const off = offMrpPct(p.price, p.market) + "%";
   const ws = wholesalePrice(p.price);
   const isWholesale = qty >= WHOLESALE_MIN_QTY;
@@ -79,6 +80,8 @@ export default function ProductDetail({
               </div>
             ))}
           </div>
+          {/* compact price-history bar, under the specs */}
+          {priceHistorySlot}
         </div>
 
         {/* info */}
@@ -147,50 +150,9 @@ export default function ProductDetail({
             )}
           </div>
 
-          {/* price history chart */}
-          <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "22px 24px" }}>
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 14 }}>
-              <div>
-                <div style={{ fontFamily: GROTESK, fontWeight: 600, fontSize: 15 }}>Price history · last 12 months</div>
-                <div style={{ fontSize: 12, color: "#8A93A6", marginTop: 2 }}>Elume price vs MRP over the past year. Other-platform prices coming soon.</div>
-              </div>
-              <div style={{ display: "flex", gap: 18, fontSize: 11, color: "#56627A" }}>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span style={{ width: 15, height: 3, borderRadius: 2, background: "#4E5BDC", display: "inline-block" }} />Elume</span>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span style={{ width: 15, height: 0, borderTop: "2px dashed #AEB6C4", display: "inline-block" }} />MRP</span>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "#A0A7B5" }}><span style={{ width: 15, height: 3, borderRadius: 2, background: "#D7DCE6", display: "inline-block" }} />Other platforms · soon</span>
-              </div>
-            </div>
-            <svg viewBox={`0 0 ${chart.vbW} ${chart.vbH}`} style={{ width: "100%", height: "auto", display: "block" }}>
-              {chart.gridLines.map((g, i) => (
-                <line key={i} x1="0" x2="860" y1={g.y} y2={g.y} style={{ stroke: "#EEF0F4", strokeWidth: "1px" }} />
-              ))}
-              <path d={chart.bandPath} style={{ fill: "rgba(31,157,99,0.14)", stroke: "none" }} />
-              <path d={chart.marketPath} style={{ fill: "none", stroke: "#AEB6C4", strokeWidth: "2px", strokeDasharray: "5 4" }} />
-              <path d={chart.elumePath} style={{ fill: "none", stroke: "#4E5BDC", strokeWidth: "2.5px", strokeLinejoin: "round" }} />
-              <circle cx={chart.endX} cy={chart.endYm} r="3.5" style={{ fill: "#AEB6C4" }} />
-              <circle cx={chart.endX} cy={chart.endYe} r="5" style={{ fill: "#4E5BDC", stroke: "#fff", strokeWidth: "2px" }} />
-            </svg>
-            <div style={{ display: "flex", justifyContent: "space-between", fontFamily: MONO, fontSize: 10, color: "#A0A7B5", marginTop: 4, padding: "0 6px" }}>
-              <span>Jul &apos;25</span><span>Sep</span><span>Nov</span><span>Jan &apos;26</span><span>Mar</span><span>Jun &apos;26</span>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginTop: 18, paddingTop: 18, borderTop: "1px solid #F0F2F6" }}>
-              <PdStat label="Elume today" value={chart.cur} />
-              <PdStat label="MRP today" value={chart.mkt} color="#56627A" />
-              <PdStat label="12-mo low" value={chart.low} />
-              <PdStat label="12-mo average" value={chart.avg} />
-            </div>
-          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function PdStat({ label, value, color = "#19202E" }: { label: string; value: string; color?: string }) {
-  return (
-    <div>
-      <div style={{ fontSize: 11, color: "#8A93A6" }}>{label}</div>
-      <div style={{ fontFamily: GROTESK, fontSize: 17, fontWeight: 600, color }}>{value}</div>
-    </div>
-  );
-}

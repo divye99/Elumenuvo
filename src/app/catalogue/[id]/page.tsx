@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { fetchProduct, fetchFamily } from "@/lib/products";
 import { fetchReviews } from "@/lib/reviews";
 import { fetchMarketHistory } from "@/lib/competitor-history";
-import CompetitorPriceChart from "@/components/storefront/CompetitorPriceChart";
 import { wholesalePrice } from "@/lib/pricing";
 import { getAllPosts, CATEGORY_TO_CATALOGUE } from "@/lib/blog";
 import PublicProductView from "@/components/storefront/PublicProductView";
@@ -74,12 +73,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <PublicProductView p={product} siblings={siblings} />
-      {marketHistory.length > 0 && (
-        <div style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px" }}>
-          <CompetitorPriceChart series={marketHistory} mrp={product.market} />
-        </div>
-      )}
+      <PublicProductView p={product} siblings={siblings} marketHistory={marketHistory} />
       <div style={{ height: 18 }} />
       <ProductDeepDive p={product} siblings={siblings} post={guide} />
       <div style={{ height: 18 }} />

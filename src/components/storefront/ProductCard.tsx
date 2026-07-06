@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import ImageSlot from "@/components/ImageSlot";
-import Rating from "@/components/storefront/Rating";
+import { Star } from "@/components/storefront/Rating";
 import { GROTESK, MONO } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import { tileFor, type Product } from "@/lib/data";
@@ -170,7 +170,11 @@ export default function ProductCard({
         <div style={{ fontSize: 14, fontWeight: 600, color: "#19202E", margin: "4px 0", lineHeight: 1.3 }}>{shown.name}</div>
         {shown.rating && shown.ratingCount ? (
           <div style={{ margin: "1px 0 4px" }}>
-            <Rating rating={shown.rating} count={shown.ratingCount} size={12} />
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+              <Star size={13} />
+              <span style={{ fontSize: 12.5, fontWeight: 700, color: "#3A4358" }}>{shown.rating.toFixed(1)}</span>
+            </span>
+            <div style={{ fontSize: 10, color: "#A0A7B5", marginTop: 1 }}>{shown.ratingCount} review{shown.ratingCount === 1 ? "" : "s"}</div>
           </div>
         ) : null}
         <div style={{ fontFamily: MONO, fontSize: 10.5, color: "#8A93A6", marginBottom: 13 }}>{shown.spec}</div>

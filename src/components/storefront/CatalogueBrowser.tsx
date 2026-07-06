@@ -143,9 +143,6 @@ export default function CatalogueBrowser({
         <h1 style={{ fontFamily: GROTESK, fontSize: 32, fontWeight: 600, letterSpacing: "-0.8px", margin: 0 }}>
           The FMEG catalogue
         </h1>
-        <span style={{ fontSize: 13, color: "#8A93A6" }}>
-          {filtered.length} of {products.length} products
-        </span>
       </div>
 
       {/* ── Command bar ── */}

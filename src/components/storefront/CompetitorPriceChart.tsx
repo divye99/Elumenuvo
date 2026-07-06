@@ -11,7 +11,7 @@ const MARKET = "#E0612A"; // market-average line
  * competitor names, prices and counts are stripped server-side, so nothing
  * brand-specific ever reaches the browser (not even the page source).
  */
-export default function CompetitorPriceChart({ series, mrp }: { series: MarketPoint[]; mrp?: number }) {
+export default function CompetitorPriceChart({ series, mrp, compact }: { series: MarketPoint[]; mrp?: number; compact?: boolean }) {
   const pts = series.filter((p) => p.our != null || p.marketAvg != null);
   if (pts.length === 0) return null;
 
@@ -22,7 +22,7 @@ export default function CompetitorPriceChart({ series, mrp }: { series: MarketPo
   const allVals = [...ourByTime.values(), ...avgByTime.values(), mrp].filter((v): v is number => v != null);
   const lo = Math.min(...allVals) * 0.94;
   const hi = Math.max(...allVals) * 1.06;
-  const W = 860, H = 240, padX = 8, padY = 16;
+  const W = 860, H = compact ? 90 : 240, padX = 8, padY = compact ? 8 : 16;
   const x = (i: number) => (times.length <= 1 ? W / 2 : padX + (i / (times.length - 1)) * (W - padX * 2));
   const y = (v: number) => padY + (1 - (v - lo) / (hi - lo || 1)) * (H - padY * 2);
   const path = (m: Map<string, number>) => {
@@ -34,6 +34,31 @@ export default function CompetitorPriceChart({ series, mrp }: { series: MarketPo
   const latestOur = last(ourByTime);
   const latestAvg = last(avgByTime);
   const vsMarket = latestOur != null && latestAvg != null ? latestAvg - latestOur : null; // +ve = we're cheaper
+
+  // Compact price-history bar for the product-page left column.
+  if (compact) {
+    return (
+      <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "13px 15px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+          <span style={{ fontFamily: GROTESK, fontWeight: 600, fontSize: 12.5 }}>Price history</span>
+          <span style={{ display: "flex", gap: 10, fontSize: 10, color: "#8A93A6" }}>
+            <Legend color={OUR} label="Elume" /><Legend color={MARKET} label="Market" />
+          </span>
+        </div>
+        <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block" }}>
+          <path d={path(avgByTime)} style={{ fill: "none", stroke: MARKET, strokeWidth: "3px", strokeLinejoin: "round" }} />
+          <path d={path(ourByTime)} style={{ fill: "none", stroke: OUR, strokeWidth: "3px", strokeLinejoin: "round" }} />
+          {latestOur != null && <circle cx={x(times.length - 1)} cy={y(latestOur)} r="5" style={{ fill: OUR, stroke: "#fff", strokeWidth: "2px" }} />}
+        </svg>
+        {vsMarket != null && (
+          <div style={{ fontSize: 11.5, fontWeight: 600, color: vsMarket >= 0 ? "#137a4b" : "#9a3b16", marginTop: 8 }}>
+            {vsMarket >= 0 ? `${fmt(vsMarket)} cheaper than market` : `${fmt(-vsMarket)} pricier than market`}
+            {latestAvg ? <span style={{ color: "#8A93A6", fontWeight: 400 }}> · {Math.round(Math.abs(vsMarket) / latestAvg * 100)}%</span> : null}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "22px 24px" }}>

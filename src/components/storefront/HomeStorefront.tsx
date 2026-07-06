@@ -118,9 +118,6 @@ export default function HomeStorefront({ products, posts }: { products: Product[
               </div>
               <div style={{ padding: "12px 14px" }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#19202E" }}>{cat}</div>
-                <div style={{ fontSize: 11.5, color: "#8A93A6", marginTop: 2 }}>
-                  {countFor(cat)} product{countFor(cat) === 1 ? "" : "s"}
-                </div>
               </div>
             </Link>
           ))}
