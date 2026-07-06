@@ -1,0 +1,28 @@
+name: Competitor price sync (Vashi)
+
+# Runs on the 1st of every month at 03:00 UTC, and can be triggered by hand
+# from the Actions tab (Run workflow). Refetches every mapped Vashi product's
+# price and writes ₹1-under suggestions to Supabase for the admin to review.
+on:
+  schedule:
+    - cron: "0 3 1 * *"
+  workflow_dispatch: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install @supabase/supabase-js
+        run: npm install @supabase/supabase-js@2 --no-save
+
+      - name: Run competitor price sync
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/competitor-sync.mjs

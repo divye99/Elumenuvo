@@ -71,6 +71,54 @@ export async function listImportLog(limit = 20): Promise<ImportLogRow[]> {
   return data as ImportLogRow[];
 }
 
+/* ── Competitor price radar (Vashi) ── */
+export type CompetitorMapRow = { product_id: string; vashi_code: string; unit_factor: number; note: string | null };
+export type CompetitorPriceRow = {
+  product_id: string;
+  vashi_code: string | null;
+  vashi_name: string | null;
+  vashi_url: string | null;
+  vashi_price: number | null;
+  unit_factor: number | null;
+  comparable_price: number | null;
+  suggested_price: number | null;
+  our_price: number | null;
+  status: string;
+  in_stock: boolean | null;
+  fetched_at: string;
+};
+
+export async function listCompetitorMap(): Promise<CompetitorMapRow[]> {
+  const db = reader();
+  if (!db) return [];
+  const { data } = await db.from("competitor_map").select("*");
+  return (data ?? []) as CompetitorMapRow[];
+}
+
+export async function listCompetitorPrices(): Promise<CompetitorPriceRow[]> {
+  const db = reader();
+  if (!db) return [];
+  const { data } = await db.from("competitor_prices").select("*");
+  return (data ?? []) as CompetitorPriceRow[];
+}
+
+export async function lastCompetitorSync(): Promise<{ created_at: string; mapped: number; fetched: number; failed: number; suggestions: number; source: string } | null> {
+  const db = reader();
+  if (!db) return null;
+  const { data } = await db.from("competitor_sync_log").select("*").order("created_at", { ascending: false }).limit(1);
+  return (data?.[0] as any) ?? null;
+}
+
+/** A suggestion is actionable when pending and our price differs from ₹1-under. */
+export function isActionable(p: CompetitorPriceRow): boolean {
+  return p.status === "pending" && p.our_price != null && p.suggested_price != null && Math.round(p.our_price) !== p.suggested_price;
+}
+
+export async function countPendingSuggestions(): Promise<number> {
+  const prices = await listCompetitorPrices();
+  return prices.filter(isActionable).length;
+}
+
 export async function listContentRows(): Promise<{ key: string; data: unknown }[]> {
   const db = reader();
   if (!db) return [];

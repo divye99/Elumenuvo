@@ -177,6 +177,85 @@ export async function deleteProduct(formData: FormData): Promise<void> {
   redirect("/admin/products?ok=deleted");
 }
 
+/* ── Competitor price radar (Vashi) ── */
+
+/** Proxy the Vashi OCC search for the admin's "find match" picker. */
+export async function searchVashiAction(query: string) {
+  if (!(await isAdmin())) return [];
+  const { searchVashi } = await import("@/lib/admin/vashi");
+  return searchVashi(query);
+}
+
+/** Create/update the Vashi mapping for one of our products. */
+export async function saveCompetitorMap(input: { product_id: string; vashi_code: string; unit_factor: number; note?: string }): Promise<ActionResult> {
+  if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
+  const db = adminClient();
+  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  if (!input.product_id || !input.vashi_code) return { ok: false, error: "Product and Vashi code are required." };
+  const factor = Number(input.unit_factor);
+  const { error } = await db.from("competitor_map").upsert({
+    product_id: input.product_id,
+    vashi_code: input.vashi_code.trim(),
+    unit_factor: Number.isFinite(factor) && factor > 0 ? factor : 1,
+    note: input.note?.trim() || null,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/admin/radar");
+  return { ok: true };
+}
+
+export async function removeCompetitorMap(productId: string): Promise<ActionResult> {
+  if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
+  const db = adminClient();
+  if (!db) return { ok: false, error: "Service-role key missing." };
+  await db.from("competitor_map").delete().eq("product_id", productId);
+  await db.from("competitor_prices").delete().eq("product_id", productId);
+  revalidatePath("/admin/radar");
+  return { ok: true };
+}
+
+/** Accept a suggestion → set the Elume price to the ₹1-under target. */
+export async function acceptSuggestion(productId: string): Promise<ActionResult> {
+  if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
+  const db = adminClient();
+  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  const { data: row } = await db.from("competitor_prices").select("suggested_price").eq("product_id", productId).maybeSingle();
+  const suggested = row?.suggested_price;
+  if (suggested == null) return { ok: false, error: "No suggestion to apply." };
+  const { error } = await db.from("products").update({ elume_price: suggested }).eq("id", productId);
+  if (error) return { ok: false, error: error.message };
+  await db.from("competitor_prices").update({ status: "accepted", our_price: suggested }).eq("product_id", productId);
+  revalidatePath("/admin/radar");
+  revalidatePath("/admin/products");
+  revalidatePath("/catalogue");
+  return { ok: true };
+}
+
+export async function dismissSuggestion(productId: string): Promise<ActionResult> {
+  if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
+  const db = adminClient();
+  if (!db) return { ok: false, error: "Service-role key missing." };
+  await db.from("competitor_prices").update({ status: "dismissed" }).eq("product_id", productId);
+  revalidatePath("/admin/radar");
+  return { ok: true };
+}
+
+/** Run the whole sync now (same core the monthly GitHub Action uses). */
+export async function syncCompetitorNow(): Promise<ActionResult & { result?: { mapped: number; fetched: number; failed: number; suggestions: number } }> {
+  if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
+  const db = adminClient();
+  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  const { runCompetitorSync } = await import("@/lib/admin/competitor-sync");
+  try {
+    const result = await runCompetitorSync(db, "manual");
+    revalidatePath("/admin/radar");
+    return { ok: true, result };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Sync failed." };
+  }
+}
+
 /* ── Content (JSON blobs) ── */
 export async function updateContent(formData: FormData): Promise<void> {
   if (!(await isAdmin())) redirect("/admin/login");
