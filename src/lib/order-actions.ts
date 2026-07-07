@@ -3,6 +3,7 @@
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { exGst, gstPart } from "@/lib/pricing";
+import { sendAdminNewOrder, sendCustomerOrderConfirmation } from "@/lib/email";
 
 export type CheckoutItem = { id: string; name: string; qty: number; price: number };
 export type PlaceOrderInput = {
@@ -69,6 +70,15 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
     status: "placed",
   });
   if (error) return { ok: false, error: error.message };
+
+  // Fulfilment timeline + notifications — all best-effort; never fail the order.
+  const order = {
+    id, email: input.email.trim().toLowerCase(), name: input.name.trim(), phone: input.phone.trim(),
+    total, items, shipping_address: input.shipping_address.trim(), gstin: input.gstin?.trim() || null,
+  };
+  try { await db.from("order_events").insert({ order_id: id, status: "placed", note: "Order placed" }); } catch { /* table may not exist yet */ }
+  await Promise.allSettled([sendAdminNewOrder(order), sendCustomerOrderConfirmation(order)]);
+
   return { ok: true, orderId: id, total };
 }
 

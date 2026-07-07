@@ -142,3 +142,68 @@ export async function listContentRows(): Promise<{ key: string; data: unknown }[
   const { data } = await db.from("content").select("key, data").order("key");
   return (data ?? []) as { key: string; data: unknown }[];
 }
+
+/* ── Orders / fulfilment ── */
+
+export type OrderItem = { id: string; name: string; qty: number; price?: number };
+export type OrderRow = {
+  id: string;
+  created_at: string;
+  name: string | null;
+  email: string;
+  phone: string | null;
+  gstin: string | null;
+  billing_address: string | null;
+  shipping_address: string | null;
+  payment_method: string | null;
+  items: OrderItem[] | null;
+  subtotal: number | null;
+  total: number | null;
+  status: string;
+  is_guest: boolean | null;
+  admin_note: string | null;
+  cancel_reason: string | null;
+  delivered_at: string | null;
+};
+export type Shipment = {
+  id: string;
+  order_id: string;
+  courier: string | null;
+  awb: string | null;
+  tracking_url: string | null;
+  items: OrderItem[] | null;
+  status: string;
+  proof_url: string | null;
+  shipped_at: string | null;
+  delivered_at: string | null;
+  created_at: string;
+};
+export type OrderEvent = { id: string; order_id: string; status: string; note: string | null; created_at: string };
+
+const OPEN_ORDER_STATUSES = ["placed", "confirmed", "packed", "shipped", "partially_shipped", "out_for_delivery"];
+
+export async function listOrders(): Promise<OrderRow[]> {
+  const db = reader();
+  if (!db) return [];
+  const { data } = await db.from("orders").select("*").order("created_at", { ascending: false });
+  return (data ?? []) as OrderRow[];
+}
+
+export async function countOpenOrders(): Promise<number> {
+  const db = reader();
+  if (!db) return 0;
+  const { count } = await db.from("orders").select("id", { count: "exact", head: true }).in("status", OPEN_ORDER_STATUSES);
+  return count ?? 0;
+}
+
+export async function getOrderDetail(id: string): Promise<{ order: OrderRow; shipments: Shipment[]; events: OrderEvent[] } | null> {
+  const db = reader();
+  if (!db) return null;
+  const { data: order } = await db.from("orders").select("*").eq("id", id).maybeSingle();
+  if (!order) return null;
+  const [{ data: shipments }, { data: events }] = await Promise.all([
+    db.from("order_shipments").select("*").eq("order_id", id).order("created_at", { ascending: true }),
+    db.from("order_events").select("*").eq("order_id", id).order("created_at", { ascending: true }),
+  ]);
+  return { order: order as OrderRow, shipments: (shipments ?? []) as Shipment[], events: (events ?? []) as OrderEvent[] };
+}

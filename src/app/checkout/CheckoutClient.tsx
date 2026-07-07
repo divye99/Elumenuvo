@@ -49,7 +49,10 @@ export default function CheckoutClient({ prefill }: { prefill: Prefill }) {
           <h1 style={{ fontFamily: GROTESK, fontSize: 24, fontWeight: 600, margin: "0 0 6px" }}>Order placed</h1>
           <p style={{ fontSize: 14, color: "#56627A", margin: "0 0 4px" }}>Order <b>{done.orderId}</b> · {fmt(done.total)}</p>
           <p style={{ fontSize: 13, color: "#8A93A6", margin: "0 0 20px" }}>We&apos;ve got it — a confirmation is on its way to {f.email}. Pan-India delivery in 3–7 working days.</p>
-          <Link href="/catalogue" style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14, padding: "11px 22px", borderRadius: 11 }}>Continue shopping</Link>
+          <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+            <Link href={`/track?order=${encodeURIComponent(done.orderId)}&email=${encodeURIComponent(f.email)}`} style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14, padding: "11px 22px", borderRadius: 11 }}>Track order</Link>
+            <Link href="/catalogue" style={{ background: "#EEF0FE", color: "#4E5BDC", fontWeight: 700, fontSize: 14, padding: "11px 22px", borderRadius: 11 }}>Continue shopping</Link>
+          </div>
         </div>
       </main>
     );

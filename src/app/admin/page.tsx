@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
-import { listProductRows, listContentRows, hasServiceRole, countPendingSuggestions } from "@/lib/admin/data";
+import { listProductRows, listContentRows, hasServiceRole, countPendingSuggestions, countOpenOrders } from "@/lib/admin/data";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminHome() {
   await requireAdmin();
-  const [products, content, pending] = await Promise.all([listProductRows(), listContentRows(), countPendingSuggestions()]);
+  const [products, content, pending, openOrders] = await Promise.all([listProductRows(), listContentRows(), countPendingSuggestions(), countOpenOrders()]);
 
   return (
     <div>
@@ -19,12 +19,21 @@ export default async function AdminHome() {
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+        <Link href="/admin/orders" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: 20, position: "relative" }}>
+          {openOrders > 0 && <span style={{ position: "absolute", top: 14, right: 14, fontSize: 12, fontWeight: 700, color: "#fff", background: "#E0612A", borderRadius: 20, padding: "2px 9px" }}>{openOrders}</span>}
+          <div style={{ fontSize: 13, color: "#8A93A6" }}>Orders</div>
+          <div style={{ fontSize: 28, fontWeight: 700 }}>{openOrders}</div>
+          <div style={{ fontSize: 13, color: "#4E5BDC", fontWeight: 600, marginTop: 6 }}>{openOrders > 0 ? "Fulfil open orders →" : "View orders →"}</div>
+        </Link>
         <Link href="/admin/products" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: 20 }}>
           <div style={{ fontSize: 13, color: "#8A93A6" }}>Catalogue</div>
           <div style={{ fontSize: 28, fontWeight: 700 }}>{products.length}</div>
           <div style={{ fontSize: 13, color: "#4E5BDC", fontWeight: 600, marginTop: 6 }}>Manage products & pricing →</div>
         </Link>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
         <Link href="/admin/radar" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: 20, position: "relative" }}>
           {pending > 0 && <span style={{ position: "absolute", top: 14, right: 14, fontSize: 12, fontWeight: 700, color: "#fff", background: "#E0612A", borderRadius: 20, padding: "2px 9px" }}>{pending}</span>}
           <div style={{ fontSize: 13, color: "#8A93A6" }}>Price radar · Vashi</div>
