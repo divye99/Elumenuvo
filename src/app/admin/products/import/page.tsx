@@ -24,7 +24,7 @@ export default async function ImportPage() {
         <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 10px" }}>Import history</h2>
         {log.length === 0 ? (
           <div style={{ fontSize: 13, color: "#8A93A6", background: "#fff", border: "1px solid #E8EBF1", borderRadius: 12, padding: "16px 18px" }}>
-            No imports yet. (Run <code>supabase/import-log.sql</code> to enable the log.)
+            No imports yet. (Run <code>supabase/migrations/0011_import-log.sql</code> to enable the log.)
           </div>
         ) : (
           <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 12, overflow: "hidden" }}>

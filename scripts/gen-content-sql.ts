@@ -1,5 +1,5 @@
 // Emits Supabase SQL for the `content` table (landing teasers + dashboard sample
-// data) from lib/data.ts. Run: npx tsx scripts/gen-content-sql.ts > supabase/content.sql
+// data) from lib/data.ts. Run: npx tsx scripts/gen-content-sql.ts > supabase/migrations/0006_content.sql
 import * as D from "../src/lib/data";
 
 const CONTENT: Record<string, unknown> = {

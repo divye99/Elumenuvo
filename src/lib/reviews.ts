@@ -1,6 +1,6 @@
 /** Customer reviews — public read of approved reviews per product.
  *  Verified-purchaser model: inserts are validated in the database against
- *  the orders ledger (see supabase/verified-reviews.sql). Reviewer emails and
+ *  the orders ledger (see supabase/migrations/0008_verified-reviews.sql). Reviewer emails and
  *  order ids are column-restricted and never selected. */
 import { createClient } from "@supabase/supabase-js";
 

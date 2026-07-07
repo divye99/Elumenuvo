@@ -3,7 +3,7 @@
  * type). Writes a reviewable competitor_map seed SQL. Prices come later via the
  * monthly sync — this only decides WHICH Vashi item each product maps to.
  *
- *   node scripts/auto-map-vashi.mjs  → writes supabase/competitor-map-seed.sql
+ *   node scripts/auto-map-vashi.mjs  → writes supabase/migrations/0013_competitor-map-seed.sql
  *
  * Reads products from the anon Supabase REST API (public read). No auth needed.
  */
@@ -151,8 +151,8 @@ on conflict (product_id, source) do update set
 
 -- Unmatched (${unmatched.length}): ${unmatched.join(", ") || "none"}
 `;
-  fs.writeFileSync("supabase/competitor-map-seed.sql", sql);
-  console.log(`\nDone. ${rows.length} mapped, ${unmatched.length} unmatched → supabase/competitor-map-seed.sql`);
+  fs.writeFileSync("supabase/migrations/0013_competitor-map-seed.sql", sql);
+  console.log(`\nDone. ${rows.length} mapped, ${unmatched.length} unmatched → supabase/migrations/0013_competitor-map-seed.sql`);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

@@ -145,7 +145,7 @@ async function main() {
 
   // Enabled sources from the registry that this cron knows how to fetch.
   const srcRes = await db.from("competitor_sources").select("id, enabled").eq("enabled", true).order("sort_order");
-  if (srcRes.error) { console.error(`Reading competitor_sources failed: ${srcRes.error.message}. Run supabase/competitor-pricing-v2.sql first.`); process.exit(1); }
+  if (srcRes.error) { console.error(`Reading competitor_sources failed: ${srcRes.error.message}. Run supabase/migrations/0012_competitor-pricing.sql first.`); process.exit(1); }
   const sources = (srcRes.data ?? []).map((s) => s.id).filter((id) => FETCHERS[id]);
   const skipped = (srcRes.data ?? []).map((s) => s.id).filter((id) => !FETCHERS[id]);
   if (skipped.length) console.log(`Enabled but no cron fetcher (skipping): ${skipped.join(", ")}`);

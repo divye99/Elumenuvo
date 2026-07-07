@@ -54,7 +54,7 @@ export default async function AdminContent({
               style={{ width: "100%", boxSizing: "border-box", minHeight: 120, fontFamily: "var(--space-mono)", fontSize: 12, lineHeight: 1.5, border: "1px solid #E8EBF1", borderRadius: 9, padding: 12, resize: "vertical", outline: "none", color: "#19202e" }} />
           </form>
         ))}
-        {rows.length === 0 && <div style={{ color: "#8A93A6", fontSize: 14 }}>No content rows. Run supabase/content.sql first.</div>}
+        {rows.length === 0 && <div style={{ color: "#8A93A6", fontSize: 14 }}>No content rows. Run supabase/migrations/0006_content.sql first.</div>}
       </div>
     </div>
   );

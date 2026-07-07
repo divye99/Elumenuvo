@@ -24,7 +24,7 @@ export type Product = {
 };
 
 // The catalogue lives in Supabase (public.products) — no static copy here.
-// See supabase/catalogue-v2.sql for schema + seed.
+// See supabase/migrations/0002_catalogue-v2.sql for schema + seed.
 
 
 export type ShowcaseItem = {
