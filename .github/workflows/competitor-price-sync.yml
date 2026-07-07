@@ -1,8 +1,10 @@
-name: Competitor price sync (Vashi)
+name: Competitor price sync (multi-source)
 
 # Runs on the 1st of every month at 03:00 UTC, and can be triggered by hand
-# from the Actions tab (Run workflow). Refetches every mapped Vashi product's
-# price and writes ₹1-under suggestions to Supabase for the admin to review.
+# from the Actions tab (Run workflow). For every ENABLED source in
+# competitor_sources with a fetcher (Vashi, Crompton, Legrand, Havells),
+# refetches each mapped product's price and writes ₹1-under suggestions to
+# Supabase for the admin to review. All feeds are public — no login secrets.
 on:
   schedule:
     - cron: "0 3 1 * *"
