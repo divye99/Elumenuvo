@@ -18,6 +18,9 @@ export default function SignIn() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: "err" | "ok"; text: string } | null>(null);
 
+  // Where to go after a successful sign-in (honours ?next=, defaults to /app).
+  const dest = () => (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("next")) || "/app";
+
   // Normalise an Indian mobile to E.164.
   const e164 = (p: string) => {
     const d = p.replace(/\D/g, "");
@@ -32,7 +35,7 @@ export default function SignIn() {
       if (mode === "in") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        router.push("/app"); router.refresh();
+        router.push(dest()); router.refresh();
       } else {
         const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { phone } } });
         if (error) throw error;
@@ -69,7 +72,7 @@ export default function SignIn() {
     try {
       const { error } = await createClient().auth.verifyOtp({ phone: e164(phone), token: otp, type: "sms" });
       if (error) throw error;
-      router.push("/app"); router.refresh();
+      router.push(dest()); router.refresh();
     } catch (err) {
       setMsg({ kind: "err", text: err instanceof Error ? err.message : "Incorrect or expired code." });
     } finally { setBusy(false); }
