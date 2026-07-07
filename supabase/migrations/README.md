@@ -28,6 +28,7 @@ one-time sequence.
 | 0014 | `0014_competitor-sources-brands.sql` | brand sources (Crompton/Havells/…) | 0012 |
 | 0015 | `0015_repricing.sql` | `repricing_settings` (guardrails) | — |
 | 0016 | `0016_price-history.sql` | `price_history` + seed a snapshot per product | 0001 |
+| 0017 | `0017_online-payment.sql` | Razorpay payment refs on `orders` (razorpay_order_id, payment_id, paid_at) | 0009 |
 
 ## Notes
 - **Generated files:** `0006_content.sql` is written by `scripts/gen-content-sql.ts`;

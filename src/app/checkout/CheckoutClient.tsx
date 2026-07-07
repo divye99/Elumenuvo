@@ -6,11 +6,12 @@ import { GROTESK } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import { exGst, gstPart, GST_RATE } from "@/lib/pricing";
 import { useCart } from "@/lib/cart";
-import { placeOrder } from "@/lib/order-actions";
+import { placeOrder, startOnlinePayment, confirmOnlinePayment } from "@/lib/order-actions";
+import { openRazorpay } from "@/lib/razorpay-checkout";
 
 type Prefill = { name: string; email: string; phone: string; gstin: string; isBusiness: boolean; signedIn: boolean };
 
-export default function CheckoutClient({ prefill }: { prefill: Prefill }) {
+export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Prefill; onlineEnabled: boolean }) {
   const { items, total, clear } = useCart();
   const [pending, start] = useTransition();
   const [done, setDone] = useState<{ orderId: string; total: number } | null>(null);
@@ -26,16 +27,47 @@ export default function CheckoutClient({ prefill }: { prefill: Prefill }) {
 
   const gst = useMemo(() => ({ base: exGst(total), tax: gstPart(total) }), [total]);
 
+  const orderInput = () => ({
+    name: f.name, email: f.email, phone: f.phone,
+    billing_address: f.billing,
+    shipping_address: f.sameAsBilling ? f.billing : f.shipping,
+    gstin: f.wantGst ? f.gstin : undefined,
+    payment_method: f.payment,
+    items: items.map((i) => ({ id: i.id, name: i.name, qty: i.qty, price: i.price })),
+  });
+
   const submit = () =>
     start(async () => {
       setErr(null);
-      const res = await placeOrder({
-        name: f.name, email: f.email, phone: f.phone,
-        billing_address: f.billing,
-        shipping_address: f.sameAsBilling ? f.billing : f.shipping,
-        gstin: f.wantGst ? f.gstin : undefined,
-        payment_method: f.payment,
-        items: items.map((i) => ({ id: i.id, name: i.name, qty: i.qty, price: i.price })),
+      const input = orderInput();
+
+      // Pay on delivery — one server round-trip.
+      if (f.payment !== "online") {
+        const res = await placeOrder(input);
+        if (res.ok) { clear(); setDone({ orderId: res.orderId, total: res.total }); }
+        else setErr(res.error);
+        return;
+      }
+
+      // Pay online — create a Razorpay order, open the modal, verify, then persist.
+      const started = await startOnlinePayment(input);
+      if (!started.ok) { setErr(started.error); return; }
+      let payment;
+      try {
+        payment = await openRazorpay({
+          keyId: started.keyId, amount: started.amount, razorpayOrderId: started.razorpayOrderId,
+          name: started.name, email: started.email, phone: started.phone,
+        });
+      } catch (e) {
+        setErr(e instanceof Error ? e.message : "Payment window failed to open."); return;
+      }
+      if (!payment) { setErr("Payment cancelled — you weren't charged."); return; }
+
+      const res = await confirmOnlinePayment(input, {
+        orderId: started.orderId,
+        razorpay_order_id: payment.razorpay_order_id,
+        razorpay_payment_id: payment.razorpay_payment_id,
+        razorpay_signature: payment.razorpay_signature,
       });
       if (res.ok) { clear(); setDone({ orderId: res.orderId, total: res.total }); }
       else setErr(res.error);
@@ -110,10 +142,17 @@ export default function CheckoutClient({ prefill }: { prefill: Prefill }) {
               <input type="radio" name="pay" checked={f.payment === "cod"} onChange={() => set("payment", "cod")} />
               <span><b>Pay on delivery</b><br /><span style={{ fontSize: 11.5, color: "#8A93A6" }}>Settle when goods arrive</span></span>
             </label>
-            <label style={{ ...payOpt, borderColor: "#E8EBF1", background: "#FAFBFD", cursor: "default", opacity: 0.85 }}>
-              <input type="radio" name="pay" disabled />
-              <span><b style={{ color: "#56627A" }}>Pay online</b> <span style={{ fontSize: 10, fontWeight: 700, color: "#4E5BDC", background: "#EEF0FD", padding: "2px 7px", borderRadius: 10, textTransform: "uppercase" }}>Coming soon</span><br /><span style={{ fontSize: 11.5, color: "#8A93A6" }}>UPI, cards &amp; netbanking — secure Elume checkout</span></span>
-            </label>
+            {onlineEnabled ? (
+              <label style={{ ...payOpt, borderColor: f.payment === "online" ? "#4E5BDC" : "#E8EBF1", background: f.payment === "online" ? "#F7F8FF" : "#fff" }}>
+                <input type="radio" name="pay" checked={f.payment === "online"} onChange={() => set("payment", "online")} />
+                <span><b>Pay online</b><br /><span style={{ fontSize: 11.5, color: "#8A93A6" }}>UPI, cards &amp; netbanking — secure Razorpay checkout</span></span>
+              </label>
+            ) : (
+              <label style={{ ...payOpt, borderColor: "#E8EBF1", background: "#FAFBFD", cursor: "default", opacity: 0.85 }}>
+                <input type="radio" name="pay" disabled />
+                <span><b style={{ color: "#56627A" }}>Pay online</b> <span style={{ fontSize: 10, fontWeight: 700, color: "#4E5BDC", background: "#EEF0FD", padding: "2px 7px", borderRadius: 10, textTransform: "uppercase" }}>Coming soon</span><br /><span style={{ fontSize: 11.5, color: "#8A93A6" }}>UPI, cards &amp; netbanking — secure Elume checkout</span></span>
+              </label>
+            )}
           </Section>
         </div>
 
@@ -141,7 +180,7 @@ export default function CheckoutClient({ prefill }: { prefill: Prefill }) {
           </div>
           {err && <div style={{ fontSize: 12.5, color: "#C0392B", fontWeight: 600, marginTop: 10 }}>{err}</div>}
           <button onClick={submit} disabled={pending} style={{ width: "100%", marginTop: 14, background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14.5, border: "none", padding: 13, borderRadius: 11, cursor: pending ? "wait" : "pointer", opacity: pending ? 0.7 : 1 }}>
-            {pending ? "Placing order…" : `Place order · ${fmt(total)}`}
+            {pending ? (f.payment === "online" ? "Opening payment…" : "Placing order…") : `${f.payment === "online" ? "Pay" : "Place order"} · ${fmt(total)}`}
           </button>
         </div>
       </div>
