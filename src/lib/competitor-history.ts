@@ -35,6 +35,49 @@ export async function fetchMarketHistory(productId: string): Promise<MarketPoint
     }));
 }
 
+/**
+ * Unified price history for the product page — shown for ALL products: the
+ * Elume price over time (from price_history, seeded for every product) plus a
+ * blended market-average line at each competitor sync (mapped products only).
+ * `currentPrice` guarantees at least one point if the table is empty.
+ */
+export async function fetchPriceHistory(productId: string, currentPrice?: number): Promise<MarketPoint[]> {
+  const c = client();
+  const marketByTime = new Map<string, number>();
+  const ourPoints: { at: string; our: number }[] = [];
+
+  if (c) {
+    try {
+      const { data } = await c
+        .from("price_history")
+        .select("elume_price, captured_at")
+        .eq("product_id", productId)
+        .order("captured_at", { ascending: true })
+        .limit(200);
+      for (const r of (data ?? []) as any[]) ourPoints.push({ at: r.captured_at, our: Number(r.elume_price) });
+    } catch { /* table may not exist yet */ }
+
+    // Market average per capture, from competitor history (mapped products only).
+    const comp = await fetchCompetitorHistory(productId);
+    const byTime = new Map<string, number[]>();
+    for (const p of comp) if (p.comparable != null) (byTime.get(p.at) ?? byTime.set(p.at, []).get(p.at)!).push(p.comparable);
+    for (const [at, vals] of byTime) marketByTime.set(at, Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 100) / 100);
+  }
+
+  // Ensure at least one Elume point (today) so the chart renders for everyone.
+  if (ourPoints.length === 0 && currentPrice != null) ourPoints.push({ at: new Date(0).toISOString(), our: currentPrice });
+
+  // Union of timestamps; carry the Elume price forward (step line), attach
+  // market average where a competitor sync exists.
+  const times = Array.from(new Set([...ourPoints.map((p) => p.at), ...marketByTime.keys()])).sort();
+  let lastOur: number | null = ourPoints[0]?.our ?? currentPrice ?? null;
+  const ourAt = new Map(ourPoints.map((p) => [p.at, p.our]));
+  return times.map((at) => {
+    if (ourAt.has(at)) lastOur = ourAt.get(at)!;
+    return { at, our: lastOur, marketAvg: marketByTime.get(at) ?? null };
+  });
+}
+
 export async function fetchCompetitorHistory(productId: string): Promise<CompetitorPoint[]> {
   const c = client();
   if (!c) return [];

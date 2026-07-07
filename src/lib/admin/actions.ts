@@ -13,6 +13,12 @@ import { adminClient } from "@/lib/supabase/admin";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
+/** Append a price snapshot so the product-page price history grows (best-effort). */
+async function logPrice(db: any, productId: string, elume_price: number, mrp?: number) {
+  try { await db.from("price_history").insert({ product_id: productId, elume_price, mrp: mrp ?? null }); } catch { /* table may not exist yet */ }
+}
+
+
 /* ── Auth ── */
 export async function login(formData: FormData): Promise<void> {
   const password = String(formData.get("password") ?? "");
@@ -88,6 +94,7 @@ export async function upsertProduct(formData: FormData): Promise<void> {
   };
   const { error } = await db.from("products").upsert(row);
   if (error) redirect(`/admin/products?error=${encodeURIComponent(error.message)}`);
+  await logPrice(db, id, row.elume_price, row.mrp);
   revalidatePath("/admin/products");
   revalidatePath("/catalogue");
   redirect("/admin/products?ok=1");
@@ -122,6 +129,7 @@ export async function updateProductDetails(input: {
     attrs: Object.keys(attrs).length ? attrs : null,
   }).eq("id", input.id);
   if (error) return { ok: false, error: error.message };
+  await logPrice(db, input.id, input.elume_price, input.mrp);
   revalidatePath("/admin/products");
   revalidatePath("/catalogue");
   return { ok: true };
@@ -137,6 +145,7 @@ export async function bulkUpdatePricing(edits: { id: string; mrp: number; elume_
   for (const e of clean) {
     const { error } = await db.from("products").update({ mrp: e.mrp, elume_price: e.elume_price }).eq("id", e.id);
     if (error) return { ok: false, error: `${e.id}: ${error.message}` };
+    await logPrice(db, e.id, e.elume_price, e.mrp);
   }
   revalidatePath("/admin/products");
   revalidatePath("/catalogue");
@@ -334,6 +343,7 @@ export async function applyRecommendedPrice(productId: string, target: number): 
   }
   const { error } = await db.from("products").update({ elume_price: target }).eq("id", productId);
   if (error) return { ok: false, error: error.message };
+  await logPrice(db, productId, target, Number(prod.mrp));
   await db.from("competitor_prices").update({ status: "accepted", our_price: target }).eq("product_id", productId);
   revalidatePath("/admin/radar");
   revalidatePath("/admin/products");

@@ -28,6 +28,8 @@ export default function ProductDetail({
   onAdd,
   onProject,
   onSignIn,
+  onAddToCart,
+  onBuyNow,
   ratingSummary,
   variantSlot,
   priceHistorySlot,
@@ -41,6 +43,8 @@ export default function ProductDetail({
   onAdd?: () => void;
   onProject?: () => void;
   onSignIn?: () => void;
+  onAddToCart?: () => void;
+  onBuyNow?: () => void;
   /** Optional slots (public storefront): star summary next to the brand row,
    *  a variant picker between the title and price, and a compact price-history
    *  bar under the specs (left column). */
@@ -146,7 +150,10 @@ export default function ProductDetail({
                   <div onClick={onProject} style={{ background: "#fff", border: "1.5px solid #E0E4ED", color: "#19202E", fontWeight: 600, fontSize: 13.5, padding: "13px 18px", borderRadius: 11, cursor: "pointer", whiteSpace: "nowrap" }}>Add to a project</div>
                 </>
               ) : (
-                <div onClick={onSignIn} style={{ flex: 1, background: "#4E5BDC", color: "#fff", fontWeight: 600, fontSize: 14.5, textAlign: "center", padding: 14, borderRadius: 11, cursor: "pointer" }}>Sign in to order · {fmt(lineTotal)}</div>
+                <>
+                  <div onClick={onAddToCart} style={{ flex: 1, background: "#fff", border: "1.5px solid #4E5BDC", color: "#4E5BDC", fontWeight: 700, fontSize: 14, textAlign: "center", padding: "12px 14px", borderRadius: 11, cursor: "pointer" }}>Add to cart</div>
+                  <div onClick={onBuyNow} style={{ flex: 1, background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14, textAlign: "center", padding: "13px 14px", borderRadius: 11, cursor: "pointer" }}>Buy now</div>
+                </>
               )}
             </div>
             {isWholesale && (

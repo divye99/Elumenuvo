@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { fetchProduct, fetchFamily } from "@/lib/products";
 import { fetchReviews } from "@/lib/reviews";
-import { fetchMarketHistory } from "@/lib/competitor-history";
+import { fetchPriceHistory } from "@/lib/competitor-history";
+import CompetitorPriceChart from "@/components/storefront/CompetitorPriceChart";
 import { getProfile, isBusiness } from "@/lib/profile";
 import { wholesalePrice } from "@/lib/pricing";
 import { getAllPosts, CATEGORY_TO_CATALOGUE } from "@/lib/blog";
@@ -40,10 +41,10 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   if (!product) notFound();
 
   // Family = parent + all variations, whichever member this page is.
-  const [siblings, reviews, marketHistory, profile] = await Promise.all([
+  const [siblings, reviews, priceHistory, profile] = await Promise.all([
     fetchFamily(product),
     fetchReviews(product.id),
-    fetchMarketHistory(product.id),
+    fetchPriceHistory(product.id, product.price),
     getProfile(),
   ]);
   const business = isBusiness(profile);
@@ -76,7 +77,10 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <PublicProductView p={product} siblings={siblings} marketHistory={marketHistory} business={business} />
+      <PublicProductView p={product} siblings={siblings} business={business} />
+      <div style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px" }}>
+        <CompetitorPriceChart series={priceHistory} mrp={product.market} />
+      </div>
       <div style={{ height: 18 }} />
       <ProductDeepDive p={product} siblings={siblings} post={guide} />
       <div style={{ height: 18 }} />

@@ -8,6 +8,7 @@ import { GROTESK, MONO } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import { tileFor, type Product } from "@/lib/data";
 import { valuesOf, bestMatch, COLOUR_HEX } from "@/lib/variants";
+import { useCart } from "@/lib/cart";
 
 const MAX_SWATCHES = 5;
 
@@ -30,6 +31,8 @@ export default function ProductCard({
   const [hover, setHover] = useState(false);
   // The variant currently shown on this card — swatch clicks swap it in place.
   const [shown, setShown] = useState(p);
+  const [added, setAdded] = useState(false);
+  const { add } = useCart();
   const save = Math.round((1 - shown.price / shown.market) * 100) + "%";
 
   const hasVariants = siblings.length > 1 && !!shown.attrs;
@@ -183,6 +186,18 @@ export default function ProductCard({
           <div style={{ fontSize: 11.5, color: "#A0A7B5" }}>
             MRP <span style={{ textDecoration: "line-through" }}>{fmt(shown.market)}</span>
           </div>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              add({ id: shown.id, name: shown.name, brand: shown.brand, price: shown.price, mrp: shown.market, unit: shown.unit, image: shown.image });
+              setAdded(true);
+              setTimeout(() => setAdded(false), 1200);
+            }}
+            style={{ width: "100%", marginTop: 10, background: added ? "#1F9D63" : "#EEF0FE", color: added ? "#fff" : "#4E5BDC", fontWeight: 700, fontSize: 12.5, border: "none", padding: "8px 10px", borderRadius: 9, cursor: "pointer" }}
+          >
+            {added ? "✓ Added" : "Add to cart"}
+          </button>
         </div>
       </div>
     </Link>

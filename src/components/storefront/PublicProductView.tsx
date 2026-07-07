@@ -5,16 +5,18 @@ import { useRouter } from "next/navigation";
 import ProductDetail from "@/components/app/ProductDetail";
 import VariantPicker from "@/components/storefront/VariantPicker";
 import Rating from "@/components/storefront/Rating";
-import CompetitorPriceChart from "@/components/storefront/CompetitorPriceChart";
+import { useCart } from "@/lib/cart";
 import type { Product } from "@/lib/data";
-import type { MarketPoint } from "@/lib/competitor-history";
 
 /** Public wrapper around the shared dashboard ProductDetail (browse-only),
- *  with storefront extras: star summary, variant picker, and a compact
- *  price-history bar under the specs. */
-export default function PublicProductView({ p, siblings = [], marketHistory = [], business = false }: { p: Product; siblings?: Product[]; marketHistory?: MarketPoint[]; business?: boolean }) {
+ *  with storefront extras: star summary, variant picker, cart / buy-now. */
+export default function PublicProductView({ p, siblings = [], business = false }: { p: Product; siblings?: Product[]; business?: boolean }) {
   const router = useRouter();
+  const cart = useCart();
   const [qty, setQty] = useState(1);
+
+  const toCart = () => cart.add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.market, unit: p.unit, image: p.image }, qty);
+
   return (
     <ProductDetail
       p={p}
@@ -22,12 +24,10 @@ export default function PublicProductView({ p, siblings = [], marketHistory = []
       setQty={setQty}
       variant="public"
       onCatalogue={() => router.push("/catalogue")}
-      onSignIn={() => router.push("/app")}
-      ratingSummary={
-        p.rating && p.ratingCount ? <Rating rating={p.rating} count={p.ratingCount} /> : undefined
-      }
+      onAddToCart={() => { toCart(); router.push("/cart"); }}
+      onBuyNow={() => { toCart(); router.push("/checkout"); }}
+      ratingSummary={p.rating && p.ratingCount ? <Rating rating={p.rating} count={p.ratingCount} /> : undefined}
       variantSlot={<VariantPicker p={p} siblings={siblings} />}
-      priceHistorySlot={marketHistory.length ? <CompetitorPriceChart series={marketHistory} mrp={p.market} compact /> : undefined}
       showGst={business}
     />
   );

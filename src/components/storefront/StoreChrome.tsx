@@ -2,14 +2,17 @@ import Link from "next/link";
 import { Mark, Wordmark } from "@/components/Brand";
 import HeaderSearch from "@/components/storefront/HeaderSearch";
 import ScrollTopButton from "@/components/storefront/ScrollTopButton";
+import CartButton from "@/components/storefront/CartButton";
+import { CartProvider } from "@/lib/cart";
 
 /**
- * Shared public-store chrome (Amazon-style): sticky header with search + footer.
- * Used by the home page and the catalogue/product pages so the whole public
- * shopping surface feels like one store.
+ * Shared public-store chrome (Amazon-style): sticky header with search + cart +
+ * footer, wrapped in the storefront CartProvider. Used by the home page and the
+ * catalogue/product pages so the whole public shopping surface feels like one store.
  */
 export default function StoreChrome({ children }: { children: React.ReactNode }) {
   return (
+    <CartProvider>
     <div style={{ fontFamily: "var(--hanken)", background: "#F7F8FB", minHeight: "100vh", color: "#19202e" }}>
       {/* Announcement strip */}
       <div style={{ background: "#19202E", color: "#C6CDE2", fontSize: 12.5, textAlign: "center", padding: "8px 16px" }}>
@@ -57,6 +60,7 @@ export default function StoreChrome({ children }: { children: React.ReactNode })
             <Link href="/business" style={{ fontSize: 14, fontWeight: 500, color: "#56627A" }}>
               For business
             </Link>
+            <CartButton />
             <Link
               href="/app"
               style={{
@@ -104,5 +108,6 @@ export default function StoreChrome({ children }: { children: React.ReactNode })
         </div>
       </footer>
     </div>
+    </CartProvider>
   );
 }
