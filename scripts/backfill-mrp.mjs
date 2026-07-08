@@ -21,6 +21,11 @@ import { createClient } from "@supabase/supabase-js";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { FETCHERS, BRAND_DIRECT } from "./lib/competitor-fetchers.mjs";
 
+// supabase-js needs a global WebSocket (native on Node 22+; absent on Node 20).
+if (typeof globalThis.WebSocket === "undefined") {
+  try { globalThis.WebSocket = (await import("ws")).default; } catch { /* native WS present, or ws unavailable */ }
+}
+
 const SUPABASE_URL = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
 const SERVICE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
 const APPLY = process.argv.includes("--apply");

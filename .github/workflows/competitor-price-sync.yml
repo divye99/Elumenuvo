@@ -20,8 +20,10 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Install @supabase/supabase-js
-        run: npm install @supabase/supabase-js@2 --no-save
+      - name: Install deps
+        # ws provides a WebSocket for supabase-js on Node < 22 (the script also
+        # polyfills globalThis.WebSocket from it); harmless on Node 22+.
+        run: npm install @supabase/supabase-js@2 ws --no-save
 
       - name: Run competitor price sync
         env:

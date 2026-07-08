@@ -14,6 +14,13 @@
 import { createClient } from "@supabase/supabase-js";
 import { FETCHERS } from "./lib/competitor-fetchers.mjs";
 
+// @supabase/supabase-js initialises a realtime client that needs a global
+// WebSocket (native on Node 22+, absent on Node 20). We never use realtime —
+// polyfill it from `ws` when missing so createClient works on any runner.
+if (typeof globalThis.WebSocket === "undefined") {
+  try { globalThis.WebSocket = (await import("ws")).default; } catch { /* native WS present, or ws unavailable */ }
+}
+
 const SUPABASE_URL = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
 const SERVICE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
