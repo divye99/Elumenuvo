@@ -38,3 +38,6 @@ next-env.d.ts
 # local dev artifacts
 screenshots/
 scripts/capture-glass.mjs
+
+# Generated one-off SQL (e.g. MRP backfill)
+scripts/out/
