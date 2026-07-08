@@ -29,6 +29,7 @@ one-time sequence.
 | 0015 | `0015_repricing.sql` | `repricing_settings` (guardrails) | — |
 | 0016 | `0016_price-history.sql` | `price_history` + seed a snapshot per product | 0001 |
 | 0017 | `0017_online-payment.sql` | Razorpay payment refs on `orders` (razorpay_order_id, payment_id, paid_at) | 0009 |
+| 0018 | `0018_enable-tier2-sources.sql` | enable Syska + HandyPanda competitor sources | 0014 |
 
 ## Notes
 - **Generated files:** `0006_content.sql` is written by `scripts/gen-content-sql.ts`;

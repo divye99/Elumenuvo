@@ -81,12 +81,44 @@ function magentoFetch(base) {
   };
 }
 
+function dukaanFetch(base) {
+  const b = base.replace(/\/+$/, "");
+  return async (slug) => {
+    try {
+      const r = await fetch(`${b}/products/${encodeURIComponent(slug)}`, { headers: { "User-Agent": UA, Accept: "text/html" } });
+      if (!r.ok) return null;
+      const html = await r.text();
+      const m = html.match(/id="__DUKAAN_DATA__">(.*?)<\/script>/s);
+      if (!m) return null;
+      const p = JSON.parse(m[1]).DUKAAN_PRODUCT;
+      if (!p) return null;
+      const net = num(p.selling_price), list = num(p.original_price);
+      return { code: String(p.slug ?? slug), name: String(p.name ?? ""), listPrice: list && net && list > net ? list : net, netPrice: net, url: `${b}/products/${p.slug ?? slug}`, inStock: p.in_stock !== false };
+    } catch { return null; }
+  };
+}
+
+async function handypandaFetch(slug) {
+  try {
+    const r = await fetch(`https://www.handypanda.in/products/${encodeURIComponent(slug)}`, { headers: { "User-Agent": UA, Accept: "text/html" } });
+    if (!r.ok) return null;
+    const html = await r.text();
+    const name = ((html.match(/<meta property="og:title" content="([^"]+)"/) || html.match(/<title>([^<]+)<\/title>/) || [])[1] || "").replace(/\s*\|\s*HandyPanda\s*$/i, "").trim();
+    const price = num((html.match(/\\?"price\\?":\s*\\?"?(\d{2,7})/) || [])[1]);
+    if (price == null) return null;
+    const mrp = num((html.match(/\\?"(?:mrp|maxRetailPrice|listPrice)\\?":\s*\\?"?(\d{2,7})/) || [])[1]);
+    return { code: slug, name, listPrice: mrp && mrp > price ? mrp : price, netPrice: price, url: `https://www.handypanda.in/products/${slug}`, inStock: true };
+  } catch { return null; }
+}
+
 // Which sources this cron can fetch (must match src/lib/competitors + DB ids).
 const FETCHERS = {
   vashi: vashiFetch,
   crompton: shopifyFetch("https://www.crompton.co.in"),
   legrand: magentoFetch("https://shop.legrand.co.in"),
   havells: magentoFetch("https://havells.com"),
+  syska: dukaanFetch("https://syska.co.in"),
+  handypanda: handypandaFetch,
 };
 
 /* ── Sync one source (same logic as the admin runCompetitorSync) ── */

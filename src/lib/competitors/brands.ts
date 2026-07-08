@@ -5,10 +5,14 @@
  */
 import { makeShopifyAdapter } from "./shopify";
 import { makeMagentoAdapter } from "./magento";
+import { makeDukaanAdapter } from "./dukaan";
 
 // ── Tier 1 — live (public JSON/GraphQL), verified working ──
 export const cromptonAdapter = makeShopifyAdapter({ key: "crompton", name: "Crompton", siteUrl: "https://www.crompton.co.in" });
 export const havellsAdapter = makeMagentoAdapter({ key: "havells", name: "Havells", siteUrl: "https://havells.com" });
+
+// Syska — Dukaan storefront (scrapes __DUKAAN_DATA__ on the product page).
+export const syskaAdapter = makeDukaanAdapter({ key: "syska", name: "Syska", siteUrl: "https://syska.co.in" });
 
 // Legrand — same Magento GraphQL engine, but their storefront's search index
 // only covers the UPS/energy range; the switches catalogue (Myrius/Arteor —
