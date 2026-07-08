@@ -351,6 +351,41 @@ export async function applyRecommendedPrice(productId: string, target: number): 
   return { ok: true };
 }
 
+/** Apply many repricing recommendations at once ("Apply all"). Each is checked
+ *  against the never-above-MRP guardrail; blocked/failed ones are skipped and
+ *  reported rather than aborting the batch. */
+export async function applyRecommendedPrices(items: { id: string; target: number }[]): Promise<ActionResult & { applied?: number; skipped?: number }> {
+  if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
+  const db = adminClient();
+  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  const clean = (items ?? []).filter((i) => i.id && i.target > 0);
+  if (clean.length === 0) return { ok: false, error: "Nothing to apply." };
+
+  const { listRepricingRules } = await import("@/lib/admin/data");
+  const { resolveRule } = await import("@/lib/admin/repricing");
+  const rules = await listRepricingRules();
+  const ids = clean.map((i) => i.id);
+  const { data: prods } = await db.from("products").select("id, mrp, category").in("id", ids);
+  const byId = new Map((prods ?? []).map((p: any) => [p.id, p]));
+
+  let applied = 0, skipped = 0;
+  for (const { id, target } of clean) {
+    const prod = byId.get(id);
+    if (!prod) { skipped++; continue; }
+    const rule = resolveRule(prod.category, rules);
+    if (rule.never_above_mrp && Number(prod.mrp) > 0 && target > Number(prod.mrp)) { skipped++; continue; }
+    const { error } = await db.from("products").update({ elume_price: target }).eq("id", id);
+    if (error) { skipped++; continue; }
+    await logPrice(db, id, target, Number(prod.mrp));
+    await db.from("competitor_prices").update({ status: "accepted", our_price: target }).eq("product_id", id);
+    applied++;
+  }
+  revalidatePath("/admin/radar");
+  revalidatePath("/admin/products");
+  revalidatePath("/catalogue");
+  return { ok: true, applied, skipped };
+}
+
 /** Run the sync for one source now (same core the monthly GitHub Action uses). */
 export async function syncCompetitorNow(source: string): Promise<ActionResult & { result?: { mapped: number; fetched: number; failed: number; suggestions: number } }> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };

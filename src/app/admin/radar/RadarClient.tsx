@@ -10,6 +10,7 @@ import {
   dismissSuggestion,
   syncCompetitorNow,
   applyRecommendedPrice,
+  applyRecommendedPrices,
   saveRepricingRule,
   deleteRepricingRule,
 } from "@/lib/admin/actions";
@@ -109,9 +110,24 @@ export default function RadarClient({
       {flash && <div style={{ background: flash.ok ? "#E6F5EE" : "#FBE9E4", color: flash.ok ? "#137a4b" : "#9a3b16", borderRadius: 10, padding: "10px 14px", fontSize: 13, margin: "14px 0" }}>{flash.msg}</div>}
 
       {/* Recommendations (rule-based, product-level, guardrailed) */}
-      <h2 style={{ fontSize: 16, fontWeight: 700, margin: "18px 0 10px" }}>
-        Repricing recommendations {recommendations.length > 0 && <span style={{ fontSize: 12.5, color: "#fff", background: "#E0612A", borderRadius: 20, padding: "1px 9px", marginLeft: 6 }}>{recommendations.length}</span>}
-      </h2>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, margin: "18px 0 10px", flexWrap: "wrap" }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>
+          Repricing recommendations {recommendations.length > 0 && <span style={{ fontSize: 12.5, color: "#fff", background: "#E0612A", borderRadius: 20, padding: "1px 9px", marginLeft: 6 }}>{recommendations.length}</span>}
+        </h2>
+        {recommendations.length > 0 && (
+          <button
+            onClick={() => startTransition(async () => {
+              const res = await applyRecommendedPrices(recommendations.map((r) => ({ id: r.id, target: r.rec!.target })));
+              if (res.ok) { setFlash({ ok: true, msg: `Applied ${res.applied} price${res.applied === 1 ? "" : "s"}${res.skipped ? ` · ${res.skipped} skipped (guardrail)` : ""}.` }); router.refresh(); }
+              else setFlash({ ok: false, msg: res.error ?? "Failed." });
+            })}
+            disabled={pending}
+            style={{ ...btnAccept, opacity: pending ? 0.6 : 1 }}
+          >
+            {pending ? "Applying…" : `✓ Apply all ${recommendations.length}`}
+          </button>
+        )}
+      </div>
       {recommendations.length === 0 ? (
         <div style={{ fontSize: 13, color: "#8A93A6", background: "#fff", border: "1px solid #E8EBF1", borderRadius: 12, padding: "16px 18px", marginBottom: 22 }}>
           No open recommendations. Map products below and run a sync — anything the rule would reprice appears here.
