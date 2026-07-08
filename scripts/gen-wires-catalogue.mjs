@@ -29,25 +29,31 @@ const GRADES = {
   Polycab: [["GreenWire FR", "FR", 0.96], ["GreenWire FRLS", "FRLS", 1.0], ["GreenWire FRLSH", "FRLSH", 1.02]],
   APAR:    [["Anushakti FR-PVC", "FR-PVC", 0.95], ["Anushakti HR-FR-PVC", "HR-FR", 1.0], ["Anushakti HR-FR-LSH", "HR-FR-LSH", 1.03]],
 };
-const COLOURS = ["Red", "Yellow", "Blue", "Black", "Green", "Grey"];
+// Distinct 2-letter colour codes (no collisions) for SKUs.
+const COLOURS = [["Red", "RD"], ["Yellow", "YL"], ["Blue", "BU"], ["Black", "BK"], ["Green", "GN"], ["Grey", "GY"]];
+const REP_SIZE = 2.5; // the variant shown on the catalogue card by default (most common)
 
 const sizeKey = (s) => String(s).replace(".", "p");
 const abbr = { Havells: "HAV", KEI: "KEI", Polycab: "POL", APAR: "APR" };
 
+// One family per (brand, grade); size + colour are BOTH variant dimensions, so a
+// single card shows size chips AND colour swatches. Parent = (2.5 sq mm, Red).
 const rows = [];
 let sort = 100;
 for (const brand of Object.keys(BASE)) {
   for (const [gradeName, gradeCode, mult] of GRADES[brand]) {
+    const gk = gradeCode.replace(/[^A-Za-z0-9]/g, "").toLowerCase();
+    const family = `wire-${brand.toLowerCase()}-${gk}`;
+    const repId = `${family}-${sizeKey(REP_SIZE)}-rd`;
     for (const size of SIZES) {
       const mrp = Math.round(BASE[brand][size] * mult);
       const sell = Math.round(mrp * SELL);
-      const gk = gradeCode.replace(/[^A-Za-z0-9]/g, "").toLowerCase();
-      const family = `wire-${brand.toLowerCase()}-${gk}-${sizeKey(size)}`;
-      COLOURS.forEach((colour, ci) => {
+      for (const [colour, cc] of COLOURS) {
+        const id = `${family}-${sizeKey(size)}-${cc.toLowerCase()}`;
         rows.push({
-          id: `${family}-${colour.toLowerCase()}`,
-          parent_id: ci === 0 ? null : `${family}-${COLOURS[0].toLowerCase()}`,
-          sku: `${abbr[brand]}-${gradeCode.replace(/[^A-Za-z0-9]/g, "")}-${size}-${colour.slice(0, 2).toUpperCase()}`,
+          id,
+          parent_id: id === repId ? null : repId,
+          sku: `${abbr[brand]}-${gradeCode.replace(/[^A-Za-z0-9]/g, "")}-${size}-${cc}`,
           name: `${brand} ${gradeName} ${size} sq mm House Wire — ${colour}`,
           brand,
           spec: `${size} sq mm · single core · 90 m coil · ${gradeCode} · IS 694`,
@@ -56,10 +62,12 @@ for (const brand of Object.keys(BASE)) {
           attrs: { Size: `${size} sq mm`, Colour: colour, Grade: gradeCode, Length: "90 m" },
           sort: sort++,
         });
-      });
+      }
     }
   }
 }
+// Emit parents first so child parent_id FKs resolve during the migration.
+rows.sort((a, b) => (a.parent_id === null ? -1 : 0) - (b.parent_id === null ? -1 : 0) || a.sort - b.sort);
 
 const lines = [
   "-- ═══════════════════════════════════════════════════════════════",
