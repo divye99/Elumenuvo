@@ -124,9 +124,24 @@ export function isActionable(p: CompetitorPriceRow): boolean {
   return p.status === "pending" && p.our_price != null && p.suggested_price != null && Math.round(p.our_price) !== p.suggested_price;
 }
 
+/** Count PRODUCTS (not source rows) where we'd reprice to ₹1 under the LOWEST
+ *  mapped seller — matches the Amazon-style product-level recommendation. */
 export async function countPendingSuggestions(): Promise<number> {
   const prices = await listCompetitorPrices();
-  return prices.filter(isActionable).length;
+  const lowestByProduct = new Map<string, { our: number | null; low: number; anyPending: boolean }>();
+  for (const p of prices) {
+    if (p.comparable_price == null || p.comparable_price <= 0) continue;
+    const e = lowestByProduct.get(p.product_id) ?? { our: p.our_price, low: p.comparable_price, anyPending: false };
+    e.low = Math.min(e.low, p.comparable_price);
+    if (p.our_price != null) e.our = p.our_price;
+    if (p.status === "pending") e.anyPending = true;
+    lowestByProduct.set(p.product_id, e);
+  }
+  let n = 0;
+  for (const { our, low, anyPending } of lowestByProduct.values()) {
+    if (anyPending && our != null && Math.round(our) !== Math.max(1, Math.round(low) - 1)) n++;
+  }
+  return n;
 }
 
 export async function listRepricingRules(): Promise<import("@/lib/admin/repricing").RepricingRule[]> {

@@ -30,7 +30,7 @@ type PriceCell = {
   fetched_at: string;
 } | null;
 
-export type Rec = { basisPrice: number; target: number; changePct: number; blocked: string | null; basis: string } | null;
+export type Rec = { basisPrice: number; target: number; changePct: number; blocked: string | null; basis: string; sellers?: number; cheapestSource?: string | null } | null;
 
 export type RadarRow = {
   id: string;
@@ -129,7 +129,11 @@ export default function RadarClient({
                 </div>
                 <div style={{ display: "flex", gap: 16, alignItems: "center", fontSize: 12.5 }}>
                   <Stat label="Our price" value={fmt(r.ourPrice)} />
-                  <Stat label={rec.basis === "cheapest" ? "Cheapest" : "Market avg"} value={fmt(rec.basisPrice)} />
+                  <Stat
+                    label={rec.basis === "cheapest" ? "Lowest" : "Market avg"}
+                    value={fmt(rec.basisPrice)}
+                    sub={rec.sellers ? `of ${rec.sellers} seller${rec.sellers === 1 ? "" : "s"}${rec.cheapestSource ? ` · ${rec.cheapestSource}` : ""}` : undefined}
+                  />
                   <Stat label="Recommended" value={fmt(rec.target)} color={cheaper ? "#137a4b" : "#C0392B"} sub={`${cheaper ? "−" : "+"}${rec.changePct}%`} />
                 </div>
                 <div style={{ display: "flex", gap: 8, marginLeft: "auto" }}>
@@ -327,7 +331,7 @@ function PortfolioSummary({ rows, recommendations, blocked, lastSync }: { rows: 
 /* ── Repricing rules ── */
 function RulesPanel({ rules, categories, onSaved }: { rules: RepricingRule[]; categories: string[]; onSaved: (msg: string) => void }) {
   const [open, setOpen] = useState(false);
-  const global = rules.find((r) => r.scope === "global") ?? { scope: "global", basis: "market_avg" as const, delta: 1, delta_type: "rupees" as const, max_change_pct: 40, never_above_mrp: true, enabled: true };
+  const global = rules.find((r) => r.scope === "global") ?? { scope: "global", basis: "cheapest" as const, delta: 1, delta_type: "rupees" as const, max_change_pct: 40, never_above_mrp: true, enabled: true };
   const overrides = rules.filter((r) => r.scope !== "global");
 
   return (

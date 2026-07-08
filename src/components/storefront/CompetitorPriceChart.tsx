@@ -47,7 +47,7 @@ export default function CompetitorPriceChart({ series, mrp }: { series: MarketPo
         </div>
         <div style={{ display: "flex", gap: 16, fontSize: 12, color: "#56627A", flexWrap: "wrap", alignItems: "center" }}>
           <Legend color={OUR} label="Elume" />
-          {hasMarket && <Legend color={MARKET} label="Market avg" />}
+          {hasMarket && <Legend color={MARKET} label="Lowest market price" />}
           {mrp != null && <Legend color="#AEB6C4" label="MRP" dashed />}
         </div>
       </div>
@@ -68,7 +68,7 @@ export default function CompetitorPriceChart({ series, mrp }: { series: MarketPo
       {vsMarket != null && (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", background: vsMarket >= 0 ? "#E6F5EE" : "#FBEDE4", borderRadius: 10, padding: "12px 16px", margin: "16px 0 0" }}>
           <span style={{ fontSize: 13.5, fontWeight: 600, color: vsMarket >= 0 ? "#137a4b" : "#9a3b16" }}>
-            {vsMarket >= 0 ? <>You&apos;re <b>{fmt(vsMarket)} cheaper</b> than the market average</> : <>You&apos;re <b>{fmt(-vsMarket)} pricier</b> than the market average</>}
+            {vsMarket >= 0 ? <>You&apos;re <b>{fmt(vsMarket)} cheaper</b> than the lowest market price</> : <>You&apos;re <b>{fmt(-vsMarket)} pricier</b> than the lowest market price</>}
           </span>
           {latestAvg ? <span style={{ fontSize: 12.5, color: "#56627A" }}>{Math.round(Math.abs(vsMarket) / latestAvg * 100)}% {vsMarket >= 0 ? "below" : "above"}</span> : null}
         </div>
@@ -76,7 +76,7 @@ export default function CompetitorPriceChart({ series, mrp }: { series: MarketPo
 
       <div style={{ display: "grid", gridTemplateColumns: `repeat(${(hasMarket ? 1 : 0) + (mrp != null ? 1 : 0) + 1}, 1fr)`, gap: 12, marginTop: 16, paddingTop: 16, borderTop: "1px solid #F0F2F6" }}>
         <Stat label="Elume today" value={latestOur != null ? fmt(latestOur) : "—"} color={OUR} />
-        {hasMarket && <Stat label="Market average" value={latestAvg != null ? fmt(latestAvg) : "—"} color={MARKET} />}
+        {hasMarket && <Stat label="Lowest market price" value={latestAvg != null ? fmt(latestAvg) : "—"} color={MARKET} />}
         {mrp != null && <Stat label="MRP" value={fmt(mrp)} color="#8A93A6" />}
       </div>
       <div style={{ fontFamily: MONO, fontSize: 10, color: "#A0A7B5", marginTop: 8 }}>

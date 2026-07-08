@@ -44,19 +44,40 @@ function shopifySearch(base) {
   };
 }
 
-async function boeSearch(q) {
-  try {
-    const r = await fetch(`https://www.bestofelectricals.com/search?q=${encodeURIComponent(q)}`, { headers: { "User-Agent": UA, Accept: "text/html" } });
-    if (!r.ok) return [];
-    const html = await r.text();
-    const out = [];
-    for (const b of html.split(/<div class=["']?product-item["']? data-productid=/).slice(1)) {
-      const t = b.slice(0, 3000).match(/<h2 class=["']?product-title["']?>\s*<a href=["']?([^ >"']+)["']?[^>]*>([^<]+)<\/a>/);
-      const pr = b.slice(0, 3000).match(/price actual-price["']?>([^<]+)</);
-      if (t) out.push({ code: t[1].replace(/^\//, ""), name: t[2].trim(), price: pr ? Number(pr[1].replace(/Rs\.?|₹|,|\s/gi, "")) || null : null });
-    }
-    return out.slice(0, 12);
-  } catch { return []; }
+// BOE's search endpoint is weak, but its per-brand MANUFACTURER pages list the
+// whole catalogue. We preload a brand's full catalogue once, then match locally
+// (high recall) instead of searching. Brand → BOE manufacturer slug.
+const BOE_SLUG = { havells: "havells", legrand: "legrand", anchor: "anchor", schneider: "schneider", abb: "abb", philips: "philips", wipro: "wipro", usha: "usha", hager: "hager", "gm modular": "gm-modular" };
+const boeCache = new Map();
+
+function parseBoeTiles(html) {
+  const out = [];
+  for (const b of html.split(/<div class=["']?product-item["']? data-productid=/).slice(1)) {
+    const chunk = b.slice(0, 3000);
+    const t = chunk.match(/<h2 class=["']?product-title["']?>\s*<a href=["']?([^ >"']+)["']?[^>]*>([^<]+)<\/a>/);
+    const pr = chunk.match(/price actual-price["']?>([^<]+)</);
+    if (t) out.push({ code: t[1].replace(/^\//, ""), name: t[2].trim().replace(/\s+/g, " "), price: pr ? Number(pr[1].replace(/Rs\.?|₹|,|\s/gi, "")) || null : null });
+  }
+  return out;
+}
+
+async function loadBoeBrand(brandLower) {
+  if (boeCache.has(brandLower)) return boeCache.get(brandLower);
+  const slug = BOE_SLUG[brandLower];
+  if (!slug) { boeCache.set(brandLower, []); return []; }
+  const all = new Map();
+  for (let page = 1; page <= 30; page++) {
+    const r = await fetch(`https://www.bestofelectricals.com/${slug}?pagenumber=${page}`, { headers: { "User-Agent": UA, Accept: "text/html" } });
+    if (!r.ok) break;
+    const items = parseBoeTiles(await r.text());
+    const before = all.size;
+    for (const it of items) all.set(it.code, it);
+    if (all.size === before || items.length === 0) break;
+    await sleep(250);
+  }
+  const list = [...all.values()];
+  boeCache.set(brandLower, list);
+  return list;
 }
 
 async function syskaSearch(q) {
@@ -80,32 +101,60 @@ async function syskaSearch(q) {
   } catch { return []; }
 }
 
-/* ── which source(s) to try per brand ── */
+const PINCODE = process.env.VASHI_PINCODE || "400001";
+async function vashiSearch(q) {
+  try {
+    const url = `https://prodapi.vashiisl.com/occ/v2/visl/products/search?query=${encodeURIComponent(q)}&fields=FULL&currentPage=0&pageSize=10&lang=en&curr=INR`;
+    const r = await fetch(url, { headers: { "User-Agent": UA, Accept: "application/json", "X-Custom-Country": "IN", "X-Custom-Pincode": PINCODE, "X-Custom-Dealer": "" } });
+    if (!r.ok) return [];
+    return ((await r.json())?.products ?? []).map((p) => ({ code: String(p.code ?? ""), name: String(p.name ?? ""), price: p.price?.value ?? null })).filter((p) => p.code);
+  } catch { return []; }
+}
+
+async function handypandaSearch(q) {
+  try {
+    const r = await fetch("https://www.handypanda.in/categories/electricals", { headers: { "User-Agent": UA, Accept: "text/html" } });
+    if (!r.ok) return [];
+    const slugs = [...new Set([...(await r.text()).matchAll(/\/products\/([a-z0-9-]+)/g)].map((m) => m[1]))];
+    const qw = q.toLowerCase().split(/\s+/).filter((w) => w.length > 3);
+    return slugs
+      .map((s) => ({ code: s, name: s.replace(/-[a-z0-9]{6,8}$/, "").replace(/-/g, " "), price: null }))
+      .filter((p) => qw.some((w) => p.name.includes(w)))
+      .slice(0, 8);
+  } catch { return []; }
+}
+
+/* ── source registry + which sources to try per product ── */
 const SEARCHERS = {
   havells: magentoSearch("https://havells.com"),
   atomberg: magentoSearch("https://atomberg.com"),
   crompton: shopifySearch("https://www.crompton.co.in"),
   syska: syskaSearch,
-  bestofelectricals: boeSearch,
+  vashi: vashiSearch,
+  handypanda: handypandaSearch,
+  // bestofelectricals is handled via loadBoeBrand() (local catalogue match).
 };
-const BRAND_SOURCES = {
-  havells: ["havells"],
-  crompton: ["crompton"],
-  atomberg: ["atomberg"],
-  syska: ["syska", "bestofelectricals"],
-  norisys: ["bestofelectricals"],
-  anchor: ["bestofelectricals"],
-  legrand: ["bestofelectricals"],
-  polycab: ["bestofelectricals"],
-  finolex: ["bestofelectricals"],
-  kei: ["bestofelectricals"],
-  "rr kabel": ["bestofelectricals"],
-  abb: ["bestofelectricals"],
-  philips: ["bestofelectricals"],
-  wipro: ["bestofelectricals"],
-  usha: ["bestofelectricals"],
-  schneider: ["bestofelectricals"],
-};
+// A brand's own store, when we have an adapter for it (authoritative).
+const OWN_STORE = { havells: "havells", crompton: "crompton", atomberg: "atomberg", syska: "syska" };
+// Multi-brand sources are worth trying for everything (this is the "3-4 sites"
+// fan-out). BOE spans all categories/brands; Vashi is industrial (switchgear,
+// DB, wires); HandyPanda is consumer electrical.
+const MULTI = ["bestofelectricals", "handypanda", "vashi"];
+
+/** Candidate sources for a product = its own store (if any) + the multi-brand
+ *  sites that plausibly carry its category. Wires keep their Vashi mapping from
+ *  0013 (per-metre unit_factor), so we skip them here. */
+function sourcesFor(p) {
+  if (p.category === "Wires & Cables") return [];
+  const out = new Set();
+  const own = OWN_STORE[(p.brand || "").toLowerCase()];
+  if (own) out.add(own);
+  out.add("bestofelectricals");
+  out.add("handypanda");
+  if (p.category === "Switchgear" || p.category === "DB & Panels") out.add("vashi");
+  return [...out];
+}
+const BRAND_DIRECT_SRC = new Set(Object.values(OWN_STORE));
 
 /* ── scoring: type guard + normalized-token overlap ── */
 const TYPE = {
@@ -134,6 +183,8 @@ function hardTokens(s) {
   const t = new Set();
   for (const m of s.matchAll(/\b(\d+(?:\.\d+)?(?:\/\d+)?(?:a|w|way|pin|module|step|gang|core|sqmm))\b/g)) t.add(m[1]);
   for (const m of s.matchAll(/\b([a-z]\d{3,5}(?:\.\d{1,2})?)\b/g)) t.add(m[1]); // model codes (c5110.01)
+  // Pole / DB configuration — "DP MCB" ≠ "SP MCB"; these discriminate strongly.
+  for (const m of s.matchAll(/\b(spn|tpn|dpn|dp|sp|tp|fp|\dp)\b/g)) t.add(m[1]);
   return t;
 }
 const words = (x) => new Set(x.split(/[^a-z0-9.+]+/).filter((w) => w.length > 3 && !["with", "and", "for", "white"].includes(w)));
@@ -169,49 +220,95 @@ function seriesMatch(p, cand) {
   return kind(p.name) === kind(cand.name) && series(p.name) === series(cand.name);
 }
 
+// Type noun per category — the anchor word most catalogues share.
+const TYPE_NOUN = {
+  "Switchgear": /\b(mcb|rccb|rcbo|isolator|changeover|disconnector|elcb)\b/i,
+  "DB & Panels": /\b(distribution board|enclosure|\bdb\b|kit kat)\b/i,
+  "Modular": /\b(switch|socket|regulator|dimmer|plate|holder|bell push|module)\b/i,
+  "Lighting": /\b(panel|batten|bulb|downlight|flood ?light|street ?light|light|lamp|luminaire)\b/i,
+  "Fans": /\b(fan|regulator)\b/i,
+};
+
+/** A short, search-engine-friendly query: type noun + primary numeric spec
+ *  ("Havells DP MCB 32A 'C' curve" → "MCB 32"). Magento/nopCommerce search is
+ *  AND-over-tokens, so fewer, cleaner terms = far better recall. */
+function coreQuery(p) {
+  // Fans: own stores list by SERIES (Renesa, Aris), not size — query that word.
+  if (p.category === "Fans") {
+    const series = p.name.replace(/—.*/, "").split(/\s+/).slice(1) // drop brand
+      .find((w) => w && !/^\d/.test(w) && !["ceiling", "wall", "pedestal", "exhaust", "fan", "fans", "bldc", "smart"].includes(w.toLowerCase()));
+    return series ? series.replace(/\+$/, "") : "fan";
+  }
+  const re = TYPE_NOUN[p.category];
+  const noun = re ? (p.name.match(re) || [])[0] : "";
+  const num = (p.name.replace(/—.*/, "").match(/\b(\d+(?:\.\d+)?)\s*(?:a|w|mm|watt|amp|sqmm)?\b/i) || [])[1] || "";
+  return `${noun || ""} ${num}`.trim();
+}
+
+/** Candidate list for one product on one source. */
+async function candidatesFor(p, src, base) {
+  // BOE: match against the brand's full preloaded catalogue (brand implied).
+  if (src === "bestofelectricals") return loadBoeBrand((p.brand || "").toLowerCase());
+  const brandDirect = BRAND_DIRECT_SRC.has(src);
+  const brandPrefix = brandDirect ? "" : (p.brand || "").split(" ")[0] + " ";
+  const core = coreQuery(p);
+  const queries = [core && `${brandPrefix}${core}`, base && `${brandPrefix}${base}`.slice(0, 55)].filter(Boolean);
+  const seen = new Set(), out = [];
+  for (const q of queries) {
+    for (const c of await SEARCHERS[src](q.trim())) if (!seen.has(c.code)) { seen.add(c.code); out.push(c); }
+    await sleep(200);
+    if (out.length >= 8) break;
+  }
+  return out;
+}
+
+/** Best confident candidate for one product on one source, or null. */
+async function matchOnSource(p, src, base) {
+  const brandDirect = BRAND_DIRECT_SRC.has(src);
+  const boe = src === "bestofelectricals";
+  const cands = await candidatesFor(p, src, base);
+  let best = null;
+  for (const c of cands) {
+    // Multi-brand sources must name the brand; BOE catalogue is already per-brand.
+    if (!brandDirect && !boe && !new RegExp(`\\b${(p.brand || "").split(" ")[0]}`, "i").test(c.name)) continue;
+    if (brandDirect && p.category === "Fans" && seriesMatch(p, c)) return { c, s: 10 };
+    const { s, hard } = score(p, c);
+    if (hard >= 1 && s > (best?.s ?? 0)) best = { c, s };
+  }
+  return best && best.s >= 5 ? best : null;
+}
+
 async function main() {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/products?select=id,name,brand,category,spec,unit&order=sort_order&limit=500`, { headers: { apikey: ANON, Authorization: `Bearer ${ANON}` } });
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/products?select=id,name,brand,category,spec,unit&order=sort_order&limit=2000`, { headers: { apikey: ANON, Authorization: `Bearer ${ANON}` } });
   const products = await r.json();
   if (!Array.isArray(products)) { console.error("Products read failed:", products); process.exit(1); }
 
-  const rows = [], unmatched = [];
+  const rows = [];
+  let multiSourceProducts = 0, noMatch = 0;
   for (const p of products) {
-    const sources = BRAND_SOURCES[(p.brand || "").toLowerCase()];
-    if (!sources) continue;
+    if (String(p.id).startsWith("boe")) continue; // BOE imports are already self-mapped
+    const sources = sourcesFor(p);
+    if (sources.length === 0) continue;
     const base = p.name.split("—")[0].trim(); // drop the colour/variant suffix
-    let best = null;
+
+    const hits = [];
     for (const src of sources) {
-      const brandDirect = ["havells", "crompton", "atomberg", "syska"].includes(src);
-      // Attempt 1: brand + base name. Attempt 2 (if empty): brand + hard tokens only.
-      let cands = await SEARCHERS[src](`${brandDirect ? "" : p.brand + " "}${base}`.slice(0, 60).trim());
-      await sleep(250);
-      if (cands.length === 0) {
-        const nums = [...hardTokens(normalize(base))].join(" ");
-        if (nums) { cands = await SEARCHERS[src](`${brandDirect ? "" : p.brand + " "}${nums}`.trim()); await sleep(250); }
-      }
-      for (const c of cands) {
-        // Brand must appear (whole word) for multi-brand marketplace sources.
-        if (!brandDirect && !new RegExp(`\\b${(p.brand || "").split(" ")[0]}`, "i").test(c.name)) continue;
-        // Own-store family listings: series + kind match is decisive.
-        if (brandDirect && p.category === "Fans" && seriesMatch(p, c)) { best = { src, c, s: 10, hard: 1 }; continue; }
-        const { s, hard } = score(p, c);
-        if (hard >= 1 && s > (best?.s ?? 0)) best = { src, c, s, hard };
-      }
+      const m = await matchOnSource(p, src, base);
+      if (m) hits.push({ product_id: p.id, source: src, code: m.c.code, note: `auto: ${m.c.name.slice(0, 68)} (s${m.s})` });
     }
-    if (best && best.s >= 5) {
-      rows.push({ product_id: p.id, source: best.src, code: best.c.code, note: `auto: ${best.c.name.slice(0, 70)} (score ${best.s})` });
-      console.log(`  ✓ ${p.brand} ${p.name.slice(0, 40)} → [${best.src}] ${best.c.name.slice(0, 50)} (s=${best.s})`);
-    } else {
-      unmatched.push(p);
-      console.log(`  ✗ ${p.brand} ${p.name.slice(0, 50)} — no confident match${best ? ` (best s=${best.s})` : ""}`);
-    }
+    if (hits.length >= 2) multiSourceProducts++;
+    if (hits.length === 0) { noMatch++; console.log(`  ✗ ${p.brand} ${p.name.slice(0, 46)} — no source matched`); continue; }
+    rows.push(...hits);
+    console.log(`  ✓ ${p.brand} ${p.name.slice(0, 40)} → ${hits.map((h) => h.source).join(", ")} (${hits.length} seller${hits.length === 1 ? "" : "s"})`);
   }
 
   const sql = [
     "-- ═══════════════════════════════════════════════════════════════",
-    "-- Auto-generated brand-source competitor mappings (scripts/auto-map-brands.mjs).",
-    "-- Complements 0013 (Vashi). Review, then run. Idempotent (upsert).",
-    `-- ${rows.length} mapped, ${unmatched.length} unmatched of ${products.length} products.`,
+    "-- Auto-generated MULTI-SOURCE competitor mappings (scripts/auto-map-brands.mjs).",
+    "-- Each product maps to every seller that carries it → the radar picks the",
+    "-- lowest (Amazon-style). Complements 0013 (Vashi wires). Idempotent (upsert).",
+    `-- ${rows.length} mappings across ${products.filter((p)=>!String(p.id).startsWith("boe")).length - noMatch} products;`,
+    `-- ${multiSourceProducts} products have 2+ sellers; ${noMatch} unmatched.`,
     "-- ═══════════════════════════════════════════════════════════════",
     "",
     ...rows.map((m) =>
@@ -221,8 +318,8 @@ async function main() {
     `select source, count(*) from public.competitor_map group by source order by source;`,
     "",
   ].join("\n");
-  fs.writeFileSync("supabase/migrations/0020_competitor-map-brands.sql", sql);
-  console.log(`\nDone. ${rows.length} mapped, ${unmatched.length} unmatched → supabase/migrations/0020_competitor-map-brands.sql`);
+  fs.writeFileSync("supabase/migrations/0022_competitor-map-multisource.sql", sql);
+  console.log(`\nDone. ${rows.length} mappings; ${multiSourceProducts} products with 2+ sellers; ${noMatch} unmatched → supabase/migrations/0022_competitor-map-multisource.sql`);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

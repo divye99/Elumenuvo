@@ -16,7 +16,7 @@ export type RepricingRule = {
 
 export const DEFAULT_RULE: RepricingRule = {
   scope: "global",
-  basis: "market_avg",
+  basis: "cheapest", // Amazon-style: find the lowest across all mapped sellers and undercut it
   delta: 1,
   delta_type: "rupees",
   max_change_pct: 40,

@@ -31,7 +31,7 @@ export async function fetchMarketHistory(productId: string): Promise<MarketPoint
     .map(([at, e]) => ({
       at,
       our: e.our,
-      marketAvg: e.comps.length ? Math.round((e.comps.reduce((a, b) => a + b, 0) / e.comps.length) * 100) / 100 : null,
+      marketAvg: e.comps.length ? Math.min(...e.comps) : null, // lowest across sellers
     }));
 }
 
@@ -57,11 +57,11 @@ export async function fetchPriceHistory(productId: string, currentPrice?: number
       for (const r of (data ?? []) as any[]) ourPoints.push({ at: r.captured_at, our: Number(r.elume_price) });
     } catch { /* table may not exist yet */ }
 
-    // Market average per capture, from competitor history (mapped products only).
+    // Lowest market price per capture, across all mapped sellers (Amazon-style).
     const comp = await fetchCompetitorHistory(productId);
     const byTime = new Map<string, number[]>();
     for (const p of comp) if (p.comparable != null) (byTime.get(p.at) ?? byTime.set(p.at, []).get(p.at)!).push(p.comparable);
-    for (const [at, vals] of byTime) marketByTime.set(at, Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 100) / 100);
+    for (const [at, vals] of byTime) marketByTime.set(at, Math.min(...vals));
   }
 
   // Ensure at least one Elume point (today) so the chart renders for everyone.
