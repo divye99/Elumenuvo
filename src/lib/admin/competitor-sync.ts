@@ -22,9 +22,20 @@ export async function runCompetitorSync(db: SupaLike, source: string, runSource:
     if (creds) token = await adapter.login(creds.username, creds.password);
   }
 
-  const { data: maps } = await db.from("competitor_map").select("product_id, competitor_code, unit_factor").eq("source", source);
-  const { data: products } = await db.from("products").select("id, elume_price");
-  const { data: prev } = await db.from("competitor_prices").select("product_id, comparable_price, status").eq("source", source);
+  // Page past PostgREST's 1000-row cap (BOE alone maps 800+; the catalogue is 1300+).
+  const pageAll = async (q: (from: number) => any): Promise<any[]> => {
+    const out: any[] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data } = await q(from);
+      if (!data?.length) break;
+      out.push(...data);
+      if (data.length < 1000) break;
+    }
+    return out;
+  };
+  const maps = await pageAll((from) => db.from("competitor_map").select("product_id, competitor_code, unit_factor").eq("source", source).order("product_id").range(from, from + 999));
+  const products = await pageAll((from) => db.from("products").select("id, elume_price").order("id").range(from, from + 999));
+  const prev = await pageAll((from) => db.from("competitor_prices").select("product_id, comparable_price, status").eq("source", source).order("product_id").range(from, from + 999));
 
   const priceById = new Map<string, number>((products ?? []).map((p: any) => [p.id, Number(p.elume_price)]));
   const prevById = new Map<string, { comparable: number | null; status: string }>(

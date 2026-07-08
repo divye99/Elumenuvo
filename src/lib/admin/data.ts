@@ -34,11 +34,22 @@ export function hasServiceRole(): boolean {
   return !!adminClient();
 }
 
+/** Read every row of a table, paging past PostgREST's 1000-row response cap. */
+async function readAll<T>(db: any, table: string, columns = "*", order = "id"): Promise<T[]> {
+  const out: T[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data } = await db.from(table).select(columns).order(order).range(from, from + 999);
+    if (!data?.length) break;
+    out.push(...(data as T[]));
+    if (data.length < 1000) break;
+  }
+  return out;
+}
+
 export async function listProductRows(): Promise<ProductRow[]> {
   const db = reader();
   if (!db) return [];
-  const { data } = await db.from("products").select("*").order("sort_order");
-  return (data ?? []) as ProductRow[];
+  return readAll<ProductRow>(db, "products", "*", "sort_order");
 }
 
 export async function getProductRow(id: string): Promise<ProductRow | null> {
@@ -101,15 +112,13 @@ export async function listCompetitorSources(): Promise<CompetitorSource[]> {
 export async function listCompetitorMap(): Promise<CompetitorMapRow[]> {
   const db = reader();
   if (!db) return [];
-  const { data } = await db.from("competitor_map").select("*");
-  return (data ?? []) as CompetitorMapRow[];
+  return readAll<CompetitorMapRow>(db, "competitor_map", "*", "product_id");
 }
 
 export async function listCompetitorPrices(): Promise<CompetitorPriceRow[]> {
   const db = reader();
   if (!db) return [];
-  const { data } = await db.from("competitor_prices").select("*");
-  return (data ?? []) as CompetitorPriceRow[];
+  return readAll<CompetitorPriceRow>(db, "competitor_prices", "*", "product_id");
 }
 
 export async function lastCompetitorSync(): Promise<{ created_at: string; mapped: number; fetched: number; failed: number; suggestions: number; run_source: string; source: string } | null> {

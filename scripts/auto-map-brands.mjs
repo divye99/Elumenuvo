@@ -12,6 +12,11 @@
  */
 import fs from "fs";
 
+// Bound every fetch — a hung competitor connection (ETIMEDOUT after ~75s) was
+// crashing the whole run. 20s cap; callers already treat failures as "no match".
+const _fetch = globalThis.fetch;
+globalThis.fetch = (u, o = {}) => _fetch(u, { ...o, signal: o.signal ?? AbortSignal.timeout(20000) });
+
 const SUPABASE_URL = (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "").trim();
 const ANON = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim();
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36";
@@ -67,9 +72,12 @@ async function loadBoeBrand(brandLower) {
   if (!slug) { boeCache.set(brandLower, []); return []; }
   const all = new Map();
   for (let page = 1; page <= 30; page++) {
-    const r = await fetch(`https://www.bestofelectricals.com/${slug}?pagenumber=${page}`, { headers: { "User-Agent": UA, Accept: "text/html" } });
-    if (!r.ok) break;
-    const items = parseBoeTiles(await r.text());
+    let items;
+    try {
+      const r = await fetch(`https://www.bestofelectricals.com/${slug}?pagenumber=${page}`, { headers: { "User-Agent": UA, Accept: "text/html" } });
+      if (!r.ok) break;
+      items = parseBoeTiles(await r.text());
+    } catch { break; } // timeout/network — use whatever we've collected so far
     const before = all.size;
     for (const it of items) all.set(it.code, it);
     if (all.size === before || items.length === 0) break;
@@ -141,20 +149,33 @@ const OWN_STORE = { havells: "havells", crompton: "crompton", atomberg: "atomber
 // DB, wires); HandyPanda is consumer electrical.
 const MULTI = ["bestofelectricals", "handypanda", "vashi"];
 
+// Brands whose single-core house wires Vashi stocks (per METRE → ×90 for a 90 m coil).
+const VASHI_WIRE_BRANDS = new Set(["polycab", "finolex", "kei", "rr kabel"]);
+
 /** Candidate sources for a product = its own store (if any) + the multi-brand
- *  sites that plausibly carry its category. Wires keep their Vashi mapping from
- *  0013 (per-metre unit_factor), so we skip them here. */
+ *  sites that plausibly carry its category. */
 function sourcesFor(p) {
-  if (p.category === "Wires & Cables") return [];
+  const brand = (p.brand || "").toLowerCase();
+  if (p.category === "Wires & Cables") {
+    const out = new Set();
+    if (OWN_STORE[brand]) out.add(OWN_STORE[brand]); // Havells wires on havells.com
+    if (VASHI_WIRE_BRANDS.has(brand)) out.add("vashi"); // Polycab/KEI/Finolex/RR on Vashi
+    if (BOE_SLUG[brand]) out.add("bestofelectricals");
+    return [...out];
+  }
   const out = new Set();
-  const own = OWN_STORE[(p.brand || "").toLowerCase()];
-  if (own) out.add(own);
+  if (OWN_STORE[brand]) out.add(OWN_STORE[brand]);
   out.add("bestofelectricals");
   out.add("handypanda");
   if (p.category === "Switchgear" || p.category === "DB & Panels") out.add("vashi");
   return [...out];
 }
 const BRAND_DIRECT_SRC = new Set(Object.values(OWN_STORE));
+
+// Vashi quotes wire per metre; a 90 m coil = ×90. Everything else is per unit.
+function unitFactorFor(p, src) {
+  return p.category === "Wires & Cables" && src === "vashi" ? 90 : 1;
+}
 
 /* ── scoring: type guard + normalized-token overlap ── */
 const TYPE = {
@@ -170,8 +191,10 @@ const TYPE = {
 function normalize(s) {
   return s
     .toLowerCase()
-    .replace(/mm²/g, " sqmm ")
+    .replace(/mm²/g, "sqmm")
+    .replace(/(\d(?:\.\d+)?)\s*sq\.?\s*mm/g, "$1sqmm") // "2.5 sq mm" → "2.5sqmm" (a hard token)
     .replace(/sq\.?\s*mm/g, "sqmm")
+    .replace(/\bsingle\b/g, "1") // "single core" ↔ "1 core"
     .replace(/\bone\b/g, "1").replace(/\btwo\b/g, "2").replace(/\bthree\b/g, "3").replace(/\bfour\b/g, "4").replace(/\bfive\b/g, "5")
     .replace(/(\d)\s*[- ]\s*(way|pin|module|step|gang|core)\b/g, "$1$2")
     .replace(/(\d(?:\.\d+)?)\s*(a|amp|amps)\b/g, "$1a")
@@ -265,6 +288,11 @@ function coreQuery(p) {
       .find((w) => w && !/^\d/.test(w) && !["ceiling", "wall", "pedestal", "exhaust", "fan", "fans", "bldc", "smart"].includes(w.toLowerCase()));
     return series ? series.replace(/\+$/, "") : "fan";
   }
+  // Wires: the size + "sqmm" is the anchor (e.g. "2.5 sqmm"); single core implied.
+  if (p.category === "Wires & Cables") {
+    const size = (p.name.match(/(\d+(?:\.\d+)?)\s*sq/i) || p.name.match(/(\d+(?:\.\d+)?)/) || [])[1] || "";
+    return size ? `${size} sqmm` : "";
+  }
   const re = TYPE_NOUN[p.category];
   const noun = re ? (p.name.match(re) || [])[0] : "";
   const num = (p.name.replace(/—.*/, "").match(/\b(\d+(?:\.\d+)?)\s*(?:a|w|mm|watt|amp|sqmm)?\b/i) || [])[1] || "";
@@ -307,28 +335,54 @@ async function matchOnSource(p, src, base) {
   return best && best.s >= 5 ? best : null;
 }
 
+// Fetch the whole catalogue, paging past PostgREST's 1000-row response cap.
+async function allProducts() {
+  const out = [];
+  for (let from = 0; ; from += 1000) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/products?select=id,name,brand,category,spec,unit,parent_id,attrs&order=id&limit=1000&offset=${from}`, { headers: { apikey: ANON, Authorization: `Bearer ${ANON}` } });
+    const page = await r.json();
+    if (!Array.isArray(page) || page.length === 0) break;
+    out.push(...page);
+    if (page.length < 1000) break;
+  }
+  return out;
+}
+
+// A wire colour variant we don't need to map (price is identical across colours);
+// map only the Red representative of each brand/grade/size to avoid 6× the work.
+function isRedundantWireColour(p) {
+  if (p.category !== "Wires & Cables") return false;
+  const colour = (p.attrs?.Colour || (p.name.split("—")[1] || "")).toLowerCase();
+  return colour ? !colour.includes("red") : false;
+}
+
 async function main() {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/products?select=id,name,brand,category,spec,unit&order=sort_order&limit=2000`, { headers: { apikey: ANON, Authorization: `Bearer ${ANON}` } });
-  const products = await r.json();
-  if (!Array.isArray(products)) { console.error("Products read failed:", products); process.exit(1); }
+  const products = await allProducts();
+  if (!Array.isArray(products) || products.length === 0) { console.error("Products read failed."); process.exit(1); }
+  console.log(`Catalogue: ${products.length} products.`);
 
   const rows = [];
-  let multiSourceProducts = 0, noMatch = 0;
+  let multiSourceProducts = 0, noMatch = 0, considered = 0;
   for (const p of products) {
     if (String(p.id).startsWith("boe")) continue; // BOE imports are already self-mapped
+    if (isRedundantWireColour(p)) continue; // map one colour per wire family
     const sources = sourcesFor(p);
     if (sources.length === 0) continue;
+    considered++;
+    if (considered % 25 === 0) console.log(`  … ${considered} products processed, ${rows.length} mappings so far`);
     const base = p.name.split("—")[0].trim(); // drop the colour/variant suffix
 
     const hits = [];
     for (const src of sources) {
-      const m = await matchOnSource(p, src, base);
-      if (m) hits.push({ product_id: p.id, source: src, code: m.c.code, note: `auto: ${m.c.name.slice(0, 68)} (s${m.s})` });
+      try {
+        const m = await matchOnSource(p, src, base);
+        if (m) hits.push({ product_id: p.id, source: src, code: m.c.code, unit_factor: unitFactorFor(p, src), note: `auto: ${m.c.name.slice(0, 60)} (s${m.s})` });
+      } catch { /* a source hiccup shouldn't abort the whole run */ }
     }
     if (hits.length >= 2) multiSourceProducts++;
-    if (hits.length === 0) { noMatch++; console.log(`  ✗ ${p.brand} ${p.name.slice(0, 46)} — no source matched`); continue; }
+    if (hits.length === 0) { noMatch++; continue; }
     rows.push(...hits);
-    console.log(`  ✓ ${p.brand} ${p.name.slice(0, 40)} → ${hits.map((h) => h.source).join(", ")} (${hits.length} seller${hits.length === 1 ? "" : "s"})`);
+    console.log(`  ✓ ${p.brand} ${p.name.slice(0, 40)} → ${hits.map((h) => `${h.source}×${h.unit_factor}`).join(", ")}`);
   }
 
   const sql = [
@@ -336,12 +390,12 @@ async function main() {
     "-- Auto-generated MULTI-SOURCE competitor mappings (scripts/auto-map-brands.mjs).",
     "-- Each product maps to every seller that carries it → the radar picks the",
     "-- lowest (Amazon-style). Complements 0013 (Vashi wires). Idempotent (upsert).",
-    `-- ${rows.length} mappings across ${products.filter((p)=>!String(p.id).startsWith("boe")).length - noMatch} products;`,
-    `-- ${multiSourceProducts} products have 2+ sellers; ${noMatch} unmatched.`,
+    `-- ${rows.length} mappings across ${considered - noMatch} products;`,
+    `-- ${multiSourceProducts} products have 2+ sellers; ${noMatch} of ${considered} unmatched.`,
     "-- ═══════════════════════════════════════════════════════════════",
     "",
     ...rows.map((m) =>
-      `insert into public.competitor_map (product_id, source, competitor_code, unit_factor, note) values (${[m.product_id, m.source, m.code].map((x) => `'${String(x).replace(/'/g, "''")}'`).join(", ")}, 1, '${m.note.replace(/'/g, "''")}')\n  on conflict (product_id, source) do update set competitor_code = excluded.competitor_code, note = excluded.note, updated_at = now();`
+      `insert into public.competitor_map (product_id, source, competitor_code, unit_factor, note) values (${[m.product_id, m.source, m.code].map((x) => `'${String(x).replace(/'/g, "''")}'`).join(", ")}, ${m.unit_factor}, '${m.note.replace(/'/g, "''")}')\n  on conflict (product_id, source) do update set competitor_code = excluded.competitor_code, unit_factor = excluded.unit_factor, note = excluded.note, updated_at = now();`
     ),
     "",
     `select source, count(*) from public.competitor_map group by source order by source;`,
