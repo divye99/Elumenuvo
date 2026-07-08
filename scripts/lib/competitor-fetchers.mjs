@@ -96,16 +96,32 @@ async function handypandaFetch(slug) {
   } catch { return null; }
 }
 
+async function boeFetch(slug) {
+  try {
+    const r = await fetch(`https://www.bestofelectricals.com/${encodeURIComponent(slug.replace(/^\//, ""))}`, { headers: { "User-Agent": UA, Accept: "text/html" } });
+    if (!r.ok) return null;
+    const html = await r.text();
+    const name = ((html.match(/<h1[^>]*itemprop=["']?name["']?[^>]*>([^<]+)/) || [])[1] || "").trim();
+    const selling = num((html.match(/itemprop=["']?price["']? content=["']?([\d.]+)/) || [])[1]);
+    const mrp = num(((html.match(/id=["']?oldPrice["']?[^>]*>([^<]+)</) || [])[1] || "").replace(/Rs\.?/i, ""));
+    if (selling == null && mrp == null) return null;
+    return { code: slug, name, listPrice: mrp ?? selling, netPrice: selling, url: `https://www.bestofelectricals.com/${slug}`, inStock: !/out of stock/i.test(html) };
+  } catch { return null; }
+}
+
 // Source id → fetcher. Must match the DB source ids + src/lib/competitors.
 export const FETCHERS = {
   vashi: vashiFetch,
   crompton: shopifyFetch("https://www.crompton.co.in"),
   legrand: magentoFetch("https://shop.legrand.co.in"),
   havells: magentoFetch("https://havells.com"),
+  atomberg: magentoFetch("https://atomberg.com"),
   syska: dukaanFetch("https://syska.co.in"),
   handypanda: handypandaFetch,
+  bestofelectricals: boeFetch,
 };
 
 // Manufacturer-owned storefronts → their non-discounted price IS the true MRP.
-// (Marketplaces/distributors — vashi, handypanda — are less authoritative.)
-export const BRAND_DIRECT = new Set(["crompton", "havells", "legrand", "syska"]);
+// (Marketplaces/distributors — vashi, handypanda, bestofelectricals — are less
+// authoritative, though BOE prints an explicit MRP field.)
+export const BRAND_DIRECT = new Set(["crompton", "havells", "legrand", "syska", "atomberg"]);
