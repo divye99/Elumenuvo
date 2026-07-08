@@ -189,9 +189,31 @@ function hardTokens(s) {
 }
 const words = (x) => new Set(x.split(/[^a-z0-9.+]+/).filter((w) => w.length > 3 && !["with", "and", "for", "white"].includes(w)));
 
+// Character-trigram Dice similarity — catches marketing-name variants that share
+// no numeric token (e.g. "Ambrose Decorative Fan" ~ "Ambrose HS Decorative Fan").
+function trigrams(s) {
+  const x = ` ${s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim()} `;
+  const g = new Set();
+  for (let i = 0; i < x.length - 2; i++) g.add(x.slice(i, i + 3));
+  return g;
+}
+function dice(a, b) {
+  if (!a.size || !b.size) return 0;
+  let inter = 0;
+  for (const t of a) if (b.has(t)) inter++;
+  return (2 * inter) / (a.size + b.size);
+}
+// Strip the brand + generic type words so similarity compares the distinctive bits.
+function distinctive(name, brand) {
+  return normalize(name.split("—")[0])
+    .replace(new RegExp(`\\b${(brand || "").toLowerCase()}\\b`, "g"), "")
+    .replace(/\b(ceiling|wall|pedestal|exhaust|fan|fans|bldc|smart|led|light|series|the)\b/g, " ")
+    .trim();
+}
+
 function score(p, cand) {
   const typeRe = TYPE[p.category];
-  if (typeRe && !typeRe.test(cand.name)) return { s: -1, hard: 0 };
+  if (typeRe && !typeRe.test(cand.name)) return { s: -1, hard: 0, sim: 0 };
   const ourColour = (p.name.split("—")[1] || "").trim().toLowerCase();
   const a = normalize(`${p.name.split("—")[0]} ${p.spec ?? ""}`);
   const b = normalize(cand.name);
@@ -199,11 +221,14 @@ function score(p, cand) {
   let s = 0, hard = 0;
   for (const t of ha) if (hb.has(t)) { s += t.match(/^[a-z]\d/) ? 6 : 3; hard++; }
   for (const w of words(a)) if (words(b).has(w)) s += 1;
+  // Fuzzy name similarity on the distinctive parts (series/model words).
+  const sim = dice(trigrams(distinctive(p.name, p.brand)), trigrams(distinctive(cand.name, p.brand)));
+  s += Math.round(sim * 6); // up to +6 for a near-identical name
   // Colour steering: grey products should land on grey variants and vice versa.
   const candGrey = /\bgrey\b/.test(b), ourGrey = /grey/.test(ourColour);
   if (ourGrey && candGrey) s += 2;
   if (!ourGrey && candGrey) s -= 2;
-  return { s, hard };
+  return { s, hard, sim };
 }
 
 /** Atomberg (and own stores generally) list FAMILY products ("Renesa + Ceiling
@@ -212,6 +237,7 @@ function seriesMatch(p, cand) {
   const kind = (n) => (/exhaust/i.test(n) ? "exhaust" : /wall fan/i.test(n) ? "wall" : /pedestal/i.test(n) ? "pedestal" : "ceiling");
   const series = (n) =>
     normalize(n.split("—")[0])
+      .replace(new RegExp(`\\b${(p.brand || "").toLowerCase()}\\b`, "g"), "") // drop brand (our names have it, their store doesn't)
       .replace(/\s*\+\s*/g, "+ ") // "renesa +" → "renesa+ "
       .split(/\s+/)
       .filter((w) => w && !["ceiling", "wall", "pedestal", "exhaust", "fan", "fans", "bldc", "smart"].includes(w) && !/^\d/.test(w))
@@ -272,8 +298,11 @@ async function matchOnSource(p, src, base) {
     // Multi-brand sources must name the brand; BOE catalogue is already per-brand.
     if (!brandDirect && !boe && !new RegExp(`\\b${(p.brand || "").split(" ")[0]}`, "i").test(c.name)) continue;
     if (brandDirect && p.category === "Fans" && seriesMatch(p, c)) return { c, s: 10 };
-    const { s, hard } = score(p, c);
-    if (hard >= 1 && s > (best?.s ?? 0)) best = { c, s };
+    const { s, hard, sim } = score(p, c);
+    // Accept on a shared hard spec token, OR on a strong fuzzy name match (both
+    // gated by the type guard inside score()). The latter catches marketing names.
+    const qualifies = hard >= 1 || sim >= 0.5;
+    if (qualifies && s > (best?.s ?? 0)) best = { c, s };
   }
   return best && best.s >= 5 ? best : null;
 }
