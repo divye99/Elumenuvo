@@ -12,6 +12,7 @@ import { recommend, DEFAULT_RULE, type RepricingRule } from "@/lib/admin/reprici
 import RadarClient, { type RadarRow, type SourceInfo } from "@/app/admin/radar/RadarClient";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60; // allow "Sync now" to process many products in one request
 
 function guessFactor(attrs: Record<string, string> | null): number {
   const m = attrs?.Length?.match(/(\d+)\s*m/);

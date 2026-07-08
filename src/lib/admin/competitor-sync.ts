@@ -13,6 +13,7 @@ export type SyncResult = { mapped: number; fetched: number; failed: number; sugg
 export async function runCompetitorSync(db: SupaLike, source: string, runSource: "cron" | "manual"): Promise<SyncResult> {
   const adapter = getAdapter(source);
   if (!adapter) throw new Error(`Unknown competitor source: ${source}`);
+  const ad = adapter; // non-null binding for use inside the concurrency closure
 
   // Authenticate once if this source gates the net price and creds are set.
   let token: string | null = null;
@@ -34,10 +35,11 @@ export async function runCompetitorSync(db: SupaLike, source: string, runSource:
   const rows = maps ?? [];
   const nowIso = new Date().toISOString();
 
-  for (const m of rows) {
-    const item = await adapter.fetchByCode(m.competitor_code, token);
+  // Process one mapping: fetch the live price, write the snapshot + history row.
+  async function processOne(m: any) {
+    const item = await ad.fetchByCode(m.competitor_code, token);
     const effective = item ? (item.netPrice ?? item.listPrice) : null;
-    if (!item || effective == null) { failed++; continue; }
+    if (!item || effective == null) { failed++; return; }
     fetched++;
 
     const factor = Number(m.unit_factor) || 1;
@@ -53,33 +55,21 @@ export async function runCompetitorSync(db: SupaLike, source: string, runSource:
     if (status === "pending" && ourPrice != null && Math.round(ourPrice) !== suggested) suggestions++;
 
     await db.from("competitor_prices").upsert({
-      product_id: m.product_id,
-      source,
-      competitor_code: item.code,
-      competitor_name: item.name,
-      competitor_url: item.url,
-      list_price: item.listPrice,
-      net_price: item.netPrice,
-      unit_factor: factor,
-      comparable_price: comparable,
-      suggested_price: suggested,
-      our_price: ourPrice,
-      status,
-      in_stock: item.inStock,
-      fetched_at: nowIso,
+      product_id: m.product_id, source, competitor_code: item.code, competitor_name: item.name, competitor_url: item.url,
+      list_price: item.listPrice, net_price: item.netPrice, unit_factor: factor, comparable_price: comparable,
+      suggested_price: suggested, our_price: ourPrice, status, in_stock: item.inStock, fetched_at: nowIso,
     });
-
     await db.from("competitor_price_history").insert({
-      product_id: m.product_id,
-      source,
-      list_price: item.listPrice,
-      net_price: item.netPrice,
-      comparable_price: comparable,
-      our_price: ourPrice,
-      captured_at: nowIso,
+      product_id: m.product_id, source, list_price: item.listPrice, net_price: item.netPrice,
+      comparable_price: comparable, our_price: ourPrice, captured_at: nowIso,
     });
+  }
 
-    await new Promise((r) => setTimeout(r, 250));
+  // Bounded concurrency — sequential fetches were timing the serverless request
+  // out at ~15 products; 8-at-a-time clears far more within the budget.
+  const CONCURRENCY = 8;
+  for (let i = 0; i < rows.length; i += CONCURRENCY) {
+    await Promise.all(rows.slice(i, i + CONCURRENCY).map((m: any) => processOne(m).catch(() => { failed++; })));
   }
 
   await db.from("competitor_sync_log").insert({ source, mapped: rows.length, fetched, failed, suggestions, run_source: runSource });
