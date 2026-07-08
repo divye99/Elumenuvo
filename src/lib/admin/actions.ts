@@ -401,6 +401,49 @@ export async function syncCompetitorNow(source: string): Promise<ActionResult & 
   }
 }
 
+/** Refresh live prices for every ENABLED source in one click (all mapped SKUs).
+ *  Large sources may exceed the serverless budget — the GitHub Action does the
+ *  full unbounded run. Returns combined totals + any sources that timed out. */
+export async function syncAllCompetitors(): Promise<ActionResult & { result?: { sources: number; mapped: number; fetched: number; failed: number; suggestions: number; incomplete: string[] } }> {
+  if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
+  const db = adminClient();
+  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  const { runCompetitorSync } = await import("@/lib/admin/competitor-sync");
+  const { listCompetitorSources } = await import("@/lib/admin/data");
+  const sources = (await listCompetitorSources()).filter((s) => s.enabled);
+  const totals = { sources: 0, mapped: 0, fetched: 0, failed: 0, suggestions: 0, incomplete: [] as string[] };
+  for (const s of sources) {
+    try {
+      const r = await runCompetitorSync(db, s.id, "manual");
+      totals.sources++; totals.mapped += r.mapped; totals.fetched += r.fetched; totals.failed += r.failed; totals.suggestions += r.suggestions;
+    } catch {
+      totals.incomplete.push(s.name);
+    }
+  }
+  revalidatePath("/admin/radar");
+  return { ok: true, result: totals };
+}
+
+/** Manually set a product's selling price to any value (no MRP guardrail — the
+ *  admin is explicit). Logs history + marks the competitor rows accepted. */
+export async function setElumePrice(productId: string, price: number): Promise<ActionResult> {
+  if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
+  const db = adminClient();
+  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  const p = Math.round(Number(price));
+  if (!(p > 0)) return { ok: false, error: "Enter a valid price." };
+  const { data: prod } = await db.from("products").select("mrp").eq("id", productId).maybeSingle();
+  if (!prod) return { ok: false, error: "Product not found." };
+  const { error } = await db.from("products").update({ elume_price: p }).eq("id", productId);
+  if (error) return { ok: false, error: error.message };
+  await logPrice(db, productId, p, Number(prod.mrp));
+  await db.from("competitor_prices").update({ status: "accepted", our_price: p }).eq("product_id", productId);
+  revalidatePath("/admin/radar");
+  revalidatePath("/admin/products");
+  revalidatePath("/catalogue");
+  return { ok: true };
+}
+
 /* ── Content (JSON blobs) ── */
 export async function updateContent(formData: FormData): Promise<void> {
   if (!(await isAdmin())) redirect("/admin/login");

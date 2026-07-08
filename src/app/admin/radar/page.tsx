@@ -49,13 +49,18 @@ export default async function RadarPage() {
       .filter((x): x is { src: string; v: number } => x.v != null && x.v > 0);
     const comparables = priced.map((x) => x.v);
     const cheapest = priced.length ? priced.reduce((a, b) => (b.v < a.v ? b : a)) : null;
+    const lowest = priced.length ? Math.min(...comparables) : null;
+    const avgMarket = priced.length ? Math.round((comparables.reduce((a, b) => a + b, 0) / priced.length) * 100) / 100 : null;
+    const target = lowest != null ? Math.max(1, Math.round(lowest) - 1) : null; // lowest − ₹1
+    const pctVsLowest = lowest != null && lowest > 0 ? Math.round(((p.elume_price - lowest) / lowest) * 100) : null;
     const rec = comparables.length
       ? recommend({ ourPrice: p.elume_price, mrp: p.mrp, category: p.category, comparables }, rules)
       : null;
     return {
-      id: p.id, name: p.name, brand: p.brand, category: p.category, unit: p.unit,
+      id: p.id, name: p.name, brand: p.brand, category: p.category, unit: p.unit, image: p.image_url,
       ourPrice: p.elume_price, mrp: p.mrp, suggestedFactor: guessFactor(p.attrs),
       perSource,
+      market: priced.length ? { sellers: priced.map((x) => ({ source: x.src, price: x.v })), avgMarket: avgMarket!, lowest: lowest!, target: target!, pctVsLowest, cheapestSource: cheapest?.src ?? null } : null,
       rec: rec ? { basisPrice: rec.basisPrice, target: rec.target, changePct: Math.round(rec.changePct), blocked: rec.blocked, basis: rec.rule.basis, sellers: priced.length, cheapestSource: cheapest?.src ?? null } : null,
     };
   });
