@@ -71,9 +71,15 @@ export async function fetchProducts(): Promise<Product[]> {
     // Order by sort_order THEN id — sort_order values collide across import
     // batches, and an unstable tie order differs between the HTML and RSC
     // renders, causing a hydration mismatch on the home shelves.
-    const { data, error } = await selectProducts(c, (q) => q.eq("is_active", true).order("sort_order").order("id"));
-    if (error || !data) return [];
-    return (data as Row[]).map(toProduct);
+    // Page past PostgREST's 1000-row cap so the full catalogue (1300+) is returned.
+    const all: Row[] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await selectProducts(c, (q) => q.eq("is_active", true).order("sort_order").order("id").range(from, from + 999));
+      if (error || !data?.length) break;
+      all.push(...(data as Row[]));
+      if (data.length < 1000) break;
+    }
+    return all.map(toProduct);
   } catch {
     return [];
   }
