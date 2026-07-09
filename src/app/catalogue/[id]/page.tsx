@@ -10,6 +10,8 @@ import { getAllPosts, CATEGORY_TO_CATALOGUE } from "@/lib/blog";
 import PublicProductView from "@/components/storefront/PublicProductView";
 import ProductDeepDive from "@/components/storefront/ProductDeepDive";
 import ReviewsSection from "@/components/storefront/ReviewsSection";
+import ProductFaq from "@/components/storefront/ProductFaq";
+import { NEW_CONDITION, RETURN_POLICY, SHIPPING_DETAILS, productFaqs } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -69,10 +71,14 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       priceCurrency: "INR",
       price: product.price,
       availability: "https://schema.org/InStock",
+      itemCondition: NEW_CONDITION,
       areaServed: { "@type": "Country", name: "India" },
-      seller: { "@type": "Organization", name: "Elume" },
+      seller: { "@type": "Organization", name: "Elume Nuvotech Private Limited" },
+      hasMerchantReturnPolicy: RETURN_POLICY,
+      shippingDetails: SHIPPING_DETAILS,
     },
   };
+  const faqs = productFaqs({ name: product.name, brand: product.brand, unit: product.unit });
 
   return (
     <>
@@ -83,6 +89,8 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       </div>
       <div style={{ height: 18 }} />
       <ProductDeepDive p={product} siblings={siblings} post={guide} />
+      <div style={{ height: 18 }} />
+      <ProductFaq faqs={faqs} />
       <div style={{ height: 18 }} />
       <ReviewsSection productId={product.id} reviews={reviews} />
     </>

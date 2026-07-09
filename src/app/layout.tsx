@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Hanken_Grotesk, Space_Grotesk, Space_Mono } from "next/font/google";
 import { Toaster } from "sonner";
+import { ORG } from "@/lib/seo";
 import "./globals.css";
 
 const hanken = Hanken_Grotesk({
@@ -53,14 +54,9 @@ export const metadata: Metadata = {
 
 const ORG_JSONLD = {
   "@context": "https://schema.org",
-  "@type": "Organization",
-  name: "Elume",
-  legalName: "Elume Nuvotech Private Limited",
-  url: SITE,
-  logo: `${SITE}/assets/elume-mark.png`,
+  ...ORG,
   description: "B2B procurement platform for Fast-Moving Electrical Goods (FMEG) in India.",
   areaServed: "IN",
-  sameAs: [] as string[],
 };
 
 export default function RootLayout({
