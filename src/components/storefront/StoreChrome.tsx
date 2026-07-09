@@ -3,6 +3,8 @@ import { Mark, Wordmark } from "@/components/Brand";
 import HeaderSearch from "@/components/storefront/HeaderSearch";
 import ScrollTopButton from "@/components/storefront/ScrollTopButton";
 import CartButton from "@/components/storefront/CartButton";
+import AccountButton from "@/components/storefront/AccountButton";
+import { getProfile, isBusiness } from "@/lib/profile";
 import { CartProvider } from "@/lib/cart";
 
 /**
@@ -10,7 +12,11 @@ import { CartProvider } from "@/lib/cart";
  * footer, wrapped in the storefront CartProvider. Used by the home page and the
  * catalogue/product pages so the whole public shopping surface feels like one store.
  */
-export default function StoreChrome({ children }: { children: React.ReactNode }) {
+export default async function StoreChrome({ children }: { children: React.ReactNode }) {
+  const profile = await getProfile();
+  const user = profile
+    ? { name: profile.full_name, email: profile.email, business: isBusiness(profile), company: profile.company }
+    : null;
   return (
     <CartProvider>
     <div style={{ fontFamily: "var(--hanken)", background: "#F7F8FB", minHeight: "100vh", color: "#19202e" }}>
@@ -61,19 +67,7 @@ export default function StoreChrome({ children }: { children: React.ReactNode })
               For business
             </Link>
             <CartButton />
-            <Link
-              href="/app"
-              style={{
-                fontSize: 14,
-                fontWeight: 600,
-                color: "#fff",
-                background: "#4E5BDC",
-                padding: "9px 18px",
-                borderRadius: 10,
-              }}
-            >
-              Workspace
-            </Link>
+            <AccountButton user={user} />
           </nav>
         </div>
       </header>
