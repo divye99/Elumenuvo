@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import ProductDetail from "@/components/app/ProductDetail";
 import VariantPicker from "@/components/storefront/VariantPicker";
 import Rating from "@/components/storefront/Rating";
+import MobileBuyBar from "@/components/storefront/MobileBuyBar";
 import { useCart } from "@/lib/cart";
 import type { Product } from "@/lib/data";
 
@@ -18,17 +19,21 @@ export default function PublicProductView({ p, siblings = [], business = false }
   const toCart = () => cart.add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.market, unit: p.unit, image: p.image }, qty);
 
   return (
-    <ProductDetail
-      p={p}
-      qty={qty}
-      setQty={setQty}
-      variant="public"
-      onCatalogue={() => router.push("/catalogue")}
-      onAddToCart={() => { toCart(); router.push("/cart"); }}
-      onBuyNow={() => { toCart(); router.push("/checkout"); }}
-      ratingSummary={p.rating && p.ratingCount ? <Rating rating={p.rating} count={p.ratingCount} /> : undefined}
-      variantSlot={<VariantPicker p={p} siblings={siblings} />}
-      showGst={business}
-    />
+    <>
+      <ProductDetail
+        p={p}
+        qty={qty}
+        setQty={setQty}
+        variant="public"
+        onCatalogue={() => router.push("/catalogue")}
+        onAddToCart={() => { toCart(); router.push("/cart"); }}
+        onBuyNow={() => { toCart(); router.push("/checkout"); }}
+        ratingSummary={p.rating && p.ratingCount ? <Rating rating={p.rating} count={p.ratingCount} /> : undefined}
+        variantSlot={<VariantPicker p={p} siblings={siblings} />}
+        showGst={business}
+      />
+      {/* Mobile-only sticky add-to-basket bar (hides on scroll down) */}
+      <MobileBuyBar price={p.price} unit={p.unit} onAdd={toCart} />
+    </>
   );
 }

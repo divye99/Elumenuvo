@@ -70,3 +70,39 @@ export async function joinWaitlist(_prev: FormState, form: FormData): Promise<Fo
   if (error) return { ok: false, message: "Couldn't join the waitlist — please try again." };
   return { ok: true, message: "You're on the list — we'll email you when credit goes live." };
 }
+
+/** Shared insert for the public lead forms (Sell on Elume / product requests).
+ *  Core fields go to columns; everything else lands in `details` jsonb. */
+export async function submitPartnerLead(kind: "seller" | "product-request", _prev: FormState, form: FormData): Promise<FormState> {
+  const email = String(form.get("email") ?? "").trim();
+  const name = String(form.get("name") ?? "").trim();
+  const phone = String(form.get("phone") ?? "").trim();
+  const company = String(form.get("company") ?? "").trim();
+  const message = String(form.get("message") ?? "").trim();
+
+  if (!/^\S+@\S+\.\S+$/.test(email)) return { ok: false, message: "Please enter a valid email address." };
+  if (!name) return { ok: false, message: "Please add your name." };
+
+  const details: Record<string, string> = {};
+  for (const [k, v] of form.entries()) {
+    if (["email", "name", "phone", "company", "message"].includes(k) || k.startsWith("$")) continue;
+    const val = String(v).trim();
+    if (val) details[k] = val.slice(0, 500);
+  }
+
+  const c = client();
+  if (!c) return { ok: false, message: "This form isn't available right now — email us at info@elumenuvo.com." };
+  const { error } = await c.from("partner_leads").insert({
+    kind,
+    name: name.slice(0, 120),
+    email: email.slice(0, 200),
+    phone: phone ? phone.slice(0, 30) : null,
+    company: company ? company.slice(0, 160) : null,
+    message: message ? message.slice(0, 4000) : null,
+    details,
+  });
+  if (error) return { ok: false, message: "Couldn't submit right now — please try again, or email info@elumenuvo.com." };
+  return kind === "seller"
+    ? { ok: true, message: "Thanks — our partnerships team will reach out within 2 working days." }
+    : { ok: true, message: "Got it — we'll try to source this product and email you a price." };
+}

@@ -16,16 +16,18 @@ const CAT_ICONS: Record<string, string> = {
   "DB & Panels": "🗄️",
 };
 
-type Sort = "featured" | "recommended" | "top-sellers" | "top-rated" | "price-asc" | "price-desc" | "save-desc";
+type Sort = "featured" | "recommended" | "top-sellers" | "top-rated" | "price-asc" | "price-desc" | "save-desc" | "new";
 const SORTS: { key: Sort; label: string }[] = [
   { key: "featured", label: "Featured" },
   { key: "recommended", label: "Recommended" },
   { key: "top-sellers", label: "Top sellers" },
   { key: "top-rated", label: "Top rated" },
+  { key: "new", label: "New releases" },
   { key: "save-desc", label: "Biggest savings" },
   { key: "price-asc", label: "Price: low to high" },
   { key: "price-desc", label: "Price: high to low" },
 ];
+const isSort = (s: string): s is Sort => SORTS.some((x) => x.key === s);
 
 /** Public catalogue browser — one sticky command bar (search · category pills ·
  *  brand + sort popovers) over the product grid. Initial search/category arrive
@@ -34,16 +36,19 @@ export default function CatalogueBrowser({
   products,
   initialQ = "",
   initialCat = "All",
+  initialSort = "featured",
 }: {
   products: Product[];
   initialQ?: string;
   initialCat?: string;
+  initialSort?: string;
 }) {
   const [cat, setCat] = useState(CATS.includes(initialCat) ? initialCat : "All");
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [q, setQ] = useState(initialQ);
-  const [sort, setSort] = useState<Sort>("featured");
+  const [sort, setSort] = useState<Sort>(isSort(initialSort) ? initialSort : "featured");
   const [open, setOpen] = useState<"cat" | "brand" | "sort" | null>(null);
+  const [sheet, setSheet] = useState(false); // mobile filter bottom-sheet
   const searchRef = useRef<HTMLInputElement>(null);
 
   const brands = useMemo(
@@ -87,6 +92,9 @@ export default function CatalogueBrowser({
         return [...list].sort((a, b) => b.price - a.price);
       case "save-desc":
         return [...list].sort((a, b) => (1 - b.price / b.market) - (1 - a.price / a.market));
+      case "new":
+        // Catalogue rows are appended over time, so reverse featured order ≈ newest first.
+        return [...list].reverse();
       default:
         return list;
     }
@@ -196,8 +204,20 @@ export default function CatalogueBrowser({
           )}
         </div>
 
+        {/* Mobile: single filter icon opening the bottom sheet */}
+        <button className="cat-filterbtn" aria-label="Filters" onClick={() => setSheet(true)}>
+          <svg width="17" height="15" viewBox="0 0 17 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 2.5h15M3.5 7.5h10M6 12.5h5" stroke="#3A4358" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+          {hasFilters && (
+            <span style={{ position: "absolute", top: -4, right: -4, width: 14, height: 14, borderRadius: "50%", background: "#4E5BDC", color: "#fff", fontSize: 8.5, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {(cat !== "All" ? 1 : 0) + picked.size + (sort !== "featured" ? 1 : 0)}
+            </span>
+          )}
+        </button>
+
         {/* Category popover */}
-        <div style={{ position: "relative" }}>
+        <div className="cat-popover" style={{ position: "relative" }}>
           <button onClick={() => setOpen(open === "cat" ? null : "cat")} style={popBtn(cat !== "All" || open === "cat")}>
             <span style={{ fontSize: 12 }}>{CAT_ICONS[cat]}</span>
             {cat === "All" ? "Category" : cat}
@@ -246,7 +266,7 @@ export default function CatalogueBrowser({
         <div style={{ flex: 1 }} />
 
         {/* Brand popover */}
-        <div style={{ position: "relative" }}>
+        <div className="cat-popover" style={{ position: "relative" }}>
           <button onClick={() => setOpen(open === "brand" ? null : "brand")} style={popBtn(picked.size > 0 || open === "brand")}>
             Brand
             {picked.size > 0 && (
@@ -309,7 +329,7 @@ export default function CatalogueBrowser({
         </div>
 
         {/* Sort popover */}
-        <div style={{ position: "relative" }}>
+        <div className="cat-popover" style={{ position: "relative" }}>
           <button onClick={() => setOpen(open === "sort" ? null : "sort")} style={popBtn(sort !== "featured" || open === "sort")}>
             ↕ {SORTS.find((s) => s.key === sort)?.label}
             <span style={{ fontSize: 10, opacity: 0.7 }}>▾</span>
@@ -347,6 +367,55 @@ export default function CatalogueBrowser({
 
       {/* Click-away layer for popovers */}
       {open && <div onClick={() => setOpen(null)} style={{ position: "fixed", inset: 0, zIndex: 20 }} />}
+
+      {/* Mobile filter bottom sheet — one list with sort, category and brand */}
+      {sheet && (
+        <>
+          <div className="cat-sheet-overlay" onClick={() => setSheet(false)} />
+          <div className="cat-sheet">
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+              <span style={{ fontFamily: GROTESK, fontWeight: 700, fontSize: 14 }}>Filters</span>
+              <button onClick={() => setSheet(false)} aria-label="Close" style={{ background: "none", border: "none", fontSize: 21, color: "#8A93A6", cursor: "pointer", lineHeight: 1 }}>×</button>
+            </div>
+
+            <div style={sheetH}>Sort by</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {SORTS.map((s) => (
+                <button key={s.key} onClick={() => setSort(s.key)} style={chip(sort === s.key)}>{s.label}</button>
+              ))}
+            </div>
+
+            <div style={sheetH}>Category</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {CATS.map((label) => (
+                <button key={label} onClick={() => setCat(label)} style={chip(cat === label)}>
+                  {CAT_ICONS[label]} {label === "All" ? "All" : label} <span style={{ opacity: 0.6, fontWeight: 500 }}>{catCount[label] ?? 0}</span>
+                </button>
+              ))}
+            </div>
+
+            <div style={sheetH}>Brand</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {brands.map((b) => (
+                <button key={b} onClick={() => toggleBrand(b)} style={chip(picked.has(b))}>
+                  {b} <span style={{ opacity: 0.6, fontWeight: 500 }}>{brandCount[b]}</span>
+                </button>
+              ))}
+            </div>
+
+            <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+              {hasFilters && (
+                <button onClick={clearAll} style={{ flex: 1, fontSize: 12, fontWeight: 700, color: "#4E5BDC", background: "#EEF0FE", border: "none", borderRadius: 10, padding: "11px 12px", cursor: "pointer" }}>
+                  Clear all
+                </button>
+              )}
+              <button onClick={() => setSheet(false)} style={{ flex: 2, fontSize: 12, fontWeight: 700, color: "#fff", background: "#4E5BDC", border: "none", borderRadius: 10, padding: "11px 12px", cursor: "pointer" }}>
+                Show {filtered.length} products
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Active filter chips */}
       {hasFilters && (
@@ -392,7 +461,7 @@ export default function CatalogueBrowser({
           </button>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(232px, 1fr))", gap: 16 }}>
+        <div className="cat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(232px, 1fr))", gap: 16 }}>
           {filtered.map((p) => (
             <ProductCard key={p.id} p={p} siblings={variantGroups[familyKey(p)]} />
           ))}
@@ -401,6 +470,19 @@ export default function CatalogueBrowser({
     </main>
   );
 }
+
+const sheetH: React.CSSProperties = { fontSize: 10, fontWeight: 800, letterSpacing: "1px", textTransform: "uppercase", color: "#8A93A6", margin: "14px 0 7px" };
+
+const chip = (on: boolean): React.CSSProperties => ({
+  fontSize: 11.5,
+  fontWeight: 600,
+  padding: "7px 11px",
+  borderRadius: 999,
+  cursor: "pointer",
+  border: `1px solid ${on ? "#4E5BDC" : "#E0E4ED"}`,
+  background: on ? "#4E5BDC" : "#fff",
+  color: on ? "#fff" : "#3A4358",
+});
 
 function FilterChip({ label, onClear }: { label: string; onClear: () => void }) {
   return (

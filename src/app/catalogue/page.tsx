@@ -15,8 +15,8 @@ export const metadata: Metadata = {
 export default async function CataloguePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; cat?: string }>;
+  searchParams: Promise<{ q?: string; cat?: string; sort?: string }>;
 }) {
-  const [{ q, cat }, products] = await Promise.all([searchParams, fetchProducts()]);
-  return <CatalogueBrowser products={products} initialQ={q ?? ""} initialCat={cat ?? "All"} />;
+  const [{ q, cat, sort }, products] = await Promise.all([searchParams, fetchProducts()]);
+  return <CatalogueBrowser products={products} initialQ={q ?? ""} initialCat={cat ?? "All"} initialSort={sort ?? "featured"} />;
 }

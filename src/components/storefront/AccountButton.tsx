@@ -51,6 +51,7 @@ export default function AccountButton({ user }: { user: AccountUser | null }) {
         <button
           onClick={() => router.push("/app")}
           aria-label="Open your dashboard"
+          className="acct-btn"
           style={{ display: "flex", alignItems: "center", gap: 9, background: "#161D2B", border: "none", borderRadius: 24, padding: "5px 14px 5px 5px", cursor: "pointer" }}
         >
           <Avatar text={initials(user)} business={user.business} size={30} />
@@ -61,6 +62,7 @@ export default function AccountButton({ user }: { user: AccountUser | null }) {
         <button
           onClick={() => setOpen(!open)}
           aria-label="Sign in"
+          className="acct-btn"
           style={{ display: "flex", alignItems: "center", gap: 9, background: "#4E5BDC", border: "none", borderRadius: 24, padding: "5px 16px 5px 5px", cursor: "pointer" }}
         >
           <Avatar text="👤" business={false} size={30} glyph />

@@ -67,7 +67,7 @@ export default function ProductDetail({
     { k: "Delivery", v: "Pan-India · 3–7 working days" },
   ];
   return (
-    <div style={{ padding: "22px 30px 40px", maxWidth: 1120, margin: "0 auto", animation: "elumeFade .35s ease" }}>
+    <div className="pd-wrap" style={{ padding: "22px 30px 40px", maxWidth: 1120, margin: "0 auto", animation: "elumeFade .35s ease" }}>
       <div style={{ fontSize: 12, color: "#8A93A6", marginBottom: 16 }}>
         <span onClick={onCatalogue} style={{ cursor: "pointer" }}>Catalogue</span> &nbsp;/&nbsp; {p.cat} &nbsp;/&nbsp; <span style={{ color: "#56627A" }}>{p.name}</span>
       </div>
@@ -109,7 +109,7 @@ export default function ProductDetail({
 
             {/* Elume price (single unit) */}
             <div style={{ display: "flex", alignItems: "flex-end", gap: 10, marginBottom: 4 }}>
-              <span style={{ fontFamily: GROTESK, fontSize: 34, fontWeight: 600, letterSpacing: "-1px", color: "#19202E" }}>{fmt(p.price)}</span>
+              <span className="pd-price" style={{ fontFamily: GROTESK, fontSize: 34, fontWeight: 600, letterSpacing: "-1px", color: "#19202E" }}>{fmt(p.price)}</span>
               <span style={{ fontSize: 14, color: "#8A93A6", marginBottom: 6 }}>/{p.unit}</span>
               <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.3px", color: "#4E5BDC", background: "#EEF0FD", padding: "4px 9px", borderRadius: 7, marginBottom: 7 }}>ELUME PRICE</span>
             </div>

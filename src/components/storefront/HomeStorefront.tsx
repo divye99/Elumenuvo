@@ -66,6 +66,7 @@ export default function HomeStorefront({ products, posts }: { products: Product[
     <main style={{ maxWidth: 1280, margin: "0 auto", padding: "0 28px 64px" }}>
       {/* ── Hero band ── */}
       <section
+        className="home-hero"
         style={{
           marginTop: 24,
           borderRadius: 20,
@@ -80,7 +81,7 @@ export default function HomeStorefront({ products, posts }: { products: Product[
         }}
       >
         <div style={{ maxWidth: 620 }}>
-          <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "1.6px", textTransform: "uppercase", color: "#9DB0FF", marginBottom: 12 }}>
+          <div className="home-hero-kicker" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "1.6px", textTransform: "uppercase", color: "#9DB0FF", marginBottom: 12 }}>
             India&apos;s FMEG store · {products.length} products · {brands.length} brands
           </div>
           <h1 style={{ fontFamily: GROTESK, fontSize: "clamp(28px, 7vw, 38px)", fontWeight: 600, letterSpacing: "-1px", lineHeight: 1.12, margin: 0 }}>
@@ -88,9 +89,10 @@ export default function HomeStorefront({ products, posts }: { products: Product[
             <br />
             One transparent price list.
           </h1>
-          <div style={{ marginTop: 22 }}>
+          <div className="home-hero-ctawrap" style={{ marginTop: 22 }}>
             <Link
               href="/catalogue"
+              className="home-hero-cta"
               style={{ display: "inline-block", background: "#fff", color: "#19202E", fontSize: 14, fontWeight: 700, padding: "12px 22px", borderRadius: 11 }}
             >
               Shop the catalogue
@@ -101,7 +103,7 @@ export default function HomeStorefront({ products, posts }: { products: Product[
 
       {/* ── Category tiles ── */}
       <section style={{ marginTop: 28 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 14 }}>
+        <div className="home-cats" style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 14 }}>
           {CATS.map((cat) => (
             <Link
               key={cat}
@@ -115,11 +117,11 @@ export default function HomeStorefront({ products, posts }: { products: Product[
                 flexDirection: "column",
               }}
             >
-              <div style={{ height: 84, background: tileFor(cat), display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30 }}>
+              <div className="home-cat-img" style={{ height: 84, background: tileFor(cat), display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30 }}>
                 {CAT_ICONS[cat]}
               </div>
-              <div style={{ padding: "12px 14px" }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#19202E" }}>{cat}</div>
+              <div className="home-cat-pad" style={{ padding: "12px 14px" }}>
+                <div className="home-cat-label" style={{ fontSize: 13, fontWeight: 700, color: "#19202E" }}>{cat}</div>
               </div>
             </Link>
           ))}
@@ -147,7 +149,7 @@ export default function HomeStorefront({ products, posts }: { products: Product[
       ))}
 
       {/* ── Brand strip ── */}
-      <section style={{ marginTop: 44, background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "22px 26px" }}>
+      <section className="home-brands" style={{ marginTop: 44, background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "22px 26px" }}>
         <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "1.4px", textTransform: "uppercase", color: "#8A93A6", marginBottom: 14 }}>
           Brands we stock
         </div>
@@ -172,18 +174,19 @@ export default function HomeStorefront({ products, posts }: { products: Product[
             All guides →
           </Link>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+        <div className="home-guides" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
           {posts.slice(0, 3).map((post) => (
             <Link
               key={post.slug}
               href={`/blog/${post.slug}`}
+              className="guide-card"
               style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "20px 22px" }}
             >
-              <div style={{ fontFamily: MONO, fontSize: 10.5, color: "#4E5BDC", letterSpacing: "1px", textTransform: "uppercase", marginBottom: 8 }}>
+              <div className="guide-kicker" style={{ fontFamily: MONO, fontSize: 10.5, color: "#4E5BDC", letterSpacing: "1px", textTransform: "uppercase", marginBottom: 8 }}>
                 {post.category} · {post.readMins} min read
               </div>
-              <div style={{ fontFamily: GROTESK, fontSize: 16.5, fontWeight: 600, color: "#19202E", lineHeight: 1.3 }}>{post.title}</div>
-              <p style={{ fontSize: 13, color: "#56627A", margin: "8px 0 0", lineHeight: 1.5 }}>{post.description}</p>
+              <div className="guide-title" style={{ fontFamily: GROTESK, fontSize: 16.5, fontWeight: 600, color: "#19202E", lineHeight: 1.3 }}>{post.title}</div>
+              <p className="guide-desc" style={{ fontSize: 13, color: "#56627A", margin: "8px 0 0", lineHeight: 1.5 }}>{post.description}</p>
             </Link>
           ))}
         </div>

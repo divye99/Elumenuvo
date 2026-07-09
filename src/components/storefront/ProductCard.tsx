@@ -12,6 +12,11 @@ import { useCart } from "@/lib/cart";
 
 const MAX_SWATCHES = 5;
 
+/** “Delivery by 16 Jul” — always 7 days from today (shown on mobile cards). */
+function deliveryBy(): string {
+  return new Date(Date.now() + 7 * 86400000).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+}
+
 /**
  * Product tile used across the public store — catalogue grid and home shelves.
  * `fixedWidth` pins the card for horizontal-scroll shelves; grids leave it off.
@@ -69,14 +74,16 @@ export default function ProductCard({
         position: "relative",
       }}
     >
-      <div style={{ height: 150, position: "relative" }}>
+      <div className="pc-img" style={{ height: 150, position: "relative" }}>
         <ImageSlot id={`img-${shown.sku}`} tile={tileFor(shown.cat)} imageUrl={shown.image} />
         <span
+          className="pc-sku"
           style={{ position: "absolute", left: 11, bottom: 11, zIndex: 2, pointerEvents: "none", fontFamily: MONO, fontSize: 9.5, color: "#6b748c", background: "rgba(255,255,255,0.88)", padding: "3px 6px", borderRadius: 5 }}
         >
           {shown.sku}
         </span>
         <span
+          className="pc-save"
           style={{ position: "absolute", right: 11, bottom: 11, zIndex: 2, pointerEvents: "none", fontSize: 11, fontWeight: 700, color: "#1F9D63", background: "#fff", padding: "4px 8px", borderRadius: 6 }}
         >
           ↓ {save}
@@ -160,32 +167,33 @@ export default function ProductCard({
           </div>
         )}
       </div>
-      <div style={{ padding: "15px 16px 16px", flex: 1, display: "flex", flexDirection: "column" }}>
+      <div className="pc-body" style={{ padding: "15px 16px 16px", flex: 1, display: "flex", flexDirection: "column" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#1F9D63" }} />
-          <span style={{ fontSize: 11, color: "#8A93A6", fontWeight: 600, letterSpacing: "0.2px" }}>{shown.brand}</span>
+          <span className="pc-brand" style={{ fontSize: 11, color: "#8A93A6", fontWeight: 600, letterSpacing: "0.2px" }}>{shown.brand}</span>
           {hasVariants && (
-            <span style={{ fontSize: 10, fontWeight: 700, color: "#4E5BDC", background: "#EEF0FE", padding: "2px 7px", borderRadius: 8, marginLeft: "auto" }}>
+            <span className="pc-opts" style={{ fontSize: 10, fontWeight: 700, color: "#4E5BDC", background: "#EEF0FE", padding: "2px 7px", borderRadius: 8, marginLeft: "auto" }}>
               {siblings.length} options
             </span>
           )}
         </div>
-        <div style={{ fontSize: 14, fontWeight: 600, color: "#19202E", margin: "4px 0", lineHeight: 1.3 }}>{shown.name}</div>
+        <div className="pc-name" style={{ fontSize: 14, fontWeight: 600, color: "#19202E", margin: "4px 0", lineHeight: 1.3 }}>{shown.name}</div>
         {shown.rating && shown.ratingCount ? (
           <div style={{ margin: "1px 0 4px" }}>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
               <Star size={13} />
-              <span style={{ fontSize: 12.5, fontWeight: 700, color: "#3A4358" }}>{shown.rating.toFixed(1)}</span>
+              <span className="pc-rate" style={{ fontSize: 12.5, fontWeight: 700, color: "#3A4358" }}>{shown.rating.toFixed(1)}</span>
             </span>
             <div style={{ fontSize: 10, color: "#A0A7B5", marginTop: 1 }}>{shown.ratingCount} review{shown.ratingCount === 1 ? "" : "s"}</div>
           </div>
         ) : null}
-        <div style={{ fontFamily: MONO, fontSize: 10.5, color: "#8A93A6", marginBottom: 13 }}>{shown.spec}</div>
+        <div className="pc-spec" style={{ fontFamily: MONO, fontSize: 10.5, color: "#8A93A6", marginBottom: 13 }}>{shown.spec}</div>
         <div style={{ marginTop: "auto" }}>
-          <div style={{ fontFamily: GROTESK, fontSize: 19, fontWeight: 600, color: "#19202E" }}>{fmt(shown.price)}</div>
-          <div style={{ fontSize: 11.5, color: "#A0A7B5" }}>
+          <div className="pc-price" style={{ fontFamily: GROTESK, fontSize: 19, fontWeight: 600, color: "#19202E" }}>{fmt(shown.price)}</div>
+          <div className="pc-mrp" style={{ fontSize: 11.5, color: "#A0A7B5" }}>
             MRP <span style={{ textDecoration: "line-through" }}>{fmt(shown.market)}</span>
           </div>
+          <span className="pc-deliv" suppressHydrationWarning>Delivery by {deliveryBy()}</span>
           <button
             onClick={(e) => {
               e.preventDefault();
@@ -194,6 +202,7 @@ export default function ProductCard({
               setAdded(true);
               setTimeout(() => setAdded(false), 1200);
             }}
+            className="pc-cta"
             style={{ width: "100%", marginTop: 10, background: added ? "#1F9D63" : "#EEF0FE", color: added ? "#fff" : "#4E5BDC", fontWeight: 700, fontSize: 12.5, border: "none", padding: "8px 10px", borderRadius: 9, cursor: "pointer" }}
           >
             {added ? "✓ Added" : "Add to cart"}
