@@ -20,6 +20,7 @@ import { FETCHERS } from "./lib/competitor-fetchers.mjs";
 if (typeof globalThis.WebSocket === "undefined") {
   try { globalThis.WebSocket = (await import("ws")).default; } catch { /* native WS present, or ws unavailable */ }
 }
+console.log(`competitor-sync · node ${process.version} · WebSocket ${typeof globalThis.WebSocket === "function" ? "ready" : "MISSING"}`);
 
 const SUPABASE_URL = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
 const SERVICE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
