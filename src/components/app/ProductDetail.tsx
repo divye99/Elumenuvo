@@ -72,7 +72,7 @@ export default function ProductDetail({
         <span onClick={onCatalogue} style={{ cursor: "pointer" }}>Catalogue</span> &nbsp;/&nbsp; {p.cat} &nbsp;/&nbsp; <span style={{ color: "#56627A" }}>{p.name}</span>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 24, alignItems: "start" }}>
+      <div className="pd-grid" style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 24, alignItems: "start" }}>
         {/* image + specs */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, overflow: "hidden" }}>

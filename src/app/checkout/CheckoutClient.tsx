@@ -108,7 +108,7 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
         </p>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 22, alignItems: "start" }}>
+      <div className="co-grid" style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 22, alignItems: "start" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {/* Contact */}
           <Section title="Contact">

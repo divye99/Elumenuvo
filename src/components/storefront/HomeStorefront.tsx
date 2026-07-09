@@ -83,7 +83,7 @@ export default function HomeStorefront({ products, posts }: { products: Product[
           <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "1.6px", textTransform: "uppercase", color: "#9DB0FF", marginBottom: 12 }}>
             India&apos;s FMEG store · {products.length} products · {brands.length} brands
           </div>
-          <h1 style={{ fontFamily: GROTESK, fontSize: 38, fontWeight: 600, letterSpacing: "-1.2px", lineHeight: 1.12, margin: 0 }}>
+          <h1 style={{ fontFamily: GROTESK, fontSize: "clamp(28px, 7vw, 38px)", fontWeight: 600, letterSpacing: "-1px", lineHeight: 1.12, margin: 0 }}>
             Every electrical brand.
             <br />
             One transparent price list.

@@ -4,6 +4,7 @@ import HeaderSearch from "@/components/storefront/HeaderSearch";
 import ScrollTopButton from "@/components/storefront/ScrollTopButton";
 import CartButton from "@/components/storefront/CartButton";
 import AccountButton from "@/components/storefront/AccountButton";
+import MobileMenu from "@/components/storefront/MobileMenu";
 import { getProfile, isBusiness } from "@/lib/profile";
 import { CartProvider } from "@/lib/cart";
 
@@ -19,7 +20,7 @@ export default async function StoreChrome({ children }: { children: React.ReactN
     : null;
   return (
     <CartProvider>
-    <div style={{ fontFamily: "var(--hanken)", background: "#F7F8FB", minHeight: "100vh", color: "#19202e" }}>
+    <div style={{ fontFamily: "var(--hanken)", background: "#F7F8FB", minHeight: "100vh", color: "#19202e", overflowX: "hidden" }}>
       {/* Announcement strip */}
       <div style={{ background: "#19202E", color: "#C6CDE2", fontSize: 12.5, textAlign: "center", padding: "8px 16px" }}>
         🚚 We deliver <strong style={{ color: "#fff" }}>pan-India</strong> · GST invoice on every order ·{" "}
@@ -38,36 +39,29 @@ export default async function StoreChrome({ children }: { children: React.ReactN
           borderBottom: "1px solid #EEF0F4",
         }}
       >
-        <div
-          style={{
-            maxWidth: 1280,
-            margin: "0 auto",
-            height: 66,
-            padding: "0 28px",
-            display: "flex",
-            alignItems: "center",
-            gap: 26,
-          }}
-        >
-          <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+        <div className="hdr-inner">
+          <Link href="/" style={{ display: "flex", alignItems: "center", gap: 9, flexShrink: 0 }}>
             <Mark height={28} />
             <Wordmark height={16} />
           </Link>
 
-          <HeaderSearch />
+          <div className="hdr-search">
+            <HeaderSearch />
+          </div>
 
-          <nav style={{ display: "flex", alignItems: "center", gap: 22, flexShrink: 0, marginLeft: "auto" }}>
-            <Link href="/catalogue" style={{ fontSize: 14, fontWeight: 600, color: "#19202E" }}>
+          <nav className="hdr-actions">
+            <Link href="/catalogue" className="hdr-navlink" style={{ fontSize: 14, fontWeight: 600, color: "#19202E" }}>
               Catalogue
             </Link>
-            <Link href="/blog" style={{ fontSize: 14, fontWeight: 500, color: "#56627A" }}>
+            <Link href="/blog" className="hdr-navlink" style={{ fontSize: 14, fontWeight: 500, color: "#56627A" }}>
               Blog
             </Link>
-            <Link href="/business" style={{ fontSize: 14, fontWeight: 500, color: "#56627A" }}>
+            <Link href="/business" className="hdr-navlink" style={{ fontSize: 14, fontWeight: 500, color: "#56627A" }}>
               For business
             </Link>
             <CartButton />
             <AccountButton user={user} />
+            <MobileMenu />
           </nav>
         </div>
       </header>
@@ -78,10 +72,11 @@ export default async function StoreChrome({ children }: { children: React.ReactN
 
       <footer style={{ borderTop: "1px solid #EEF0F4", background: "#fff" }}>
         <div
+          className="store-footer"
           style={{
             maxWidth: 1280,
             margin: "0 auto",
-            padding: "26px 28px",
+            padding: "26px 20px",
             display: "flex",
             justifyContent: "space-between",
             flexWrap: "wrap",

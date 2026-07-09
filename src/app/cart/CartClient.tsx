@@ -28,7 +28,7 @@ export default function CartClient() {
   return (
     <main style={{ maxWidth: 1080, margin: "0 auto", padding: "28px 28px 56px" }}>
       <h1 style={{ fontFamily: GROTESK, fontSize: 28, fontWeight: 600, letterSpacing: "-0.6px", margin: "0 0 18px" }}>Your cart</h1>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 22, alignItems: "start" }}>
+      <div className="cart-grid" style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 22, alignItems: "start" }}>
         {/* Items */}
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, overflow: "hidden" }}>
           {items.map((it, i) => (
