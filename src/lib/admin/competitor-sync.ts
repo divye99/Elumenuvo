@@ -8,9 +8,12 @@
 import { getAdapter, credsFor } from "@/lib/competitors";
 
 type SupaLike = { from: (t: string) => any };
-export type SyncResult = { mapped: number; fetched: number; failed: number; suggestions: number };
+export type SyncResult = { mapped: number; fetched: number; failed: number; suggestions: number; incomplete: boolean };
 
-export async function runCompetitorSync(db: SupaLike, source: string, runSource: "cron" | "manual"): Promise<SyncResult> {
+/** `deadlineMs` (epoch ms) caps in-request work so the admin call returns
+ *  cleanly instead of the serverless function timing out; the GitHub Action
+ *  runs with no deadline. */
+export async function runCompetitorSync(db: SupaLike, source: string, runSource: "cron" | "manual", deadlineMs?: number): Promise<SyncResult> {
   const adapter = getAdapter(source);
   if (!adapter) throw new Error(`Unknown competitor source: ${source}`);
   const ad = adapter; // non-null binding for use inside the concurrency closure
@@ -79,10 +82,12 @@ export async function runCompetitorSync(db: SupaLike, source: string, runSource:
   // Bounded concurrency — sequential fetches were timing the serverless request
   // out at ~15 products; 8-at-a-time clears far more within the budget.
   const CONCURRENCY = 8;
+  let incomplete = false;
   for (let i = 0; i < rows.length; i += CONCURRENCY) {
+    if (deadlineMs && Date.now() > deadlineMs) { incomplete = true; break; } // out of time — stop cleanly
     await Promise.all(rows.slice(i, i + CONCURRENCY).map((m: any) => processOne(m).catch(() => { failed++; })));
   }
 
   await db.from("competitor_sync_log").insert({ source, mapped: rows.length, fetched, failed, suggestions, run_source: runSource });
-  return { mapped: rows.length, fetched, failed, suggestions };
+  return { mapped: rows.length, fetched, failed, suggestions, incomplete };
 }

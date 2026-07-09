@@ -393,7 +393,7 @@ export async function syncCompetitorNow(source: string): Promise<ActionResult & 
   if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
   const { runCompetitorSync } = await import("@/lib/admin/competitor-sync");
   try {
-    const result = await runCompetitorSync(db, source, "manual");
+    const result = await runCompetitorSync(db, source, "manual", Date.now() + 50_000);
     revalidatePath("/admin/radar");
     return { ok: true, result };
   } catch (e) {
@@ -411,11 +411,16 @@ export async function syncAllCompetitors(): Promise<ActionResult & { result?: { 
   const { runCompetitorSync } = await import("@/lib/admin/competitor-sync");
   const { listCompetitorSources } = await import("@/lib/admin/data");
   const sources = (await listCompetitorSources()).filter((s) => s.enabled);
+  // Stay well under the serverless budget (maxDuration 60s) so the request
+  // returns cleanly; anything not finished is left for the GitHub Action.
+  const deadline = Date.now() + 50_000;
   const totals = { sources: 0, mapped: 0, fetched: 0, failed: 0, suggestions: 0, incomplete: [] as string[] };
   for (const s of sources) {
+    if (Date.now() > deadline) { totals.incomplete.push(s.name); continue; }
     try {
-      const r = await runCompetitorSync(db, s.id, "manual");
+      const r = await runCompetitorSync(db, s.id, "manual", deadline);
       totals.sources++; totals.mapped += r.mapped; totals.fetched += r.fetched; totals.failed += r.failed; totals.suggestions += r.suggestions;
+      if (r.incomplete) totals.incomplete.push(s.name);
     } catch {
       totals.incomplete.push(s.name);
     }

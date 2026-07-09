@@ -45,10 +45,17 @@ export default async function RadarPage() {
     );
     // Every mapped source that returned a price is a "seller"; the lowest wins.
     const priced = srcList
-      .map((s) => ({ src: s.name, v: perSource[s.id].price?.comparable_price }))
-      .filter((x): x is { src: string; v: number } => x.v != null && x.v > 0);
-    const comparables = priced.map((x) => x.v);
-    const cheapest = priced.length ? priced.reduce((a, b) => (b.v < a.v ? b : a)) : null;
+      .map((s) => {
+        const cell = perSource[s.id];
+        const v = cell.price?.comparable_price;
+        return v != null && v > 0
+          ? { source: s.name, sourceId: s.id, price: v, net: cell.price?.net_price ?? null, list: cell.price?.list_price ?? null, factor: cell.price?.unit_factor ?? cell.map?.unit_factor ?? 1, code: cell.map?.competitor_code ?? cell.price?.competitor_name ?? null, url: cell.price?.competitor_url ?? cell.map?.competitor_url ?? null }
+          : null;
+      })
+      .filter((x): x is NonNullable<typeof x> => x != null);
+    const mappedCount = srcList.filter((s) => perSource[s.id].map).length;
+    const comparables = priced.map((x) => x.price);
+    const cheapest = priced.length ? priced.reduce((a, b) => (b.price < a.price ? b : a)) : null;
     const lowest = priced.length ? Math.min(...comparables) : null;
     const avgMarket = priced.length ? Math.round((comparables.reduce((a, b) => a + b, 0) / priced.length) * 100) / 100 : null;
     const target = lowest != null ? Math.max(1, Math.round(lowest) - 1) : null; // lowest − ₹1
@@ -58,10 +65,10 @@ export default async function RadarPage() {
       : null;
     return {
       id: p.id, name: p.name, brand: p.brand, category: p.category, unit: p.unit, image: p.image_url,
-      ourPrice: p.elume_price, mrp: p.mrp, suggestedFactor: guessFactor(p.attrs),
+      ourPrice: p.elume_price, mrp: p.mrp, suggestedFactor: guessFactor(p.attrs), mappedCount,
       perSource,
-      market: priced.length ? { sellers: priced.map((x) => ({ source: x.src, price: x.v })), avgMarket: avgMarket!, lowest: lowest!, target: target!, pctVsLowest, cheapestSource: cheapest?.src ?? null } : null,
-      rec: rec ? { basisPrice: rec.basisPrice, target: rec.target, changePct: Math.round(rec.changePct), blocked: rec.blocked, basis: rec.rule.basis, sellers: priced.length, cheapestSource: cheapest?.src ?? null } : null,
+      market: priced.length ? { sellers: priced, avgMarket: avgMarket!, lowest: lowest!, target: target!, pctVsLowest, cheapestSource: cheapest?.source ?? null } : null,
+      rec: rec ? { basisPrice: rec.basisPrice, target: rec.target, changePct: Math.round(rec.changePct), blocked: rec.blocked, basis: rec.rule.basis, sellers: priced.length, cheapestSource: cheapest?.source ?? null } : null,
     };
   });
 

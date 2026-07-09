@@ -32,7 +32,8 @@ type PriceCell = {
   fetched_at: string;
 } | null;
 
-export type Market = { sellers: { source: string; price: number }[]; avgMarket: number; lowest: number; target: number; pctVsLowest: number | null; cheapestSource: string | null };
+export type Seller = { source: string; sourceId: string; price: number; net: number | null; list: number | null; factor: number; code: string | null; url: string | null };
+export type Market = { sellers: Seller[]; avgMarket: number; lowest: number; target: number; pctVsLowest: number | null; cheapestSource: string | null };
 export type Rec = { basisPrice: number; target: number; changePct: number; blocked: string | null; basis: string; sellers?: number; cheapestSource?: string | null } | null;
 
 export type RadarRow = {
@@ -45,6 +46,7 @@ export type RadarRow = {
   ourPrice: number;
   mrp: number;
   suggestedFactor: number;
+  mappedCount: number;
   perSource: Record<string, { map: { competitor_code: string; competitor_url: string | null; unit_factor: number; note: string | null } | null; price: PriceCell }>;
   market: Market | null;
   rec: Rec;
@@ -69,22 +71,39 @@ export default function RadarClient({
   const [pending, startTransition] = useTransition();
   const [flash, setFlash] = useState<{ ok: boolean; msg: string } | null>(null);
 
-  // Filters (catalogue-style).
+  // Filters (catalogue-style) + view + sort.
   const [q, setQ] = useState("");
   const [brand, setBrand] = useState("");
   const [cat, setCat] = useState("");
+  const [view, setView] = useState<"priced" | "unmapped" | "all">("priced");
+  const [sort, setSort] = useState<"action" | "priceAsc" | "priceDesc" | "pct" | "name">("action");
 
+  const brands = useMemo(() => Array.from(new Set(rows.map((r) => r.brand))).sort(), [rows]);
+  const needsAction = (r: RadarRow) => !!r.market && r.market.target !== Math.round(r.ourPrice);
+  const actionCount = useMemo(() => rows.filter(needsAction).length, [rows]);
   const mapped = useMemo(() => rows.filter((r) => r.market), [rows]);
-  const brands = useMemo(() => Array.from(new Set(mapped.map((r) => r.brand))).sort(), [mapped]);
+  const unmappedCount = useMemo(() => rows.filter((r) => r.mappedCount === 0).length, [rows]);
+
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    return mapped.filter(
+    const base = view === "unmapped" ? rows.filter((r) => r.mappedCount === 0) : view === "all" ? rows : rows.filter((r) => r.market);
+    const list = base.filter(
       (r) =>
         (!needle || `${r.name} ${r.brand} ${r.category} ${r.id}`.toLowerCase().includes(needle)) &&
         (!brand || r.brand === brand) &&
         (!cat || r.category === cat)
     );
-  }, [mapped, q, brand, cat]);
+    return [...list].sort((a, b) => {
+      if (sort === "priceAsc") return a.ourPrice - b.ourPrice;
+      if (sort === "priceDesc") return b.ourPrice - a.ourPrice;
+      if (sort === "pct") return (b.market?.pctVsLowest ?? -999) - (a.market?.pctVsLowest ?? -999);
+      if (sort === "name") return a.name.localeCompare(b.name);
+      // "action" (default): products that need repricing first, biggest gap on top.
+      const aa = needsAction(a) ? 1 : 0, bb = needsAction(b) ? 1 : 0;
+      if (aa !== bb) return bb - aa;
+      return Math.abs(b.market?.pctVsLowest ?? 0) - Math.abs(a.market?.pctVsLowest ?? 0);
+    });
+  }, [rows, view, q, brand, cat, sort]);
 
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>, okMsg: string) =>
     startTransition(async () => {
@@ -121,20 +140,26 @@ export default function RadarClient({
     <div>
       {/* Action bar */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
-        <button onClick={syncAll} disabled={pending} style={{ background: "#161D2B", color: "#fff", fontWeight: 600, fontSize: 13.5, border: "none", padding: "10px 18px", borderRadius: 10, cursor: pending ? "wait" : "pointer", opacity: pending ? 0.7 : 1 }}>
-          {pending ? "Working…" : "↻ Sync now (all sources)"}
+        <button onClick={syncAll} disabled={pending} title="Refreshes live prices for mapped products. Mapping is done via the GitHub Action." style={{ background: "#161D2B", color: "#fff", fontWeight: 600, fontSize: 13.5, border: "none", padding: "10px 18px", borderRadius: 10, cursor: pending ? "wait" : "pointer", opacity: pending ? 0.7 : 1 }}>
+          {pending ? "Working…" : "↻ Refresh prices"}
         </button>
         <button onClick={applyAll} disabled={pending || filtered.length === 0} style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13.5, border: "none", padding: "10px 18px", borderRadius: 10, cursor: pending ? "wait" : "pointer", opacity: pending || filtered.length === 0 ? 0.55 : 1 }}>
           ✓ Apply lowest − ₹1 to all {filtered.length ? `(${filtered.length})` : ""}
         </button>
+        {actionCount > 0 && <span style={{ fontSize: 12.5, fontWeight: 700, color: "#fff", background: "#E0612A", borderRadius: 20, padding: "3px 11px" }}>{actionCount} need repricing</span>}
         <span style={{ fontSize: 12, color: "#8A93A6", marginLeft: "auto" }}>
           {lastSync ? <>Last sync {new Date(lastSync.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</> : "Not synced yet"}
         </span>
       </div>
 
-      {/* Filters */}
+      {/* Filters + view + sort */}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products…" style={{ ...sel, flex: "1 1 240px", minWidth: 180 }} />
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products…" style={{ ...sel, flex: "1 1 200px", minWidth: 160 }} />
+        <select value={view} onChange={(e) => setView(e.target.value as any)} style={{ ...sel, fontWeight: 600 }}>
+          <option value="priced">Priced ({mapped.length})</option>
+          <option value="unmapped">Unmapped ({unmappedCount})</option>
+          <option value="all">All ({rows.length})</option>
+        </select>
         <select value={brand} onChange={(e) => setBrand(e.target.value)} style={sel}>
           <option value="">All brands</option>
           {brands.map((b) => <option key={b} value={b}>{b}</option>)}
@@ -143,18 +168,22 @@ export default function RadarClient({
           <option value="">All categories</option>
           {categories.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
+        <select value={sort} onChange={(e) => setSort(e.target.value as any)} style={sel}>
+          <option value="action">Sort: needs repricing first</option>
+          <option value="priceAsc">Price: low → high</option>
+          <option value="priceDesc">Price: high → low</option>
+          <option value="pct">% vs lowest: high → low</option>
+          <option value="name">Name: A → Z</option>
+        </select>
       </div>
 
       {flash && <div style={{ background: flash.ok ? "#E6F5EE" : "#FBE9E4", color: flash.ok ? "#137a4b" : "#9a3b16", borderRadius: 10, padding: "10px 14px", fontSize: 13, marginBottom: 14 }}>{flash.msg}</div>}
 
-      {/* Mapped-products review list */}
-      <div style={{ fontSize: 12.5, color: "#8A93A6", marginBottom: 8 }}>
-        {mapped.length} product{mapped.length === 1 ? "" : "s"} with competitor prices{filtered.length !== mapped.length ? ` · ${filtered.length} shown` : ""}
-      </div>
+      <div style={{ fontSize: 12.5, color: "#8A93A6", marginBottom: 8 }}>{filtered.length} shown</div>
 
       {filtered.length === 0 ? (
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "40px 20px", textAlign: "center", color: "#8A93A6", fontSize: 14 }}>
-          {mapped.length === 0 ? "No products have competitor prices yet. Map products below and run Sync now." : "No products match the filters."}
+          {view === "unmapped" ? "No unmapped products — everything is mapped 🎉" : mapped.length === 0 ? "No products have competitor prices yet. Map products in the section below, then Refresh prices." : "No products match the filters."}
         </div>
       ) : (
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflow: "hidden" }}>
@@ -173,62 +202,86 @@ export default function RadarClient({
   );
 }
 
-/* ── One product row: detail + Elume / Avg / Lowest / %diff + accept + manual edit ── */
+/* ── One product row: detail + Elume / Avg / Lowest / %diff + accept + manual edit.
+ *    Click the row to expand the per-seller mapping detail (price + link). ── */
 function MappedRow({ r, first, pending, run }: { r: RadarRow; first: boolean; pending: boolean; run: (fn: () => Promise<{ ok: boolean; error?: string }>, okMsg: string) => void }) {
-  const m = r.market!;
+  const m = r.market;
   const [editing, setEditing] = useState(false);
+  const [open, setOpen] = useState(false);
   const [val, setVal] = useState(String(r.ourPrice));
   const price = Number(val) || r.ourPrice;
-  const pct = m.lowest > 0 ? Math.round(((price - m.lowest) / m.lowest) * 100) : null;
+  const pct = m && m.lowest > 0 ? Math.round(((price - m.lowest) / m.lowest) * 100) : null;
   const pctColor = pct == null ? "#8A93A6" : pct <= 0 ? "#137a4b" : "#C0392B";
-  const canAccept = m.target !== Math.round(r.ourPrice);
+  const canAccept = !!m && m.target !== Math.round(r.ourPrice);
+  const canExpand = !!m && m.sellers.length > 0;
 
   return (
-    <div style={{ padding: "13px 16px", borderTop: first ? undefined : "1px solid #F0F2F6", display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
-      {/* Product */}
-      <div style={{ display: "flex", gap: 11, alignItems: "center", flex: "1 1 300px", minWidth: 220 }}>
-        <div style={{ width: 46, height: 46, borderRadius: 9, background: "#F3F5F9", border: "1px solid #EEF0F4", flexShrink: 0, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {r.image ? <img src={r.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 16 }}>🔌</span>}
-        </div>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontWeight: 600, fontSize: 13.5, color: "#19202E", overflow: "hidden", textOverflow: "ellipsis" }}>{r.name}</div>
-          <div style={{ fontSize: 11.5, color: "#8A93A6" }}>{r.brand} · {r.category}</div>
-          <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 3 }}>
-            {m.sellers.map((s) => (
-              <span key={s.source} title={fmt(s.price)} style={{ fontSize: 10, fontWeight: 600, color: s.price === m.lowest ? "#137a4b" : "#56627A", background: s.price === m.lowest ? "#E6F5EE" : "#F0F2F6", padding: "1px 6px", borderRadius: 6 }}>{s.source} {fmt(s.price)}</span>
-            ))}
+    <div style={{ borderTop: first ? undefined : "1px solid #F0F2F6" }}>
+      <div style={{ padding: "13px 16px", display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
+        {/* Product — clicking toggles the mapping detail */}
+        <div onClick={() => canExpand && setOpen(!open)} style={{ display: "flex", gap: 11, alignItems: "center", flex: "1 1 300px", minWidth: 220, cursor: canExpand ? "pointer" : "default" }}>
+          <div style={{ width: 46, height: 46, borderRadius: 9, background: "#F3F5F9", border: "1px solid #EEF0F4", flexShrink: 0, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {r.image ? <img src={r.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 16 }}>🔌</span>}
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontWeight: 600, fontSize: 13.5, color: "#19202E", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {canExpand && <span style={{ color: "#8A93A6", marginRight: 5, fontSize: 11 }}>{open ? "▾" : "▸"}</span>}{r.name}
+            </div>
+            <div style={{ fontSize: 11.5, color: "#8A93A6" }}>{r.brand} · {r.category}{m ? ` · ${m.sellers.length} seller${m.sellers.length === 1 ? "" : "s"}` : r.mappedCount ? " · mapped, awaiting price" : " · not mapped"}</div>
           </div>
         </div>
-      </div>
 
-      {/* Pricing */}
-      <div style={{ display: "flex", gap: 18, alignItems: "center" }}>
-        <Stat label="Elume" value={editing ? undefined : fmt(r.ourPrice)}>
-          {editing && (
-            <input autoFocus value={val} onChange={(e) => setVal(e.target.value.replace(/[^\d]/g, ""))} type="text" inputMode="numeric" style={{ width: 78, border: "1px solid #4E5BDC", borderRadius: 7, padding: "3px 7px", fontSize: 13, fontWeight: 700, textAlign: "right" }} />
-          )}
-        </Stat>
-        <Stat label="Avg market" value={fmt(m.avgMarket)} />
-        <Stat label={`Lowest${m.cheapestSource ? ` · ${m.cheapestSource}` : ""}`} value={fmt(m.lowest)} sub={`${m.sellers.length} seller${m.sellers.length === 1 ? "" : "s"}`} />
-        <Stat label="vs lowest" value={pct == null ? "—" : `${pct > 0 ? "+" : ""}${pct}%`} color={pctColor} />
-      </div>
-
-      {/* Actions */}
-      <div style={{ display: "flex", gap: 8, marginLeft: "auto", alignItems: "center" }}>
-        {editing ? (
+        {m ? (
           <>
-            <button onClick={() => run(() => setElumePrice(r.id, Number(val)), `${r.name} set to ${fmt(Number(val))}.`)} disabled={pending || !(Number(val) > 0)} style={btnAccept}>Save</button>
-            <button onClick={() => { setEditing(false); setVal(String(r.ourPrice)); }} style={linkBtn}>Cancel</button>
+            <div style={{ display: "flex", gap: 18, alignItems: "center" }}>
+              <Stat label="Elume" value={editing ? undefined : fmt(r.ourPrice)}>
+                {editing && <input autoFocus value={val} onChange={(e) => setVal(e.target.value.replace(/[^\d]/g, ""))} type="text" inputMode="numeric" style={{ width: 78, border: "1px solid #4E5BDC", borderRadius: 7, padding: "3px 7px", fontSize: 13, fontWeight: 700, textAlign: "right" }} />}
+              </Stat>
+              <Stat label="Avg market" value={fmt(m.avgMarket)} />
+              <Stat label={`Lowest${m.cheapestSource ? ` · ${m.cheapestSource}` : ""}`} value={fmt(m.lowest)} />
+              <Stat label="vs lowest" value={pct == null ? "—" : `${pct > 0 ? "+" : ""}${pct}%`} color={pctColor} />
+            </div>
+            <div style={{ display: "flex", gap: 8, marginLeft: "auto", alignItems: "center" }}>
+              {editing ? (
+                <>
+                  <button onClick={() => run(() => setElumePrice(r.id, Number(val)), `${r.name} set to ${fmt(Number(val))}.`)} disabled={pending || !(Number(val) > 0)} style={btnAccept}>Save</button>
+                  <button onClick={() => { setEditing(false); setVal(String(r.ourPrice)); }} style={linkBtn}>Cancel</button>
+                </>
+              ) : (
+                <>
+                  <button onClick={() => run(() => applyRecommendedPrice(r.id, m.target), `${r.name} set to ${fmt(m.target)}.`)} disabled={pending || !canAccept} title={canAccept ? "" : "Already at lowest − ₹1"} style={{ ...btnAccept, opacity: pending || !canAccept ? 0.5 : 1 }}>Accept {fmt(m.target)}</button>
+                  <button onClick={() => { setEditing(true); setVal(String(r.ourPrice)); }} style={btnGhost}>Edit</button>
+                </>
+              )}
+            </div>
           </>
         ) : (
-          <>
-            <button onClick={() => run(() => applyRecommendedPrice(r.id, m.target), `${r.name} set to ${fmt(m.target)}.`)} disabled={pending || !canAccept} title={canAccept ? "" : "Already at lowest − ₹1"} style={{ ...btnAccept, opacity: pending || !canAccept ? 0.5 : 1 }}>
-              Accept {fmt(m.target)}
-            </button>
-            <button onClick={() => { setEditing(true); setVal(String(r.ourPrice)); }} style={btnGhost}>Edit</button>
-          </>
+          <div style={{ display: "flex", gap: 14, alignItems: "center", marginLeft: "auto" }}>
+            <Stat label="Elume" value={fmt(r.ourPrice)} />
+            <span style={{ fontSize: 12, fontWeight: 600, color: r.mappedCount ? "#C77700" : "#C0392B", background: r.mappedCount ? "#FFF3E0" : "#FBE9E4", padding: "4px 10px", borderRadius: 8 }}>
+              {r.mappedCount ? "Mapped — run Refresh prices" : "Not mapped"}
+            </span>
+          </div>
         )}
       </div>
+
+      {/* Expanded: every mapped seller with its price + a link to the competitor page */}
+      {open && m && (
+        <div style={{ background: "#F7F8FB", borderTop: "1px solid #EEF0F4", padding: "10px 16px 14px" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#8A93A6", textTransform: "uppercase", letterSpacing: "0.3px", marginBottom: 6 }}>Mapped competitors</div>
+          {m.sellers.slice().sort((a, b) => a.price - b.price).map((s) => (
+            <div key={s.sourceId} style={{ display: "flex", gap: 10, alignItems: "center", padding: "6px 0", borderTop: "1px solid #EEF0F4", fontSize: 12.5, flexWrap: "wrap" }}>
+              <span style={{ fontWeight: 700, minWidth: 130, color: s.price === m.lowest ? "#137a4b" : "#19202E" }}>{s.source}{s.price === m.lowest && <span style={{ fontSize: 10, marginLeft: 6, color: "#137a4b" }}>lowest</span>}</span>
+              <span style={{ fontFamily: "var(--space-grotesk)", fontWeight: 700, minWidth: 80 }}>{fmt(s.price)}</span>
+              <span style={{ color: "#8A93A6", fontSize: 11.5 }}>
+                {s.net != null ? `net ${fmt(s.net)}` : s.list != null ? `list ${fmt(s.list)}` : ""}{s.factor && s.factor !== 1 ? ` ×${s.factor}` : ""}
+              </span>
+              {s.code && <span style={{ fontFamily: "var(--space-mono)", fontSize: 10.5, color: "#8A93A6", background: "#EEF0F4", padding: "1px 6px", borderRadius: 5 }}>{s.code}</span>}
+              {s.url && <a href={s.url} target="_blank" rel="noreferrer" style={{ marginLeft: "auto", color: "#4E5BDC", fontWeight: 600, fontSize: 12 }}>View on {s.source} ↗</a>}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
