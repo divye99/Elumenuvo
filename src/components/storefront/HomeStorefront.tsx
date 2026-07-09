@@ -54,7 +54,9 @@ function Shelf({
  *  shelves, pricing explainer, brands, buying guides. Pure server component;
  *  interactivity lives in the header search and product-card image slots. */
 export default function HomeStorefront({ products, posts }: { products: Product[]; posts: BlogPost[] }) {
-  const byDiscount = [...products].sort((a, b) => (1 - b.price / b.market) - (1 - a.price / a.market));
+  // Tiebreak on id — hundreds of products share the exact same discount, and an
+  // unstable tie order would differ between server and client renders (hydration).
+  const byDiscount = [...products].sort((a, b) => (1 - b.price / b.market) - (1 - a.price / a.market) || a.id.localeCompare(b.id));
   const deals = byDiscount.slice(0, 8);
   const brands = Array.from(new Set(products.map((p) => p.brand))).sort();
   const countFor = (cat: string) => products.filter((p) => p.cat === cat).length;

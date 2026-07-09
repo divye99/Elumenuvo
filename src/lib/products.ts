@@ -68,7 +68,10 @@ export async function fetchProducts(): Promise<Product[]> {
   const c = client();
   if (!c) return [];
   try {
-    const { data, error } = await selectProducts(c, (q) => q.eq("is_active", true).order("sort_order"));
+    // Order by sort_order THEN id — sort_order values collide across import
+    // batches, and an unstable tie order differs between the HTML and RSC
+    // renders, causing a hydration mismatch on the home shelves.
+    const { data, error } = await selectProducts(c, (q) => q.eq("is_active", true).order("sort_order").order("id"));
     if (error || !data) return [];
     return (data as Row[]).map(toProduct);
   } catch {
