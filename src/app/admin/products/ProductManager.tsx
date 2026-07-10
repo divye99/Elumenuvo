@@ -53,12 +53,21 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("All");
   const [view, setView] = useState<MapView>("all");
+  const [sellersN, setSellersN] = useState<"any" | number>("any"); // exact number of sellers mapped
   const [openId, setOpenId] = useState<string | null>(null);
 
   // How many competitor sellers this product is mapped to.
   const mappedCount = (r: ManagerRow) => sources.filter((s) => r.perSource[s.id]?.map).length;
 
   const cats = useMemo(() => ["All", ...Array.from(new Set(rows.map((r) => r.category))).sort()], [rows]);
+
+  // Distinct seller-counts present, each with how many products have exactly that many.
+  const sellerBuckets = useMemo(() => {
+    const m = new Map<number, number>();
+    for (const r of rows) { const n = sources.filter((s) => r.perSource[s.id]?.map).length; m.set(n, (m.get(n) ?? 0) + 1); }
+    return [...m.entries()].sort((a, b) => a[0] - b[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows, sources]);
 
   // Counts for the mapping-status dropdown labels.
   const counts = useMemo(() => {
@@ -80,10 +89,11 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
       if (view === "mapped" && n === 0) return false;
       if (view === "unmapped" && n !== 0) return false;
       if (view === "multi" && n < 2) return false;
+      if (sellersN !== "any" && n !== sellersN) return false;
       return true;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows, q, cat, view, sources]);
+  }, [rows, q, cat, view, sellersN, sources]);
 
   // A product has a live suggestion when any source's price differs from ₹1-under.
   const hasSuggestion = (r: ManagerRow) =>
@@ -104,6 +114,12 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
           <option value="mapped">Mapped ({counts.mapped})</option>
           <option value="unmapped">Price unmapped ({counts.unmapped})</option>
           <option value="multi">Multi-seller · 2+ ({counts.multi})</option>
+        </select>
+        <select value={String(sellersN)} onChange={(e) => setSellersN(e.target.value === "any" ? "any" : Number(e.target.value))} style={{ border: "1px solid #E0E4ED", borderRadius: 10, padding: "9px 12px", fontSize: 13.5, background: "#fff" }}>
+          <option value="any">Sellers mapped: any</option>
+          {sellerBuckets.map(([n, count]) => (
+            <option key={n} value={n}>{n} seller{n === 1 ? "" : "s"} ({count})</option>
+          ))}
         </select>
         <span style={{ fontSize: 12.5, color: "#8A93A6" }}>{filtered.length} shown</span>
       </div>

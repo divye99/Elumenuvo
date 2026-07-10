@@ -76,9 +76,16 @@ export default function RadarClient({
   const [brand, setBrand] = useState("");
   const [cat, setCat] = useState("");
   const [view, setView] = useState<"priced" | "unmapped" | "all">("priced");
+  const [sellersN, setSellersN] = useState<"any" | number>("any"); // exact number of sellers mapped
   const [sort, setSort] = useState<"action" | "priceAsc" | "priceDesc" | "pct" | "name">("action");
 
   const brands = useMemo(() => Array.from(new Set(rows.map((r) => r.brand))).sort(), [rows]);
+  // Distinct seller-counts present, each with how many products have exactly that many.
+  const sellerBuckets = useMemo(() => {
+    const m = new Map<number, number>();
+    for (const r of rows) m.set(r.mappedCount, (m.get(r.mappedCount) ?? 0) + 1);
+    return [...m.entries()].sort((a, b) => a[0] - b[0]);
+  }, [rows]);
   const needsAction = (r: RadarRow) => !!r.market && r.market.target !== Math.round(r.ourPrice);
   const actionCount = useMemo(() => rows.filter(needsAction).length, [rows]);
   const mapped = useMemo(() => rows.filter((r) => r.market), [rows]);
@@ -91,7 +98,8 @@ export default function RadarClient({
       (r) =>
         (!needle || `${r.name} ${r.brand} ${r.category} ${r.id}`.toLowerCase().includes(needle)) &&
         (!brand || r.brand === brand) &&
-        (!cat || r.category === cat)
+        (!cat || r.category === cat) &&
+        (sellersN === "any" || r.mappedCount === sellersN)
     );
     return [...list].sort((a, b) => {
       if (sort === "priceAsc") return a.ourPrice - b.ourPrice;
@@ -103,7 +111,7 @@ export default function RadarClient({
       if (aa !== bb) return bb - aa;
       return Math.abs(b.market?.pctVsLowest ?? 0) - Math.abs(a.market?.pctVsLowest ?? 0);
     });
-  }, [rows, view, q, brand, cat, sort]);
+  }, [rows, view, q, brand, cat, sellersN, sort]);
 
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>, okMsg: string) =>
     startTransition(async () => {
@@ -167,6 +175,12 @@ export default function RadarClient({
         <select value={cat} onChange={(e) => setCat(e.target.value)} style={sel}>
           <option value="">All categories</option>
           {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <select value={String(sellersN)} onChange={(e) => setSellersN(e.target.value === "any" ? "any" : Number(e.target.value))} style={sel}>
+          <option value="any">Sellers mapped: any</option>
+          {sellerBuckets.map(([n, count]) => (
+            <option key={n} value={n}>{n} seller{n === 1 ? "" : "s"} ({count})</option>
+          ))}
         </select>
         <select value={sort} onChange={(e) => setSort(e.target.value as any)} style={sel}>
           <option value="action">Sort: needs repricing first</option>
