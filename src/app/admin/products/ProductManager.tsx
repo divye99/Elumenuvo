@@ -47,16 +47,43 @@ export type ManagerRow = {
 
 type Hit = { code: string; name: string; brand: string | null; listPrice: number | null; netPrice: number | null; url: string | null };
 
+type MapView = "all" | "mapped" | "unmapped" | "multi";
+
 export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; sources: SourceInfo[] }) {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("All");
+  const [view, setView] = useState<MapView>("all");
   const [openId, setOpenId] = useState<string | null>(null);
 
+  // How many competitor sellers this product is mapped to.
+  const mappedCount = (r: ManagerRow) => sources.filter((s) => r.perSource[s.id]?.map).length;
+
   const cats = useMemo(() => ["All", ...Array.from(new Set(rows.map((r) => r.category))).sort()], [rows]);
+
+  // Counts for the mapping-status dropdown labels.
+  const counts = useMemo(() => {
+    let mapped = 0, unmapped = 0, multi = 0;
+    for (const r of rows) {
+      const n = mappedCount(r);
+      if (n === 0) unmapped++; else { mapped++; if (n > 1) multi++; }
+    }
+    return { all: rows.length, mapped, unmapped, multi };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows, sources]);
+
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    return rows.filter((r) => (cat === "All" || r.category === cat) && (!needle || `${r.name} ${r.sku} ${r.brand}`.toLowerCase().includes(needle)));
-  }, [rows, q, cat]);
+    return rows.filter((r) => {
+      if (cat !== "All" && r.category !== cat) return false;
+      if (needle && !`${r.name} ${r.sku} ${r.brand}`.toLowerCase().includes(needle)) return false;
+      const n = mappedCount(r);
+      if (view === "mapped" && n === 0) return false;
+      if (view === "unmapped" && n !== 0) return false;
+      if (view === "multi" && n < 2) return false;
+      return true;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows, q, cat, view, sources]);
 
   // A product has a live suggestion when any source's price differs from ₹1-under.
   const hasSuggestion = (r: ManagerRow) =>
@@ -72,6 +99,12 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
         <select value={cat} onChange={(e) => setCat(e.target.value)} style={{ border: "1px solid #E0E4ED", borderRadius: 10, padding: "9px 12px", fontSize: 13.5, background: "#fff" }}>
           {cats.map((c) => <option key={c}>{c}</option>)}
         </select>
+        <select value={view} onChange={(e) => setView(e.target.value as MapView)} style={{ border: "1px solid #E0E4ED", borderRadius: 10, padding: "9px 12px", fontSize: 13.5, background: "#fff", fontWeight: 600 }}>
+          <option value="all">All mapping status ({counts.all})</option>
+          <option value="mapped">Mapped ({counts.mapped})</option>
+          <option value="unmapped">Price unmapped ({counts.unmapped})</option>
+          <option value="multi">Multi-seller · 2+ ({counts.multi})</option>
+        </select>
         <span style={{ fontSize: 12.5, color: "#8A93A6" }}>{filtered.length} shown</span>
       </div>
 
@@ -79,6 +112,7 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
         {filtered.map((r, i) => {
           const open = openId === r.id;
           const sug = hasSuggestion(r);
+          const n = mappedCount(r);
           return (
             <div key={r.id} style={{ borderTop: i ? "1px solid #F0F2F6" : undefined }}>
               {/* Summary row */}
@@ -97,6 +131,12 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
                   <div style={{ fontWeight: 700, fontSize: 14 }}>{fmt(r.elume_price)}</div>
                   <div style={{ fontSize: 11, color: "#A0A7B5" }}>MRP {fmt(r.mrp)}</div>
                 </div>
+                <span
+                  title={n === 0 ? "Not mapped to any competitor" : `Mapped to ${n} seller${n === 1 ? "" : "s"}`}
+                  style={{ fontSize: 10.5, fontWeight: 700, whiteSpace: "nowrap", borderRadius: 20, padding: "2px 9px", color: n === 0 ? "#C0392B" : n > 1 ? "#137a4b" : "#C77700", background: n === 0 ? "#FBE9E4" : n > 1 ? "#E6F5EE" : "#FFF3E0" }}
+                >
+                  {n === 0 ? "unmapped" : n > 1 ? `${n} sellers` : "1 seller"}
+                </span>
                 {sug && <span style={{ fontSize: 10.5, fontWeight: 700, color: "#fff", background: "#E0612A", borderRadius: 20, padding: "2px 9px", whiteSpace: "nowrap" }}>price suggestion</span>}
               </div>
 
