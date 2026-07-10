@@ -32,7 +32,7 @@ type PriceCell = {
   fetched_at: string;
 } | null;
 
-export type Seller = { source: string; sourceId: string; price: number; net: number | null; list: number | null; factor: number; code: string | null; url: string | null };
+export type Seller = { source: string; sourceId: string; price: number; net: number | null; list: number | null; factor: number; code: string | null; url: string | null; condition: string | null };
 export type Market = { sellers: Seller[]; avgMarket: number; lowest: number; target: number; pctVsLowest: number | null; cheapestSource: string | null };
 export type Rec = { basisPrice: number; target: number; changePct: number; blocked: string | null; basis: string; sellers?: number; cheapestSource?: string | null } | null;
 
@@ -291,6 +291,7 @@ function MappedRow({ r, first, pending, run }: { r: RadarRow; first: boolean; pe
                 {s.net != null ? `net ${fmt(s.net)}` : s.list != null ? `list ${fmt(s.list)}` : ""}{s.factor && s.factor !== 1 ? ` ×${s.factor}` : ""}
               </span>
               {s.code && <span style={{ fontFamily: "var(--space-mono)", fontSize: 10.5, color: "#8A93A6", background: "#EEF0F4", padding: "1px 6px", borderRadius: 5 }}>{s.code}</span>}
+              <span style={{ fontSize: 10.5, fontWeight: 600, color: (s.condition ?? "New") === "New" ? "#137a4b" : "#C77700", background: (s.condition ?? "New") === "New" ? "#E6F5EE" : "#FFF3E0", padding: "1px 7px", borderRadius: 5 }}>{s.condition ?? "New"}</span>
               {s.url && <a href={s.url} target="_blank" rel="noreferrer" style={{ marginLeft: "auto", color: "#4E5BDC", fontWeight: 600, fontSize: 12 }}>View on {s.source} ↗</a>}
             </div>
           ))}

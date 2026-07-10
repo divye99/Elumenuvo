@@ -49,7 +49,7 @@ export default async function RadarPage() {
         const cell = perSource[s.id];
         const v = cell.price?.comparable_price;
         return v != null && v > 0
-          ? { source: s.name, sourceId: s.id, price: v, net: cell.price?.net_price ?? null, list: cell.price?.list_price ?? null, factor: cell.price?.unit_factor ?? cell.map?.unit_factor ?? 1, code: cell.map?.competitor_code ?? cell.price?.competitor_name ?? null, url: cell.price?.competitor_url ?? cell.map?.competitor_url ?? null }
+          ? { source: s.name, sourceId: s.id, price: v, net: cell.price?.net_price ?? null, list: cell.price?.list_price ?? null, factor: cell.price?.unit_factor ?? cell.map?.unit_factor ?? 1, code: cell.map?.competitor_code ?? cell.price?.competitor_name ?? null, url: cell.price?.competitor_url ?? cell.map?.competitor_url ?? null, condition: cell.map?.item_condition ?? null }
           : null;
       })
       .filter((x): x is NonNullable<typeof x> => x != null);

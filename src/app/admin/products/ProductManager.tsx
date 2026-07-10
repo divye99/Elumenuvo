@@ -10,6 +10,7 @@ import {
   searchCompetitorAction,
   saveCompetitorMap,
   removeCompetitorMap,
+  updateMapCondition,
   acceptSuggestion,
 } from "@/lib/admin/actions";
 
@@ -27,10 +28,13 @@ type PriceCell = {
   fetched_at: string;
 } | null;
 
+export type MapCell = { competitor_code: string; competitor_url: string | null; unit_factor: number; note: string | null; item_condition: string | null; competitor_brand_sku: string | null } | null;
+
 export type ManagerRow = {
   id: string;
   name: string;
   sku: string;
+  brand_sku: string | null;
   brand: string;
   category: string;
   spec: string | null;
@@ -42,7 +46,7 @@ export type ManagerRow = {
   parent_id: string | null;
   attrs: Record<string, string> | null;
   suggestedFactor: number;
-  perSource: Record<string, { map: { competitor_code: string; competitor_url: string | null; unit_factor: number; note: string | null } | null; price: PriceCell }>;
+  perSource: Record<string, { map: MapCell; price: PriceCell }>;
 };
 
 type Hit = { code: string; name: string; brand: string | null; listPrice: number | null; netPrice: number | null; url: string | null };
@@ -183,7 +187,7 @@ function ExpandedPanel({ row, sources, onClose }: { row: ManagerRow; sources: So
 function DetailsTab({ row, onClose }: { row: ManagerRow; onClose: () => void }) {
   const router = useRouter();
   const [f, setF] = useState({
-    name: row.name, spec: row.spec ?? "", unit: row.unit,
+    name: row.name, brand_sku: row.brand_sku ?? "", spec: row.spec ?? "", unit: row.unit,
     mrp: String(row.mrp), elume_price: String(row.elume_price),
     is_active: row.is_active, is_recommended: row.is_recommended,
     Size: row.attrs?.Size ?? "", Length: row.attrs?.Length ?? "", Colour: row.attrs?.Colour ?? "", Quality: row.attrs?.Quality ?? "", Pack: row.attrs?.Pack ?? "",
@@ -198,7 +202,7 @@ function DetailsTab({ row, onClose }: { row: ManagerRow; onClose: () => void }) 
   const save = () =>
     start(async () => {
       const res = await updateProductDetails({
-        id: row.id, name: f.name, spec: f.spec, unit: f.unit, mrp, elume_price: elume,
+        id: row.id, name: f.name, brand_sku: f.brand_sku, spec: f.spec, unit: f.unit, mrp, elume_price: elume,
         is_active: f.is_active, is_recommended: f.is_recommended,
         attrs: { Size: f.Size, Length: f.Length, Colour: f.Colour, Quality: f.Quality, Pack: f.Pack },
       });
@@ -214,7 +218,10 @@ function DetailsTab({ row, onClose }: { row: ManagerRow; onClose: () => void }) 
         <Field label="Name"><input value={f.name} onChange={set("name")} style={inp} /></Field>
         <Field label="Unit"><input value={f.unit} onChange={set("unit")} style={inp} /></Field>
       </div>
-      <Field label="Spec"><input value={f.spec} onChange={set("spec")} style={inp} /></Field>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 12, marginBottom: 12 }}>
+        <Field label="Brand SKU / MPN"><input value={f.brand_sku} onChange={set("brand_sku")} style={inp} placeholder="e.g. AHEFBXW160" /></Field>
+        <Field label="Spec"><input value={f.spec} onChange={set("spec")} style={inp} /></Field>
+      </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, margin: "12px 0" }}>
         <Field label="MRP (₹)"><input type="number" step="any" value={f.mrp} onChange={set("mrp")} style={inp} /></Field>
         <Field label="Elume price (₹)"><input type="number" step="any" value={f.elume_price} onChange={set("elume_price")} style={{ ...inp, fontWeight: 700, borderColor: "#C9CFF6" }} /></Field>
@@ -240,110 +247,214 @@ function DetailsTab({ row, onClose }: { row: ManagerRow; onClose: () => void }) 
   );
 }
 
-/* ── Tab 2: Competitor pricing ── */
+const CONDITIONS = ["New", "Refurbished", "Open box"];
+
+/* ── Tab 2: Competitor pricing — LIST of every matched seller ── */
 function CompetitorTab({ row, sources }: { row: ManagerRow; sources: SourceInfo[] }) {
   const router = useRouter();
-  const [source, setSource] = useState(sources.find((s) => s.enabled)?.id ?? sources[0]?.id ?? "vashi");
   const [busy, start] = useTransition();
   const [msg, setMsg] = useState<{ ok: boolean; t: string } | null>(null);
-  const active = sources.find((s) => s.id === source);
-  const cell = row.perSource[source] ?? { map: null, price: null };
-  const p = cell.price;
+  const [adding, setAdding] = useState(false);
 
-  const accept = () => start(async () => {
-    const res = await acceptSuggestion(row.id, source);
-    setMsg(res.ok ? { ok: true, t: `Elume price set to ${fmt(p!.suggested_price ?? 0)}.` } : { ok: false, t: res.error ?? "Failed." });
-    if (res.ok) router.refresh();
-  });
-  const unmap = () => start(async () => { await removeCompetitorMap(row.id, source); router.refresh(); });
+  // Every source this product is currently mapped to → one list row each.
+  const mappedSellers = sources.filter((s) => row.perSource[s.id]?.map);
+  // Sources still available to add a mapping for.
+  const openSources = sources.filter((s) => s.enabled && !row.perSource[s.id]?.map);
+
+  // Comparable prices across sellers → flag the cheapest.
+  const comparables = mappedSellers
+    .map((s) => row.perSource[s.id].price?.comparable_price)
+    .filter((v): v is number => v != null && v > 0);
+  const lowest = comparables.length ? Math.min(...comparables) : null;
+
+  const setCondition = (source: string, condition: string) =>
+    start(async () => { const res = await updateMapCondition(row.id, source, condition); if (res.ok) router.refresh(); else setMsg({ ok: false, t: res.error ?? "Failed." }); });
+  const unmap = (source: string) => start(async () => { await removeCompetitorMap(row.id, source); router.refresh(); });
+  const accept = (source: string, suggested: number) =>
+    start(async () => { const res = await acceptSuggestion(row.id, source); setMsg(res.ok ? { ok: true, t: `Elume price set to ${fmt(suggested)}.` } : { ok: false, t: res.error ?? "Failed." }); if (res.ok) router.refresh(); });
 
   return (
     <div>
-      {/* Source sub-tabs */}
-      <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
-        {sources.map((s) => (
-          <button key={s.id} onClick={() => s.enabled && setSource(s.id)} disabled={!s.enabled} style={{ fontSize: 12, fontWeight: 600, padding: "6px 13px", borderRadius: 9, cursor: s.enabled ? "pointer" : "default", background: s.id === source ? "#161D2B" : "#fff", color: s.id === source ? "#fff" : s.enabled ? "#3A4358" : "#B4BAC6", border: "1px solid #E0E4ED" }}>
-            {s.name}{!s.enabled && <span style={{ fontSize: 9.5, marginLeft: 5 }}>soon</span>}
-          </button>
-        ))}
+      {/* Match key: brand SKU (Layer 1) */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 12, fontSize: 12.5, color: "#56627A" }}>
+        <span>Match key ·</span>
+        {row.brand_sku
+          ? <span style={{ fontFamily: "var(--space-mono)", background: "#EEF0FE", color: "#3A46B8", padding: "3px 9px", borderRadius: 7, fontWeight: 600 }}>Brand SKU {row.brand_sku}</span>
+          : <span style={{ color: "#C77700", background: "#FFF3E0", padding: "3px 9px", borderRadius: 7, fontWeight: 600 }}>No brand SKU set — add it in Details for reliable cross-site matching</span>}
+        <span style={{ color: "#A0A7B5" }}>· our price <b style={{ color: "#4E5BDC" }}>{fmt(row.elume_price)}</b></span>
       </div>
 
-      {cell.map ? (
-        <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 12, padding: "14px 16px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: p ? 12 : 0 }}>
-            <div style={{ fontSize: 12.5, color: "#56627A" }}>
-              Mapped to <span style={{ fontFamily: "var(--space-mono)", background: "#F0F2F6", padding: "2px 7px", borderRadius: 6 }}>{cell.map.competitor_code}</span> ×{cell.map.unit_factor}
-              {cell.map.competitor_url && <> · <a href={cell.map.competitor_url} target="_blank" rel="noreferrer" style={{ color: "#4E5BDC" }}>view on {active?.name}</a></>}
-            </div>
-            <button onClick={unmap} disabled={busy} style={{ ...ghost, fontSize: 12, color: "#C0392B" }}>Remove mapping</button>
-          </div>
+      {msg && <div style={{ fontSize: 12.5, fontWeight: 600, color: msg.ok ? "#137a4b" : "#C0392B", marginBottom: 10 }}>{msg.t}</div>}
 
-          {p ? (
-            <>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, alignItems: "end" }}>
-                <Metric label="Our price" value={fmt(row.elume_price)} big color="#4E5BDC" />
-                <Metric label={`${active?.name} list`} value={p.list_price != null ? fmt(p.list_price) : "—"} strike />
-                <Metric label={`${active?.name} net (incl GST)`} value={p.net_price != null ? fmt(p.net_price) : (p.list_price != null ? fmt(p.list_price) : "—")} sub={`×${p.unit_factor ?? 1} = ${fmt(p.comparable_price ?? 0)}`} />
-                <Metric label="Suggested (−₹1)" value={fmt(p.suggested_price ?? 0)} big color={p.suggested_price != null && p.suggested_price < Math.round(row.elume_price) ? "#137a4b" : "#C0392B"} />
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 14, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 12.5, color: "#56627A" }}>
-                  {p.comparable_price != null && (p.comparable_price > row.elume_price
-                    ? <>You&apos;re <b style={{ color: "#137a4b" }}>{fmt(p.comparable_price - row.elume_price)} cheaper</b> than {active?.name}.</>
-                    : <>You&apos;re <b style={{ color: "#C0392B" }}>{fmt(row.elume_price - p.comparable_price)} pricier</b> than {active?.name}.</>)}
-                </span>
-                <div style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center" }}>
-                  {msg && <span style={{ fontSize: 12.5, fontWeight: 600, color: msg.ok ? "#137a4b" : "#C0392B" }}>{msg.t}</span>}
-                  <button onClick={accept} disabled={busy || p.suggested_price == null} style={{ ...primary, opacity: busy || p.suggested_price == null ? 0.6 : 1 }}>
-                    Set Elume price to {fmt(p.suggested_price ?? 0)}
-                  </button>
+      {/* Seller list */}
+      {mappedSellers.length > 0 ? (
+        <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 12, overflow: "hidden" }}>
+          {/* header */}
+          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1.3fr 0.9fr 1fr auto", gap: 10, padding: "9px 14px", background: "#F7F8FB", borderBottom: "1px solid #EEF0F4", fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", color: "#8A93A6" }}>
+            <span>Seller</span><span>Competitor price</span><span>Condition</span><span>Link</span><span />
+          </div>
+          {mappedSellers.map((s, i) => {
+            const cell = row.perSource[s.id];
+            const p = cell.price;
+            const map = cell.map!;
+            const comparable = p?.comparable_price ?? null;
+            const isCheapest = comparable != null && lowest != null && comparable === lowest && mappedSellers.length > 1;
+            const url = map.competitor_url ?? p?.competitor_url ?? null;
+            const canReprice = p?.suggested_price != null && p.suggested_price !== Math.round(row.elume_price);
+            return (
+              <div key={s.id} style={{ display: "grid", gridTemplateColumns: "1.2fr 1.3fr 0.9fr 1fr auto", gap: 10, padding: "11px 14px", borderTop: i ? "1px solid #F5F6F9" : undefined, alignItems: "center" }}>
+                {/* Seller */}
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+                    {s.name}
+                    {isCheapest && <span style={{ fontSize: 9, fontWeight: 700, color: "#137a4b", background: "#E6F5EE", padding: "1px 6px", borderRadius: 6 }}>LOWEST</span>}
+                  </div>
+                  <div style={{ fontFamily: "var(--space-mono)", fontSize: 10.5, color: "#8A93A6", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={map.competitor_code}>{map.competitor_code}</div>
+                </div>
+                {/* Price */}
+                <div>
+                  {comparable != null ? (
+                    <>
+                      <div style={{ fontSize: 14, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{fmt(comparable)}</div>
+                      <div style={{ fontSize: 10.5, color: "#A0A7B5" }}>
+                        {p?.net_price != null ? `net ${fmt(p.net_price)}` : p?.list_price != null ? `list ${fmt(p.list_price)}` : ""}{(map.unit_factor ?? 1) !== 1 ? ` ·×${map.unit_factor}` : ""}
+                      </div>
+                    </>
+                  ) : (
+                    <span style={{ fontSize: 12, color: "#C77700" }}>awaiting sync</span>
+                  )}
+                </div>
+                {/* Condition */}
+                <select value={map.item_condition ?? "New"} onChange={(e) => setCondition(s.id, e.target.value)} disabled={busy} style={{ border: "1px solid #E0E4ED", borderRadius: 8, padding: "5px 7px", fontSize: 12, background: "#fff", maxWidth: "100%" }}>
+                  {CONDITIONS.map((c) => <option key={c}>{c}</option>)}
+                  {map.item_condition && !CONDITIONS.includes(map.item_condition) && <option>{map.item_condition}</option>}
+                </select>
+                {/* Link */}
+                <div style={{ minWidth: 0 }}>
+                  {url
+                    ? <a href={url} target="_blank" rel="noreferrer" style={{ fontSize: 12, fontWeight: 600, color: "#4E5BDC" }}>Open ↗</a>
+                    : <span style={{ fontSize: 12, color: "#C4C9D4" }}>—</span>}
+                </div>
+                {/* Actions */}
+                <div style={{ display: "flex", gap: 8, alignItems: "center", justifyContent: "flex-end" }}>
+                  {canReprice && (
+                    <button onClick={() => accept(s.id, p!.suggested_price!)} disabled={busy} title="Set our price to ₹1 under this seller" style={{ ...primary, fontSize: 11.5, padding: "6px 11px" }}>→ {fmt(p!.suggested_price!)}</button>
+                  )}
+                  <button onClick={() => unmap(s.id)} disabled={busy} aria-label={`Remove ${s.name}`} title="Remove this seller" style={{ background: "none", border: "none", color: "#C4C9D4", fontSize: 16, cursor: "pointer", lineHeight: 1 }}>✕</button>
                 </div>
               </div>
-              <div style={{ fontSize: 11, color: "#A0A7B5", marginTop: 8 }}>Last checked {new Date(p.fetched_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} · comparable = {active?.name} net × unit factor</div>
-            </>
-          ) : (
-            <div style={{ fontSize: 12.5, color: "#8A93A6", marginTop: 10 }}>Mapped, but not synced yet. Run a sync from <a href="/admin/radar" style={{ color: "#4E5BDC" }}>All suggestions</a>.</div>
-          )}
+            );
+          })}
         </div>
       ) : (
-        <MatchPicker row={row} source={source} sourceName={active?.name ?? source} onDone={() => router.refresh()} />
+        <div style={{ background: "#fff", border: "1px dashed #D5DAE4", borderRadius: 12, padding: "20px", textAlign: "center", fontSize: 12.5, color: "#8A93A6" }}>
+          No sellers matched yet. Add one below — start with the brand SKU for an exact match.
+        </div>
+      )}
+
+      {/* Add a seller */}
+      <div style={{ marginTop: 12 }}>
+        {adding ? (
+          <AddSellerPanel row={row} openSources={openSources} onDone={() => { setAdding(false); router.refresh(); }} onCancel={() => setAdding(false)} />
+        ) : (
+          <button onClick={() => setAdding(true)} disabled={openSources.length === 0} style={{ ...ghost, opacity: openSources.length === 0 ? 0.5 : 1 }}>
+            + Add a seller{openSources.length === 0 ? " (all mapped)" : ""}
+          </button>
+        )}
+      </div>
+      {mappedSellers.some((s) => row.perSource[s.id].map && !row.perSource[s.id].price) && (
+        <div style={{ fontSize: 11, color: "#A0A7B5", marginTop: 8 }}>Some sellers are mapped but not priced yet — run a sync from <a href="/admin/radar" style={{ color: "#4E5BDC" }}>the radar</a>.</div>
       )}
     </div>
   );
 }
 
+/* Add-a-seller: pick an open source, then match (brand-SKU first). */
+function AddSellerPanel({ row, openSources, onDone, onCancel }: { row: ManagerRow; openSources: SourceInfo[]; onDone: () => void; onCancel: () => void }) {
+  const [source, setSource] = useState(openSources[0]?.id ?? "");
+  const active = openSources.find((s) => s.id === source);
+  return (
+    <div style={{ background: "#F7F8FB", border: "1px solid #E8EBF1", borderRadius: 12, padding: "12px 14px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
+        <span style={{ fontSize: 12.5, fontWeight: 600, color: "#3A4358" }}>Add seller from</span>
+        <select value={source} onChange={(e) => setSource(e.target.value)} style={{ border: "1px solid #E0E4ED", borderRadius: 9, padding: "7px 10px", fontSize: 13, background: "#fff" }}>
+          {openSources.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+        </select>
+        <button onClick={onCancel} style={{ ...ghost, marginLeft: "auto", fontSize: 12 }}>Cancel</button>
+      </div>
+      {source && <MatchPicker row={row} source={source} sourceName={active?.name ?? source} onDone={onDone} />}
+    </div>
+  );
+}
+
+/** Does a competitor hit look like an exact brand-SKU (MPN) match? */
+function skuMatch(hit: Hit, brandSku: string | null): boolean {
+  if (!brandSku) return false;
+  const norm = (s: string) => s.toLowerCase().replace(/[\s\-_./]/g, "");
+  const key = norm(brandSku);
+  if (key.length < 4) return false;
+  return norm(hit.code).includes(key) || norm(hit.name).includes(key);
+}
+
 function MatchPicker({ row, source, sourceName, onDone }: { row: ManagerRow; source: string; sourceName: string; onDone: () => void }) {
-  const [query, setQuery] = useState(`${row.brand} ${row.name}`.replace(/—.*/, "").trim());
+  // Layer 1: search by brand SKU (MPN) first — it's the reliable cross-site key.
+  const [query, setQuery] = useState(row.brand_sku || `${row.brand} ${row.name}`.replace(/—.*/, "").trim());
   const [hits, setHits] = useState<Hit[] | null>(null);
   const [chosen, setChosen] = useState<Hit | null>(null);
   const [factor, setFactor] = useState(String(row.suggestedFactor));
+  const [condition, setCondition] = useState("New");
   const [busy, start] = useTransition();
   const [err, setErr] = useState<string | null>(null);
 
-  const search = () => start(async () => { setErr(null); setHits((await searchCompetitorAction(source, query)) as Hit[]); });
+  const runSearch = (term: string) => start(async () => {
+    setErr(null);
+    const results = (await searchCompetitorAction(source, term)) as Hit[];
+    setHits(results);
+    // Auto-pick a confident brand-SKU match when there's exactly one.
+    const exact = results.filter((h) => skuMatch(h, row.brand_sku));
+    if (exact.length === 1) setChosen(exact[0]);
+  });
+  const search = () => runSearch(query);
+
   const save = () => start(async () => {
     if (!chosen) { setErr("Pick a product first."); return; }
-    const res = await saveCompetitorMap({ product_id: row.id, source, competitor_code: chosen.code, competitor_url: chosen.url, unit_factor: Number(factor) });
+    const res = await saveCompetitorMap({
+      product_id: row.id, source, competitor_code: chosen.code, competitor_url: chosen.url,
+      unit_factor: Number(factor), item_condition: condition,
+      competitor_brand_sku: skuMatch(chosen, row.brand_sku) ? row.brand_sku : null,
+    });
     if (res.ok) onDone(); else setErr(res.error ?? "Failed.");
   });
   const chosenPrice = chosen ? (chosen.netPrice ?? chosen.listPrice) : null;
 
   return (
     <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 12, padding: "14px 16px" }}>
-      <div style={{ fontSize: 12.5, color: "#56627A", marginBottom: 10 }}>Not mapped to {sourceName} yet — find the matching product:</div>
-      <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-        <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && search()} placeholder={`Search ${sourceName}…`} style={{ ...inp, flex: 1 }} />
+      <div style={{ fontSize: 12.5, color: "#56627A", marginBottom: 10 }}>
+        Find the matching product on {sourceName}
+        {row.brand_sku
+          ? <> — searching by brand SKU <b style={{ fontFamily: "var(--space-mono)" }}>{row.brand_sku}</b> for an exact match.</>
+          : <> (tip: add a Brand SKU in Details for reliable auto-matching).</>}
+      </div>
+      <div style={{ display: "flex", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
+        <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && search()} placeholder={`Search ${sourceName}…`} style={{ ...inp, flex: 1, minWidth: 180 }} />
         <button onClick={search} disabled={busy} style={ghost}>{busy && !hits ? "Searching…" : "Search"}</button>
+        {row.brand_sku && query !== `${row.brand} ${row.name}` && (
+          <button onClick={() => { const t = `${row.brand} ${row.name}`.replace(/—.*/, "").trim(); setQuery(t); runSearch(t); }} disabled={busy} style={{ ...ghost, fontSize: 12 }} title="Fall back to name search">Search by name</button>
+        )}
       </div>
       {hits && (
-        <div style={{ maxHeight: 200, overflowY: "auto", border: "1px solid #E8EBF1", borderRadius: 9, marginBottom: 10 }}>
-          {hits.length === 0 && <div style={{ padding: 12, fontSize: 12.5, color: "#8A93A6" }}>No results — try a shorter query.</div>}
+        <div style={{ maxHeight: 220, overflowY: "auto", border: "1px solid #E8EBF1", borderRadius: 9, marginBottom: 10 }}>
+          {hits.length === 0 && <div style={{ padding: 12, fontSize: 12.5, color: "#8A93A6" }}>No results — try the name search or a shorter query.</div>}
           {hits.map((h) => {
             const price = h.netPrice ?? h.listPrice;
+            const isSku = skuMatch(h, row.brand_sku);
             return (
-              <button key={h.code} onClick={() => setChosen(h)} style={{ display: "flex", width: "100%", textAlign: "left", gap: 10, alignItems: "center", padding: "9px 11px", border: "none", borderTop: "1px solid #F5F6F9", background: chosen?.code === h.code ? "#EEF0FE" : "#fff", cursor: "pointer" }}>
+              <button key={h.code} onClick={() => setChosen(h)} style={{ display: "flex", width: "100%", textAlign: "left", gap: 10, alignItems: "center", padding: "9px 11px", border: "none", borderTop: "1px solid #F5F6F9", background: chosen?.code === h.code ? "#EEF0FE" : isSku ? "#F1FBF5" : "#fff", cursor: "pointer" }}>
                 <span style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ fontSize: 12.5, fontWeight: 600, display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{h.name}</span>
+                  <span style={{ fontSize: 12.5, fontWeight: 600, display: "flex", alignItems: "center", gap: 6, overflow: "hidden" }}>
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{h.name}</span>
+                    {isSku && <span style={{ flexShrink: 0, fontSize: 8.5, fontWeight: 800, color: "#137a4b", background: "#D9F2E4", padding: "1px 6px", borderRadius: 5 }}>SKU MATCH</span>}
+                  </span>
                   <span style={{ fontSize: 11, color: "#8A93A6", fontFamily: "var(--space-mono)" }}>{h.brand} · {h.code}</span>
                 </span>
                 <span style={{ fontSize: 12.5, fontWeight: 700 }}>{price != null ? fmt(price) : "—"}<span style={{ fontSize: 10, color: "#8A93A6" }}>/u</span></span>
@@ -353,8 +464,9 @@ function MatchPicker({ row, source, sourceName, onDone }: { row: ManagerRow; sou
         </div>
       )}
       <div style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap" }}>
-        <Field label="Unit factor (× their price)"><input type="number" step="any" value={factor} onChange={(e) => setFactor(e.target.value)} style={{ ...inp, width: 130 }} /></Field>
-        <div style={{ fontSize: 11.5, color: "#8A93A6", flex: 1, minWidth: 150, paddingBottom: 8 }}>
+        <Field label="Unit factor (× their price)"><input type="number" step="any" value={factor} onChange={(e) => setFactor(e.target.value)} style={{ ...inp, width: 120 }} /></Field>
+        <Field label="Condition"><select value={condition} onChange={(e) => setCondition(e.target.value)} style={{ ...inp, width: 130 }}>{CONDITIONS.map((c) => <option key={c}>{c}</option>)}</select></Field>
+        <div style={{ fontSize: 11.5, color: "#8A93A6", flex: 1, minWidth: 140, paddingBottom: 8 }}>
           {chosen && chosenPrice != null ? <>Comparable ≈ <b>{fmt(chosenPrice * (Number(factor) || 1))}</b> vs our {fmt(row.elume_price)}</> : "Wire is per metre → 90 m coil uses ×90."}
         </div>
         <button onClick={save} disabled={busy || !chosen} style={{ ...primary, opacity: busy || !chosen ? 0.6 : 1 }}>Save mapping</button>
@@ -367,15 +479,6 @@ function MatchPicker({ row, source, sourceName, onDone }: { row: ManagerRow; sou
 /* ── bits ── */
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return <div><label style={{ fontSize: 11, fontWeight: 600, color: "#56627A", display: "block", marginBottom: 4 }}>{label}</label>{children}</div>;
-}
-function Metric({ label, value, sub, big, strike, color }: { label: string; value: string; sub?: string; big?: boolean; strike?: boolean; color?: string }) {
-  return (
-    <div>
-      <div style={{ fontSize: 10.5, color: "#8A93A6", textTransform: "uppercase", letterSpacing: "0.3px" }}>{label}</div>
-      <div style={{ fontSize: big ? 18 : 15, fontWeight: 700, color: color ?? "#19202e", textDecoration: strike ? "line-through" : undefined, fontVariantNumeric: "tabular-nums" }}>{value}</div>
-      {sub && <div style={{ fontSize: 10.5, color: "#A0A7B5" }}>{sub}</div>}
-    </div>
-  );
 }
 function Tag({ children, color }: { children: React.ReactNode; color: string }) {
   return <span style={{ fontSize: 10, fontWeight: 700, color, background: `${color}1a`, padding: "1px 6px", borderRadius: 6 }}>{children}</span>;

@@ -104,6 +104,7 @@ export async function upsertProduct(formData: FormData): Promise<void> {
 export async function updateProductDetails(input: {
   id: string;
   name: string;
+  brand_sku?: string;
   spec: string;
   unit: string;
   mrp: number;
@@ -120,6 +121,7 @@ export async function updateProductDetails(input: {
   const attrs = Object.fromEntries(Object.entries(input.attrs).filter(([, v]) => v && v.trim()));
   const { error } = await db.from("products").update({
     name: input.name.trim(),
+    brand_sku: input.brand_sku?.trim() || null,
     spec: input.spec.trim() || null,
     unit: input.unit.trim() || "pc",
     mrp: input.mrp,
@@ -232,7 +234,7 @@ export async function searchCompetitorAction(source: string, query: string) {
 }
 
 /** Create/update the mapping for one of our products, for a given source. */
-export async function saveCompetitorMap(input: { product_id: string; source: string; competitor_code: string; competitor_url?: string | null; unit_factor: number; note?: string }): Promise<ActionResult> {
+export async function saveCompetitorMap(input: { product_id: string; source: string; competitor_code: string; competitor_url?: string | null; unit_factor: number; note?: string; item_condition?: string; competitor_brand_sku?: string | null }): Promise<ActionResult> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
   const db = adminClient();
   if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
@@ -245,10 +247,26 @@ export async function saveCompetitorMap(input: { product_id: string; source: str
     competitor_url: input.competitor_url?.trim() || null,
     unit_factor: Number.isFinite(factor) && factor > 0 ? factor : 1,
     note: input.note?.trim() || null,
+    item_condition: input.item_condition?.trim() || "New",
+    competitor_brand_sku: input.competitor_brand_sku?.trim() || null,
     updated_at: new Date().toISOString(),
   });
   if (error) return { ok: false, error: error.message };
   revalidatePath("/admin/radar");
+  revalidatePath("/admin/products");
+  return { ok: true };
+}
+
+/** Update just the item condition (New / Refurbished / Open box) of a mapping. */
+export async function updateMapCondition(productId: string, source: string, condition: string): Promise<ActionResult> {
+  if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
+  const db = adminClient();
+  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  const { error } = await db.from("competitor_map").update({ item_condition: condition, updated_at: new Date().toISOString() }).eq("product_id", productId).eq("source", source);
+  if (error) return { ok: false, error: error.message };
+  await db.from("competitor_prices").update({ item_condition: condition }).eq("product_id", productId).eq("source", source);
+  revalidatePath("/admin/radar");
+  revalidatePath("/admin/products");
   return { ok: true };
 }
 

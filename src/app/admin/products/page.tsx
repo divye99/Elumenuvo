@@ -41,6 +41,7 @@ export default async function AdminProducts({
     id: r.id,
     name: r.name,
     sku: r.sku,
+    brand_sku: r.brand_sku,
     brand: r.brand,
     category: r.category,
     spec: r.spec,

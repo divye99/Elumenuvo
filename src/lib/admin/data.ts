@@ -4,6 +4,7 @@ import { adminClient } from "@/lib/supabase/admin";
 export type ProductRow = {
   id: string;
   sku: string;
+  brand_sku: string | null;
   name: string;
   brand: string;
   category: string;
@@ -84,7 +85,7 @@ export async function listImportLog(limit = 20): Promise<ImportLogRow[]> {
 
 /* ── Competitor price radar (multi-source) ── */
 export type CompetitorSource = { id: string; name: string; site_url: string | null; enabled: boolean; needs_login: boolean; sort_order: number };
-export type CompetitorMapRow = { product_id: string; source: string; competitor_code: string; competitor_url: string | null; unit_factor: number; note: string | null };
+export type CompetitorMapRow = { product_id: string; source: string; competitor_code: string; competitor_url: string | null; unit_factor: number; note: string | null; item_condition: string | null; competitor_brand_sku: string | null };
 export type CompetitorPriceRow = {
   product_id: string;
   source: string;
