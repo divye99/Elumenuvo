@@ -20,7 +20,7 @@ export const DEFAULT_RULE: RepricingRule = {
   delta: 1,
   delta_type: "rupees",
   max_change_pct: 40,
-  never_above_mrp: true,
+  never_above_mrp: false, // matching a competitor above our MRP is allowed
   enabled: true,
 };
 
@@ -58,9 +58,10 @@ export function recommend(
   const target = Math.max(1, Math.round(raw));
   const changePct = input.ourPrice > 0 ? Math.abs(target - input.ourPrice) / input.ourPrice * 100 : 0;
 
-  let blocked: string | null = null;
-  if (rule.never_above_mrp && input.mrp > 0 && target > input.mrp) blocked = "above MRP";
-  else if (changePct > rule.max_change_pct) blocked = `${Math.round(changePct)}% swing`;
+  // Above-MRP is no longer blocked — we match the lowest competitor even if it
+  // sits above our MRP. The only remaining guardrail is an extreme swing, which
+  // usually signals a mis-mapped SKU rather than a real price move.
+  const blocked: string | null = changePct > rule.max_change_pct ? `${Math.round(changePct)}% swing` : null;
 
   return { basisPrice: Math.round(basisPrice * 100) / 100, target, changePct, blocked, rule };
 }

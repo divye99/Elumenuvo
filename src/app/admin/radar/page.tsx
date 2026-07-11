@@ -43,25 +43,38 @@ export default async function RadarPage() {
     const perSource = Object.fromEntries(
       srcList.map((s) => [s.id, { map: mapByKey.get(mapKey(p.id, s.id)) ?? null, price: priceByKey.get(mapKey(p.id, s.id)) ?? null }])
     );
-    // Every mapped source that returned a price is a "seller". Pending
-    // (unapproved name-matches) are listed for review but NEVER drive the
-    // lowest/target/recommendation math — approved sellers only.
-    const priced = srcList
+    // Every mapped source is a "seller" — including out-of-stock / no-price ones
+    // (shown, but marked unavailable). Only APPROVED + AVAILABLE (in stock, real
+    // >0 price) sellers drive the lowest / target / recommendation math.
+    const sellers = srcList
       .map((s) => {
         const cell = perSource[s.id];
-        const v = cell.price?.comparable_price;
-        return v != null && v > 0
-          ? { source: s.name, sourceId: s.id, price: v, net: cell.price?.net_price ?? null, list: cell.price?.list_price ?? null, factor: cell.price?.unit_factor ?? cell.map?.unit_factor ?? 1, code: cell.map?.competitor_code ?? cell.price?.competitor_name ?? null, url: cell.price?.competitor_url ?? cell.map?.competitor_url ?? null, condition: cell.map?.item_condition ?? null, approval: cell.map?.approval ?? "approved" }
-          : null;
+        if (!cell.map) return null; // not mapped → not a seller
+        const price = cell.price;
+        const v = price?.comparable_price;
+        const inStock = price?.in_stock ?? null;
+        const available = v != null && v > 0 && inStock !== false && price?.status !== "unavailable";
+        return {
+          source: s.name, sourceId: s.id,
+          price: v != null && v > 0 ? v : null,
+          net: price?.net_price ?? null, list: price?.list_price ?? null,
+          factor: price?.unit_factor ?? cell.map.unit_factor ?? 1,
+          code: cell.map.competitor_code ?? price?.competitor_name ?? null,
+          url: price?.competitor_url ?? cell.map.competitor_url ?? null,
+          condition: cell.map.item_condition ?? null,
+          approval: cell.map.approval ?? "approved",
+          available, inStock, synced: !!price,
+        };
       })
       .filter((x): x is NonNullable<typeof x> => x != null);
-    const approved = priced.filter((x) => x.approval !== "pending");
+
+    const usable = sellers.filter((x) => x.approval !== "pending" && x.available && x.price != null) as (typeof sellers[number] & { price: number })[];
     const mappedCount = srcList.filter((s) => perSource[s.id].map).length;
     const pendingCount = srcList.filter((s) => perSource[s.id].map?.approval === "pending").length;
-    const comparables = approved.map((x) => x.price);
-    const cheapest = approved.length ? approved.reduce((a, b) => (b.price < a.price ? b : a)) : null;
-    const lowest = approved.length ? Math.min(...comparables) : null;
-    const avgMarket = approved.length ? Math.round((comparables.reduce((a, b) => a + b, 0) / approved.length) * 100) / 100 : null;
+    const comparables = usable.map((x) => x.price);
+    const cheapest = usable.length ? usable.reduce((a, b) => (b.price < a.price ? b : a)) : null;
+    const lowest = usable.length ? Math.min(...comparables) : null;
+    const avgMarket = usable.length ? Math.round((comparables.reduce((a, b) => a + b, 0) / usable.length) * 100) / 100 : null;
     const target = lowest != null ? Math.max(1, Math.round(lowest) - 1) : null; // lowest − ₹1
     const pctVsLowest = lowest != null && lowest > 0 ? Math.round(((p.elume_price - lowest) / lowest) * 100) : null;
     const rec = comparables.length
@@ -71,8 +84,9 @@ export default async function RadarPage() {
       id: p.id, name: p.name, brand: p.brand, category: p.category, unit: p.unit, image: p.image_url,
       ourPrice: p.elume_price, mrp: p.mrp, suggestedFactor: guessFactor(p.attrs), mappedCount, pendingCount,
       perSource,
-      market: approved.length ? { sellers: priced, avgMarket: avgMarket!, lowest: lowest!, target: target!, pctVsLowest, cheapestSource: cheapest?.source ?? null } : null,
-      rec: rec ? { basisPrice: rec.basisPrice, target: rec.target, changePct: Math.round(rec.changePct), blocked: rec.blocked, basis: rec.rule.basis, sellers: approved.length, cheapestSource: cheapest?.source ?? null } : null,
+      // market present whenever there's any seller to show; lowest/target null when none are buyable.
+      market: sellers.length ? { sellers, avgMarket, lowest, target, pctVsLowest, cheapestSource: cheapest?.source ?? null, usableCount: usable.length } : null,
+      rec: rec ? { basisPrice: rec.basisPrice, target: rec.target, changePct: Math.round(rec.changePct), blocked: rec.blocked, basis: rec.rule.basis, sellers: usable.length, cheapestSource: cheapest?.source ?? null } : null,
     };
   });
 

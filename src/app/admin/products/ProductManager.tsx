@@ -26,6 +26,7 @@ type PriceCell = {
   comparable_price: number | null;
   suggested_price: number | null;
   status: string;
+  in_stock: boolean | null;
   fetched_at: string;
 } | null;
 
@@ -262,12 +263,15 @@ function CompetitorTab({ row, sources }: { row: ManagerRow; sources: SourceInfo[
   // Sources still available to add a mapping for.
   const openSources = sources.filter((s) => s.enabled && !row.perSource[s.id]?.map);
 
-  // Comparable prices across APPROVED sellers → flag the cheapest.
-  // Pending (unapproved name-matches) never drive pricing decisions.
+  // A seller counts only if APPROVED and BUYABLE (in stock + real >0 price).
+  // Pending matches and out-of-stock / no-price sellers never drive the cheapest.
+  const isAvailable = (s: SourceInfo) => {
+    const pr = row.perSource[s.id].price;
+    return !!pr && pr.status !== "unavailable" && pr.in_stock !== false && pr.comparable_price != null && pr.comparable_price > 0;
+  };
   const comparables = mappedSellers
-    .filter((s) => row.perSource[s.id].map?.approval !== "pending")
-    .map((s) => row.perSource[s.id].price?.comparable_price)
-    .filter((v): v is number => v != null && v > 0);
+    .filter((s) => row.perSource[s.id].map?.approval !== "pending" && isAvailable(s))
+    .map((s) => row.perSource[s.id].price!.comparable_price as number);
   const lowest = comparables.length ? Math.min(...comparables) : null;
 
   const setCondition = (source: string, condition: string) =>
@@ -303,9 +307,11 @@ function CompetitorTab({ row, sources }: { row: ManagerRow; sources: SourceInfo[
             const p = cell.price;
             const map = cell.map!;
             const comparable = p?.comparable_price ?? null;
-            const isCheapest = comparable != null && lowest != null && comparable === lowest && mappedSellers.length > 1;
+            const available = isAvailable(s);
+            const oos = !!p && !available; // synced but not buyable (out of stock / no price)
+            const isCheapest = available && comparable != null && lowest != null && comparable === lowest && comparables.length > 1;
             const url = map.competitor_url ?? p?.competitor_url ?? null;
-            const canReprice = p?.suggested_price != null && p.suggested_price !== Math.round(row.elume_price);
+            const canReprice = available && p?.suggested_price != null && p.suggested_price !== Math.round(row.elume_price);
             return (
               <div key={s.id} style={{ display: "grid", gridTemplateColumns: "1.2fr 1.3fr 0.9fr 1fr auto", gap: 10, padding: "11px 14px", borderTop: i ? "1px solid #F5F6F9" : undefined, alignItems: "center" }}>
                 {/* Seller */}
@@ -315,12 +321,13 @@ function CompetitorTab({ row, sources }: { row: ManagerRow; sources: SourceInfo[
                     {isCheapest && <span style={{ fontSize: 9, fontWeight: 700, color: "#137a4b", background: "#E6F5EE", padding: "1px 6px", borderRadius: 6 }}>LOWEST</span>}
                     {map.match_method === "brand-sku" && <span title="Matched on the manufacturer part number" style={{ fontSize: 8.5, fontWeight: 800, color: "#3A46B8", background: "#EEF0FE", padding: "1px 6px", borderRadius: 5 }}>SKU</span>}
                     {map.approval === "pending" && <span title="Auto-matched by name — needs your approval" style={{ fontSize: 8.5, fontWeight: 800, color: "#C77700", background: "#FFF3E0", padding: "1px 6px", borderRadius: 5 }}>PENDING</span>}
+                    {oos && <span title={p?.in_stock === false ? "Out of stock on the competitor site" : "No valid price"} style={{ fontSize: 8.5, fontWeight: 800, color: "#C0392B", background: "#FBE9E4", padding: "1px 6px", borderRadius: 5 }}>{p?.in_stock === false ? "OUT OF STOCK" : "NO PRICE"}</span>}
                   </div>
                   <div style={{ fontFamily: "var(--space-mono)", fontSize: 10.5, color: "#8A93A6", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={map.competitor_code}>{map.competitor_code}</div>
                 </div>
                 {/* Price */}
                 <div>
-                  {comparable != null ? (
+                  {available && comparable != null ? (
                     <>
                       <div style={{ fontSize: 14, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{fmt(comparable)}</div>
                       <div style={{ fontSize: 10.5, color: "#A0A7B5" }}>
@@ -328,7 +335,7 @@ function CompetitorTab({ row, sources }: { row: ManagerRow; sources: SourceInfo[
                       </div>
                     </>
                   ) : (
-                    <span style={{ fontSize: 12, color: "#C77700" }}>awaiting sync</span>
+                    <span style={{ fontSize: 12, color: oos ? "#C0392B" : "#C77700" }}>{oos ? (p?.in_stock === false ? "out of stock" : "no price") : "awaiting sync"}</span>
                   )}
                 </div>
                 {/* Condition */}

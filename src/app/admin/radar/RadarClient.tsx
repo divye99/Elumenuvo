@@ -33,8 +33,8 @@ type PriceCell = {
   fetched_at: string;
 } | null;
 
-export type Seller = { source: string; sourceId: string; price: number; net: number | null; list: number | null; factor: number; code: string | null; url: string | null; condition: string | null; approval: string };
-export type Market = { sellers: Seller[]; avgMarket: number; lowest: number; target: number; pctVsLowest: number | null; cheapestSource: string | null };
+export type Seller = { source: string; sourceId: string; price: number | null; net: number | null; list: number | null; factor: number; code: string | null; url: string | null; condition: string | null; approval: string; available: boolean; inStock: boolean | null; synced: boolean };
+export type Market = { sellers: Seller[]; avgMarket: number | null; lowest: number | null; target: number | null; pctVsLowest: number | null; cheapestSource: string | null; usableCount: number };
 export type Rec = { basisPrice: number; target: number; changePct: number; blocked: string | null; basis: string; sellers?: number; cheapestSource?: string | null } | null;
 
 export type RadarRow = {
@@ -88,7 +88,7 @@ export default function RadarClient({
     for (const r of rows) m.set(r.mappedCount, (m.get(r.mappedCount) ?? 0) + 1);
     return [...m.entries()].sort((a, b) => a[0] - b[0]);
   }, [rows]);
-  const needsAction = (r: RadarRow) => !!r.market && r.market.target !== Math.round(r.ourPrice);
+  const needsAction = (r: RadarRow) => !!r.market && r.market.target != null && r.market.target !== Math.round(r.ourPrice);
   const actionCount = useMemo(() => rows.filter(needsAction).length, [rows]);
   const mapped = useMemo(() => rows.filter((r) => r.market), [rows]);
   const unmappedCount = useMemo(() => rows.filter((r) => r.mappedCount === 0).length, [rows]);
@@ -133,13 +133,17 @@ export default function RadarClient({
       } else setFlash({ ok: false, msg: !res.ok && res.error ? res.error : "Sync failed." });
     });
 
-  // Apply lowest−1 across all currently-filtered mapped products.
+  // Apply "lowest − ₹1" across all currently-filtered products that have a
+  // buyable (in-stock, real-price) seller. Out-of-stock-only products have a
+  // null target and are skipped.
   const applyAll = () => {
-    const items = filtered.filter((r) => r.market && r.market.target !== Math.round(r.ourPrice)).map((r) => ({ id: r.id, target: r.market!.target }));
-    if (items.length === 0) { setFlash({ ok: true, msg: "Everything already at lowest − ₹1." }); return; }
+    const items = filtered
+      .filter((r) => r.market && r.market.target != null && r.market.target !== Math.round(r.ourPrice))
+      .map((r) => ({ id: r.id, target: r.market!.target as number }));
+    if (items.length === 0) { setFlash({ ok: true, msg: "Everything already at the lowest available price − ₹1." }); return; }
     startTransition(async () => {
       const res = await applyRecommendedPrices(items);
-      if (res.ok) { setFlash({ ok: true, msg: `Applied ${res.applied} price${res.applied === 1 ? "" : "s"}${res.skipped ? ` · ${res.skipped} skipped (above MRP)` : ""}.` }); router.refresh(); }
+      if (res.ok) { setFlash({ ok: true, msg: `Applied ${res.applied} price${res.applied === 1 ? "" : "s"} (lowest available − ₹1)${res.skipped ? ` · ${res.skipped} skipped` : ""}.` }); router.refresh(); }
       else setFlash({ ok: false, msg: res.error ?? "Failed." });
     });
   };
@@ -226,10 +230,12 @@ function MappedRow({ r, first, pending, run }: { r: RadarRow; first: boolean; pe
   const [open, setOpen] = useState(false);
   const [val, setVal] = useState(String(r.ourPrice));
   const price = Number(val) || r.ourPrice;
-  const pct = m && m.lowest > 0 ? Math.round(((price - m.lowest) / m.lowest) * 100) : null;
+  const hasLowest = !!m && m.lowest != null && m.lowest > 0;
+  const pct = hasLowest ? Math.round(((price - m!.lowest!) / m!.lowest!) * 100) : null;
   const pctColor = pct == null ? "#8A93A6" : pct <= 0 ? "#137a4b" : "#C0392B";
-  const canAccept = !!m && m.target !== Math.round(r.ourPrice);
+  const canAccept = !!m && m.target != null && m.target !== Math.round(r.ourPrice);
   const canExpand = !!m && m.sellers.length > 0;
+  const money = (n: number | null) => (n != null ? fmt(n) : "—");
 
   return (
     <div style={{ borderTop: first ? undefined : "1px solid #F0F2F6" }}>
@@ -243,7 +249,7 @@ function MappedRow({ r, first, pending, run }: { r: RadarRow; first: boolean; pe
             <div style={{ fontWeight: 600, fontSize: 13.5, color: "#19202E", overflow: "hidden", textOverflow: "ellipsis" }}>
               {canExpand && <span style={{ color: "#8A93A6", marginRight: 5, fontSize: 11 }}>{open ? "▾" : "▸"}</span>}{r.name}
             </div>
-            <div style={{ fontSize: 11.5, color: "#8A93A6" }}>{r.brand} · {r.category}{m ? ` · ${m.sellers.length} seller${m.sellers.length === 1 ? "" : "s"}` : r.mappedCount ? " · mapped, awaiting price" : " · not mapped"}</div>
+            <div style={{ fontSize: 11.5, color: "#8A93A6" }}>{r.brand} · {r.category}{m ? ` · ${m.sellers.length} seller${m.sellers.length === 1 ? "" : "s"}${m.usableCount < m.sellers.length ? ` (${m.usableCount} in stock)` : ""}` : r.mappedCount ? " · mapped, awaiting price" : " · not mapped"}</div>
           </div>
         </div>
 
@@ -253,8 +259,8 @@ function MappedRow({ r, first, pending, run }: { r: RadarRow; first: boolean; pe
               <Stat label="Elume" value={editing ? undefined : fmt(r.ourPrice)}>
                 {editing && <input autoFocus value={val} onChange={(e) => setVal(e.target.value.replace(/[^\d]/g, ""))} type="text" inputMode="numeric" style={{ width: 78, border: "1px solid #4E5BDC", borderRadius: 7, padding: "3px 7px", fontSize: 13, fontWeight: 700, textAlign: "right" }} />}
               </Stat>
-              <Stat label="Avg market" value={fmt(m.avgMarket)} />
-              <Stat label={`Lowest${m.cheapestSource ? ` · ${m.cheapestSource}` : ""}`} value={fmt(m.lowest)} />
+              <Stat label="Avg market" value={money(m.avgMarket)} />
+              <Stat label={`Lowest${m.cheapestSource ? ` · ${m.cheapestSource}` : ""}`} value={money(m.lowest)} />
               <Stat label="vs lowest" value={pct == null ? "—" : `${pct > 0 ? "+" : ""}${pct}%`} color={pctColor} />
             </div>
             <div style={{ display: "flex", gap: 8, marginLeft: "auto", alignItems: "center" }}>
@@ -265,7 +271,7 @@ function MappedRow({ r, first, pending, run }: { r: RadarRow; first: boolean; pe
                 </>
               ) : (
                 <>
-                  <button onClick={() => run(() => applyRecommendedPrice(r.id, m.target), `${r.name} set to ${fmt(m.target)}.`)} disabled={pending || !canAccept} title={canAccept ? "" : "Already at lowest − ₹1"} style={{ ...btnAccept, opacity: pending || !canAccept ? 0.5 : 1 }}>Accept {fmt(m.target)}</button>
+                  <button onClick={() => canAccept && run(() => applyRecommendedPrice(r.id, m.target!), `${r.name} set to ${fmt(m.target!)}.`)} disabled={pending || !canAccept} title={m.target == null ? "No buyable competitor price" : canAccept ? "" : "Already at lowest − ₹1"} style={{ ...btnAccept, opacity: pending || !canAccept ? 0.5 : 1 }}>{m.target != null ? `Accept ${fmt(m.target)}` : "No price"}</button>
                   <button onClick={() => { setEditing(true); setVal(String(r.ourPrice)); }} style={btnGhost}>Edit</button>
                 </>
               )}
@@ -285,17 +291,19 @@ function MappedRow({ r, first, pending, run }: { r: RadarRow; first: boolean; pe
       {open && m && (
         <div style={{ background: "#F7F8FB", borderTop: "1px solid #EEF0F4", padding: "10px 16px 14px" }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: "#8A93A6", textTransform: "uppercase", letterSpacing: "0.3px", marginBottom: 6 }}>Mapped competitors</div>
-          {m.sellers.slice().sort((a, b) => a.price - b.price).map((s) => {
+          {m.sellers.slice().sort((a, b) => (Number(b.available) - Number(a.available)) || ((a.price ?? Infinity) - (b.price ?? Infinity))).map((s) => {
             const isPending = s.approval === "pending";
+            const isLowest = s.available && s.price != null && s.price === m.lowest && !isPending;
             return (
-              <div key={s.sourceId} style={{ display: "flex", gap: 10, alignItems: "center", padding: "6px 0", borderTop: "1px solid #EEF0F4", fontSize: 12.5, flexWrap: "wrap", opacity: isPending ? 0.92 : 1 }}>
-                <span style={{ fontWeight: 700, minWidth: 130, color: !isPending && s.price === m.lowest ? "#137a4b" : "#19202E" }}>{s.source}{!isPending && s.price === m.lowest && <span style={{ fontSize: 10, marginLeft: 6, color: "#137a4b" }}>lowest</span>}</span>
-                <span style={{ fontFamily: "var(--space-grotesk)", fontWeight: 700, minWidth: 80 }}>{fmt(s.price)}</span>
+              <div key={s.sourceId} style={{ display: "flex", gap: 10, alignItems: "center", padding: "6px 0", borderTop: "1px solid #EEF0F4", fontSize: 12.5, flexWrap: "wrap", opacity: isPending || !s.available ? 0.85 : 1 }}>
+                <span style={{ fontWeight: 700, minWidth: 130, color: isLowest ? "#137a4b" : "#19202E" }}>{s.source}{isLowest && <span style={{ fontSize: 10, marginLeft: 6, color: "#137a4b" }}>lowest</span>}</span>
+                <span style={{ fontFamily: "var(--space-grotesk)", fontWeight: 700, minWidth: 80, color: s.available ? "#19202E" : "#A0A7B5" }}>{s.price != null ? fmt(s.price) : "—"}</span>
                 <span style={{ color: "#8A93A6", fontSize: 11.5 }}>
                   {s.net != null ? `net ${fmt(s.net)}` : s.list != null ? `list ${fmt(s.list)}` : ""}{s.factor && s.factor !== 1 ? ` ×${s.factor}` : ""}
                 </span>
                 {s.code && <span style={{ fontFamily: "var(--space-mono)", fontSize: 10.5, color: "#8A93A6", background: "#EEF0F4", padding: "1px 6px", borderRadius: 5 }}>{s.code}</span>}
                 <span style={{ fontSize: 10.5, fontWeight: 600, color: (s.condition ?? "New") === "New" ? "#137a4b" : "#C77700", background: (s.condition ?? "New") === "New" ? "#E6F5EE" : "#FFF3E0", padding: "1px 7px", borderRadius: 5 }}>{s.condition ?? "New"}</span>
+                {!s.available && <span title={s.inStock === false ? "Out of stock on the competitor site" : !s.synced ? "Not synced yet" : "No valid price"} style={{ fontSize: 10, fontWeight: 800, color: "#C0392B", background: "#FBE9E4", padding: "1px 7px", borderRadius: 5 }}>{s.inStock === false ? "OUT OF STOCK" : !s.synced ? "NOT SYNCED" : "NO PRICE"}</span>}
                 {isPending && <span title="Auto-matched by name — approve before it counts for pricing" style={{ fontSize: 10, fontWeight: 800, color: "#C77700", background: "#FFF3E0", padding: "1px 7px", borderRadius: 5 }}>PENDING</span>}
                 <span style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
                   {s.url && <a href={s.url} target="_blank" rel="noreferrer" style={{ color: "#4E5BDC", fontWeight: 600, fontSize: 12 }}>View on {s.source} ↗</a>}
@@ -517,9 +525,6 @@ function RuleEditor({ rule, categories, usedScopes, onSaved, isGlobal, isNew }: 
       <select value={f.basis} onChange={(e) => setF({ ...f, basis: e.target.value as any })} style={sel}>
         <option value="cheapest">lowest</option><option value="market_avg">market avg</option>
       </select>
-      <label style={{ fontSize: 12, color: "#56627A", display: "flex", alignItems: "center", gap: 5 }}>
-        <input type="checkbox" checked={f.never_above_mrp} onChange={(e) => setF({ ...f, never_above_mrp: e.target.checked })} /> ≤ MRP
-      </label>
       <label style={{ fontSize: 12, color: "#56627A", display: "flex", alignItems: "center", gap: 5 }}>
         max swing <input type="number" value={f.max_change_pct} onChange={(e) => setF({ ...f, max_change_pct: Number(e.target.value) })} style={{ ...sel, width: 48 }} />%
       </label>

@@ -50,7 +50,9 @@ function shopifyFetch(base) {
 
 function magentoFetch(base) {
   const b = base.replace(/\/+$/, "");
-  const FIELDS = "items{sku name url_key stock_status price_range{minimum_price{regular_price{value} final_price{value}}}}";
+  const FIELDS = "items{sku name url_key canonical_url stock_status price_range{minimum_price{regular_price{value} final_price{value}}}}";
+  // Magento pages are /<url_key>.html — the bare url_key 404s. Prefer canonical_url.
+  const purl = (it) => (it.canonical_url ? `${b}/${String(it.canonical_url).replace(/^\/+/, "")}` : it.url_key ? `${b}/${it.url_key}.html` : null);
   return async (sku) => {
     try {
       const q = `query{products(filter:{sku:{eq:${JSON.stringify(sku)}}}){${FIELDS}}}`;
@@ -61,7 +63,7 @@ function magentoFetch(base) {
       const mp = it.price_range?.minimum_price ?? {};
       const regular = num(mp.regular_price?.value);
       const final = num(mp.final_price?.value);
-      return { code: String(it.sku ?? sku), name: String(it.name ?? ""), listPrice: regular ?? final, netPrice: final, url: it.url_key ? `${b}/${it.url_key}` : null, inStock: it.stock_status ? it.stock_status === "IN_STOCK" : null };
+      return { code: String(it.sku ?? sku), name: String(it.name ?? ""), listPrice: regular ?? final, netPrice: final, url: purl(it), inStock: it.stock_status ? it.stock_status === "IN_STOCK" : null };
     } catch { return null; }
   };
 }

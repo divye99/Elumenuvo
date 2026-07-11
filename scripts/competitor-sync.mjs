@@ -44,20 +44,36 @@ async function syncSource(source, products, priceById) {
   const prevRes = await db.from("competitor_prices").select("product_id, comparable_price, status").eq("source", source);
   const prevById = new Map((prevRes.data ?? []).map((r) => [r.product_id, { comparable: r.comparable_price, status: r.status }]));
 
-  let fetched = 0, failed = 0, suggestions = 0;
+  let fetched = 0, failed = 0, suggestions = 0, unavailable = 0;
   const nowIso = new Date().toISOString();
   console.log(`  [${source}] syncing ${maps.length} mapped products…`);
 
   for (const m of maps) {
     const item = await fetchByCode(m.competitor_code);
-    const effective = item ? (item.netPrice ?? item.listPrice) : null;
-    if (!item || effective == null) { failed++; console.warn(`    ✗ ${m.product_id} (${m.competitor_code})`); await sleep(250); continue; }
-    fetched++;
+    if (!item) { failed++; console.warn(`    ✗ ${m.product_id} (${m.competitor_code}) — fetch failed`); await sleep(250); continue; }
 
     const factor = Number(m.unit_factor) || 1;
+    const effective = item.netPrice ?? item.listPrice;
+    const ourPrice = priceById.get(m.product_id) ?? null;
+    // A competitor counts only if it's actually BUYABLE: in stock AND has a real
+    // (>0) price. Otherwise record it as unavailable with a NULL price — never a
+    // bogus ₹0 that would corrupt the "lowest price" math.
+    const buyable = item.inStock !== false && effective != null && effective > 0;
+
+    if (!buyable) {
+      unavailable++;
+      await db.from("competitor_prices").upsert({
+        product_id: m.product_id, source, competitor_code: item.code, competitor_name: item.name, competitor_url: item.url,
+        list_price: item.listPrice, net_price: item.netPrice, unit_factor: factor, comparable_price: null,
+        suggested_price: null, our_price: ourPrice, status: "unavailable", in_stock: item.inStock ?? false, fetched_at: nowIso,
+      });
+      console.log(`    ⊘ ${m.product_id}: ${item.inStock === false ? "out of stock" : "no price"} — recorded unavailable`);
+      await sleep(300); continue;
+    }
+    fetched++;
+
     const comparable = Math.round(effective * factor * 100) / 100;
     const suggested = Math.max(1, Math.round(comparable) - 1);
-    const ourPrice = priceById.get(m.product_id) ?? null;
 
     const before = prevById.get(m.product_id);
     const unchanged = before && before.comparable != null && Math.abs(Number(before.comparable) - comparable) < 0.005;
@@ -78,7 +94,7 @@ async function syncSource(source, products, priceById) {
   }
 
   await db.from("competitor_sync_log").insert({ source, mapped: maps.length, fetched, failed, suggestions, run_source: "cron" });
-  console.log(`  [${source}] done. fetched=${fetched} failed=${failed} suggestions=${suggestions}`);
+  console.log(`  [${source}] done. fetched=${fetched} unavailable=${unavailable} failed=${failed} suggestions=${suggestions}`);
 }
 
 async function main() {

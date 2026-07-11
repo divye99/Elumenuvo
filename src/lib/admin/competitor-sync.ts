@@ -52,14 +52,28 @@ export async function runCompetitorSync(db: SupaLike, source: string, runSource:
   // Process one mapping: fetch the live price, write the snapshot + history row.
   async function processOne(m: any) {
     const item = await ad.fetchByCode(m.competitor_code, token);
-    const effective = item ? (item.netPrice ?? item.listPrice) : null;
-    if (!item || effective == null) { failed++; return; }
-    fetched++;
+    if (!item) { failed++; return; }
 
     const factor = Number(m.unit_factor) || 1;
+    const effective = item.netPrice ?? item.listPrice;
+    const ourPrice = priceById.get(m.product_id) ?? null;
+    // Only a BUYABLE competitor (in stock + real >0 price) counts. Otherwise
+    // store a NULL comparable + status 'unavailable' — never a bogus ₹0 that
+    // would poison the lowest-price math.
+    const buyable = item.inStock !== false && effective != null && effective > 0;
+
+    if (!buyable) {
+      await db.from("competitor_prices").upsert({
+        product_id: m.product_id, source, competitor_code: item.code, competitor_name: item.name, competitor_url: item.url,
+        list_price: item.listPrice, net_price: item.netPrice, unit_factor: factor, comparable_price: null,
+        suggested_price: null, our_price: ourPrice, status: "unavailable", in_stock: item.inStock ?? false, fetched_at: nowIso,
+      });
+      return;
+    }
+    fetched++;
+
     const comparable = Math.round(effective * factor * 100) / 100;
     const suggested = Math.max(1, Math.round(comparable) - 1);
-    const ourPrice = priceById.get(m.product_id) ?? null;
 
     // Keep a prior accept/dismiss while the comparable price is unchanged.
     const before = prevById.get(m.product_id);

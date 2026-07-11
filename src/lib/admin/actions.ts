@@ -373,12 +373,7 @@ export async function applyRecommendedPrice(productId: string, target: number): 
   if (!(target > 0)) return { ok: false, error: "Invalid price." };
   const { data: prod } = await db.from("products").select("mrp, category").eq("id", productId).maybeSingle();
   if (!prod) return { ok: false, error: "Product not found." };
-  const { listRepricingRules } = await import("@/lib/admin/data");
-  const { resolveRule } = await import("@/lib/admin/repricing");
-  const rule = resolveRule(prod.category, await listRepricingRules());
-  if (rule.never_above_mrp && Number(prod.mrp) > 0 && target > Number(prod.mrp)) {
-    return { ok: false, error: `Blocked: ₹${target} is above MRP ₹${prod.mrp}.` };
-  }
+  // Above-MRP matching is allowed — no MRP guardrail.
   const { error } = await db.from("products").update({ elume_price: target }).eq("id", productId);
   if (error) return { ok: false, error: error.message };
   await logPrice(db, productId, target, Number(prod.mrp));
@@ -399,19 +394,15 @@ export async function applyRecommendedPrices(items: { id: string; target: number
   const clean = (items ?? []).filter((i) => i.id && i.target > 0);
   if (clean.length === 0) return { ok: false, error: "Nothing to apply." };
 
-  const { listRepricingRules } = await import("@/lib/admin/data");
-  const { resolveRule } = await import("@/lib/admin/repricing");
-  const rules = await listRepricingRules();
   const ids = clean.map((i) => i.id);
   const { data: prods } = await db.from("products").select("id, mrp, category").in("id", ids);
   const byId = new Map((prods ?? []).map((p: any) => [p.id, p]));
 
+  // Above-MRP matching is allowed — apply every recommended target, no MRP skip.
   let applied = 0, skipped = 0;
   for (const { id, target } of clean) {
     const prod = byId.get(id);
     if (!prod) { skipped++; continue; }
-    const rule = resolveRule(prod.category, rules);
-    if (rule.never_above_mrp && Number(prod.mrp) > 0 && target > Number(prod.mrp)) { skipped++; continue; }
     const { error } = await db.from("products").update({ elume_price: target }).eq("id", id);
     if (error) { skipped++; continue; }
     await logPrice(db, id, target, Number(prod.mrp));
