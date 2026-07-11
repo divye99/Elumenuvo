@@ -14,6 +14,10 @@ export const havellsAdapter = makeMagentoAdapter({ key: "havells", name: "Havell
 // Syska — Dukaan storefront (scrapes __DUKAAN_DATA__ on the product page).
 export const syskaAdapter = makeDukaanAdapter({ key: "syska", name: "Syska", siteUrl: "https://syska.co.in" });
 
+// Orient — Shopify DTC store (orientelectric.com). Verified: search suggest +
+// per-variant sku/EAN + compare_at_price (MRP) all live, e.g. Aeroquiet ₹8221/₹9350.
+export const orientAdapter = makeShopifyAdapter({ key: "orient", name: "Orient", siteUrl: "https://orientelectric.com" });
+
 // Atomberg — Magento GraphQL, same engine as Havells. Verified: search + MRP
 // (regular_price) + selling (final_price) all live, e.g. Razon ₹7300/₹4149.
 export const atombergAdapter = makeMagentoAdapter({ key: "atomberg", name: "Atomberg", siteUrl: "https://atomberg.com" });

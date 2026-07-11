@@ -2,7 +2,7 @@
  *  and insert a row in competitor_sources. The admin + sync are source-agnostic. */
 import type { CompetitorAdapter } from "./types";
 import { vashiAdapter } from "./vashi";
-import { cromptonAdapter, legrandAdapter, havellsAdapter, syskaAdapter, atombergAdapter } from "./brands";
+import { cromptonAdapter, legrandAdapter, havellsAdapter, syskaAdapter, atombergAdapter, orientAdapter } from "./brands";
 import { handypandaAdapter } from "./handypanda";
 import { bestofelectricalsAdapter } from "./bestofelectricals";
 import { iboAdapter } from "./stubs";
@@ -11,6 +11,7 @@ export const ADAPTERS: Record<string, CompetitorAdapter> = {
   // Live public price feeds (verified).
   vashi: vashiAdapter, // SAP Commerce OCC (wires, switchgear)
   crompton: cromptonAdapter, // Shopify (fans)
+  orient: orientAdapter, // Shopify (fans, lighting)
   havells: havellsAdapter, // Magento GraphQL (fans, switches, wires, lighting)
   atomberg: atombergAdapter, // Magento GraphQL (BLDC fans)
   syska: syskaAdapter, // Dukaan storefront scrape (lighting)

@@ -239,7 +239,7 @@ async function main() {
   const mapBy = new Map(); // product_id → [{source, code}]
   for (const m of maps) { if (!mapBy.has(m.product_id)) mapBy.set(m.product_id, []); mapBy.get(m.product_id).push(m); }
 
-  const OWN_STORE_SRC = { Havells: "havells", Atomberg: "atomberg", Crompton: "crompton", Syska: "syska" };
+  const OWN_STORE_SRC = { Havells: "havells", Atomberg: "atomberg", Crompton: "crompton", Syska: "syska", Orient: "orient" };
   const DEALER_MPN_BRANDS = new Set(["ABB", "Schneider", "Legrand", "Havells"]); // Vashi codes = I-<MPN>
   const WIRE_SKIP = new Set(["Polycab", "KEI", "APAR", "RR Kabel", "Finolex", "Anchor", "CMI"]);
 

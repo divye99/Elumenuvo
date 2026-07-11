@@ -148,13 +148,14 @@ const SEARCHERS = {
   havells: magentoSearch("https://havells.com"),
   atomberg: magentoSearch("https://atomberg.com"),
   crompton: shopifySearch("https://www.crompton.co.in"),
+  orient: shopifySearch("https://orientelectric.com"),
   syska: syskaSearch,
   vashi: vashiSearch,
   handypanda: handypandaSearch,
   // bestofelectricals is handled via loadBoeBrand() (local catalogue match).
 };
 // A brand's own store, when we have an adapter for it (authoritative).
-const OWN_STORE = { havells: "havells", crompton: "crompton", atomberg: "atomberg", syska: "syska" };
+const OWN_STORE = { havells: "havells", crompton: "crompton", atomberg: "atomberg", syska: "syska", orient: "orient" };
 // Multi-brand sources are worth trying for everything (this is the "3-4 sites"
 // fan-out). BOE spans all categories/brands; Vashi is industrial (switchgear,
 // DB, wires); HandyPanda is consumer electrical.
@@ -477,8 +478,8 @@ async function main() {
       `select approval, match_method, count(*) from public.competitor_map group by 1, 2 order by 1, 2;`,
       "",
     ].join("\n");
-    fs.writeFileSync("supabase/migrations/0028_competitor-map-v2.sql", sql);
-    console.log(`SQL written → supabase/migrations/0028_competitor-map-v2.sql (review, then run in Supabase).`);
+    fs.writeFileSync("supabase/migrations/0029_competitor-map-v2.sql", sql);
+    console.log(`SQL written → supabase/migrations/0029_competitor-map-v2.sql (review, then run in Supabase).`);
   }
 }
 

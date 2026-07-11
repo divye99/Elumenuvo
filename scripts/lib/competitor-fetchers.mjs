@@ -113,6 +113,7 @@ async function boeFetch(slug) {
 export const FETCHERS = {
   vashi: vashiFetch,
   crompton: shopifyFetch("https://www.crompton.co.in"),
+  orient: shopifyFetch("https://orientelectric.com"),
   legrand: magentoFetch("https://shop.legrand.co.in"),
   havells: magentoFetch("https://havells.com"),
   atomberg: magentoFetch("https://atomberg.com"),
@@ -124,4 +125,4 @@ export const FETCHERS = {
 // Manufacturer-owned storefronts → their non-discounted price IS the true MRP.
 // (Marketplaces/distributors — vashi, handypanda, bestofelectricals — are less
 // authoritative, though BOE prints an explicit MRP field.)
-export const BRAND_DIRECT = new Set(["crompton", "havells", "legrand", "syska", "atomberg"]);
+export const BRAND_DIRECT = new Set(["crompton", "orient", "havells", "legrand", "syska", "atomberg"]);
