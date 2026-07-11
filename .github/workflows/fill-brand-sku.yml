@@ -1,0 +1,32 @@
+name: Fill brand SKUs (MPN)
+
+# Fills products.brand_sku — the manufacturer part number that Layer-1 price
+# matching joins on. Safe to re-run any time: it only ever fills EMPTY values.
+# Trigger by hand from the Actions tab. Tick "dry run" to preview without writing.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (report only, write nothing)"
+        type: boolean
+        default: false
+
+jobs:
+  fill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Install deps
+        run: npm install ws --no-save
+
+      - name: Fill brand SKUs
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DRY_RUN: ${{ inputs.dry_run && '1' || '' }}
+        run: node scripts/fill-brand-sku.mjs

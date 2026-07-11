@@ -249,9 +249,29 @@ export async function saveCompetitorMap(input: { product_id: string; source: str
     note: input.note?.trim() || null,
     item_condition: input.item_condition?.trim() || "New",
     competitor_brand_sku: input.competitor_brand_sku?.trim() || null,
+    approval: "approved", // an admin picked it by hand — trusted
+    match_method: "manual",
     updated_at: new Date().toISOString(),
   });
   if (error) return { ok: false, error: error.message };
+  revalidatePath("/admin/radar");
+  revalidatePath("/admin/products");
+  return { ok: true };
+}
+
+/** Approve a pending auto-matched mapping (approve=true) or reject it
+ *  (approve=false → the mapping and its price snapshot are deleted). */
+export async function setMapApproval(productId: string, source: string, approve: boolean): Promise<ActionResult> {
+  if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
+  const db = adminClient();
+  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  if (approve) {
+    const { error } = await db.from("competitor_map").update({ approval: "approved", updated_at: new Date().toISOString() }).eq("product_id", productId).eq("source", source);
+    if (error) return { ok: false, error: error.message };
+  } else {
+    await db.from("competitor_map").delete().eq("product_id", productId).eq("source", source);
+    await db.from("competitor_prices").delete().eq("product_id", productId).eq("source", source);
+  }
   revalidatePath("/admin/radar");
   revalidatePath("/admin/products");
   return { ok: true };

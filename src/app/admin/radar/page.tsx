@@ -43,21 +43,25 @@ export default async function RadarPage() {
     const perSource = Object.fromEntries(
       srcList.map((s) => [s.id, { map: mapByKey.get(mapKey(p.id, s.id)) ?? null, price: priceByKey.get(mapKey(p.id, s.id)) ?? null }])
     );
-    // Every mapped source that returned a price is a "seller"; the lowest wins.
+    // Every mapped source that returned a price is a "seller". Pending
+    // (unapproved name-matches) are listed for review but NEVER drive the
+    // lowest/target/recommendation math — approved sellers only.
     const priced = srcList
       .map((s) => {
         const cell = perSource[s.id];
         const v = cell.price?.comparable_price;
         return v != null && v > 0
-          ? { source: s.name, sourceId: s.id, price: v, net: cell.price?.net_price ?? null, list: cell.price?.list_price ?? null, factor: cell.price?.unit_factor ?? cell.map?.unit_factor ?? 1, code: cell.map?.competitor_code ?? cell.price?.competitor_name ?? null, url: cell.price?.competitor_url ?? cell.map?.competitor_url ?? null, condition: cell.map?.item_condition ?? null }
+          ? { source: s.name, sourceId: s.id, price: v, net: cell.price?.net_price ?? null, list: cell.price?.list_price ?? null, factor: cell.price?.unit_factor ?? cell.map?.unit_factor ?? 1, code: cell.map?.competitor_code ?? cell.price?.competitor_name ?? null, url: cell.price?.competitor_url ?? cell.map?.competitor_url ?? null, condition: cell.map?.item_condition ?? null, approval: cell.map?.approval ?? "approved" }
           : null;
       })
       .filter((x): x is NonNullable<typeof x> => x != null);
+    const approved = priced.filter((x) => x.approval !== "pending");
     const mappedCount = srcList.filter((s) => perSource[s.id].map).length;
-    const comparables = priced.map((x) => x.price);
-    const cheapest = priced.length ? priced.reduce((a, b) => (b.price < a.price ? b : a)) : null;
-    const lowest = priced.length ? Math.min(...comparables) : null;
-    const avgMarket = priced.length ? Math.round((comparables.reduce((a, b) => a + b, 0) / priced.length) * 100) / 100 : null;
+    const pendingCount = srcList.filter((s) => perSource[s.id].map?.approval === "pending").length;
+    const comparables = approved.map((x) => x.price);
+    const cheapest = approved.length ? approved.reduce((a, b) => (b.price < a.price ? b : a)) : null;
+    const lowest = approved.length ? Math.min(...comparables) : null;
+    const avgMarket = approved.length ? Math.round((comparables.reduce((a, b) => a + b, 0) / approved.length) * 100) / 100 : null;
     const target = lowest != null ? Math.max(1, Math.round(lowest) - 1) : null; // lowest − ₹1
     const pctVsLowest = lowest != null && lowest > 0 ? Math.round(((p.elume_price - lowest) / lowest) * 100) : null;
     const rec = comparables.length
@@ -65,10 +69,10 @@ export default async function RadarPage() {
       : null;
     return {
       id: p.id, name: p.name, brand: p.brand, category: p.category, unit: p.unit, image: p.image_url,
-      ourPrice: p.elume_price, mrp: p.mrp, suggestedFactor: guessFactor(p.attrs), mappedCount,
+      ourPrice: p.elume_price, mrp: p.mrp, suggestedFactor: guessFactor(p.attrs), mappedCount, pendingCount,
       perSource,
-      market: priced.length ? { sellers: priced, avgMarket: avgMarket!, lowest: lowest!, target: target!, pctVsLowest, cheapestSource: cheapest?.source ?? null } : null,
-      rec: rec ? { basisPrice: rec.basisPrice, target: rec.target, changePct: Math.round(rec.changePct), blocked: rec.blocked, basis: rec.rule.basis, sellers: priced.length, cheapestSource: cheapest?.source ?? null } : null,
+      market: approved.length ? { sellers: priced, avgMarket: avgMarket!, lowest: lowest!, target: target!, pctVsLowest, cheapestSource: cheapest?.source ?? null } : null,
+      rec: rec ? { basisPrice: rec.basisPrice, target: rec.target, changePct: Math.round(rec.changePct), blocked: rec.blocked, basis: rec.rule.basis, sellers: approved.length, cheapestSource: cheapest?.source ?? null } : null,
     };
   });
 

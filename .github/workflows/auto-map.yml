@@ -1,0 +1,30 @@
+name: Auto-map competitors (layered)
+
+# Maps catalogue products to competitor listings in layers:
+#   brand-SKU (MPN) match → trusted, approval='approved'
+#   name match            → approval='pending' (approve in /admin/products)
+# Only ADDS missing (product, source) pairs — never touches existing mappings.
+# Run "Fill brand SKUs" first for best results, then this, then the price sync.
+on:
+  workflow_dispatch: {}
+
+jobs:
+  map:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Install deps
+        run: npm install ws --no-save
+
+      - name: Auto-map competitors
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          VASHI_PINCODE: ${{ secrets.VASHI_PINCODE }}
+        run: node scripts/auto-map-brands.mjs

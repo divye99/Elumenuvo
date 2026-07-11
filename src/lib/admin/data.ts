@@ -85,7 +85,7 @@ export async function listImportLog(limit = 20): Promise<ImportLogRow[]> {
 
 /* ── Competitor price radar (multi-source) ── */
 export type CompetitorSource = { id: string; name: string; site_url: string | null; enabled: boolean; needs_login: boolean; sort_order: number };
-export type CompetitorMapRow = { product_id: string; source: string; competitor_code: string; competitor_url: string | null; unit_factor: number; note: string | null; item_condition: string | null; competitor_brand_sku: string | null };
+export type CompetitorMapRow = { product_id: string; source: string; competitor_code: string; competitor_url: string | null; unit_factor: number; note: string | null; item_condition: string | null; competitor_brand_sku: string | null; approval: "approved" | "pending" | null; match_method: string | null };
 export type CompetitorPriceRow = {
   product_id: string;
   source: string;
@@ -137,9 +137,12 @@ export function isActionable(p: CompetitorPriceRow): boolean {
 /** Count PRODUCTS (not source rows) where we'd reprice to ₹1 under the LOWEST
  *  mapped seller — matches the Amazon-style product-level recommendation. */
 export async function countPendingSuggestions(): Promise<number> {
-  const prices = await listCompetitorPrices();
+  const [prices, maps] = await Promise.all([listCompetitorPrices(), listCompetitorMap()]);
+  // Unapproved name-matches never drive repricing counts.
+  const unapproved = new Set(maps.filter((m) => m.approval === "pending").map((m) => `${m.product_id}::${m.source}`));
   const lowestByProduct = new Map<string, { our: number | null; low: number; anyPending: boolean }>();
   for (const p of prices) {
+    if (unapproved.has(`${p.product_id}::${p.source}`)) continue;
     if (p.comparable_price == null || p.comparable_price <= 0) continue;
     const e = lowestByProduct.get(p.product_id) ?? { our: p.our_price, low: p.comparable_price, anyPending: false };
     e.low = Math.min(e.low, p.comparable_price);

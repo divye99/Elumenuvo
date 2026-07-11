@@ -11,6 +11,7 @@ import {
   saveCompetitorMap,
   removeCompetitorMap,
   updateMapCondition,
+  setMapApproval,
   acceptSuggestion,
 } from "@/lib/admin/actions";
 
@@ -28,7 +29,7 @@ type PriceCell = {
   fetched_at: string;
 } | null;
 
-export type MapCell = { competitor_code: string; competitor_url: string | null; unit_factor: number; note: string | null; item_condition: string | null; competitor_brand_sku: string | null } | null;
+export type MapCell = { competitor_code: string; competitor_url: string | null; unit_factor: number; note: string | null; item_condition: string | null; competitor_brand_sku: string | null; approval: "approved" | "pending" | null; match_method: string | null } | null;
 
 export type ManagerRow = {
   id: string;
@@ -261,8 +262,10 @@ function CompetitorTab({ row, sources }: { row: ManagerRow; sources: SourceInfo[
   // Sources still available to add a mapping for.
   const openSources = sources.filter((s) => s.enabled && !row.perSource[s.id]?.map);
 
-  // Comparable prices across sellers → flag the cheapest.
+  // Comparable prices across APPROVED sellers → flag the cheapest.
+  // Pending (unapproved name-matches) never drive pricing decisions.
   const comparables = mappedSellers
+    .filter((s) => row.perSource[s.id].map?.approval !== "pending")
     .map((s) => row.perSource[s.id].price?.comparable_price)
     .filter((v): v is number => v != null && v > 0);
   const lowest = comparables.length ? Math.min(...comparables) : null;
@@ -270,6 +273,8 @@ function CompetitorTab({ row, sources }: { row: ManagerRow; sources: SourceInfo[
   const setCondition = (source: string, condition: string) =>
     start(async () => { const res = await updateMapCondition(row.id, source, condition); if (res.ok) router.refresh(); else setMsg({ ok: false, t: res.error ?? "Failed." }); });
   const unmap = (source: string) => start(async () => { await removeCompetitorMap(row.id, source); router.refresh(); });
+  const decide = (source: string, approve: boolean) =>
+    start(async () => { const res = await setMapApproval(row.id, source, approve); if (res.ok) { setMsg({ ok: true, t: approve ? "Mapping approved." : "Mapping rejected & removed." }); router.refresh(); } else setMsg({ ok: false, t: res.error ?? "Failed." }); });
   const accept = (source: string, suggested: number) =>
     start(async () => { const res = await acceptSuggestion(row.id, source); setMsg(res.ok ? { ok: true, t: `Elume price set to ${fmt(suggested)}.` } : { ok: false, t: res.error ?? "Failed." }); if (res.ok) router.refresh(); });
 
@@ -305,9 +310,11 @@ function CompetitorTab({ row, sources }: { row: ManagerRow; sources: SourceInfo[
               <div key={s.id} style={{ display: "grid", gridTemplateColumns: "1.2fr 1.3fr 0.9fr 1fr auto", gap: 10, padding: "11px 14px", borderTop: i ? "1px solid #F5F6F9" : undefined, alignItems: "center" }}>
                 {/* Seller */}
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                     {s.name}
                     {isCheapest && <span style={{ fontSize: 9, fontWeight: 700, color: "#137a4b", background: "#E6F5EE", padding: "1px 6px", borderRadius: 6 }}>LOWEST</span>}
+                    {map.match_method === "brand-sku" && <span title="Matched on the manufacturer part number" style={{ fontSize: 8.5, fontWeight: 800, color: "#3A46B8", background: "#EEF0FE", padding: "1px 6px", borderRadius: 5 }}>SKU</span>}
+                    {map.approval === "pending" && <span title="Auto-matched by name — needs your approval" style={{ fontSize: 8.5, fontWeight: 800, color: "#C77700", background: "#FFF3E0", padding: "1px 6px", borderRadius: 5 }}>PENDING</span>}
                   </div>
                   <div style={{ fontFamily: "var(--space-mono)", fontSize: 10.5, color: "#8A93A6", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={map.competitor_code}>{map.competitor_code}</div>
                 </div>
@@ -337,10 +344,19 @@ function CompetitorTab({ row, sources }: { row: ManagerRow; sources: SourceInfo[
                 </div>
                 {/* Actions */}
                 <div style={{ display: "flex", gap: 8, alignItems: "center", justifyContent: "flex-end" }}>
-                  {canReprice && (
-                    <button onClick={() => accept(s.id, p!.suggested_price!)} disabled={busy} title="Set our price to ₹1 under this seller" style={{ ...primary, fontSize: 11.5, padding: "6px 11px" }}>→ {fmt(p!.suggested_price!)}</button>
+                  {map.approval === "pending" ? (
+                    <>
+                      <button onClick={() => decide(s.id, true)} disabled={busy} title="Approve — trust this match for pricing" style={{ background: "#137a4b", color: "#fff", fontWeight: 700, fontSize: 11.5, border: "none", padding: "6px 12px", borderRadius: 8, cursor: "pointer" }}>✓ Approve</button>
+                      <button onClick={() => decide(s.id, false)} disabled={busy} title="Reject — wrong match, remove it" style={{ background: "#fff", color: "#C0392B", fontWeight: 700, fontSize: 11.5, border: "1px solid #F0C8C0", padding: "6px 12px", borderRadius: 8, cursor: "pointer" }}>✕ Reject</button>
+                    </>
+                  ) : (
+                    <>
+                      {canReprice && (
+                        <button onClick={() => accept(s.id, p!.suggested_price!)} disabled={busy} title="Set our price to ₹1 under this seller" style={{ ...primary, fontSize: 11.5, padding: "6px 11px" }}>→ {fmt(p!.suggested_price!)}</button>
+                      )}
+                      <button onClick={() => unmap(s.id)} disabled={busy} aria-label={`Remove ${s.name}`} title="Remove this seller" style={{ background: "none", border: "none", color: "#C4C9D4", fontSize: 16, cursor: "pointer", lineHeight: 1 }}>✕</button>
+                    </>
                   )}
-                  <button onClick={() => unmap(s.id)} disabled={busy} aria-label={`Remove ${s.name}`} title="Remove this seller" style={{ background: "none", border: "none", color: "#C4C9D4", fontSize: 16, cursor: "pointer", lineHeight: 1 }}>✕</button>
                 </div>
               </div>
             );

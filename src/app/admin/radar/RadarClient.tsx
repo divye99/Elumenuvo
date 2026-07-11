@@ -7,6 +7,7 @@ import {
   searchCompetitorAction,
   saveCompetitorMap,
   removeCompetitorMap,
+  setMapApproval,
   syncCompetitorNow,
   syncAllCompetitors,
   applyRecommendedPrice,
@@ -32,7 +33,7 @@ type PriceCell = {
   fetched_at: string;
 } | null;
 
-export type Seller = { source: string; sourceId: string; price: number; net: number | null; list: number | null; factor: number; code: string | null; url: string | null; condition: string | null };
+export type Seller = { source: string; sourceId: string; price: number; net: number | null; list: number | null; factor: number; code: string | null; url: string | null; condition: string | null; approval: string };
 export type Market = { sellers: Seller[]; avgMarket: number; lowest: number; target: number; pctVsLowest: number | null; cheapestSource: string | null };
 export type Rec = { basisPrice: number; target: number; changePct: number; blocked: string | null; basis: string; sellers?: number; cheapestSource?: string | null } | null;
 
@@ -47,6 +48,7 @@ export type RadarRow = {
   mrp: number;
   suggestedFactor: number;
   mappedCount: number;
+  pendingCount: number;
   perSource: Record<string, { map: { competitor_code: string; competitor_url: string | null; unit_factor: number; note: string | null } | null; price: PriceCell }>;
   market: Market | null;
   rec: Rec;
@@ -273,7 +275,7 @@ function MappedRow({ r, first, pending, run }: { r: RadarRow; first: boolean; pe
           <div style={{ display: "flex", gap: 14, alignItems: "center", marginLeft: "auto" }}>
             <Stat label="Elume" value={fmt(r.ourPrice)} />
             <span style={{ fontSize: 12, fontWeight: 600, color: r.mappedCount ? "#C77700" : "#C0392B", background: r.mappedCount ? "#FFF3E0" : "#FBE9E4", padding: "4px 10px", borderRadius: 8 }}>
-              {r.mappedCount ? "Mapped — run Refresh prices" : "Not mapped"}
+              {r.pendingCount ? `${r.pendingCount} match${r.pendingCount === 1 ? "" : "es"} awaiting approval` : r.mappedCount ? "Mapped — run Refresh prices" : "Not mapped"}
             </span>
           </div>
         )}
@@ -283,18 +285,30 @@ function MappedRow({ r, first, pending, run }: { r: RadarRow; first: boolean; pe
       {open && m && (
         <div style={{ background: "#F7F8FB", borderTop: "1px solid #EEF0F4", padding: "10px 16px 14px" }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: "#8A93A6", textTransform: "uppercase", letterSpacing: "0.3px", marginBottom: 6 }}>Mapped competitors</div>
-          {m.sellers.slice().sort((a, b) => a.price - b.price).map((s) => (
-            <div key={s.sourceId} style={{ display: "flex", gap: 10, alignItems: "center", padding: "6px 0", borderTop: "1px solid #EEF0F4", fontSize: 12.5, flexWrap: "wrap" }}>
-              <span style={{ fontWeight: 700, minWidth: 130, color: s.price === m.lowest ? "#137a4b" : "#19202E" }}>{s.source}{s.price === m.lowest && <span style={{ fontSize: 10, marginLeft: 6, color: "#137a4b" }}>lowest</span>}</span>
-              <span style={{ fontFamily: "var(--space-grotesk)", fontWeight: 700, minWidth: 80 }}>{fmt(s.price)}</span>
-              <span style={{ color: "#8A93A6", fontSize: 11.5 }}>
-                {s.net != null ? `net ${fmt(s.net)}` : s.list != null ? `list ${fmt(s.list)}` : ""}{s.factor && s.factor !== 1 ? ` ×${s.factor}` : ""}
-              </span>
-              {s.code && <span style={{ fontFamily: "var(--space-mono)", fontSize: 10.5, color: "#8A93A6", background: "#EEF0F4", padding: "1px 6px", borderRadius: 5 }}>{s.code}</span>}
-              <span style={{ fontSize: 10.5, fontWeight: 600, color: (s.condition ?? "New") === "New" ? "#137a4b" : "#C77700", background: (s.condition ?? "New") === "New" ? "#E6F5EE" : "#FFF3E0", padding: "1px 7px", borderRadius: 5 }}>{s.condition ?? "New"}</span>
-              {s.url && <a href={s.url} target="_blank" rel="noreferrer" style={{ marginLeft: "auto", color: "#4E5BDC", fontWeight: 600, fontSize: 12 }}>View on {s.source} ↗</a>}
-            </div>
-          ))}
+          {m.sellers.slice().sort((a, b) => a.price - b.price).map((s) => {
+            const isPending = s.approval === "pending";
+            return (
+              <div key={s.sourceId} style={{ display: "flex", gap: 10, alignItems: "center", padding: "6px 0", borderTop: "1px solid #EEF0F4", fontSize: 12.5, flexWrap: "wrap", opacity: isPending ? 0.92 : 1 }}>
+                <span style={{ fontWeight: 700, minWidth: 130, color: !isPending && s.price === m.lowest ? "#137a4b" : "#19202E" }}>{s.source}{!isPending && s.price === m.lowest && <span style={{ fontSize: 10, marginLeft: 6, color: "#137a4b" }}>lowest</span>}</span>
+                <span style={{ fontFamily: "var(--space-grotesk)", fontWeight: 700, minWidth: 80 }}>{fmt(s.price)}</span>
+                <span style={{ color: "#8A93A6", fontSize: 11.5 }}>
+                  {s.net != null ? `net ${fmt(s.net)}` : s.list != null ? `list ${fmt(s.list)}` : ""}{s.factor && s.factor !== 1 ? ` ×${s.factor}` : ""}
+                </span>
+                {s.code && <span style={{ fontFamily: "var(--space-mono)", fontSize: 10.5, color: "#8A93A6", background: "#EEF0F4", padding: "1px 6px", borderRadius: 5 }}>{s.code}</span>}
+                <span style={{ fontSize: 10.5, fontWeight: 600, color: (s.condition ?? "New") === "New" ? "#137a4b" : "#C77700", background: (s.condition ?? "New") === "New" ? "#E6F5EE" : "#FFF3E0", padding: "1px 7px", borderRadius: 5 }}>{s.condition ?? "New"}</span>
+                {isPending && <span title="Auto-matched by name — approve before it counts for pricing" style={{ fontSize: 10, fontWeight: 800, color: "#C77700", background: "#FFF3E0", padding: "1px 7px", borderRadius: 5 }}>PENDING</span>}
+                <span style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
+                  {s.url && <a href={s.url} target="_blank" rel="noreferrer" style={{ color: "#4E5BDC", fontWeight: 600, fontSize: 12 }}>View on {s.source} ↗</a>}
+                  {isPending && (
+                    <>
+                      <button onClick={() => run(() => setMapApproval(r.id, s.sourceId, true), "Mapping approved.")} disabled={pending} style={{ background: "#137a4b", color: "#fff", fontWeight: 700, fontSize: 11, border: "none", padding: "4px 10px", borderRadius: 7, cursor: "pointer" }}>✓ Approve</button>
+                      <button onClick={() => run(() => setMapApproval(r.id, s.sourceId, false), "Mapping rejected & removed.")} disabled={pending} style={{ background: "#fff", color: "#C0392B", fontWeight: 700, fontSize: 11, border: "1px solid #F0C8C0", padding: "4px 10px", borderRadius: 7, cursor: "pointer" }}>✕ Reject</button>
+                    </>
+                  )}
+                </span>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

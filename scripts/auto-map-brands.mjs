@@ -1,14 +1,22 @@
 /**
- * Auto-map our catalogue to the BRAND e-store sources (Havells, Crompton,
- * Atomberg, Syska own stores + BestOfElectricals distributor + HandyPanda).
- * Complements the earlier Vashi mapper (0013) — existing Vashi mappings stay.
+ * Auto-map our catalogue to competitor sources — LAYERED (v2):
+ *
+ *   Layer 1 · BRAND SKU (MPN)  — if products.brand_sku is set and a candidate's
+ *             code/name contains it, that's an exact cross-site match →
+ *             match_method='brand-sku', approval='approved' (trusted).
+ *   Layer 1.5 · NAME MATCHER   — the existing type-guarded token/trigram scorer →
+ *             match_method='name', approval='pending' (admin must approve in
+ *             /admin/products or /admin/radar before it counts for pricing).
  *
  *   node --env-file=.env.local scripts/auto-map-brands.mjs
- *     → writes supabase/migrations/0020_competitor-map-brands.sql
+ *     → with SUPABASE_SERVICE_ROLE_KEY: upserts straight into competitor_map,
+ *       SKIPPING pairs that already exist (manual + approved work is never
+ *       overwritten), and prints a report.
+ *     → without it: writes supabase/migrations/0028_competitor-map-v2.sql
+ *       for you to review + run by hand.
  *
- * Reads products via the anon REST API (public read, no service key needed).
- * Best-effort: brand-appropriate source(s) are searched per product, candidates
- * are type-guarded and token-scored; only confident matches are written.
+ * Fill brand_sku first (scripts/fill-brand-sku.mjs) — the more products carry
+ * their MPN, the more mappings land in the trusted brand-sku layer.
  */
 import fs from "fs";
 
@@ -19,11 +27,14 @@ globalThis.fetch = (u, o = {}) => _fetch(u, { ...o, signal: o.signal ?? AbortSig
 
 const SUPABASE_URL = (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "").trim();
 const ANON = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim();
+const SERVICE = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim(); // enables direct DB writes
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const H = { "User-Agent": UA, Accept: "application/json" };
 
-if (!SUPABASE_URL || !ANON) { console.error("Missing NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY."); process.exit(1); }
+if (!SUPABASE_URL || !(ANON || SERVICE)) { console.error("Missing SUPABASE_URL + an API key (anon or service-role)."); process.exit(1); }
+const READ_KEY = SERVICE || ANON;
+console.log(`auto-map-brands v2 · node ${process.version} · mode: ${SERVICE ? "direct DB write" : "SQL file"}`);
 
 /* ── per-platform search: (q) → [{code,name,price}] ── */
 
@@ -306,43 +317,79 @@ async function candidatesFor(p, src, base) {
   const brandDirect = BRAND_DIRECT_SRC.has(src);
   const brandPrefix = brandDirect ? "" : (p.brand || "").split(" ")[0] + " ";
   const core = coreQuery(p);
-  const queries = [core && `${brandPrefix}${core}`, base && `${brandPrefix}${base}`.slice(0, 55)].filter(Boolean);
+  const queries = [
+    p.brand_sku, // Layer 1: many site searches index the MPN directly
+    core && `${brandPrefix}${core}`,
+    base && `${brandPrefix}${base}`.slice(0, 55),
+  ].filter(Boolean);
   const seen = new Set(), out = [];
   for (const q of queries) {
     for (const c of await SEARCHERS[src](q.trim())) if (!seen.has(c.code)) { seen.add(c.code); out.push(c); }
     await sleep(200);
-    if (out.length >= 8) break;
+    if (out.length >= 12) break;
   }
   return out;
 }
 
-/** Best confident candidate for one product on one source, or null. */
+/* ── Layer 1: exact brand-SKU (MPN) containment ── */
+const skuNorm = (s) => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+function skuHit(p, cand) {
+  const key = skuNorm(p.brand_sku);
+  if (key.length < 4) return false;
+  return skuNorm(cand.code).includes(key) || skuNorm(cand.name).includes(key);
+}
+
+/** Best confident candidate for one product on one source, or null.
+ *  Returns { c, s, method } — method 'brand-sku' (trusted) or 'name' (pending). */
 async function matchOnSource(p, src, base) {
   const brandDirect = BRAND_DIRECT_SRC.has(src);
   const boe = src === "bestofelectricals";
   const cands = await candidatesFor(p, src, base);
+
+  // Layer 1 — brand SKU: an MPN hit outranks any name score, no type guard needed.
+  if (p.brand_sku) {
+    const exact = cands.find((c) => skuHit(p, c));
+    if (exact) return { c: exact, s: 99, method: "brand-sku" };
+  }
+
+  // Layer 1.5 — the fuzzy name matcher (result lands as approval='pending').
   let best = null;
   for (const c of cands) {
     // Multi-brand sources must name the brand; BOE catalogue is already per-brand.
     if (!brandDirect && !boe && !new RegExp(`\\b${(p.brand || "").split(" ")[0]}`, "i").test(c.name)) continue;
-    if (brandDirect && p.category === "Fans" && seriesMatch(p, c)) return { c, s: 10 };
+    if (brandDirect && p.category === "Fans" && seriesMatch(p, c)) return { c, s: 10, method: "name" };
     const { s, hard, sim } = score(p, c);
     // Accept on a shared hard spec token, OR on a strong fuzzy name match (both
     // gated by the type guard inside score()). The latter catches marketing names.
     const qualifies = hard >= 1 || sim >= 0.5;
     if (qualifies && s > (best?.s ?? 0)) best = { c, s };
   }
-  return best && best.s >= 5 ? best : null;
+  return best && best.s >= 5 ? { ...best, method: "name" } : null;
 }
 
 // Fetch the whole catalogue, paging past PostgREST's 1000-row response cap.
 async function allProducts() {
   const out = [];
   for (let from = 0; ; from += 1000) {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/products?select=id,name,brand,category,spec,unit,parent_id,attrs&order=id&limit=1000&offset=${from}`, { headers: { apikey: ANON, Authorization: `Bearer ${ANON}` } });
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/products?select=id,name,brand,brand_sku,category,spec,unit,parent_id,attrs&order=id&limit=1000&offset=${from}`, { headers: { apikey: READ_KEY, Authorization: `Bearer ${READ_KEY}` } });
     const page = await r.json();
     if (!Array.isArray(page) || page.length === 0) break;
     out.push(...page);
+    if (page.length < 1000) break;
+  }
+  return out;
+}
+
+// Existing (product, source) pairs — the mapper only ADDS missing ones, so
+// manual and approved mappings are never touched. Needs the service key.
+async function existingPairs() {
+  if (!SERVICE) return new Set();
+  const out = new Set();
+  for (let from = 0; ; from += 1000) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/competitor_map?select=product_id,source&order=product_id&limit=1000&offset=${from}`, { headers: { apikey: SERVICE, Authorization: `Bearer ${SERVICE}` } });
+    const page = await r.json();
+    if (!Array.isArray(page) || page.length === 0) break;
+    for (const m of page) out.add(`${m.product_id}::${m.source}`);
     if (page.length < 1000) break;
   }
   return out;
@@ -359,14 +406,15 @@ function isRedundantWireColour(p) {
 async function main() {
   const products = await allProducts();
   if (!Array.isArray(products) || products.length === 0) { console.error("Products read failed."); process.exit(1); }
-  console.log(`Catalogue: ${products.length} products.`);
+  const existing = await existingPairs();
+  const withSku = products.filter((p) => p.brand_sku).length;
+  console.log(`Catalogue: ${products.length} products (${withSku} with brand_sku) · ${existing.size} existing mappings will be skipped.`);
 
   const rows = [];
-  let multiSourceProducts = 0, noMatch = 0, considered = 0;
+  let multiSourceProducts = 0, noMatch = 0, considered = 0, bySku = 0, byName = 0;
   for (const p of products) {
-    if (String(p.id).startsWith("boe")) continue; // BOE imports are already self-mapped
     if (isRedundantWireColour(p)) continue; // map one colour per wire family
-    const sources = sourcesFor(p);
+    const sources = sourcesFor(p).filter((src) => !existing.has(`${p.id}::${src}`));
     if (sources.length === 0) continue;
     considered++;
     if (considered % 25 === 0) console.log(`  … ${considered} products processed, ${rows.length} mappings so far`);
@@ -376,33 +424,62 @@ async function main() {
     for (const src of sources) {
       try {
         const m = await matchOnSource(p, src, base);
-        if (m) hits.push({ product_id: p.id, source: src, code: m.c.code, unit_factor: unitFactorFor(p, src), note: `auto: ${m.c.name.slice(0, 60)} (s${m.s})` });
+        if (m) {
+          if (m.method === "brand-sku") bySku++; else byName++;
+          hits.push({
+            product_id: p.id, source: src, code: m.c.code, unit_factor: unitFactorFor(p, src),
+            note: `auto: ${m.c.name.slice(0, 60)} (s${m.s})`,
+            match_method: m.method,
+            approval: m.method === "brand-sku" ? "approved" : "pending", // name matches need a human eye
+          });
+        }
       } catch { /* a source hiccup shouldn't abort the whole run */ }
     }
     if (hits.length >= 2) multiSourceProducts++;
     if (hits.length === 0) { noMatch++; continue; }
     rows.push(...hits);
-    console.log(`  ✓ ${p.brand} ${p.name.slice(0, 40)} → ${hits.map((h) => `${h.source}×${h.unit_factor}`).join(", ")}`);
+    console.log(`  ✓ ${p.brand} ${p.name.slice(0, 40)} → ${hits.map((h) => `${h.source}${h.match_method === "brand-sku" ? "•SKU" : "?"}`).join(", ")}`);
   }
 
-  const sql = [
-    "-- ═══════════════════════════════════════════════════════════════",
-    "-- Auto-generated MULTI-SOURCE competitor mappings (scripts/auto-map-brands.mjs).",
-    "-- Each product maps to every seller that carries it → the radar picks the",
-    "-- lowest (Amazon-style). Complements 0013 (Vashi wires). Idempotent (upsert).",
-    `-- ${rows.length} mappings across ${considered - noMatch} products;`,
-    `-- ${multiSourceProducts} products have 2+ sellers; ${noMatch} of ${considered} unmatched.`,
-    "-- ═══════════════════════════════════════════════════════════════",
-    "",
-    ...rows.map((m) =>
-      `insert into public.competitor_map (product_id, source, competitor_code, unit_factor, note) values (${[m.product_id, m.source, m.code].map((x) => `'${String(x).replace(/'/g, "''")}'`).join(", ")}, ${m.unit_factor}, '${m.note.replace(/'/g, "''")}')\n  on conflict (product_id, source) do update set competitor_code = excluded.competitor_code, unit_factor = excluded.unit_factor, note = excluded.note, updated_at = now();`
-    ),
-    "",
-    `select source, count(*) from public.competitor_map group by source order by source;`,
-    "",
-  ].join("\n");
-  fs.writeFileSync("supabase/migrations/0022_competitor-map-multisource.sql", sql);
-  console.log(`\nDone. ${rows.length} mappings; ${multiSourceProducts} products with 2+ sellers; ${noMatch} unmatched → supabase/migrations/0022_competitor-map-multisource.sql`);
+  console.log(`\nMatched ${rows.length} new mappings · ${bySku} by brand-SKU (auto-approved) · ${byName} by name (pending approval) · ${multiSourceProducts} products gained 2+ sellers · ${noMatch}/${considered} unmatched.`);
+
+  if (SERVICE) {
+    // Direct write — INSERT only (existing pairs were filtered out above).
+    let written = 0;
+    for (let i = 0; i < rows.length; i += 100) {
+      const chunk = rows.slice(i, i + 100).map((m) => ({
+        product_id: m.product_id, source: m.source, competitor_code: m.code,
+        unit_factor: m.unit_factor, note: m.note, match_method: m.match_method,
+        approval: m.approval, item_condition: "New",
+      }));
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/competitor_map`, {
+        method: "POST",
+        headers: { apikey: SERVICE, Authorization: `Bearer ${SERVICE}`, "Content-Type": "application/json", Prefer: "resolution=ignore-duplicates,return=minimal" },
+        body: JSON.stringify(chunk),
+      });
+      if (r.ok) written += chunk.length;
+      else console.error(`  ✗ batch ${i}: ${r.status} ${await r.text().catch(() => "")}`);
+    }
+    console.log(`Done — ${written} mappings written to competitor_map. Pending ones await approval in /admin/products.`);
+  } else {
+    const sql = [
+      "-- ═══════════════════════════════════════════════════════════════",
+      "-- Auto-generated mappings (scripts/auto-map-brands.mjs v2, layered).",
+      "-- brand-sku matches → approval='approved'; name matches → 'pending'",
+      "-- (approve/reject them in /admin/products → Competitor pricing).",
+      `-- ${rows.length} new mappings · ${bySku} brand-sku · ${byName} name · ${noMatch}/${considered} unmatched.`,
+      "-- ═══════════════════════════════════════════════════════════════",
+      "",
+      ...rows.map((m) =>
+        `insert into public.competitor_map (product_id, source, competitor_code, unit_factor, note, match_method, approval, item_condition) values (${[m.product_id, m.source, m.code].map((x) => `'${String(x).replace(/'/g, "''")}'`).join(", ")}, ${m.unit_factor}, '${m.note.replace(/'/g, "''")}', '${m.match_method}', '${m.approval}', 'New')\n  on conflict (product_id, source) do nothing;`
+      ),
+      "",
+      `select approval, match_method, count(*) from public.competitor_map group by 1, 2 order by 1, 2;`,
+      "",
+    ].join("\n");
+    fs.writeFileSync("supabase/migrations/0028_competitor-map-v2.sql", sql);
+    console.log(`SQL written → supabase/migrations/0028_competitor-map-v2.sql (review, then run in Supabase).`);
+  }
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

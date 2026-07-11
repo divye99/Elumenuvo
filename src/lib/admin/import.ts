@@ -12,6 +12,7 @@ export const IMPORT_COLUMNS = [
   "action",
   "id",
   "sku",
+  "brand_sku",
   "name",
   "brand",
   "category",
@@ -89,6 +90,7 @@ function rowToCsvValues(p: ProductRow, action: string): (string | number)[] {
     action,
     p.id,
     p.sku,
+    p.brand_sku ?? "",
     p.name,
     p.brand,
     p.category,
@@ -125,7 +127,7 @@ export function sampleCsv(rows: ProductRow[]): string {
   }
   // A blank Add template row + a Remove example (commented via example id).
   lines.push(
-    ["add", "poly-frls-2.5-org", "POLY-FRLS-2.5-ORG", "FRLS Wire 2.5 sq mm — Orange", "Polycab", "Wires & Cables", "90 m coil · 1100 V", "1995", "1842", "coil", "2.5 sq mm", "90 m", "Orange", "FRLS", "", "poly25", "250", "yes", ""].map(csvCell).join(",")
+    ["add", "poly-frls-2.5-org", "POLY-FRLS-2.5-ORG", "", "FRLS Wire 2.5 sq mm — Orange", "Polycab", "Wires & Cables", "90 m coil · 1100 V", "1995", "1842", "coil", "2.5 sq mm", "90 m", "Orange", "FRLS", "", "poly25", "250", "yes", ""].map(csvCell).join(",")
   );
   return lines.join("\r\n");
 }
@@ -221,6 +223,7 @@ export function diffFromCsv(text: string, existing: ProductRow[]): { diffs: Diff
     const payload = {
       id,
       sku: str("sku", current?.sku ?? id.toUpperCase()),
+      brand_sku: str("brand_sku", current?.brand_sku ?? "") || null,
       name: str("name", current?.name ?? ""),
       brand: str("brand", current?.brand ?? ""),
       category: str("category", current?.category ?? ""),
@@ -249,6 +252,7 @@ export function diffFromCsv(text: string, existing: ProductRow[]): { diffs: Diff
     if (action === "update" && current) {
       const cmp: [string, string, string][] = [
         ["name", current.name, payload.name],
+        ["brand_sku", current.brand_sku ?? "", payload.brand_sku ?? ""],
         ["brand", current.brand, payload.brand],
         ["category", current.category, payload.category],
         ["spec", current.spec ?? "", payload.spec ?? ""],
