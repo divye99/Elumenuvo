@@ -72,79 +72,62 @@ export default async function StoreChrome({ children }: { children: React.ReactN
 
       <ScrollTopButton />
 
-      <footer style={{ borderTop: "1px solid #EEF0F4", background: "#fff" }}>
-        {/* Extensive mobile footer (hidden on desktop — .store-footer-x) */}
-        <div className="store-footer-x">
-          <div className="fx-cols">
-            <div>
-              <div className="fx-h">Shop</div>
+      {/* Unified rich footer — same on desktop and mobile (responsive grid) */}
+      <footer className="store-ft">
+        <div className="ft-wrap">
+          <div className="ft-top">
+            {/* Brand + contact */}
+            <div className="ft-brand">
+              <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 9 }}>
+                <Mark height={26} />
+                <Wordmark height={15} />
+              </Link>
+              <p className="ft-tag">India&apos;s multi-brand FMEG store — wires, switchgear, fans, lighting &amp; modular at one transparent price list.</p>
+              <div className="ft-contact">
+                <a href="mailto:info@elumenuvo.com">✉ info@elumenuvo.com</a>
+                <a href="tel:+919818821175">✆ +91 98188 21175</a>
+                <span className="ft-loc">📍 Elume Nuvotech Private Limited · India</span>
+              </div>
+            </div>
+
+            <div className="ft-col">
+              <div className="ft-h">Shop</div>
               <Link href="/catalogue">Catalogue</Link>
               <Link href="/catalogue?sort=save-desc">Top deals</Link>
               <Link href="/catalogue?sort=top-sellers">Best sellers</Link>
               <Link href="/blog">Buying guides</Link>
             </div>
-            <div>
-              <div className="fx-h">Your account</div>
+            <div className="ft-col">
+              <div className="ft-h">Your account</div>
               <Link href="/signin">Sign in</Link>
               <Link href="/app">Workspace / dashboard</Link>
               <Link href="/orders">My orders</Link>
               <Link href="/track">Track an order</Link>
             </div>
-            <div>
-              <div className="fx-h">For business</div>
+            <div className="ft-col">
+              <div className="ft-h">For business</div>
               <Link href="/business">Elume for business</Link>
               <Link href="/credit">30-day credit</Link>
               <Link href="/sell">Sell on Elume</Link>
               <Link href="/space">Space procurement</Link>
             </div>
-            <div>
-              <div className="fx-h">Help</div>
+            <div className="ft-col">
+              <div className="ft-h">Help</div>
               <Link href="/request-product">Can&apos;t find a product?</Link>
               <Link href="/faq">FAQ</Link>
               <Link href="/returns">Returns &amp; refunds</Link>
             </div>
-            <div>
-              <div className="fx-h">Legal</div>
+            <div className="ft-col">
+              <div className="ft-h">Legal</div>
               <Link href="/privacy">Privacy policy</Link>
               <Link href="/terms">Terms &amp; conditions</Link>
             </div>
           </div>
-          <div className="fx-legal">
-            © {new Date().getFullYear()} Elume Nuvotech Private Limited · info@elumenuvo.com · +91 98188 21175
-            <br />
-            Pan-India delivery · GST invoice on every order · Prices shown exclude GST; GST is added at checkout.
-          </div>
-        </div>
 
-        <div
-          className="store-footer"
-          style={{
-            maxWidth: 1280,
-            margin: "0 auto",
-            padding: "26px 20px",
-            display: "flex",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: 12,
-            fontSize: 13,
-            color: "#8A93A6",
-          }}
-        >
-          <span>© {new Date().getFullYear()} Elume Nuvotech Private Limited · Pan-India delivery · Prices exclude GST; added at checkout.</span>
-          <span style={{ display: "flex", gap: 18 }}>
-            <Link href="/track" style={{ color: "#56627A" }}>
-              Track order
-            </Link>
-            <Link href="/orders" style={{ color: "#56627A" }}>
-              My orders
-            </Link>
-            <Link href="/space" style={{ color: "#56627A" }}>
-              Space procurement
-            </Link>
-            <Link href="/signin" style={{ color: "#4E5BDC", fontWeight: 600 }}>
-              Sign in
-            </Link>
-          </span>
+          <div className="ft-bottom">
+            <span>© {new Date().getFullYear()} Elume Nuvotech Private Limited. All rights reserved.</span>
+            <span>Pan-India delivery · GST invoice on every order · Prices shown exclude GST; GST is added at checkout.</span>
+          </div>
         </div>
       </footer>
     </div>
