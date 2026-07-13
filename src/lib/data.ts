@@ -21,6 +21,23 @@ export type Product = {
    *  (null/undefined = parent or standalone). Family = parent + children. */
   parentId?: string;
   attrs?: Record<string, string>;
+  /** Structured technical data from the manufacturer catalogue (wires today). */
+  techSpecs?: TechSpecs;
+};
+
+export type TechSpecs = {
+  line?: string;
+  conductor?: { material?: string; class?: string; strands?: string; resistance_ohm_km?: number };
+  insulation?: { material?: string; thickness_mm?: number };
+  dimensions?: { overall_diameter_mm?: number };
+  current_rating_a?: { min?: number; max?: number; raw?: number[] };
+  max_operating_temp_c?: number;
+  voltage_grade_v?: number;
+  standards?: string[];
+  fire_tests?: { test: string; method: string; value: string }[];
+  packing?: string;
+  colours?: string[];
+  source?: string;
 };
 
 // The catalogue lives in Supabase (public.products) — no static copy here.

@@ -3,7 +3,7 @@ import { GROTESK, MONO } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import { wholesalePrice, offMrpPct, WHOLESALE_MIN_QTY, baseExGst } from "@/lib/pricing";
 import { dimsOf } from "@/lib/variants";
-import type { Product } from "@/lib/data";
+import type { Product, TechSpecs } from "@/lib/data";
 import type { BlogPost } from "@/lib/blog";
 
 /**
@@ -50,6 +50,9 @@ export default function ProductDeepDive({
           </div>
         ))}
       </div>
+
+      {/* ── Catalogue technical data (wires) ── */}
+      {p.techSpecs && <TechSpecsBlock t={p.techSpecs} />}
 
       {/* ── Technical specifications ── */}
       {specs.length > 0 && (
@@ -175,6 +178,82 @@ function PriceStat({ label, value, muted }: { label: string; value: string; mute
       <div style={{ fontFamily: GROTESK, fontSize: 16, fontWeight: 600, color: muted ? "#8A93A6" : "#19202E", textDecoration: muted ? "line-through" : undefined }}>
         {value}
       </div>
+    </div>
+  );
+}
+
+/* ── Manufacturer catalogue technical data (wires) ── */
+function TechSpecsBlock({ t }: { t: TechSpecs }) {
+  const c = t.conductor ?? {};
+  const rating = t.current_rating_a;
+  const ratingText = rating
+    ? rating.min != null && rating.max != null && rating.min !== rating.max
+      ? `${rating.min}–${rating.max} A`
+      : `${rating.max ?? rating.min} A`
+    : null;
+  // Left column: the measurable construction data.
+  const rows = ([
+    ["Conductor", c.material ? `${c.material}${c.class ? ` · class ${c.class}` : ""}` : null],
+    ["Strand construction", c.strands ? `${c.strands} (no./mm)` : null],
+    ["Insulation", t.insulation?.material ?? null],
+    ["Insulation thickness", t.insulation?.thickness_mm != null ? `${t.insulation.thickness_mm} mm` : null],
+    ["Overall diameter", t.dimensions?.overall_diameter_mm != null ? `${t.dimensions.overall_diameter_mm} mm` : null],
+    ["Current-carrying capacity", ratingText],
+    ["Max conductor resistance", c.resistance_ohm_km != null ? `${c.resistance_ohm_km} Ω/km at 20°C` : null],
+    ["Max operating temp", t.max_operating_temp_c != null ? `${t.max_operating_temp_c}°C` : null],
+    ["Voltage grade", t.voltage_grade_v != null ? `${t.voltage_grade_v} V` : null],
+    ["Standards", t.standards?.length ? t.standards.join(", ") : null],
+    ["Packing", t.packing ?? null],
+  ] as [string, string | null][]).filter((r): r is [string, string] => !!r[1]);
+
+  return (
+    <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", margin: "0 0 14px" }}>
+        <h3 style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600, letterSpacing: "-0.4px", margin: 0 }}>
+          Technical data{t.line ? ` · ${t.line}` : ""}
+        </h3>
+        {t.source && <span style={{ fontSize: 11, color: "#A0A7B5" }}>from {t.source}</span>}
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 40 }}>
+        {rows.map(([k, v]) => (
+          <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 16, padding: "11px 0", borderBottom: "1px solid #F5F6F9" }}>
+            <span style={{ fontSize: 12.5, color: "#8A93A6", flexShrink: 0 }}>{k}</span>
+            <span style={{ fontSize: 12.5, fontWeight: 600, color: "#19202E", textAlign: "right" }}>{v}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Fire & safety test results */}
+      {t.fire_tests?.length ? (
+        <>
+          <h4 style={{ fontFamily: GROTESK, fontSize: 14, fontWeight: 600, margin: "20px 0 8px" }}>Fire &amp; safety test results</h4>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
+              <thead>
+                <tr>
+                  {["Test", "Method", "Specified value"].map((h) => (
+                    <th key={h} style={{ textAlign: h === "Test" ? "left" : "right", padding: "8px 10px", fontSize: 10.5, fontWeight: 700, letterSpacing: "0.5px", textTransform: "uppercase", color: "#8A93A6", borderBottom: "1px solid #E8EBF1", whiteSpace: "nowrap" }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {t.fire_tests.map((f) => (
+                  <tr key={f.test}>
+                    <td style={{ padding: "9px 10px", borderBottom: "1px solid #F5F6F9", fontWeight: 600, color: "#19202E" }}>{f.test}</td>
+                    <td style={{ padding: "9px 10px", borderBottom: "1px solid #F5F6F9", textAlign: "right", fontFamily: MONO, fontSize: 11.5, color: "#56627A", whiteSpace: "nowrap" }}>{f.method || "—"}</td>
+                    <td style={{ padding: "9px 10px", borderBottom: "1px solid #F5F6F9", textAlign: "right", fontWeight: 700, color: "#137a4b", whiteSpace: "nowrap" }}>{f.value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      ) : null}
+
+      {t.colours?.length ? (
+        <div style={{ fontSize: 11.5, color: "#8A93A6", marginTop: 14 }}>Available colours: {t.colours.join(", ")}</div>
+      ) : null}
     </div>
   );
 }

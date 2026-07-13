@@ -7,7 +7,7 @@
  * at the family's parent product (parent_id NULL = parent/standalone).
  */
 import { createClient } from "@supabase/supabase-js";
-import type { Product } from "@/lib/data";
+import type { Product, TechSpecs } from "@/lib/data";
 
 type Row = {
   id: string;
@@ -24,6 +24,7 @@ type Row = {
   is_recommended?: boolean | null;
   parent_id?: string | null;
   attrs?: Record<string, string> | null;
+  tech_specs?: TechSpecs | null;
   reviews?: { rating: number }[];
 };
 
@@ -46,6 +47,7 @@ const toProduct = (r: Row): Product => {
     recommended: r.is_recommended ?? false,
     parentId: r.parent_id ?? undefined,
     attrs: r.attrs ?? undefined,
+    techSpecs: r.tech_specs ?? undefined,
   };
 };
 
