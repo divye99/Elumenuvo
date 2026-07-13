@@ -4,6 +4,9 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { fmt } from "@/lib/format";
 import { wholesalePrice, offMrpPct, gstBreakdown } from "@/lib/pricing";
+import { catalogueToCsv } from "@/lib/admin/import";
+import type { ProductRow } from "@/lib/admin/data";
+import ImportClient from "@/app/admin/products/import/ImportClient";
 import {
   updateProductDetails,
   deleteProduct,
@@ -47,6 +50,8 @@ export type ManagerRow = {
   is_recommended: boolean;
   parent_id: string | null;
   attrs: Record<string, string> | null;
+  sort_order: number;
+  image_url: string | null;
   suggestedFactor: number;
   perSource: Record<string, { map: MapCell; price: PriceCell }>;
 };
@@ -61,6 +66,8 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
   const [view, setView] = useState<MapView>("all");
   const [sellersN, setSellersN] = useState<"any" | number>("any"); // exact number of sellers mapped
   const [openId, setOpenId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [showImport, setShowImport] = useState(false);
 
   // How many competitor sellers this product is mapped to.
   const mappedCount = (r: ManagerRow) => sources.filter((s) => r.perSource[s.id]?.map).length;
@@ -108,6 +115,39 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
       return p && p.status === "pending" && p.suggested_price != null && Math.round(r.elume_price) !== p.suggested_price;
     });
 
+  /* ── Selection (for the Excel template download) ── */
+  const allVisibleSelected = filtered.length > 0 && filtered.every((r) => selected.has(r.id));
+  const toggleOne = (id: string) =>
+    setSelected((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  const toggleVisible = () =>
+    setSelected((prev) => {
+      const n = new Set(prev);
+      if (allVisibleSelected) filtered.forEach((r) => n.delete(r.id));
+      else filtered.forEach((r) => n.add(r.id));
+      return n;
+    });
+  const selectAll = () => setSelected(new Set(rows.map((r) => r.id)));
+  const clearSelection = () => setSelected(new Set());
+
+  /** Download the SELECTED products as the same CSV the bulk importer accepts —
+   *  edit in Excel, then upload right back in the import panel below. */
+  const downloadSelected = () => {
+    const chosen = rows.filter((r) => selected.has(r.id));
+    if (chosen.length === 0) return;
+    const csvRows = chosen.map((r) => ({
+      id: r.id, sku: r.sku, brand_sku: r.brand_sku, name: r.name, brand: r.brand,
+      category: r.category, spec: r.spec, mrp: r.mrp, elume_price: r.elume_price,
+      unit: r.unit, attrs: r.attrs, parent_id: r.parent_id, sort_order: r.sort_order,
+      is_active: r.is_active, image_url: r.image_url, is_recommended: r.is_recommended, units_sold: 0,
+    })) as unknown as ProductRow[];
+    const blob = new Blob([catalogueToCsv(csvRows)], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `elume-products-selected-${chosen.length}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
   return (
     <div>
       <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginBottom: 14 }}>
@@ -130,6 +170,36 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
         <span style={{ fontSize: 12.5, color: "#8A93A6" }}>{filtered.length} shown</span>
       </div>
 
+      {/* Selection + Excel tools */}
+      <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginBottom: 14, background: "#fff", border: "1px solid #E8EBF1", borderRadius: 12, padding: "9px 14px" }}>
+        <label style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 13, fontWeight: 600, color: "#3A4358", cursor: "pointer" }}>
+          <input type="checkbox" checked={allVisibleSelected} onChange={toggleVisible} />
+          Select visible ({filtered.length})
+        </label>
+        <button onClick={selectAll} style={selLink}>Select all {rows.length}</button>
+        {selected.size > 0 && <button onClick={clearSelection} style={{ ...selLink, color: "#C0392B" }}>Clear</button>}
+        {selected.size > 0 && (
+          <span style={{ fontSize: 12, fontWeight: 700, color: "#3A46B8", background: "#EEF0FE", padding: "3px 10px", borderRadius: 999 }}>
+            {selected.size} selected
+          </span>
+        )}
+        <div style={{ marginLeft: "auto", display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <button onClick={downloadSelected} disabled={selected.size === 0} title={selected.size === 0 ? "Select products first — tick rows, or use Select visible / Select all" : `Download ${selected.size} products as an editable CSV`} style={{ ...ghost, opacity: selected.size === 0 ? 0.5 : 1, cursor: selected.size === 0 ? "default" : "pointer" }}>
+            ⬇ Download template{selected.size > 0 ? ` (${selected.size})` : ""}
+          </button>
+          <button onClick={() => setShowImport((v) => !v)} style={showImport ? { ...primary, background: "#161D2B" } : ghost}>
+            ⇅ Excel import {showImport ? "▴" : "▾"}
+          </button>
+        </div>
+      </div>
+
+      {/* Inline Excel import — same page, no navigation */}
+      {showImport && (
+        <div style={{ marginBottom: 16 }}>
+          <ImportClient />
+        </div>
+      )}
+
       <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflow: "hidden" }}>
         {filtered.map((r, i) => {
           const open = openId === r.id;
@@ -138,7 +208,15 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
           return (
             <div key={r.id} style={{ borderTop: i ? "1px solid #F0F2F6" : undefined }}>
               {/* Summary row */}
-              <div onClick={() => setOpenId(open ? null : r.id)} style={{ display: "flex", gap: 12, alignItems: "center", padding: "12px 16px", cursor: "pointer", background: open ? "#FAFBFE" : undefined }}>
+              <div onClick={() => setOpenId(open ? null : r.id)} style={{ display: "flex", gap: 12, alignItems: "center", padding: "12px 16px", cursor: "pointer", background: open ? "#FAFBFE" : selected.has(r.id) ? "#F7F8FF" : undefined }}>
+                <input
+                  type="checkbox"
+                  checked={selected.has(r.id)}
+                  onChange={() => toggleOne(r.id)}
+                  onClick={(e) => e.stopPropagation()}
+                  aria-label={`Select ${r.name}`}
+                  style={{ flexShrink: 0, cursor: "pointer" }}
+                />
                 <span style={{ color: "#8A93A6", fontSize: 12, transform: open ? "rotate(90deg)" : "none", transition: "transform .15s", width: 12 }}>▶</span>
                 <div style={{ flex: "1 1 260px", minWidth: 0 }}>
                   <div style={{ fontWeight: 600, fontSize: 13.5, display: "flex", alignItems: "center", gap: 7 }}>
@@ -513,3 +591,4 @@ const inp: React.CSSProperties = { width: "100%", boxSizing: "border-box", borde
 const primary: React.CSSProperties = { background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13, border: "none", padding: "9px 18px", borderRadius: 9, cursor: "pointer", whiteSpace: "nowrap" };
 const ghost: React.CSSProperties = { background: "#fff", color: "#19202e", fontWeight: 600, fontSize: 13, border: "1px solid #E0E4ED", padding: "8px 14px", borderRadius: 9, cursor: "pointer" };
 const ckLabel: React.CSSProperties = { display: "flex", alignItems: "center", gap: 7, fontSize: 13, color: "#19202e" };
+const selLink: React.CSSProperties = { background: "none", border: "none", color: "#4E5BDC", fontWeight: 600, fontSize: 12.5, cursor: "pointer", padding: "2px 4px" };

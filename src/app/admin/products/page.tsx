@@ -52,6 +52,8 @@ export default async function AdminProducts({
     is_recommended: r.is_recommended,
     parent_id: r.parent_id,
     attrs: r.attrs,
+    sort_order: r.sort_order,
+    image_url: r.image_url,
     suggestedFactor: guessFactor(r.attrs),
     perSource: Object.fromEntries(
       srcList.map((s) => [s.id, { map: mapByKey.get(k(r.id, s.id)) ?? null, price: priceByKey.get(k(r.id, s.id)) ?? null }])
@@ -64,7 +66,6 @@ export default async function AdminProducts({
         <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>Products &amp; pricing</h1>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <Link href="/admin/radar" style={{ background: "#fff", border: "1px solid #E0E4ED", color: "#19202e", fontWeight: 600, fontSize: 13.5, padding: "8px 15px", borderRadius: 10 }}>◎ All suggestions</Link>
-          <Link href="/admin/products/import" style={{ background: "#fff", border: "1px solid #E0E4ED", color: "#19202e", fontWeight: 600, fontSize: 13.5, padding: "8px 15px", borderRadius: 10 }}>⇅ Excel import</Link>
           <Link href="/admin/products/new" style={{ background: "#4E5BDC", color: "#fff", fontWeight: 600, fontSize: 13.5, padding: "9px 16px", borderRadius: 10 }}>+ New product</Link>
         </div>
       </div>
