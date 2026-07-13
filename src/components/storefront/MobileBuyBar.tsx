@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { GROTESK } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
+import { baseExGst } from "@/lib/pricing";
 import { useScrollDown } from "@/lib/useScrollDown";
 
 /** Mobile-only sticky bar pinned to the bottom of the product page — price +
@@ -11,10 +12,12 @@ import { useScrollDown } from "@/lib/useScrollDown";
 export default function MobileBuyBar({
   price,
   unit,
+  cat,
   onAdd,
 }: {
   price: number;
   unit: string;
+  cat?: string;
   onAdd: () => void;
 }) {
   const hidden = useScrollDown(140);
@@ -24,7 +27,7 @@ export default function MobileBuyBar({
     <div className={`pd-buybar${hidden ? " hidden" : ""}`}>
       <div style={{ minWidth: 0 }}>
         <div style={{ fontFamily: GROTESK, fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1.1 }}>
-          {fmt(price)} <span style={{ fontSize: 9.5, fontWeight: 500, color: "#9AA3B8" }}>/{unit} · incl. GST</span>
+          {fmt(baseExGst(price, cat))} <span style={{ fontSize: 9.5, fontWeight: 500, color: "#9AA3B8" }}>/{unit} + GST</span>
         </div>
         <div style={{ fontSize: 8.5, color: "#8EE2B8", fontWeight: 600, marginTop: 1 }}>Free pan-India delivery</div>
       </div>

@@ -2,11 +2,11 @@
 
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { exGst, gstPart } from "@/lib/pricing";
+import { exGst, gstPart, baseExGst } from "@/lib/pricing";
 import { sendAdminNewOrder, sendCustomerOrderConfirmation } from "@/lib/email";
 import { createRazorpayOrder, verifyPaymentSignature, razorpayConfigured, razorpayKeyId } from "@/lib/razorpay";
 
-export type CheckoutItem = { id: string; name: string; qty: number; price: number };
+export type CheckoutItem = { id: string; name: string; qty: number; price: number; cat?: string };
 export type PlaceOrderInput = {
   name: string;
   phone: string;
@@ -68,7 +68,11 @@ async function writeOrder(
     payment_method: input.payment_method,
     items,
     product_ids: items.map((i) => i.id),
-    subtotal: Math.round(exGst(total) * 100) / 100,
+    // Taxable value = sum of each item's ex-GST base at its category rate
+    // (falls back to the flat split if items predate the cat field).
+    subtotal: items.some((i) => i.cat)
+      ? items.reduce((s, i) => s + baseExGst(i.price, i.cat) * i.qty, 0)
+      : Math.round(exGst(total) * 100) / 100,
     total,
     is_guest: !userId,
     user_id: userId,

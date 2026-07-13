@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 import ImageSlot from "@/components/ImageSlot";
 import { GROTESK } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
+import { baseExGst } from "@/lib/pricing";
 import { tileFor } from "@/lib/data";
 import { useCart } from "@/lib/cart";
 
 export default function CartClient() {
   const router = useRouter();
-  const { items, total, setQty, remove } = useCart();
+  const { items, total, baseTotal, gstTotal, setQty, remove } = useCart();
 
   if (items.length === 0) {
     return (
@@ -38,14 +39,14 @@ export default function CartClient() {
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <Link href={`/catalogue/${it.id}`} style={{ fontSize: 14, fontWeight: 600, color: "#19202E" }}>{it.name}</Link>
-                <div style={{ fontSize: 12, color: "#8A93A6" }}>{it.brand} · {fmt(it.price)}/{it.unit}</div>
+                <div style={{ fontSize: 12, color: "#8A93A6" }}>{it.brand} · {fmt(baseExGst(it.price, it.cat))}+GST/{it.unit}</div>
               </div>
               <div style={{ display: "flex", alignItems: "center", border: "1px solid #E8EBF1", borderRadius: 10, overflow: "hidden" }}>
                 <button onClick={() => setQty(it.id, it.qty - 1)} style={qtyBtn}>−</button>
                 <span style={{ width: 40, textAlign: "center", fontFamily: GROTESK, fontSize: 14, fontWeight: 600 }}>{it.qty}</span>
                 <button onClick={() => setQty(it.id, it.qty + 1)} style={qtyBtn}>+</button>
               </div>
-              <div style={{ width: 90, textAlign: "right", fontFamily: GROTESK, fontWeight: 700, fontSize: 14 }}>{fmt(it.price * it.qty)}</div>
+              <div style={{ width: 90, textAlign: "right", fontFamily: GROTESK, fontWeight: 700, fontSize: 14 }}>{fmt(baseExGst(it.price, it.cat) * it.qty)}</div>
               <button onClick={() => remove(it.id)} style={{ background: "none", border: "none", color: "#C7CEDC", fontSize: 18, cursor: "pointer" }}>×</button>
             </div>
           ))}
@@ -55,15 +56,19 @@ export default function CartClient() {
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "18px 20px", position: "sticky", top: 84 }}>
           <div style={{ fontFamily: GROTESK, fontWeight: 600, fontSize: 15, marginBottom: 12 }}>Summary</div>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13.5, marginBottom: 8 }}>
-            <span style={{ color: "#56627A" }}>Subtotal <span style={{ fontSize: 11, color: "#8A93A6" }}>(incl. GST)</span></span>
-            <span style={{ fontFamily: GROTESK, fontWeight: 600 }}>{fmt(total)}</span>
+            <span style={{ color: "#56627A" }}>Subtotal <span style={{ fontSize: 11, color: "#8A93A6" }}>(excl. GST)</span></span>
+            <span style={{ fontFamily: GROTESK, fontWeight: 600 }}>{fmt(baseTotal)}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13.5, marginBottom: 8 }}>
+            <span style={{ color: "#56627A" }}>GST</span>
+            <span style={{ fontFamily: GROTESK, fontWeight: 600 }}>{fmt(gstTotal)}</span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13.5, marginBottom: 12 }}>
             <span style={{ color: "#56627A" }}>Delivery</span>
             <span style={{ color: "#1F9D63", fontWeight: 600 }}>Free · pan-India</span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", borderTop: "1px solid #F0F2F6", paddingTop: 12, marginBottom: 14 }}>
-            <span style={{ fontWeight: 600, fontSize: 14 }}>Total</span>
+            <span style={{ fontWeight: 600, fontSize: 14 }}>Total <span style={{ fontSize: 11, color: "#8A93A6", fontWeight: 500 }}>(incl. GST)</span></span>
             <span style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 700 }}>{fmt(total)}</span>
           </div>
           <button onClick={() => router.push("/checkout")} style={{ width: "100%", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14.5, border: "none", padding: 13, borderRadius: 11, cursor: "pointer" }}>

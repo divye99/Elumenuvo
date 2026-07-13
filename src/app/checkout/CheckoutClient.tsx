@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { GROTESK } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
-import { exGst, gstPart, GST_RATE } from "@/lib/pricing";
+import { baseExGst } from "@/lib/pricing";
 import { useCart } from "@/lib/cart";
 import { placeOrder, startOnlinePayment, confirmOnlinePayment } from "@/lib/order-actions";
 import { openRazorpay } from "@/lib/razorpay-checkout";
@@ -12,7 +12,7 @@ import { openRazorpay } from "@/lib/razorpay-checkout";
 type Prefill = { name: string; email: string; phone: string; gstin: string; isBusiness: boolean; signedIn: boolean };
 
 export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Prefill; onlineEnabled: boolean }) {
-  const { items, total, clear } = useCart();
+  const { items, total, baseTotal, gstTotal, clear } = useCart();
   const [pending, start] = useTransition();
   const [done, setDone] = useState<{ orderId: string; total: number } | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -25,7 +25,7 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
   });
   const set = (k: keyof typeof f, v: string | boolean) => setF((p) => ({ ...p, [k]: v }));
 
-  const gst = useMemo(() => ({ base: exGst(total), tax: gstPart(total) }), [total]);
+  const gst = useMemo(() => ({ base: baseTotal, tax: gstTotal }), [baseTotal, gstTotal]);
 
   const orderInput = () => ({
     name: f.name, email: f.email, phone: f.phone,
@@ -33,7 +33,7 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
     shipping_address: f.sameAsBilling ? f.billing : f.shipping,
     gstin: f.wantGst ? f.gstin : undefined,
     payment_method: f.payment,
-    items: items.map((i) => ({ id: i.id, name: i.name, qty: i.qty, price: i.price })),
+    items: items.map((i) => ({ id: i.id, name: i.name, qty: i.qty, price: i.price, cat: i.cat })),
   });
 
   const submit = () =>
@@ -162,16 +162,13 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
           {items.map((it) => (
             <div key={it.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12.5, marginBottom: 7 }}>
               <span style={{ color: "#56627A", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{it.qty}× {it.name}</span>
-              <span style={{ fontFamily: GROTESK, fontWeight: 600 }}>{fmt(it.price * it.qty)}</span>
+              <span style={{ fontFamily: GROTESK, fontWeight: 600 }}>{fmt(baseExGst(it.price, it.cat) * it.qty)}</span>
             </div>
           ))}
           <div style={{ borderTop: "1px solid #F0F2F6", marginTop: 8, paddingTop: 10 }}>
-            {f.wantGst && (
-              <>
-                <SumRow label="Taxable value" value={fmt(gst.base)} muted />
-                <SumRow label={`GST ${Math.round(GST_RATE * 100)}%`} value={fmt(gst.tax)} muted />
-              </>
-            )}
+            {/* Prices are quoted ex-GST, so always show the taxable value + GST. */}
+            <SumRow label="Subtotal (excl. GST)" value={fmt(gst.base)} muted />
+            <SumRow label="GST" value={fmt(gst.tax)} muted />
             <SumRow label="Delivery" value="Free" green />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 8 }}>
               <span style={{ fontWeight: 600, fontSize: 14 }}>Total <span style={{ fontSize: 11, color: "#8A93A6", fontWeight: 500 }}>incl. GST</span></span>

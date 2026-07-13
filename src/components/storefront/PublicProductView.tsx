@@ -16,7 +16,7 @@ export default function PublicProductView({ p, siblings = [], business = false }
   const cart = useCart();
   const [qty, setQty] = useState(1);
 
-  const toCart = () => cart.add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.market, unit: p.unit, image: p.image }, qty);
+  const toCart = () => cart.add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.market, unit: p.unit, cat: p.cat, image: p.image }, qty);
 
   return (
     <>
@@ -33,7 +33,7 @@ export default function PublicProductView({ p, siblings = [], business = false }
         showGst={business}
       />
       {/* Mobile-only sticky add-to-basket bar (hides on scroll down) */}
-      <MobileBuyBar price={p.price} unit={p.unit} onAdd={toCart} />
+      <MobileBuyBar price={p.price} unit={p.unit} cat={p.cat} onAdd={toCart} />
     </>
   );
 }

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { GROTESK, MONO } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
-import { wholesalePrice, offMrpPct, WHOLESALE_MIN_QTY } from "@/lib/pricing";
+import { wholesalePrice, offMrpPct, WHOLESALE_MIN_QTY, baseExGst } from "@/lib/pricing";
 import { dimsOf } from "@/lib/variants";
 import type { Product } from "@/lib/data";
 import type { BlogPost } from "@/lib/blog";
@@ -70,9 +70,9 @@ export default function ProductDeepDive({
           </div>
           {metres && (
             <div style={{ display: "flex", gap: 26, flexWrap: "wrap", background: "#F5F6F9", border: "1px solid #E8EBF1", borderRadius: 11, padding: "13px 16px", marginTop: 16 }}>
-              <PriceStat label="Effective price" value={`${fmt(Math.round((p.price / metres) * 100) / 100)}/m`} />
-              <PriceStat label={`Wholesale (${WHOLESALE_MIN_QTY}+ coils)`} value={`${fmt(Math.round((wholesalePrice(p.price) / metres) * 100) / 100)}/m`} />
-              <PriceStat label="MRP equivalent" value={`${fmt(Math.round((p.market / metres) * 100) / 100)}/m`} muted />
+              <PriceStat label="Effective price" value={`${fmt(Math.round((baseExGst(p.price, p.cat) / metres) * 100) / 100)}/m +GST`} />
+              <PriceStat label={`Wholesale (${WHOLESALE_MIN_QTY}+ coils)`} value={`${fmt(Math.round((baseExGst(wholesalePrice(p.price), p.cat) / metres) * 100) / 100)}/m +GST`} />
+              <PriceStat label="MRP equivalent" value={`${fmt(Math.round((baseExGst(p.market, p.cat) / metres) * 100) / 100)}/m`} muted />
             </div>
           )}
         </div>
@@ -91,7 +91,7 @@ export default function ProductDeepDive({
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
               <thead>
                 <tr>
-                  {["Option", ...dims, "Elume price", ...(anyMetres ? ["₹ / metre"] : []), "MRP", "Off"].map((h) => (
+                  {["Option", ...dims, "Elume price (ex-GST)", ...(anyMetres ? ["₹ / metre"] : []), "MRP", "Off"].map((h) => (
                     <th key={h} style={{ textAlign: h === "Option" ? "left" : "right", padding: "8px 10px", fontSize: 10.5, fontWeight: 700, letterSpacing: "0.5px", textTransform: "uppercase", color: "#8A93A6", borderBottom: "1px solid #E8EBF1", whiteSpace: "nowrap" }}>
                       {h}
                     </th>
@@ -121,15 +121,15 @@ export default function ProductDeepDive({
                         </td>
                       ))}
                       <td style={{ padding: "10px", textAlign: "right", fontFamily: GROTESK, fontWeight: 600, color: "#19202E", borderBottom: "1px solid #F5F6F9", whiteSpace: "nowrap" }}>
-                        {fmt(s.price)}
+                        {fmt(baseExGst(s.price, s.cat))}
                       </td>
                       {anyMetres && (
                         <td style={{ padding: "10px", textAlign: "right", fontFamily: MONO, fontSize: 11.5, color: "#56627A", borderBottom: "1px solid #F5F6F9", whiteSpace: "nowrap" }}>
-                          {m ? `${fmt(Math.round((s.price / m) * 100) / 100)}` : "—"}
+                          {m ? `${fmt(Math.round((baseExGst(s.price, s.cat) / m) * 100) / 100)}` : "—"}
                         </td>
                       )}
                       <td style={{ padding: "10px", textAlign: "right", color: "#A0A7B5", textDecoration: "line-through", borderBottom: "1px solid #F5F6F9", whiteSpace: "nowrap" }}>
-                        {fmt(s.market)}
+                        {fmt(baseExGst(s.market, s.cat))}
                       </td>
                       <td style={{ padding: "10px", textAlign: "right", fontWeight: 700, color: "#1F9D63", borderBottom: "1px solid #F5F6F9", whiteSpace: "nowrap" }}>
                         {offMrpPct(s.price, s.market)}%

@@ -9,9 +9,8 @@ import {
   unitPriceFor,
   offMrpPct,
   WHOLESALE_MIN_QTY,
-  exGst,
-  gstPart,
-  GST_RATE,
+  gstBreakdown,
+  baseExGst,
 } from "@/lib/pricing";
 
 /**
@@ -58,6 +57,7 @@ export default function ProductDetail({
   const ws = wholesalePrice(p.price);
   const isWholesale = qty >= WHOLESALE_MIN_QTY;
   const lineTotal = unitPriceFor(p.price, qty) * qty;
+  const gb = gstBreakdown(p.price, p.cat); // ex-GST base / GST / inclusive, at the category rate
   const specs = [
     { k: "Brand", v: p.brand },
     { k: "Category", v: p.cat },
@@ -107,23 +107,24 @@ export default function ProductDetail({
 
             {variantSlot}
 
-            {/* Elume price (single unit) */}
+            {/* Elume price — ex-GST is the headline; GST shown as a statutory add-on */}
             <div style={{ display: "flex", alignItems: "flex-end", gap: 10, marginBottom: 4 }}>
-              <span className="pd-price" style={{ fontFamily: GROTESK, fontSize: 34, fontWeight: 600, letterSpacing: "-1px", color: "#19202E" }}>{fmt(p.price)}</span>
+              <span className="pd-price" style={{ fontFamily: GROTESK, fontSize: 34, fontWeight: 600, letterSpacing: "-1px", color: "#19202E" }}>{fmt(gb.base)}</span>
               <span style={{ fontSize: 14, color: "#8A93A6", marginBottom: 6 }}>/{p.unit}</span>
-              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.3px", color: "#4E5BDC", background: "#EEF0FD", padding: "4px 9px", borderRadius: 7, marginBottom: 7 }}>ELUME PRICE</span>
+              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.3px", color: "#4E5BDC", background: "#EEF0FD", padding: "4px 9px", borderRadius: 7, marginBottom: 7 }}>+ {Math.round(gb.rate * 100)}% GST</span>
             </div>
-            {/* MRP reference */}
+            {/* Inclusive total + MRP reference (all figures ex-GST for a like-for-like %) */}
             <div style={{ fontSize: 13, color: "#56627A", marginBottom: showGst ? 8 : 14 }}>
-              MRP <span style={{ textDecoration: "line-through", color: "#A0A7B5" }}>{fmt(p.market)}</span>
-              <span style={{ color: "#1F9D63", fontWeight: 700, marginLeft: 8 }}>{off} off</span> · incl. GST
+              <b style={{ color: "#19202E" }}>{fmt(gb.incl)}</b> incl. GST · MRP{" "}
+              <span style={{ textDecoration: "line-through", color: "#A0A7B5" }}>{fmt(baseExGst(p.market, p.cat))}</span>
+              <span style={{ color: "#1F9D63", fontWeight: 700, marginLeft: 8 }}>{off} off</span>
             </div>
             {/* GST breakdown for business accounts */}
             {showGst && (
               <div style={{ display: "flex", gap: 18, flexWrap: "wrap", background: "#F5F6F9", border: "1px solid #E8EBF1", borderRadius: 10, padding: "9px 13px", marginBottom: 14, fontSize: 12.5 }}>
-                <span style={{ color: "#56627A" }}>Base <b style={{ color: "#19202E" }}>{fmt(exGst(p.price))}</b></span>
-                <span style={{ color: "#56627A" }}>GST {Math.round(GST_RATE * 100)}% <b style={{ color: "#19202E" }}>{fmt(gstPart(p.price))}</b></span>
-                <span style={{ color: "#56627A" }}>Total <b style={{ color: "#19202E" }}>{fmt(p.price)}</b></span>
+                <span style={{ color: "#56627A" }}>Base <b style={{ color: "#19202E" }}>{fmt(gb.base)}</b></span>
+                <span style={{ color: "#56627A" }}>GST {Math.round(gb.rate * 100)}% <b style={{ color: "#19202E" }}>{fmt(gb.gst)}</b></span>
+                <span style={{ color: "#56627A" }}>Total <b style={{ color: "#19202E" }}>{fmt(gb.incl)}</b></span>
                 <span style={{ fontSize: 11, color: "#4E5BDC", fontWeight: 600 }}>Business · GST invoice</span>
               </div>
             )}
@@ -132,7 +133,7 @@ export default function ProductDetail({
               <div>
                 <div style={{ fontSize: 11.5, color: "#8A93A6" }}>Wholesale · {WHOLESALE_MIN_QTY}+ units</div>
                 <div style={{ fontFamily: GROTESK, fontSize: 17, fontWeight: 600, color: "#19202E" }}>
-                  {fmt(ws)} <span style={{ fontSize: 12, color: "#8A93A6", fontWeight: 400 }}>/{p.unit}</span>
+                  {fmt(baseExGst(ws, p.cat))} <span style={{ fontSize: 12, color: "#8A93A6", fontWeight: 400 }}>+GST /{p.unit}</span>
                 </div>
               </div>
               <span style={{ fontSize: 12, fontWeight: 700, color: "#1F9D63", background: "#E6F5EE", padding: "5px 10px", borderRadius: 8 }}>save 5%</span>

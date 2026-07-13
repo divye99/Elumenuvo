@@ -6,6 +6,7 @@
  * cart, which is the signed-in B2B PO flow.
  */
 import { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react";
+import { baseExGst } from "@/lib/pricing";
 
 export type CartItem = {
   id: string;
@@ -14,6 +15,7 @@ export type CartItem = {
   price: number; // GST-inclusive Elume price
   mrp: number;
   unit: string;
+  cat?: string; // product category → GST rate (optional: pre-existing carts won't have it)
   image?: string;
   qty: number;
 };
@@ -21,7 +23,9 @@ export type CartItem = {
 type Ctx = {
   items: CartItem[];
   count: number;
-  total: number;
+  total: number; // GST-inclusive payable
+  baseTotal: number; // ex-GST (taxable value), summed per-item at the category rate
+  gstTotal: number; // total − baseTotal
   add: (item: Omit<CartItem, "qty">, qty?: number) => void;
   setQty: (id: string, qty: number) => void;
   remove: (id: string) => void;
@@ -68,12 +72,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const remove = useCallback((id: string) => persist(items.filter((i) => i.id !== id)), [items, persist]);
   const clear = useCallback(() => persist([]), [persist]);
 
-  const value = useMemo<Ctx>(() => ({
-    items,
-    count: items.reduce((s, i) => s + i.qty, 0),
-    total: items.reduce((s, i) => s + i.price * i.qty, 0),
-    add, setQty, remove, clear,
-  }), [items, add, setQty, remove, clear]);
+  const value = useMemo<Ctx>(() => {
+    const total = items.reduce((s, i) => s + i.price * i.qty, 0);
+    const baseTotal = items.reduce((s, i) => s + baseExGst(i.price, i.cat) * i.qty, 0);
+    return {
+      items,
+      count: items.reduce((s, i) => s + i.qty, 0),
+      total,
+      baseTotal,
+      gstTotal: total - baseTotal,
+      add, setQty, remove, clear,
+    };
+  }, [items, add, setQty, remove, clear]);
 
   return <CartCtx.Provider value={value}>{children}</CartCtx.Provider>;
 }

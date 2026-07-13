@@ -112,7 +112,7 @@ export default async function StoreChrome({ children }: { children: React.ReactN
           <div className="fx-legal">
             © {new Date().getFullYear()} Elume Nuvotech Private Limited · info@elumenuvo.com · +91 98188 21175
             <br />
-            Pan-India delivery · GST invoice on every order · All prices include GST.
+            Pan-India delivery · GST invoice on every order · Prices shown exclude GST; GST is added at checkout.
           </div>
         </div>
 
@@ -130,7 +130,7 @@ export default async function StoreChrome({ children }: { children: React.ReactN
             color: "#8A93A6",
           }}
         >
-          <span>© {new Date().getFullYear()} Elume Nuvotech Private Limited · Pan-India delivery · All prices include GST.</span>
+          <span>© {new Date().getFullYear()} Elume Nuvotech Private Limited · Pan-India delivery · Prices exclude GST; added at checkout.</span>
           <span style={{ display: "flex", gap: 18 }}>
             <Link href="/track" style={{ color: "#56627A" }}>
               Track order
