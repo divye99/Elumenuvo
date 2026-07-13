@@ -54,8 +54,9 @@ set attrs = jsonb_set(coalesce(attrs, '{}'::jsonb), '{HSN}', '"8544"')
 where category = 'Wires & Cables' and (attrs is null or attrs->>'HSN' is null);
 
 -- Review: line × size with the new MRPs and the discount our price now gives
+-- (Size is text like "4 sq mm" — order by its leading number, don't cast raw.)
 select split_part(sku, '-', 2) as line, attrs->>'Size' as size,
        min(mrp) as mrp, min(elume_price) as elume,
        round(100 * (1 - min(elume_price) / min(mrp))) as off_pct, count(*) as colours
 from public.products where brand = 'APAR'
-group by 1, 2 order by 1, (attrs->>'Size')::numeric;
+group by 1, 2 order by 1, split_part(attrs->>'Size', ' ', 1)::numeric;
