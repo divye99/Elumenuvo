@@ -11,11 +11,13 @@ import type { CompetitorAdapter, CompetitorItem } from "./types";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36";
 const FIELDS = "items{sku name url_key canonical_url stock_status price_range{minimum_price{regular_price{value} final_price{value}}}}";
 
-/** Magento product pages live at /<url_key>.html — the bare url_key 404s.
- *  `canonical_url` already carries the .html; fall back to url_key + .html. */
+/** Product URL differs per store: Havells pages need the .html suffix (their
+ *  canonical_url carries it; bare url_key 404s), while Atomberg is the exact
+ *  opposite (bare url_key works, .html 404s, canonical_url absent). Rule:
+ *  trust canonical_url when the store provides it, else use the bare url_key. */
 function productUrl(base: string, it: Record<string, any>): string | null {
   if (typeof it.canonical_url === "string" && it.canonical_url) return `${base}/${it.canonical_url.replace(/^\/+/, "")}`;
-  if (typeof it.url_key === "string" && it.url_key) return `${base}/${it.url_key}.html`;
+  if (typeof it.url_key === "string" && it.url_key) return `${base}/${it.url_key}`;
   return null;
 }
 

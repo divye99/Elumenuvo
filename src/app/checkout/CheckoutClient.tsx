@@ -6,10 +6,41 @@ import { GROTESK } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import { baseExGst } from "@/lib/pricing";
 import { useCart } from "@/lib/cart";
-import { placeOrder, startOnlinePayment, confirmOnlinePayment } from "@/lib/order-actions";
+import { startOnlinePayment, confirmOnlinePayment } from "@/lib/order-actions";
 import { openRazorpay } from "@/lib/razorpay-checkout";
 
 type Prefill = { name: string; email: string; phone: string; gstin: string; isBusiness: boolean; signedIn: boolean };
+
+/** All Indian states + union territories, for the address dropdown. */
+const INDIA_STATES = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat",
+  "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh",
+  "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab",
+  "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh",
+  "Uttarakhand", "West Bengal",
+  // Union territories
+  "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry",
+];
+
+type Address = { line1: string; line2: string; line3: string; city: string; district: string; state: string; pin: string; country: string };
+const emptyAddress = (): Address => ({ line1: "", line2: "", line3: "", city: "", district: "", state: "", pin: "", country: "India" });
+
+/** One line for the order record: line1, line2, line3, City, District, State - PIN, Country. */
+function composeAddress(a: Address): string {
+  const statePin = [a.state, a.pin && `- ${a.pin}`].filter(Boolean).join(" ");
+  return [a.line1, a.line2, a.line3, a.city, a.district, statePin, a.country].map((s) => s.trim()).filter(Boolean).join(", ");
+}
+
+/** First missing required field, or null when the address is complete. */
+function addressError(a: Address, label: string): string | null {
+  if (!a.line1.trim()) return `Please enter Address line 1 (${label}).`;
+  if (!a.city.trim()) return `Please enter the city (${label}).`;
+  if (!a.district.trim()) return `Please enter the district (${label}).`;
+  if (!a.state) return `Please pick the state / union territory (${label}).`;
+  if (!/^\d{6}$/.test(a.pin.trim())) return `Please enter a valid 6-digit PIN code (${label}).`;
+  return null;
+}
 
 export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Prefill; onlineEnabled: boolean }) {
   const { items, total, baseTotal, gstTotal, clear } = useCart();
@@ -19,37 +50,42 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
 
   const [f, setF] = useState({
     name: prefill.name, email: prefill.email, phone: prefill.phone,
-    billing: "", shipping: "", sameAsBilling: true,
+    billing: emptyAddress(), shipping: emptyAddress(), sameAsBilling: true,
     gstin: prefill.gstin, wantGst: prefill.isBusiness || !!prefill.gstin,
-    payment: "cod",
   });
   const set = (k: keyof typeof f, v: string | boolean) => setF((p) => ({ ...p, [k]: v }));
+  const setAddr = (which: "billing" | "shipping", k: keyof Address, v: string) =>
+    setF((p) => ({ ...p, [which]: { ...p[which], [k]: v } }));
 
   const gst = useMemo(() => ({ base: baseTotal, tax: gstTotal }), [baseTotal, gstTotal]);
 
   const orderInput = () => ({
     name: f.name, email: f.email, phone: f.phone,
-    billing_address: f.billing,
-    shipping_address: f.sameAsBilling ? f.billing : f.shipping,
+    billing_address: composeAddress(f.billing),
+    shipping_address: composeAddress(f.sameAsBilling ? f.billing : f.shipping),
     gstin: f.wantGst ? f.gstin : undefined,
-    payment_method: f.payment,
+    payment_method: "online", // pay-on-delivery is retired; Razorpay only
     items: items.map((i) => ({ id: i.id, name: i.name, qty: i.qty, price: i.price, cat: i.cat })),
   });
 
   const submit = () =>
     start(async () => {
       setErr(null);
+
+      // Client-side address checks before any server round-trip.
+      if (!/^[0-9+\-\s]{8,15}$/.test(f.phone.trim())) { setErr("Please enter a valid phone number - it's required for delivery."); return; }
+      const billErr = addressError(f.billing, "billing address");
+      if (billErr) { setErr(billErr); return; }
+      if (!f.sameAsBilling) {
+        const shipErr = addressError(f.shipping, "shipping address");
+        if (shipErr) { setErr(shipErr); return; }
+      }
+      if (f.wantGst && !/^[0-9]{2}[A-Z0-9]{13}$/.test(f.gstin.trim())) { setErr("Please enter a valid 15-character GSTIN, or untick the GST invoice option."); return; }
+      if (!onlineEnabled) { setErr("Online payment is being enabled - ordering opens as soon as Razorpay goes live."); return; }
+
       const input = orderInput();
 
-      // Pay on delivery — one server round-trip.
-      if (f.payment !== "online") {
-        const res = await placeOrder(input);
-        if (res.ok) { clear(); setDone({ orderId: res.orderId, total: res.total }); }
-        else setErr(res.error);
-        return;
-      }
-
-      // Pay online — create a Razorpay order, open the modal, verify, then persist.
+      // Pay online: create a Razorpay order, open the modal, verify, then persist.
       const started = await startOnlinePayment(input);
       if (!started.ok) { setErr(started.error); return; }
       let payment;
@@ -113,45 +149,45 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
           {/* Contact */}
           <Section title="Contact">
             <Row>
-              <Field label="Full name"><input value={f.name} onChange={(e) => set("name", e.target.value)} style={inp} /></Field>
-              <Field label="Phone"><input value={f.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+91 98765 43210" style={inp} /></Field>
+              <Field label="Full name *"><input value={f.name} onChange={(e) => set("name", e.target.value)} style={inp} /></Field>
+              <Field label="Phone *"><input value={f.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+91 98765 43210" required style={inp} /></Field>
             </Row>
-            <Field label="Email"><input type="email" value={f.email} onChange={(e) => set("email", e.target.value)} style={inp} /></Field>
+            <Field label="Email *"><input type="email" value={f.email} onChange={(e) => set("email", e.target.value)} style={inp} /></Field>
           </Section>
 
           {/* Addresses */}
           <Section title="Billing address">
-            <textarea value={f.billing} onChange={(e) => set("billing", e.target.value)} rows={3} placeholder="Flat / building, street, area, city, state, PIN" style={{ ...inp, width: "100%", resize: "vertical" }} />
+            <AddressFields a={f.billing} onChange={(k, v) => setAddr("billing", k, v)} />
             <label style={ck}><input type="checkbox" checked={f.sameAsBilling} onChange={(e) => set("sameAsBilling", e.target.checked)} /> Shipping address same as billing</label>
           </Section>
           {!f.sameAsBilling && (
             <Section title="Shipping address">
-              <textarea value={f.shipping} onChange={(e) => set("shipping", e.target.value)} rows={3} placeholder="Delivery address" style={{ ...inp, width: "100%", resize: "vertical" }} />
+              <AddressFields a={f.shipping} onChange={(k, v) => setAddr("shipping", k, v)} />
             </Section>
           )}
 
           {/* GST (optional) */}
           <Section title="GST invoice (optional)">
             <label style={ck}><input type="checkbox" checked={f.wantGst} onChange={(e) => set("wantGst", e.target.checked)} /> I want a GST invoice</label>
-            {f.wantGst && <Field label="GSTIN"><input value={f.gstin} onChange={(e) => set("gstin", e.target.value.toUpperCase())} maxLength={15} placeholder="27AAACE1234F1Z5" style={{ ...inp, fontFamily: "var(--space-mono)" }} /></Field>}
+            {f.wantGst && <Field label="GSTIN *"><input value={f.gstin} onChange={(e) => set("gstin", e.target.value.toUpperCase())} maxLength={15} placeholder="27AAACE1234F1Z5" style={{ ...inp, fontFamily: "var(--space-mono)" }} /></Field>}
           </Section>
 
-          {/* Payment */}
+          {/* Payment: online only (pay-on-delivery is retired) */}
           <Section title="Payment">
-            <label style={{ ...payOpt, borderColor: f.payment === "cod" ? "#4E5BDC" : "#E8EBF1", background: f.payment === "cod" ? "#F7F8FF" : "#fff" }}>
-              <input type="radio" name="pay" checked={f.payment === "cod"} onChange={() => set("payment", "cod")} />
-              <span><b>Pay on delivery</b><br /><span style={{ fontSize: 11.5, color: "#8A93A6" }}>Settle when goods arrive</span></span>
-            </label>
             {onlineEnabled ? (
-              <label style={{ ...payOpt, borderColor: f.payment === "online" ? "#4E5BDC" : "#E8EBF1", background: f.payment === "online" ? "#F7F8FF" : "#fff" }}>
-                <input type="radio" name="pay" checked={f.payment === "online"} onChange={() => set("payment", "online")} />
-                <span><b>Pay online</b><br /><span style={{ fontSize: 11.5, color: "#8A93A6" }}>UPI, cards &amp; netbanking — secure Razorpay checkout</span></span>
-              </label>
+              <div style={{ ...payOpt, borderColor: "#4E5BDC", background: "#F7F8FF", cursor: "default" }}>
+                <span style={{ fontSize: 18 }}>🔒</span>
+                <span><b>Pay online</b><br /><span style={{ fontSize: 11.5, color: "#8A93A6" }}>UPI, cards &amp; netbanking · secure Razorpay checkout</span></span>
+              </div>
             ) : (
-              <label style={{ ...payOpt, borderColor: "#E8EBF1", background: "#FAFBFD", cursor: "default", opacity: 0.85 }}>
-                <input type="radio" name="pay" disabled />
-                <span><b style={{ color: "#56627A" }}>Pay online</b> <span style={{ fontSize: 10, fontWeight: 700, color: "#4E5BDC", background: "#EEF0FD", padding: "2px 7px", borderRadius: 10, textTransform: "uppercase" }}>Coming soon</span><br /><span style={{ fontSize: 11.5, color: "#8A93A6" }}>UPI, cards &amp; netbanking — secure Elume checkout</span></span>
-              </label>
+              <div style={{ ...payOpt, borderColor: "#F0DFC0", background: "#FFF9EE", cursor: "default" }}>
+                <span style={{ fontSize: 18 }}>🔒</span>
+                <span>
+                  <b style={{ color: "#8a6116" }}>Online payment is being enabled</b>
+                  <br />
+                  <span style={{ fontSize: 11.5, color: "#8A93A6" }}>UPI, cards &amp; netbanking via Razorpay go live shortly. Ordering is paused until then.</span>
+                </span>
+              </div>
             )}
           </Section>
         </div>
@@ -176,8 +212,8 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
             </div>
           </div>
           {err && <div style={{ fontSize: 12.5, color: "#C0392B", fontWeight: 600, marginTop: 10 }}>{err}</div>}
-          <button onClick={submit} disabled={pending} style={{ width: "100%", marginTop: 14, background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14.5, border: "none", padding: 13, borderRadius: 11, cursor: pending ? "wait" : "pointer", opacity: pending ? 0.7 : 1 }}>
-            {pending ? (f.payment === "online" ? "Opening payment…" : "Placing order…") : `${f.payment === "online" ? "Pay" : "Place order"} · ${fmt(total)}`}
+          <button onClick={submit} disabled={pending || !onlineEnabled} title={onlineEnabled ? "" : "Online payment is being enabled - ordering opens shortly"} style={{ width: "100%", marginTop: 14, background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14.5, border: "none", padding: 13, borderRadius: 11, cursor: pending || !onlineEnabled ? "default" : "pointer", opacity: pending || !onlineEnabled ? 0.6 : 1 }}>
+            {pending ? "Opening payment…" : onlineEnabled ? `Pay securely · ${fmt(total)}` : "Payments enabling soon"}
           </button>
         </div>
       </div>
@@ -194,6 +230,31 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 function Row({ children }: { children: React.ReactNode }) { return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>{children}</div>; }
+
+/** Structured Indian address: 3 lines, city/district, state dropdown, PIN, country (India). */
+function AddressFields({ a, onChange }: { a: Address; onChange: (k: keyof Address, v: string) => void }) {
+  return (
+    <>
+      <Field label="Address line 1 *"><input value={a.line1} onChange={(e) => onChange("line1", e.target.value)} placeholder="Flat / house no., building" style={inp} /></Field>
+      <Field label="Address line 2"><input value={a.line2} onChange={(e) => onChange("line2", e.target.value)} placeholder="Street, area, locality" style={inp} /></Field>
+      <Field label="Address line 3 (optional)"><input value={a.line3} onChange={(e) => onChange("line3", e.target.value)} placeholder="Landmark (optional)" style={inp} /></Field>
+      <Row>
+        <Field label="City *"><input value={a.city} onChange={(e) => onChange("city", e.target.value)} style={inp} /></Field>
+        <Field label="District *"><input value={a.district} onChange={(e) => onChange("district", e.target.value)} style={inp} /></Field>
+      </Row>
+      <Row>
+        <Field label="State / Union territory *">
+          <select value={a.state} onChange={(e) => onChange("state", e.target.value)} style={{ ...inp, background: "#fff" }}>
+            <option value="">Select state / UT…</option>
+            {INDIA_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </Field>
+        <Field label="PIN code *"><input value={a.pin} onChange={(e) => onChange("pin", e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" placeholder="110001" style={inp} /></Field>
+      </Row>
+      <Field label="Country"><input value={a.country} readOnly style={{ ...inp, background: "#F7F8FB", color: "#56627A" }} /></Field>
+    </>
+  );
+}
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return <div><label style={{ fontSize: 11.5, fontWeight: 600, color: "#56627A", display: "block", marginBottom: 4 }}>{label}</label>{children}</div>;
 }

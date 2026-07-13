@@ -388,7 +388,9 @@ function CompetitorTab({ row, sources }: { row: ManagerRow; sources: SourceInfo[
             const available = isAvailable(s);
             const oos = !!p && !available; // synced but not buyable (out of stock / no price)
             const isCheapest = available && comparable != null && lowest != null && comparable === lowest && comparables.length > 1;
-            const url = map.competitor_url ?? p?.competitor_url ?? null;
+            // Prefer the price snapshot's URL: the sync refreshes it with the
+            // store's canonical link, while map.competitor_url can be stale.
+            const url = p?.competitor_url ?? map.competitor_url ?? null;
             const canReprice = available && p?.suggested_price != null && p.suggested_price !== Math.round(row.elume_price);
             return (
               <div key={s.id} style={{ display: "grid", gridTemplateColumns: "1.2fr 1.3fr 0.9fr 1fr auto", gap: 10, padding: "11px 14px", borderTop: i ? "1px solid #F5F6F9" : undefined, alignItems: "center" }}>

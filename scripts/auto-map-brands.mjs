@@ -19,6 +19,7 @@
  * their MPN, the more mappings land in the trusted brand-sku layer.
  */
 import fs from "fs";
+import { FETCHERS } from "./lib/competitor-fetchers.mjs";
 
 // Bound every fetch — a hung competitor connection (ETIMEDOUT after ~75s) was
 // crashing the whole run. 20s cap; callers already treat failures as "no match".
@@ -388,7 +389,10 @@ function skuHit(p, cand) {
 async function matchOnSource(p, src, base) {
   const brandDirect = BRAND_DIRECT_SRC.has(src);
   const boe = src === "bestofelectricals";
-  const cands = await candidatesFor(p, src, base);
+  // Buyability rule: a candidate with an explicit zero/negative price is not a
+  // sellable listing, never a match. (Priceless-in-search candidates survive to
+  // the live post-validation below, since some search feeds omit prices.)
+  const cands = (await candidatesFor(p, src, base)).filter((c) => !(c.price != null && c.price <= 0));
 
   // Layer 1 — brand SKU: an MPN hit outranks any name score, no type guard needed.
   if (p.brand_sku) {
@@ -468,6 +472,20 @@ async function main() {
     for (const src of sources) {
       try {
         const m = await matchOnSource(p, src, base);
+        // In-stock / price-available rule: before writing ANY mapping, fetch the
+        // live listing and require it to be BUYABLE - in stock and with a real
+        // (>0) price. Out-of-stock or price-unavailable listings never map.
+        if (m && FETCHERS[src]) {
+          try {
+            const live = await FETCHERS[src](m.c.code);
+            const liveEffective = live ? (live.netPrice ?? live.listPrice) : null;
+            const buyable = live && live.inStock !== false && liveEffective != null && liveEffective > 0;
+            if (!buyable) {
+              console.log(`    ⊘ ${p.id} × ${src}: matched "${m.c.name.slice(0, 40)}" but ${!live ? "fetch failed" : live.inStock === false ? "OUT OF STOCK" : "no valid price"} - skipped`);
+              continue;
+            }
+          } catch { continue; } // can't verify buyability -> don't map it
+        }
         if (m) {
           if (m.method === "brand-sku") bySku++; else byName++;
           hits.push({
