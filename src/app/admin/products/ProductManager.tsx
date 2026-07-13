@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { fmt } from "@/lib/format";
-import { wholesalePrice, offMrpPct } from "@/lib/pricing";
+import { wholesalePrice, offMrpPct, gstBreakdown } from "@/lib/pricing";
 import {
   updateProductDetails,
   deleteProduct,
@@ -225,10 +225,10 @@ function DetailsTab({ row, onClose }: { row: ManagerRow; onClose: () => void }) 
         <Field label="Spec"><input value={f.spec} onChange={set("spec")} style={inp} /></Field>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, margin: "12px 0" }}>
-        <Field label="MRP (₹)"><input type="number" step="any" value={f.mrp} onChange={set("mrp")} style={inp} /></Field>
-        <Field label="Elume price (₹)"><input type="number" step="any" value={f.elume_price} onChange={set("elume_price")} style={{ ...inp, fontWeight: 700, borderColor: "#C9CFF6" }} /></Field>
+        <Field label="MRP (₹ incl. GST)"><input type="number" step="any" value={f.mrp} onChange={set("mrp")} style={inp} /></Field>
+        <Field label="Elume price (₹ incl. GST)"><input type="number" step="any" value={f.elume_price} onChange={set("elume_price")} style={{ ...inp, fontWeight: 700, borderColor: "#C9CFF6" }} /></Field>
         <div style={{ alignSelf: "end", fontSize: 12, color: "#56627A", paddingBottom: 8 }}>
-          {valid ? <>{offMrpPct(elume, mrp)}% off · wholesale {fmt(wholesalePrice(elume))}</> : "—"}
+          {valid ? (() => { const gb = gstBreakdown(elume, row.category); return <>{offMrpPct(elume, mrp)}% off · wholesale {fmt(wholesalePrice(elume))} · storefront shows <b>{fmt(gb.base)}</b> + {Math.round(gb.rate * 100)}% GST</>; })() : "—"}
         </div>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10, marginBottom: 12 }}>

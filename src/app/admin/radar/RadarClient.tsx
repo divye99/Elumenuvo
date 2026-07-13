@@ -256,7 +256,7 @@ function MappedRow({ r, first, pending, run }: { r: RadarRow; first: boolean; pe
         {m ? (
           <>
             <div style={{ display: "flex", gap: 18, alignItems: "center" }}>
-              <Stat label="Elume" value={editing ? undefined : fmt(r.ourPrice)}>
+              <Stat label="Elume · incl. GST" value={editing ? undefined : fmt(r.ourPrice)}>
                 {editing && <input autoFocus value={val} onChange={(e) => setVal(e.target.value.replace(/[^\d]/g, ""))} type="text" inputMode="numeric" style={{ width: 78, border: "1px solid #4E5BDC", borderRadius: 7, padding: "3px 7px", fontSize: 13, fontWeight: 700, textAlign: "right" }} />}
               </Stat>
               <Stat label="Avg market" value={money(m.avgMarket)} />
@@ -279,7 +279,7 @@ function MappedRow({ r, first, pending, run }: { r: RadarRow; first: boolean; pe
           </>
         ) : (
           <div style={{ display: "flex", gap: 14, alignItems: "center", marginLeft: "auto" }}>
-            <Stat label="Elume" value={fmt(r.ourPrice)} />
+            <Stat label="Elume · incl. GST" value={fmt(r.ourPrice)} />
             <span style={{ fontSize: 12, fontWeight: 600, color: r.mappedCount ? "#C77700" : "#C0392B", background: r.mappedCount ? "#FFF3E0" : "#FBE9E4", padding: "4px 10px", borderRadius: 8 }}>
               {r.pendingCount ? `${r.pendingCount} match${r.pendingCount === 1 ? "" : "es"} awaiting approval` : r.mappedCount ? "Mapped — run Refresh prices" : "Not mapped"}
             </span>
