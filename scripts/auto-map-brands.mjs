@@ -246,12 +246,55 @@ function distinctive(name, brand) {
     .trim();
 }
 
+/* Dimension families: if BOTH sides state a value for the same family and the
+ * values disagree, the products are DIFFERENT — reject outright. This is what
+ * stops "Polycab 4 sqmm 1 core" matching "Polycab 4 sqmm 6 core flexible":
+ * the shared 4sqmm used to outvote the conflicting core count. */
+const DIM_FAMILIES = ["sqmm", "core", "a", "w", "way", "pin", "module", "gang", "mm"];
+function dimValues(s) {
+  const out = {};
+  for (const m of s.matchAll(/\b(\d+(?:\.\d+)?)(sqmm|core|a|w|way|pin|module|gang|mm)\b/g)) {
+    const fam = m[2];
+    (out[fam] ??= new Set()).add(parseFloat(m[1])); // parseFloat: "4.0" == "4"
+  }
+  return out;
+}
+function dimsConflict(a, b) {
+  const da = dimValues(a), db = dimValues(b);
+  for (const fam of DIM_FAMILIES) {
+    if (!da[fam] || !db[fam]) continue; // one side silent → no conflict
+    if (![...da[fam]].some((v) => db[fam].has(v))) return fam; // both speak, zero overlap
+  }
+  return null;
+}
+
 function score(p, cand) {
   const typeRe = TYPE[p.category];
   if (typeRe && !typeRe.test(cand.name)) return { s: -1, hard: 0, sim: 0 };
   const ourColour = (p.name.split("—")[1] || "").trim().toLowerCase();
-  const a = normalize(`${p.name.split("—")[0]} ${p.spec ?? ""}`);
+  let a = normalize(`${p.name.split("—")[0]} ${p.spec ?? ""}`);
   const b = normalize(cand.name);
+  // House wire is single-core by definition — make that explicit on OUR side even
+  // when the listing doesn't say it, so a multi-core candidate becomes a conflict.
+  if (p.category === "Wires & Cables" && !/\d\s*core/.test(a)) a += " 1core";
+  // Conflicting spec dimension (core count, size, amperage…) → different product.
+  if (dimsConflict(a, b)) return { s: -1, hard: 0, sim: 0 };
+  // Wires: the sqmm size is the product's identity — the candidate must state
+  // the SAME size, not merely avoid contradicting it.
+  if (p.category === "Wires & Cables") {
+    const ourSize = a.match(/\b(\d+(?:\.\d+)?)sqmm\b/);
+    const candSize = b.match(/\b(\d+(?:\.\d+)?)sqmm\b/);
+    if (ourSize && (!candSize || parseFloat(candSize[1]) !== parseFloat(ourSize[1]))) return { s: -1, hard: 0, sim: 0 };
+    // Insulation grade is a real product difference (FRLS ≠ FR-LSH ≠ FR ≠ HRFR
+    // ≠ ZHFR — different compound, different price). If both sides state a
+    // grade and they differ, reject.
+    const grade = (x) => {
+      const c = x.replace(/\bhr[\s-]?fr\b/g, "hrfr").replace(/\bfr[\s-]?lsh\b/g, "frlsh").replace(/\bfr[\s-]?ls\b/g, "frls");
+      return new Set([...c.matchAll(/\b(frlsh|frls|hrfr|zhfr|hffr|fr)\b/g)].map((m) => m[1]));
+    };
+    const ga = grade(a), gb2 = grade(b);
+    if (ga.size && gb2.size && ![...ga].some((g) => gb2.has(g))) return { s: -1, hard: 0, sim: 0 };
+  }
   const ha = hardTokens(a), hb = hardTokens(b);
   let s = 0, hard = 0;
   for (const t of ha) if (hb.has(t)) { s += t.match(/^[a-z]\d/) ? 6 : 3; hard++; }
@@ -478,8 +521,8 @@ async function main() {
       `select approval, match_method, count(*) from public.competitor_map group by 1, 2 order by 1, 2;`,
       "",
     ].join("\n");
-    fs.writeFileSync("supabase/migrations/0029_competitor-map-v2.sql", sql);
-    console.log(`SQL written → supabase/migrations/0029_competitor-map-v2.sql (review, then run in Supabase).`);
+    fs.writeFileSync("supabase/migrations/0030_competitor-map-v2.sql", sql);
+    console.log(`SQL written → supabase/migrations/0030_competitor-map-v2.sql (review, then run in Supabase).`);
   }
 }
 
