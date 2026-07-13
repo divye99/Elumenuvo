@@ -389,10 +389,9 @@ function skuHit(p, cand) {
 async function matchOnSource(p, src, base) {
   const brandDirect = BRAND_DIRECT_SRC.has(src);
   const boe = src === "bestofelectricals";
-  // Buyability rule: a candidate with an explicit zero/negative price is not a
-  // sellable listing, never a match. (Priceless-in-search candidates survive to
-  // the live post-validation below, since some search feeds omit prices.)
-  const cands = (await candidatesFor(p, src, base)).filter((c) => !(c.price != null && c.price <= 0));
+  // OOS/priceless candidates are still mappable (they get flagged, not priced),
+  // so no pre-filter here: the live fetch after matching classifies availability.
+  const cands = await candidatesFor(p, src, base);
 
   // Layer 1 — brand SKU: an MPN hit outranks any name score, no type guard needed.
   if (p.brand_sku) {
@@ -419,7 +418,7 @@ async function matchOnSource(p, src, base) {
 async function allProducts() {
   const out = [];
   for (let from = 0; ; from += 1000) {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/products?select=id,name,brand,brand_sku,category,spec,unit,parent_id,attrs&order=id&limit=1000&offset=${from}`, { headers: { apikey: READ_KEY, Authorization: `Bearer ${READ_KEY}` } });
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/products?select=id,name,brand,brand_sku,category,spec,unit,parent_id,attrs,elume_price&order=id&limit=1000&offset=${from}`, { headers: { apikey: READ_KEY, Authorization: `Bearer ${READ_KEY}` } });
     const page = await r.json();
     if (!Array.isArray(page) || page.length === 0) break;
     out.push(...page);
@@ -472,29 +471,25 @@ async function main() {
     for (const src of sources) {
       try {
         const m = await matchOnSource(p, src, base);
-        // In-stock / price-available rule: before writing ANY mapping, fetch the
-        // live listing and require it to be BUYABLE - in stock and with a real
-        // (>0) price. Out-of-stock or price-unavailable listings never map.
-        if (m && FETCHERS[src]) {
-          try {
-            const live = await FETCHERS[src](m.c.code);
-            const liveEffective = live ? (live.netPrice ?? live.listPrice) : null;
-            const buyable = live && live.inStock !== false && liveEffective != null && liveEffective > 0;
-            if (!buyable) {
-              console.log(`    ⊘ ${p.id} × ${src}: matched "${m.c.name.slice(0, 40)}" but ${!live ? "fetch failed" : live.inStock === false ? "OUT OF STOCK" : "no valid price"} - skipped`);
-              continue;
-            }
-          } catch { continue; } // can't verify buyability -> don't map it
-        }
-        if (m) {
-          if (m.method === "brand-sku") bySku++; else byName++;
-          hits.push({
-            product_id: p.id, source: src, code: m.c.code, unit_factor: unitFactorFor(p, src),
-            note: `auto: ${m.c.name.slice(0, 60)} (s${m.s})`,
-            match_method: m.method,
-            approval: m.method === "brand-sku" ? "approved" : "pending", // name matches need a human eye
-          });
-        }
+        if (!m) continue;
+        // Availability check: fetch the live listing so the mapping is written
+        // WITH its stock/price state. OOS or price-unavailable listings still
+        // map (flagged unavailable; their price never applies) - the mapping
+        // survives so the radar starts pricing the moment they restock.
+        let live = null;
+        if (FETCHERS[src]) { try { live = await FETCHERS[src](m.c.code); } catch { live = null; } }
+        const liveEffective = live ? (live.netPrice ?? live.listPrice) : null;
+        const buyable = !!live && live.inStock !== false && liveEffective != null && liveEffective > 0;
+        if (live && !buyable) console.log(`    ⊘ ${p.id} × ${src}: "${m.c.name.slice(0, 40)}" mapped as ${live.inStock === false ? "OUT OF STOCK" : "no price"}`);
+
+        if (m.method === "brand-sku") bySku++; else byName++;
+        hits.push({
+          product_id: p.id, source: src, code: m.c.code, unit_factor: unitFactorFor(p, src),
+          note: `auto: ${m.c.name.slice(0, 60)} (s${m.s})${live && !buyable ? " · unavailable at map time" : ""}`,
+          match_method: m.method,
+          approval: m.method === "brand-sku" ? "approved" : "pending", // name matches need a human eye
+          live, buyable, // snapshot data for the direct-write below
+        });
       } catch { /* a source hiccup shouldn't abort the whole run */ }
     }
     if (hits.length >= 2) multiSourceProducts++;
@@ -506,10 +501,13 @@ async function main() {
   console.log(`\nMatched ${rows.length} new mappings · ${bySku} by brand-SKU (auto-approved) · ${byName} by name (pending approval) · ${multiSourceProducts} products gained 2+ sellers · ${noMatch}/${considered} unmatched.`);
 
   if (SERVICE) {
-    // Direct write — INSERT only (existing pairs were filtered out above).
-    let written = 0;
+    // Direct write - INSERT only (existing pairs were filtered out above).
+    const priceById = new Map(products.map((p) => [p.id, Number(p.elume_price)]));
+    const nowIso = new Date().toISOString();
+    let written = 0, snapshots = 0;
     for (let i = 0; i < rows.length; i += 100) {
-      const chunk = rows.slice(i, i + 100).map((m) => ({
+      const batch = rows.slice(i, i + 100);
+      const chunk = batch.map((m) => ({
         product_id: m.product_id, source: m.source, competitor_code: m.code,
         unit_factor: m.unit_factor, note: m.note, match_method: m.match_method,
         approval: m.approval, item_condition: "New",
@@ -520,9 +518,38 @@ async function main() {
         body: JSON.stringify(chunk),
       });
       if (r.ok) written += chunk.length;
-      else console.error(`  ✗ batch ${i}: ${r.status} ${await r.text().catch(() => "")}`);
+      else { console.error(`  ✗ batch ${i}: ${r.status} ${await r.text().catch(() => "")}`); continue; }
+
+      // Availability snapshot from the map-time live fetch, so the admin shows
+      // In stock / Out of stock / price immediately (no waiting for a sync).
+      // OOS rows: status 'unavailable', NULL comparable - the price never applies.
+      const snaps = batch.filter((m) => m.live).map((m) => {
+        const effective = m.live.netPrice ?? m.live.listPrice;
+        const comparable = m.buyable ? Math.round(effective * (Number(m.unit_factor) || 1) * 100) / 100 : null;
+        return {
+          product_id: m.product_id, source: m.source,
+          competitor_code: m.live.code ?? m.code, competitor_name: m.live.name ?? null, competitor_url: m.live.url ?? null,
+          list_price: m.live.listPrice ?? null, net_price: m.live.netPrice ?? null,
+          unit_factor: Number(m.unit_factor) || 1,
+          comparable_price: comparable,
+          suggested_price: comparable != null ? Math.max(1, Math.round(comparable) - 1) : null,
+          our_price: priceById.get(m.product_id) ?? null,
+          status: m.buyable ? "pending" : "unavailable",
+          in_stock: m.live.inStock ?? (m.buyable ? true : false),
+          fetched_at: nowIso,
+        };
+      });
+      if (snaps.length) {
+        const rs = await fetch(`${SUPABASE_URL}/rest/v1/competitor_prices?on_conflict=product_id,source`, {
+          method: "POST",
+          headers: { apikey: SERVICE, Authorization: `Bearer ${SERVICE}`, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=minimal" },
+          body: JSON.stringify(snaps),
+        });
+        if (rs.ok) snapshots += snaps.length;
+        else console.error(`  ✗ price snapshots batch ${i}: ${rs.status} ${await rs.text().catch(() => "")}`);
+      }
     }
-    console.log(`Done — ${written} mappings written to competitor_map. Pending ones await approval in /admin/products.`);
+    console.log(`Done - ${written} mappings written (${snapshots} with instant availability snapshots). Pending ones await approval in /admin/products.`);
   } else {
     const sql = [
       "-- ═══════════════════════════════════════════════════════════════",

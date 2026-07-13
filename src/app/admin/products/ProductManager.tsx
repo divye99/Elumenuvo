@@ -377,8 +377,8 @@ function CompetitorTab({ row, sources }: { row: ManagerRow; sources: SourceInfo[
       {mappedSellers.length > 0 ? (
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 12, overflow: "hidden" }}>
           {/* header */}
-          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1.3fr 0.9fr 1fr auto", gap: 10, padding: "9px 14px", background: "#F7F8FB", borderBottom: "1px solid #EEF0F4", fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", color: "#8A93A6" }}>
-            <span>Seller</span><span>Competitor price</span><span>Condition</span><span>Link</span><span />
+          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1.1fr 0.9fr 0.85fr 0.7fr auto", gap: 10, padding: "9px 14px", background: "#F7F8FB", borderBottom: "1px solid #EEF0F4", fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", color: "#8A93A6" }}>
+            <span>Seller</span><span>Competitor price</span><span>Availability</span><span>Condition</span><span>Link</span><span />
           </div>
           {mappedSellers.map((s, i) => {
             const cell = row.perSource[s.id];
@@ -393,19 +393,18 @@ function CompetitorTab({ row, sources }: { row: ManagerRow; sources: SourceInfo[
             const url = p?.competitor_url ?? map.competitor_url ?? null;
             const canReprice = available && p?.suggested_price != null && p.suggested_price !== Math.round(row.elume_price);
             return (
-              <div key={s.id} style={{ display: "grid", gridTemplateColumns: "1.2fr 1.3fr 0.9fr 1fr auto", gap: 10, padding: "11px 14px", borderTop: i ? "1px solid #F5F6F9" : undefined, alignItems: "center" }}>
+              <div key={s.id} style={{ display: "grid", gridTemplateColumns: "1.2fr 1.1fr 0.9fr 0.85fr 0.7fr auto", gap: 10, padding: "11px 14px", borderTop: i ? "1px solid #F5F6F9" : undefined, alignItems: "center" }}>
                 {/* Seller */}
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                     {s.name}
                     {isCheapest && <span style={{ fontSize: 9, fontWeight: 700, color: "#137a4b", background: "#E6F5EE", padding: "1px 6px", borderRadius: 6 }}>LOWEST</span>}
                     {map.match_method === "brand-sku" && <span title="Matched on the manufacturer part number" style={{ fontSize: 8.5, fontWeight: 800, color: "#3A46B8", background: "#EEF0FE", padding: "1px 6px", borderRadius: 5 }}>SKU</span>}
-                    {map.approval === "pending" && <span title="Auto-matched by name — needs your approval" style={{ fontSize: 8.5, fontWeight: 800, color: "#C77700", background: "#FFF3E0", padding: "1px 6px", borderRadius: 5 }}>PENDING</span>}
-                    {oos && <span title={p?.in_stock === false ? "Out of stock on the competitor site" : "No valid price"} style={{ fontSize: 8.5, fontWeight: 800, color: "#C0392B", background: "#FBE9E4", padding: "1px 6px", borderRadius: 5 }}>{p?.in_stock === false ? "OUT OF STOCK" : "NO PRICE"}</span>}
+                    {map.approval === "pending" && <span title="Auto-matched by name - needs your approval" style={{ fontSize: 8.5, fontWeight: 800, color: "#C77700", background: "#FFF3E0", padding: "1px 6px", borderRadius: 5 }}>PENDING</span>}
                   </div>
                   <div style={{ fontFamily: "var(--space-mono)", fontSize: 10.5, color: "#8A93A6", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={map.competitor_code}>{map.competitor_code}</div>
                 </div>
-                {/* Price */}
+                {/* Price (never applies when unavailable - shown struck-through if known) */}
                 <div>
                   {available && comparable != null ? (
                     <>
@@ -414,8 +413,24 @@ function CompetitorTab({ row, sources }: { row: ManagerRow; sources: SourceInfo[
                         {p?.net_price != null ? `net ${fmt(p.net_price)}` : p?.list_price != null ? `list ${fmt(p.list_price)}` : ""}{(map.unit_factor ?? 1) !== 1 ? ` ·×${map.unit_factor}` : ""}
                       </div>
                     </>
+                  ) : oos && (p?.net_price != null || p?.list_price != null) ? (
+                    <div title="Last seen price - does not apply while unavailable" style={{ fontSize: 13, fontWeight: 600, color: "#A0A7B5", textDecoration: "line-through", fontVariantNumeric: "tabular-nums" }}>
+                      {fmt((p!.net_price ?? p!.list_price)! * (map.unit_factor ?? 1))}
+                    </div>
                   ) : (
-                    <span style={{ fontSize: 12, color: oos ? "#C0392B" : "#C77700" }}>{oos ? (p?.in_stock === false ? "out of stock" : "no price") : "awaiting sync"}</span>
+                    <span style={{ fontSize: 12, color: "#C4C9D4" }}>—</span>
+                  )}
+                </div>
+                {/* Availability */}
+                <div>
+                  {!p ? (
+                    <span style={availPill("#8A93A6", "#F0F2F6")}>Awaiting sync</span>
+                  ) : available ? (
+                    <span style={availPill("#137a4b", "#E6F5EE")}>● In stock</span>
+                  ) : p.in_stock === false ? (
+                    <span title="Out of stock on the competitor site - price does not apply" style={availPill("#C0392B", "#FBE9E4")}>● Out of stock</span>
+                  ) : (
+                    <span title="No valid price on the competitor site - does not apply" style={availPill("#C77700", "#FFF3E0")}>● No price</span>
                   )}
                 </div>
                 {/* Condition */}
@@ -594,3 +609,4 @@ const primary: React.CSSProperties = { background: "#4E5BDC", color: "#fff", fon
 const ghost: React.CSSProperties = { background: "#fff", color: "#19202e", fontWeight: 600, fontSize: 13, border: "1px solid #E0E4ED", padding: "8px 14px", borderRadius: 9, cursor: "pointer" };
 const ckLabel: React.CSSProperties = { display: "flex", alignItems: "center", gap: 7, fontSize: 13, color: "#19202e" };
 const selLink: React.CSSProperties = { background: "none", border: "none", color: "#4E5BDC", fontWeight: 600, fontSize: 12.5, cursor: "pointer", padding: "2px 4px" };
+const availPill = (fg: string, bg: string): React.CSSProperties => ({ fontSize: 10.5, fontWeight: 700, color: fg, background: bg, padding: "3px 9px", borderRadius: 999, whiteSpace: "nowrap" });
