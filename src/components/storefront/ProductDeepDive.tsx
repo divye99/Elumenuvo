@@ -51,6 +51,9 @@ export default function ProductDeepDive({
         ))}
       </div>
 
+      {/* ── Manufacturer description + key features (brand-site imports) ── */}
+      {p.techSpecs && <AboutBlock t={p.techSpecs} brand={p.brand} />}
+
       {/* ── Catalogue technical data (wires) ── */}
       {p.techSpecs && <TechSpecsBlock t={p.techSpecs} />}
 
@@ -182,6 +185,52 @@ function PriceStat({ label, value, muted }: { label: string; value: string; mute
   );
 }
 
+/* ── Manufacturer description, key features and feature cards ──
+ *    Rendered for brand-site imports (tech_specs.description / key_features /
+ *    features). Wire products carry the structured catalogue shape instead and
+ *    skip this block entirely. ── */
+function AboutBlock({ t, brand }: { t: TechSpecs; brand: string }) {
+  const hasAny = !!t.description || !!t.key_features?.length || !!t.features?.length;
+  if (!hasAny) return null;
+  return (
+    <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", margin: "0 0 12px" }}>
+        <h3 style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600, letterSpacing: "-0.4px", margin: 0 }}>
+          About this product
+        </h3>
+        {t.source && <span style={{ fontSize: 11, color: "#A0A7B5" }}>from {t.source}</span>}
+      </div>
+
+      {t.description && (
+        <p style={{ fontSize: 13.5, color: "#3B4557", lineHeight: 1.65, margin: "0 0 14px" }}>{t.description}</p>
+      )}
+
+      {t.key_features?.length ? (
+        <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 7 }}>
+          {t.key_features.map((f) => (
+            <li key={f} style={{ fontSize: 13, color: "#3B4557", lineHeight: 1.55 }}>{f}</li>
+          ))}
+        </ul>
+      ) : null}
+
+      {t.features?.length ? (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12, marginTop: t.key_features?.length || t.description ? 16 : 0 }}>
+          {t.features.map((f) => (
+            <div key={f.title} style={{ background: "#F7F8FB", border: "1px solid #EEF0F4", borderRadius: 12, padding: "13px 15px" }}>
+              <div style={{ fontSize: 12.5, fontWeight: 700, color: "#19202E" }}>{f.title}</div>
+              {f.body && <div style={{ fontSize: 12, color: "#56627A", lineHeight: 1.5, marginTop: 4 }}>{f.body}</div>}
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      <div style={{ fontSize: 10.5, color: "#A0A7B5", marginTop: 14 }}>
+        As published by {brand}. Verify critical parameters against the datasheet before specifying.
+      </div>
+    </div>
+  );
+}
+
 /* ── Manufacturer catalogue technical data (wires) ── */
 function TechSpecsBlock({ t }: { t: TechSpecs }) {
   const c = t.conductor ?? {};
@@ -205,6 +254,10 @@ function TechSpecsBlock({ t }: { t: TechSpecs }) {
     ["Standards", t.standards?.length ? t.standards.join(", ") : null],
     ["Packing", t.packing ?? null],
   ] as [string, string | null][]).filter((r): r is [string, string] => !!r[1]);
+
+  // Brand-site imports carry only the generic shape (description/specs); with
+  // no structured wire data this card would render as an empty shell.
+  if (rows.length === 0 && !t.fire_tests?.length) return null;
 
   return (
     <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
@@ -350,6 +403,19 @@ function techSpecs(p: Product): [string, string][] {
   add("Brand", p.brand);
   add("SKU", p.sku);
   add("Sold as", `Per ${p.unit}`);
+
+  // Manufacturer spec table (brand-site imports): append rows the category
+  // heuristics above did not already state, so scraped data (sweep size, air
+  // delivery, star rating, country of origin...) shows without duplication.
+  const scraped = p.techSpecs?.specs;
+  if (scraped) {
+    const seen = new Set(rows.map(([k]) => k.toLowerCase()));
+    for (const [k, v] of Object.entries(scraped)) {
+      if (!v || seen.has(k.toLowerCase())) continue;
+      rows.push([k, v]);
+      seen.add(k.toLowerCase());
+    }
+  }
   return rows;
 }
 

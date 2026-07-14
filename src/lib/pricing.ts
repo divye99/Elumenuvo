@@ -45,6 +45,12 @@ export const GST_RATES: Record<string, number> = {
   "Fans": 0.18,
   "DB & Panels": 0.18,
   "Lighting": 0.12, // LED lighting has historically been 12% — confirm current rate
+  // Added with the Havells catalogue import (Jul 2026). CONFIRM WITH CA: the
+  // Sept 2025 GST rationalisation moved many 12% goods to 5%, which likely
+  // covers pumps (HSN 8413) and may also affect the Lighting row above.
+  "Pumps": 0.05,
+  "Electrical Accessories": 0.18,
+  "EV Charging": 0.05, // EV chargers/charging infra at concessional 5%
 };
 export const DEFAULT_GST_RATE = 0.18; // standard FMEG rate for anything unmapped
 /** Back-compat alias — prefer gstRateFor(category). */

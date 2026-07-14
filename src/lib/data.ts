@@ -38,6 +38,14 @@ export type TechSpecs = {
   packing?: string;
   colours?: string[];
   source?: string;
+  // Generic manufacturer data (brand-site imports, e.g. havells.com): a short
+  // description, the PDP's Key Features bullets, feature cards (title + body)
+  // and the spec table as plain key/value rows. Wires use the structured
+  // fields above instead; a product may carry either shape (or both).
+  description?: string;
+  key_features?: string[];
+  features?: { title: string; body: string }[];
+  specs?: Record<string, string>;
 };
 
 // The catalogue lives in Supabase (public.products) — no static copy here.
@@ -71,9 +79,9 @@ export const HOME_CATALOGUE: ShowcaseItem[] = [
   { brand: "Crompton",  name: "Energion 1200mm Fan",     spec: "BLDC · 35 W · remote", sku: "CRM-EN-1200", cat: "Fans",           price: 2480, market: 2780, tile: "linear-gradient(135deg,#F3ECFB,#E6D9F6)" },
 ];
 
-export const CATS = ["All", "Wires & Cables", "Switchgear", "Modular", "DB & Panels", "Fans", "Lighting"];
+export const CATS = ["All", "Wires & Cables", "Switchgear", "Modular", "DB & Panels", "Fans", "Lighting", "Pumps", "Electrical Accessories", "EV Charging"];
 
-export const HOME_CATS = ["All", "Wires & Cables", "Switchgear", "Modular", "Lighting", "Fans", "DB & Panels"];
+export const HOME_CATS = ["All", "Wires & Cables", "Switchgear", "Modular", "Lighting", "Fans", "DB & Panels", "Pumps", "Electrical Accessories", "EV Charging"];
 
 export const HERO_CATS = ["Wires & Cables", "Switchgear", "Lighting", "Fans", "Modular", "DB & Panels"];
 

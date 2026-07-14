@@ -41,3 +41,4 @@ scripts/capture-glass.mjs
 
 # Generated one-off SQL (e.g. MRP backfill)
 scripts/out/
+scripts/data/
