@@ -29,7 +29,7 @@ export default function TermsPage() {
         },
         {
           h: "Payments",
-          body: "Online payments are processed by RBI-regulated payment partners; we never store your card details. For pay-on-delivery orders, payment is due in full at the time of delivery.",
+          body: "Orders are paid online at checkout through Razorpay, an RBI-regulated payment gateway, using UPI, cards, net banking or wallets. Payment is taken in full when the order is placed. We never see or store your card details; they are handled entirely by the gateway.",
         },
         {
           h: "Returns & warranty",

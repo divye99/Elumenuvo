@@ -1,10 +1,11 @@
 /**
  * Razorpay integration via REST (no SDK dependency). Server-only.
- * Graceful: if keys are unset, `razorpayConfigured()` is false and the checkout
- * shows only Pay-on-delivery — nothing else breaks.
+ * Graceful: if the keys are unset, `razorpayConfigured()` is false and checkout
+ * shows "payments enabling soon" with ordering paused — nothing else breaks.
+ * Pay-on-delivery is retired; Razorpay is the only payment path.
  *
- * Env:
- *   RAZORPAY_KEY_ID       — public key id (also sent to the browser checkout)
+ * Env (set in Vercel, never committed):
+ *   RAZORPAY_KEY_ID       — key id (safe to expose; sent to the browser checkout)
  *   RAZORPAY_KEY_SECRET   — server secret (order create + signature verify)
  */
 import { createHmac, timingSafeEqual } from "crypto";

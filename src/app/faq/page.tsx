@@ -13,7 +13,7 @@ const FAQS: Faq[] = [
   { q: "Do you deliver across India?", a: "Yes — we deliver pan-India, usually within 3–7 working days, and delivery is free on every order." },
   { q: "Can I get a GST invoice?", a: "Yes. Enter your GSTIN at checkout and we issue a GST invoice with tax shown separately, so businesses can claim input tax credit." },
   { q: "Is there a wholesale or bulk rate?", a: "Yes. Bulk orders unlock a wholesale rate about 5% below the listed Elume price — the tier is shown on every product page." },
-  { q: "What payment methods do you accept?", a: "UPI, cards and net banking via our payment partner, and pay-on-delivery on eligible orders. 30-day NBFC credit for businesses is coming soon." },
+  { q: "What payment methods do you accept?", a: "We accept UPI, credit and debit cards, net banking and wallets through our secure Razorpay checkout. Payment is taken online when you place the order. 30-day NBFC credit for businesses is coming soon." },
   { q: "How do I track my order?", a: "Use the Track an order page with your order ID, or sign in and open My orders for live status on every purchase." },
   { q: "What is the return policy?", a: "Unused items in original packaging can be returned within 7 days of delivery, with free return shipping. See our Returns & refunds page for details." },
   { q: "Can I cancel an order?", a: "Yes — orders can be cancelled free of charge any time before dispatch. Email info@elumenuvo.com or call +91 98188 21175 with your order ID." },

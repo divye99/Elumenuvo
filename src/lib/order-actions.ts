@@ -91,20 +91,9 @@ async function writeOrder(
   return { ok: true };
 }
 
-/** Place a Pay-on-delivery order. GST-inclusive prices; total = sum(price × qty). */
-export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResult> {
-  const v = validate(input);
-  if (!v.ok) return v;
-  const db = adminClient();
-  if (!db) return { ok: false, error: "Ordering isn't available right now." };
-
-  const id = orderId();
-  const res = await writeOrder(db, id, { ...input, payment_method: "cod" }, v.items, v.total, {});
-  if (!res.ok) return { ok: false, error: res.error };
-  return { ok: true, orderId: id, total: v.total };
-}
-
-/* ── Online payment (Razorpay) ── */
+/* ── Online payment (Razorpay) — the only payment path.
+ *    Pay-on-delivery was retired; its placeOrder() action was removed so a
+ *    stale caller can't create an unpaid COD order. ── */
 
 export type StartPaymentResult =
   | { ok: true; orderId: string; razorpayOrderId: string; keyId: string; amount: number; name: string; email: string; phone: string }
@@ -123,7 +112,7 @@ export async function onlinePaymentAvailable(): Promise<boolean> {
 export async function startOnlinePayment(input: PlaceOrderInput): Promise<StartPaymentResult> {
   const v = validate(input);
   if (!v.ok) return v;
-  if (!razorpayConfigured()) return { ok: false, error: "Online payment isn't set up. Use Pay on delivery." };
+  if (!razorpayConfigured()) return { ok: false, error: "Online payment isn't set up yet. Please try again shortly." };
 
   const id = orderId();
   const rp = await createRazorpayOrder(Math.round(v.total * 100), id, { orderId: id, email: input.email.trim().toLowerCase() });

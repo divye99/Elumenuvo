@@ -42,7 +42,7 @@ export default function ReturnsPage() {
         },
         {
           h: "Refund timelines",
-          body: "Once the item passes our quality check (typically 2–3 working days after pickup), your refund is issued to the original payment method. Banks usually take a further 3–7 working days to credit the amount. Pay-on-delivery orders are refunded by bank transfer.",
+          body: "Once the item passes our quality check (typically 2–3 working days after pickup), the refund is issued back to the original payment method through Razorpay. Banks and UPI apps usually take a further 3–7 working days to credit the amount.",
         },
         {
           h: "Warranty claims",
