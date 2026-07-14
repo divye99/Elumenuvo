@@ -17,6 +17,9 @@ export type Product = {
   /** Sort signals (Supabase-managed; default 0/false for static fallback). */
   unitsSold?: number;
   recommended?: boolean;
+  /** Lowest buyable competitor price across APPROVED mappings (maintained by
+   *  refresh_market_low in the DB). Undefined = no trusted competitor price. */
+  marketLow?: number;
   /** Variant family — variations point at their parent product via parentId
    *  (null/undefined = parent or standalone). Family = parent + children. */
   parentId?: string;

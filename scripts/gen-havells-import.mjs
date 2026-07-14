@@ -67,6 +67,10 @@ function leafCategory(p) {
 }
 
 /* ── helpers ── */
+// User decision (Jul 2026, migration 0045): Elume does not carry products
+// selling under this price. Applies to OUR price (Havells price minus 2%).
+const MIN_PRICE = 300;
+
 const q = (s) => `'${String(s).replace(/'/g, "''")}'`;
 const jsonb = (o) => `${q(JSON.stringify(o))}::jsonb`;
 const stripHtml = (h) => String(h || "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&#0?39;|&apos;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, " ").trim();
@@ -236,6 +240,7 @@ async function main() {
       usedSkus.add(norm(sku));
       const dims = variantDims(v);
       const final = money(v.product.price_range.minimum_price.final_price.value);
+      if (Math.round(final * 0.98) < MIN_PRICE) return parentId; // below the carry floor
       const mrp = money(v.product.price_range?.minimum_price?.regular_price?.value) ?? final;
       const id = idFor(sku);
       const baseName = cleanName(p.name);
@@ -319,6 +324,7 @@ async function main() {
       if (p.stock_status !== "IN_STOCK") { skippedOOS++; continue; }
       const final = money(p.price_range?.minimum_price?.final_price?.value);
       if (!final) { skippedZero++; continue; }
+      if (Math.round(final * 0.98) < MIN_PRICE) continue; // below the carry floor
       if (usedSkus.has(norm(p.sku))) continue;
       usedSkus.add(norm(p.sku));
       const mrp = money(p.price_range?.minimum_price?.regular_price?.value) ?? final;

@@ -23,6 +23,7 @@ type Row = {
   units_sold?: number | null;
   is_recommended?: boolean | null;
   parent_id?: string | null;
+  market_low?: number | string | null;
   attrs?: Record<string, string> | null;
   tech_specs?: TechSpecs | null;
   reviews?: { rating: number }[];
@@ -46,6 +47,7 @@ const toProduct = (r: Row): Product => {
     unitsSold: r.units_sold ?? 0,
     recommended: r.is_recommended ?? false,
     parentId: r.parent_id ?? undefined,
+    marketLow: r.market_low != null ? Number(r.market_low) : undefined,
     attrs: r.attrs ?? undefined,
     techSpecs: r.tech_specs ?? undefined,
   };

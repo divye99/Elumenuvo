@@ -7,7 +7,7 @@
  */
 import { getAdapter, credsFor } from "@/lib/competitors";
 
-type SupaLike = { from: (t: string) => any };
+type SupaLike = { from: (t: string) => any; rpc: (fn: string, args?: Record<string, unknown>) => PromiseLike<unknown> };
 export type SyncResult = { mapped: number; fetched: number; failed: number; suggestions: number; incomplete: boolean };
 
 /** `deadlineMs` (epoch ms) caps in-request work so the admin call returns
@@ -101,6 +101,13 @@ export async function runCompetitorSync(db: SupaLike, source: string, runSource:
     if (deadlineMs && Date.now() > deadlineMs) { incomplete = true; break; } // out of time — stop cleanly
     await Promise.all(rows.slice(i, i + CONCURRENCY).map((m: any) => processOne(m).catch(() => { failed++; })));
   }
+
+  // Re-derive products.market_low (the storefront's "beats the market" signal)
+  // for everything this source touched. One RPC, set-based in SQL; tolerated to
+  // fail on DBs where migration 0046 has not run yet.
+  try {
+    await db.rpc("refresh_market_low", { ids: rows.map((m: any) => m.product_id) });
+  } catch { /* pre-0046 database — the storefront just falls back to MRP ranking */ }
 
   await db.from("competitor_sync_log").insert({ source, mapped: rows.length, fetched, failed, suggestions, run_source: runSource });
   return { mapped: rows.length, fetched, failed, suggestions, incomplete };

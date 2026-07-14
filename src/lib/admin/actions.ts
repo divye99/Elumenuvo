@@ -260,6 +260,9 @@ export async function saveCompetitorMap(input: { product_id: string; source: str
     updated_at: new Date().toISOString(),
   });
   if (error) return { ok: false, error: error.message };
+  // A remap can change which snapshot counts as trusted (e.g. replacing a
+  // pending mapping that had a lingering price row).
+  await db.rpc("refresh_market_low", { ids: [input.product_id] }).then(() => {}, () => {});
   revalidatePath("/admin/radar");
   revalidatePath("/admin/products");
   return { ok: true };
@@ -278,6 +281,8 @@ export async function setMapApproval(productId: string, source: string, approve:
     await db.from("competitor_map").delete().eq("product_id", productId).eq("source", source);
     await db.from("competitor_prices").delete().eq("product_id", productId).eq("source", source);
   }
+  // Approval changes what counts as a trusted price → market_low must follow.
+  await db.rpc("refresh_market_low", { ids: [productId] }).then(() => {}, () => {});
   revalidatePath("/admin/radar");
   revalidatePath("/admin/products");
   return { ok: true };
@@ -302,6 +307,7 @@ export async function removeCompetitorMap(productId: string, source: string): Pr
   if (!db) return { ok: false, error: "Service-role key missing." };
   await db.from("competitor_map").delete().eq("product_id", productId).eq("source", source);
   await db.from("competitor_prices").delete().eq("product_id", productId).eq("source", source);
+  await db.rpc("refresh_market_low", { ids: [productId] }).then(() => {}, () => {});
   revalidatePath("/admin/radar");
   return { ok: true };
 }
