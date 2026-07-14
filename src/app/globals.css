@@ -348,7 +348,9 @@ input[type="range"].elume-range::-moz-range-thumb {
   .pc-brand { font-size: 9px !important; }
   .pc-opts { font-size: 8px !important; padding: 2px 5px !important; }
   .pc-name { font-size: 11px !important; margin: 3px 0 !important; line-height: 1.25 !important; }
-  .pc-spec { font-size: 8px !important; margin-bottom: 7px !important; }
+  .pc-spec { margin-bottom: 7px !important; gap: 1.5px !important; }
+  .pc-spec > div { font-size: 9px !important; }
+  .pc-spec > div > span:first-child { font-size: 7px !important; }
   .pc-price { font-size: 14px !important; }
   .pc-mrp { font-size: 9.5px !important; }
   .pc-save { font-size: 9px !important; padding: 3px 6px !important; right: 7px !important; bottom: 7px !important; }

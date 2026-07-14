@@ -8,6 +8,7 @@ import { GROTESK, MONO } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import { baseExGst } from "@/lib/pricing";
 import { tileFor, type Product } from "@/lib/data";
+import { cardHighlights } from "@/lib/card-specs";
 import { valuesOf, bestMatch, COLOUR_HEX } from "@/lib/variants";
 import { useCart } from "@/lib/cart";
 
@@ -188,7 +189,17 @@ export default function ProductCard({
             <div style={{ fontSize: 10, color: "#A0A7B5", marginTop: 1 }}>{shown.ratingCount} review{shown.ratingCount === 1 ? "" : "s"}</div>
           </div>
         ) : null}
-        <div className="pc-spec" style={{ fontFamily: MONO, fontSize: 10.5, color: "#8A93A6", marginBottom: 13 }}>{shown.spec}</div>
+        {/* 2-3 decision specs (sweep/wattage/rating...), not the raw spec dump:
+            the card's job is shortlisting within a grid, so only the facts
+            that differentiate neighbouring products earn a line. */}
+        <div className="pc-spec" style={{ marginBottom: 13, display: "flex", flexDirection: "column", gap: 2.5 }}>
+          {cardHighlights(shown).map((h) => (
+            <div key={h} style={{ display: "flex", alignItems: "baseline", gap: 6, fontSize: 11, color: "#56627A", lineHeight: 1.35, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <span style={{ color: "#4E5BDC", fontSize: 9, flexShrink: 0 }}>●</span>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{h}</span>
+            </div>
+          ))}
+        </div>
         <div style={{ marginTop: "auto" }}>
           <div className="pc-price" style={{ fontFamily: GROTESK, fontSize: 19, fontWeight: 600, color: "#19202E", display: "flex", alignItems: "baseline", gap: 5 }}>
             {fmt(baseExGst(shown.price, shown.cat))}
