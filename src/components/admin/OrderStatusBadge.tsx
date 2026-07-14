@@ -1,5 +1,8 @@
 /** Order-status pill — consistent colours across the admin orders UI + tracking. */
 const STYLES: Record<string, { bg: string; fg: string; label: string }> = {
+  // Money not captured yet — not a real order until the callback or webhook lands.
+  awaiting_payment: { bg: "#FFF9EE", fg: "#8a6116", label: "Awaiting payment" },
+  payment_abandoned: { bg: "#F3F5F9", fg: "#8A93A6", label: "Payment abandoned" },
   placed: { bg: "#EEF0FE", fg: "#4E5BDC", label: "Placed" },
   confirmed: { bg: "#E6F0FF", fg: "#2563C9", label: "Confirmed" },
   packed: { bg: "#FFF3E0", fg: "#C77700", label: "Packed" },

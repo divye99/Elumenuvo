@@ -16,7 +16,13 @@ export const metadata: Metadata = { title: "My orders", robots: { index: false }
 async function myOrders(userId: string): Promise<OrderRow[]> {
   const db = adminClient();
   if (!db) return [];
-  const { data } = await db.from("orders").select("*").eq("user_id", userId).order("created_at", { ascending: false });
+  // Only real (paid) orders — an abandoned payment attempt isn't an order.
+  const { data } = await db
+    .from("orders")
+    .select("*")
+    .eq("user_id", userId)
+    .not("status", "in", '("awaiting_payment","payment_abandoned")')
+    .order("created_at", { ascending: false });
   return (data ?? []) as OrderRow[];
 }
 

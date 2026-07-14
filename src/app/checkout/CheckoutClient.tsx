@@ -110,7 +110,10 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
       }
       if (!payment) { setErr("Payment cancelled — you weren't charged."); return; }
 
-      const res = await confirmOnlinePayment(input, {
+      // The order was already persisted (as awaiting_payment) in step 1, so the
+      // confirm only verifies the signature and flips it to paid — the amount
+      // and contents come from the server-side row, never from the browser.
+      const res = await confirmOnlinePayment({
         orderId: started.orderId,
         razorpay_order_id: payment.razorpay_order_id,
         razorpay_payment_id: payment.razorpay_payment_id,

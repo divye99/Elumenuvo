@@ -41,14 +41,14 @@ function validate(input: PlaceOrderInput): { ok: true; items: CheckoutItem[]; to
   return { ok: true, items, total };
 }
 
-/** Insert the order row (+ timeline + notifications). Shared by COD and paid-online. */
-async function writeOrder(
+/** Insert the order row as AWAITING PAYMENT (no emails yet — nothing is paid). */
+async function insertPendingOrder(
   db: NonNullable<ReturnType<typeof adminClient>>,
   id: string,
   input: PlaceOrderInput,
   items: CheckoutItem[],
   total: number,
-  extra: Record<string, unknown>
+  razorpayOrderId: string
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   let userId: string | null = null;
   try {
@@ -65,7 +65,7 @@ async function writeOrder(
     gstin: input.gstin?.trim() || null,
     billing_address: input.billing_address.trim(),
     shipping_address: input.shipping_address.trim(),
-    payment_method: input.payment_method,
+    payment_method: "online",
     items,
     product_ids: items.map((i) => i.id),
     // Taxable value = sum of each item's ex-GST base at its category rate
@@ -76,19 +76,56 @@ async function writeOrder(
     total,
     is_guest: !userId,
     user_id: userId,
-    status: "placed",
-    ...extra,
+    status: "awaiting_payment",
+    razorpay_order_id: razorpayOrderId,
   });
   if (error) return { ok: false, error: error.message };
-
-  const order = {
-    id, email: input.email.trim().toLowerCase(), name: input.name.trim(), phone: input.phone.trim(),
-    total, items, shipping_address: input.shipping_address.trim(), gstin: input.gstin?.trim() || null,
-  };
-  const note = input.payment_method === "online" ? "Order placed · paid online" : "Order placed";
-  try { await db.from("order_events").insert({ order_id: id, status: "placed", note }); } catch { /* table may not exist yet */ }
-  await Promise.allSettled([sendAdminNewOrder(order), sendCustomerOrderConfirmation(order)]);
   return { ok: true };
+}
+
+export type PaidResult = { ok: true; newlyPaid: boolean; orderId: string; total: number } | { ok: false; error: string };
+
+/**
+ * Mark an awaiting-payment order as paid. IDEMPOTENT and race-safe: the update
+ * is conditional on the row still being `awaiting_payment`, so whichever of the
+ * browser callback and the webhook gets there first wins, and only that one
+ * sends the confirmation emails. The other is a no-op.
+ */
+export async function markOrderPaid(
+  db: NonNullable<ReturnType<typeof adminClient>>,
+  orderId: string,
+  razorpayOrderId: string,
+  razorpayPaymentId: string
+): Promise<PaidResult> {
+  // The order must exist and belong to this Razorpay order — never trust a
+  // caller to name an arbitrary order id.
+  const { data: order } = await db.from("orders").select("*").eq("id", orderId).maybeSingle();
+  if (!order) return { ok: false, error: "Order not found." };
+  if (order.razorpay_order_id && order.razorpay_order_id !== razorpayOrderId) {
+    return { ok: false, error: "Payment does not match this order." };
+  }
+
+  const { data: updated } = await db
+    .from("orders")
+    .update({ status: "placed", paid_at: new Date().toISOString(), razorpay_payment_id: razorpayPaymentId })
+    .eq("id", orderId)
+    .eq("status", "awaiting_payment") // ← the idempotency guard
+    .select("id");
+
+  const newlyPaid = !!updated && updated.length > 0;
+  if (!newlyPaid) {
+    // Already marked paid by the other path; nothing more to do.
+    return { ok: true, newlyPaid: false, orderId, total: Number(order.total) };
+  }
+
+  try { await db.from("order_events").insert({ order_id: orderId, status: "placed", note: "Order placed · paid online" }); } catch { /* table may not exist */ }
+  const mail = {
+    id: orderId, email: order.email, name: order.name, phone: order.phone,
+    total: Number(order.total), items: order.items ?? [],
+    shipping_address: order.shipping_address, gstin: order.gstin ?? null,
+  };
+  await Promise.allSettled([sendAdminNewOrder(mail), sendCustomerOrderConfirmation(mail)]);
+  return { ok: true, newlyPaid: true, orderId, total: Number(order.total) };
 }
 
 /* ── Online payment (Razorpay) — the only payment path.
@@ -105,18 +142,25 @@ export async function onlinePaymentAvailable(): Promise<boolean> {
 }
 
 /**
- * Step 1 of online payment: validate, compute the amount server-side, and create
- * a Razorpay order. No DB row is written yet — the order is only persisted once
- * payment is verified, so abandoned attempts leave nothing behind.
+ * Step 1 of online payment: validate, compute the amount server-side, create the
+ * Razorpay order, and PERSIST the order as `awaiting_payment` before the payment
+ * window opens. Writing it up-front is what lets the webhook recover a payment
+ * whose browser callback never came back (customer closed the tab, lost signal,
+ * app-switched mid-UPI) — otherwise they'd be charged with no order to show.
  */
 export async function startOnlinePayment(input: PlaceOrderInput): Promise<StartPaymentResult> {
   const v = validate(input);
   if (!v.ok) return v;
   if (!razorpayConfigured()) return { ok: false, error: "Online payment isn't set up yet. Please try again shortly." };
+  const db = adminClient();
+  if (!db) return { ok: false, error: "Ordering isn't available right now." };
 
   const id = orderId();
   const rp = await createRazorpayOrder(Math.round(v.total * 100), id, { orderId: id, email: input.email.trim().toLowerCase() });
   if (!rp.ok) return { ok: false, error: rp.error };
+
+  const pending = await insertPendingOrder(db, id, input, v.items, v.total, rp.id);
+  if (!pending.ok) return { ok: false, error: pending.error };
 
   return {
     ok: true, orderId: id, razorpayOrderId: rp.id, keyId: razorpayKeyId(), amount: Math.round(v.total * 100),
@@ -125,28 +169,24 @@ export async function startOnlinePayment(input: PlaceOrderInput): Promise<StartP
 }
 
 /**
- * Step 2: verify the Razorpay signature, then persist the (now paid) order and
- * fire the confirmation. Recomputes the total server-side — never trusts the client.
+ * Step 2 (fast path): the browser came back with a success payload. Verify the
+ * signature and mark the pending order paid. The webhook is the safety net that
+ * does exactly the same thing if this never runs; whichever lands first wins.
+ * Nothing here trusts the client — the amount and contents come from the row we
+ * wrote in step 1.
  */
 export async function confirmOnlinePayment(
-  input: PlaceOrderInput,
   payment: { orderId: string; razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }
 ): Promise<PlaceOrderResult> {
-  const v = validate(input);
-  if (!v.ok) return v;
   if (!verifyPaymentSignature(payment.razorpay_order_id, payment.razorpay_payment_id, payment.razorpay_signature)) {
     return { ok: false, error: "Payment could not be verified. If you were charged, contact support with your payment id." };
   }
   const db = adminClient();
   if (!db) return { ok: false, error: "Ordering isn't available right now." };
 
-  const res = await writeOrder(db, payment.orderId, { ...input, payment_method: "online" }, v.items, v.total, {
-    razorpay_order_id: payment.razorpay_order_id,
-    razorpay_payment_id: payment.razorpay_payment_id,
-    paid_at: new Date().toISOString(),
-  });
+  const res = await markOrderPaid(db, payment.orderId, payment.razorpay_order_id, payment.razorpay_payment_id);
   if (!res.ok) return { ok: false, error: res.error };
-  return { ok: true, orderId: payment.orderId, total: v.total };
+  return { ok: true, orderId: res.orderId, total: res.total };
 }
 
 /** GST split for a GST-inclusive amount (checkout summary). */

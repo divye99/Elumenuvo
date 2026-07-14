@@ -12,12 +12,29 @@ import { createHmac, timingSafeEqual } from "crypto";
 
 const KEY_ID = (process.env.RAZORPAY_KEY_ID || "").trim();
 const KEY_SECRET = (process.env.RAZORPAY_KEY_SECRET || "").trim();
+const WEBHOOK_SECRET = (process.env.RAZORPAY_WEBHOOK_SECRET || "").trim();
 
 export function razorpayConfigured(): boolean {
   return !!(KEY_ID && KEY_SECRET);
 }
 export function razorpayKeyId(): string {
   return KEY_ID;
+}
+export function webhookConfigured(): boolean {
+  return !!WEBHOOK_SECRET;
+}
+
+/**
+ * Verify a Razorpay webhook. The signature is HMAC-SHA256 of the RAW request
+ * body using the webhook secret (a different secret from the API key secret).
+ * The body must be the exact bytes Razorpay sent — never a re-serialised JSON.
+ */
+export function verifyWebhookSignature(rawBody: string, signature: string): boolean {
+  if (!WEBHOOK_SECRET || !rawBody || !signature) return false;
+  const expected = createHmac("sha256", WEBHOOK_SECRET).update(rawBody).digest("hex");
+  const a = Buffer.from(expected);
+  const b = Buffer.from(signature);
+  return a.length === b.length && timingSafeEqual(a, b);
 }
 
 /** Create a Razorpay order for an amount in paise. Returns the order id. */

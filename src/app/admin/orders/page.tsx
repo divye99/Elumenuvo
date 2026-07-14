@@ -7,13 +7,20 @@ import OrderStatusBadge from "@/components/admin/OrderStatusBadge";
 export const dynamic = "force-dynamic";
 
 const OPEN = ["placed", "confirmed", "packed", "shipped", "partially_shipped", "out_for_delivery"];
+// Money never captured — not real orders, so they belong in neither Open nor Done.
+const UNPAID = ["awaiting_payment", "payment_abandoned"];
 
 export default async function AdminOrders({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
   await requireAdmin();
   const { filter } = await searchParams;
   const all = await listOrders();
-  const view = filter === "open" ? all.filter((o) => OPEN.includes(o.status)) : filter === "done" ? all.filter((o) => !OPEN.includes(o.status)) : all;
+  const view =
+    filter === "open" ? all.filter((o) => OPEN.includes(o.status))
+    : filter === "done" ? all.filter((o) => !OPEN.includes(o.status) && !UNPAID.includes(o.status))
+    : filter === "unpaid" ? all.filter((o) => UNPAID.includes(o.status))
+    : all;
   const openCount = all.filter((o) => OPEN.includes(o.status)).length;
+  const unpaidCount = all.filter((o) => UNPAID.includes(o.status)).length;
 
   const tab = (key: string, label: string, count: number) => {
     const active = (filter ?? "all") === key;
@@ -41,7 +48,8 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
       <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
         {tab("all", "All", all.length)}
         {tab("open", "To fulfil", openCount)}
-        {tab("done", "Completed", all.length - openCount)}
+        {tab("done", "Completed", all.length - openCount - unpaidCount)}
+        {tab("unpaid", "Unpaid", unpaidCount)}
       </div>
 
       {view.length === 0 ? (

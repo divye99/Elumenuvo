@@ -14,6 +14,8 @@ async function lookup(orderId: string, email: string) {
   if (!db) return null;
   const { data: order } = await db.from("orders").select("*").eq("id", orderId.trim()).maybeSingle();
   if (!order || String(order.email).toLowerCase() !== email.trim().toLowerCase()) return null;
+  // An unpaid attempt isn't a trackable order.
+  if (order.status === "awaiting_payment" || order.status === "payment_abandoned") return null;
   const [{ data: shipments }, { data: events }] = await Promise.all([
     db.from("order_shipments").select("*").eq("order_id", order.id).order("created_at", { ascending: true }),
     db.from("order_events").select("*").eq("order_id", order.id).order("created_at", { ascending: true }),
