@@ -185,9 +185,32 @@ function sourcesFor(p) {
 }
 const BRAND_DIRECT_SRC = new Set(Object.values(OWN_STORE));
 
-// Vashi quotes wire per metre; a 90 m coil = ×90. Everything else is per unit.
+/* ── Coil length: part of a wire's IDENTITY, not a detail ──
+ * A 90 m coil and a 180 m coil of the same wire are different SKUs at roughly
+ * 2x the price. Matching across them silently doubles (or halves) the
+ * competitor price, so length is read from the product's own attributes and
+ * enforced as a hard conflict in score(), and it drives the per-metre factor. */
+const LENGTH_RE = /\b(\d{2,4})\s*(?:m|mtr|mtrs|meter|meters|metre|metres)\b/g;
+function lengthsIn(s) {
+  const out = new Set();
+  for (const m of String(s).toLowerCase().matchAll(LENGTH_RE)) out.add(parseInt(m[1], 10));
+  return out;
+}
+/** Our coil length in metres. attrs.Length is the source of truth (the same
+ *  field the admin's unit-factor guess reads); name/spec are the fallback. */
+function coilMetres(p) {
+  const fromAttr = lengthsIn(p.attrs?.Length ?? "");
+  if (fromAttr.size) return [...fromAttr][0];
+  const fromText = lengthsIn(`${p.name} ${p.spec ?? ""}`);
+  return fromText.size ? [...fromText][0] : null;
+}
+
+// Vashi quotes wire per METRE, so the factor is our actual coil length (90 m
+// coil = x90, 180 m coil = x180). Hardcoding 90 priced a 180 m coil as if it
+// were half a coil. Everything else is sold per unit.
 function unitFactorFor(p, src) {
-  return p.category === "Wires & Cables" && src === "vashi" ? 90 : 1;
+  if (p.category !== "Wires & Cables" || src !== "vashi") return 1;
+  return coilMetres(p) ?? 90;
 }
 
 /* ── scoring: type guard + normalized-token overlap ── */
@@ -295,6 +318,14 @@ function score(p, cand) {
     };
     const ga = grade(a), gb2 = grade(b);
     if (ga.size && gb2.size && ![...ga].some((g) => gb2.has(g))) return { s: -1, hard: 0, sim: 0 };
+    // Coil length: if the listing states one and it isn't ours, it's a different
+    // pack. This is what stopped a 90 m coil matching a 180 m coil (and picking
+    // up ~2x the price as if it were like-for-like). A listing that states no
+    // length is not penalised: per-metre sellers (Vashi) never state one, and
+    // the unit factor handles them.
+    const ourLen = coilMetres(p);
+    const candLens = lengthsIn(cand.name);
+    if (ourLen && candLens.size && !candLens.has(ourLen)) return { s: -1, hard: 0, sim: 0 };
   }
   const ha = hardTokens(a), hb = hardTokens(b);
   let s = 0, hard = 0;

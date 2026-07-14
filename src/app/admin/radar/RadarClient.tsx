@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { fmt } from "@/lib/format";
+import { gstBreakdown } from "@/lib/pricing";
 import {
   searchCompetitorAction,
   saveCompetitorMap,
@@ -236,6 +237,10 @@ function MappedRow({ r, first, pending, run }: { r: RadarRow; first: boolean; pe
   const canAccept = !!m && m.target != null && m.target !== Math.round(r.ourPrice);
   const canExpand = !!m && m.sellers.length > 0;
   const money = (n: number | null) => (n != null ? fmt(n) : "—");
+  // Everything on this screen is GST-INCLUSIVE: that is how competitors list
+  // their prices, so it is the only apples-to-apples basis for comparison. The
+  // storefront shows the ex-GST base, so each figure carries it underneath.
+  const exGst = (n: number | null) => (n != null ? `${fmt(gstBreakdown(n, r.category).base)} ex-GST` : undefined);
 
   return (
     <div style={{ borderTop: first ? undefined : "1px solid #F0F2F6" }}>
@@ -249,18 +254,21 @@ function MappedRow({ r, first, pending, run }: { r: RadarRow; first: boolean; pe
             <div style={{ fontWeight: 600, fontSize: 13.5, color: "#19202E", overflow: "hidden", textOverflow: "ellipsis" }}>
               {canExpand && <span style={{ color: "#8A93A6", marginRight: 5, fontSize: 11 }}>{open ? "▾" : "▸"}</span>}{r.name}
             </div>
-            <div style={{ fontSize: 11.5, color: "#8A93A6" }}>{r.brand} · {r.category}{m ? ` · ${m.sellers.length} seller${m.sellers.length === 1 ? "" : "s"}${m.usableCount < m.sellers.length ? ` (${m.usableCount} in stock)` : ""}` : r.mappedCount ? " · mapped, awaiting price" : " · not mapped"}</div>
+            {/* Coil length is shown for wires: it is part of the SKU's identity
+                (a 90 m coil and a 180 m coil are different products at ~2x the
+                price), so it has to be visible when judging a competitor match. */}
+            <div style={{ fontSize: 11.5, color: "#8A93A6" }}>{r.brand} · {r.category}{r.category === "Wires & Cables" && r.suggestedFactor > 1 ? ` · ${r.suggestedFactor} m coil` : ""}{m ? ` · ${m.sellers.length} seller${m.sellers.length === 1 ? "" : "s"}${m.usableCount < m.sellers.length ? ` (${m.usableCount} in stock)` : ""}` : r.mappedCount ? " · mapped, awaiting price" : " · not mapped"}</div>
           </div>
         </div>
 
         {m ? (
           <>
             <div style={{ display: "flex", gap: 18, alignItems: "center" }}>
-              <Stat label="Elume · incl. GST" value={editing ? undefined : fmt(r.ourPrice)}>
+              <Stat label="Elume · incl. GST" value={editing ? undefined : fmt(r.ourPrice)} sub={exGst(editing ? price : r.ourPrice)}>
                 {editing && <input autoFocus value={val} onChange={(e) => setVal(e.target.value.replace(/[^\d]/g, ""))} type="text" inputMode="numeric" style={{ width: 78, border: "1px solid #4E5BDC", borderRadius: 7, padding: "3px 7px", fontSize: 13, fontWeight: 700, textAlign: "right" }} />}
               </Stat>
-              <Stat label="Avg market" value={money(m.avgMarket)} />
-              <Stat label={`Lowest${m.cheapestSource ? ` · ${m.cheapestSource}` : ""}`} value={money(m.lowest)} />
+              <Stat label="Avg market" value={money(m.avgMarket)} sub={exGst(m.avgMarket)} />
+              <Stat label={`Lowest${m.cheapestSource ? ` · ${m.cheapestSource}` : ""}`} value={money(m.lowest)} sub={exGst(m.lowest)} />
               <Stat label="vs lowest" value={pct == null ? "—" : `${pct > 0 ? "+" : ""}${pct}%`} color={pctColor} />
             </div>
             <div style={{ display: "flex", gap: 8, marginLeft: "auto", alignItems: "center" }}>
@@ -279,7 +287,7 @@ function MappedRow({ r, first, pending, run }: { r: RadarRow; first: boolean; pe
           </>
         ) : (
           <div style={{ display: "flex", gap: 14, alignItems: "center", marginLeft: "auto" }}>
-            <Stat label="Elume · incl. GST" value={fmt(r.ourPrice)} />
+            <Stat label="Elume · incl. GST" value={fmt(r.ourPrice)} sub={exGst(r.ourPrice)} />
             <span style={{ fontSize: 12, fontWeight: 600, color: r.mappedCount ? "#C77700" : "#C0392B", background: r.mappedCount ? "#FFF3E0" : "#FBE9E4", padding: "4px 10px", borderRadius: 8 }}>
               {r.pendingCount ? `${r.pendingCount} match${r.pendingCount === 1 ? "" : "es"} awaiting approval` : r.mappedCount ? "Mapped — run Refresh prices" : "Not mapped"}
             </span>
