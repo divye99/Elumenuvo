@@ -44,24 +44,54 @@ where id = 'cmi-gs-15-red-180m';
 -- ("auto: Polycab 2.5 sqmm 180 m FR House Wire (s14)"), so a length stated on
 -- the listing can be compared with ours. A listing that states NO length is
 -- left alone: per-metre sellers never state one, and unit_factor handles them.
-create temporary table _len_mismatch on commit drop as
-select m.product_id, m.source,
+-- A view keeps the length arithmetic in ONE place, so the two deletes below
+-- (prices first, then the mapping) can never drift apart. Dropped at the end.
+create or replace view public._wire_len_mismatch as
+select m.product_id,
+       m.source,
        nullif(regexp_replace(coalesce(p.attrs->>'Length', ''), '[^0-9].*$', ''), '')::int as our_m,
        ((regexp_match(lower(coalesce(m.note, '')),
-          '\y([0-9]{2,4})\s*(?:m|mtr|mtrs|meter|meters|metre|metres)\y'))[1])::int        as listing_m
+          '\y([0-9]{2,4})\s*(?:m|mtr|mtrs|meter|meters|metre|metres)\y'))[1])::int         as listing_m
 from public.competitor_map m
 join public.products p on p.id = m.product_id
 where p.category = 'Wires & Cables';
 
 delete from public.competitor_prices cp
-using _len_mismatch x
+using public._wire_len_mismatch x
 where cp.product_id = x.product_id and cp.source = x.source
   and x.our_m is not null and x.listing_m is not null and x.our_m <> x.listing_m;
 
 delete from public.competitor_map m
-using _len_mismatch x
+using public._wire_len_mismatch x
 where m.product_id = x.product_id and m.source = x.source
   and x.our_m is not null and x.listing_m is not null and x.our_m <> x.listing_m;
+
+drop view public._wire_len_mismatch;
+
+-- ── 2b. Havells wires: the mapping must BE the brand SKU ───────
+-- havells.com sells our ranges (Life Line Plus S3 HRFR, Life Guard FR-LSH,
+-- Life Shield HFFR) as 90 m coils, and a SEPARATE "Lifeline FR" range that is
+-- 180 m only, at roughly 2x the price (e.g. WHFFDNRL12X57-C, ₹8,472 for the
+-- 2.5 sq mm). Every Havells SKU we hold was verified to resolve to a 90 m coil
+-- on their site, so on the brand's OWN store the correct mapping is always the
+-- product's own brand SKU. Anything else is a wrong coil or a wrong range.
+--
+-- These are downgraded to 'pending', not deleted: pending mappings are excluded
+-- from every pricing decision and surface in the admin approval queue, so a
+-- wrong coil can never set our price, and a human decides rather than a regex.
+-- (Rows the note-based rule above already removed are gone; this catches the
+-- manual/older mappings whose note never recorded the listing name.)
+update public.competitor_map m
+set approval = 'pending',
+    note     = coalesce(m.note || ' · ', '') || 'flagged 0040: code does not match brand SKU (possible wrong coil length)',
+    updated_at = now()
+from public.products p
+where m.product_id = p.id
+  and m.source = 'havells'
+  and p.category = 'Wires & Cables'
+  and p.brand_sku is not null
+  and upper(m.competitor_code) <> upper(p.brand_sku)
+  and m.approval <> 'pending';
 
 -- ── 3. Vashi's per-metre factor = our actual coil length ────────
 -- Vashi quotes wire per metre. The factor must be the coil length, not a
