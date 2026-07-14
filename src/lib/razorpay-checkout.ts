@@ -13,6 +13,7 @@ type OpenArgs = {
   name: string;
   email: string;
   phone: string;
+  orderId?: string; // our Elume order reference, shown in the payment window
 };
 
 declare global {
@@ -42,13 +43,22 @@ export async function openRazorpay(args: OpenArgs): Promise<RpSuccess | null> {
       key: args.keyId,
       amount: args.amount,
       currency: "INR",
+      // Branding — the window opens as an overlay ON the Elume page (the buyer
+      // never leaves the site), so make it read as ours, not a generic popup.
       name: "Elume",
-      description: "Elume order",
+      description: args.orderId ? `Order ${args.orderId}` : "Elume order",
+      // Absolute URL: the checkout renders in an iframe on Razorpay's domain,
+      // so a relative path would not resolve there.
+      image: `${window.location.origin}/assets/elume-mark.png`,
       order_id: args.razorpayOrderId,
       prefill: { name: args.name, email: args.email, contact: args.phone },
-      theme: { color: "#4E5BDC" },
+      notes: args.orderId ? { elume_order: args.orderId } : undefined,
+      theme: { color: "#4E5BDC", backdrop_color: "rgba(20,24,45,0.7)" },
+      // Keep the buyer on our flow: no auto-redirect, we handle success inline.
+      redirect: false,
+      retry: { enabled: true, max_count: 3 },
       handler: (resp: RpSuccess) => resolve(resp),
-      modal: { ondismiss: () => resolve(null) },
+      modal: { ondismiss: () => resolve(null), escape: true, confirm_close: true },
     });
     rzp.open();
   });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { GROTESK } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
@@ -47,6 +47,13 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
   const [pending, start] = useTransition();
   const [done, setDone] = useState<{ orderId: string; total: number } | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const errRef = useRef<HTMLDivElement>(null);
+
+  // A validation error can be off-screen (the pay button is also in the sticky
+  // summary), so always bring the message into view.
+  useEffect(() => {
+    if (err) errRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [err]);
 
   const [f, setF] = useState({
     name: prefill.name, email: prefill.email, phone: prefill.phone,
@@ -92,7 +99,7 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
       try {
         payment = await openRazorpay({
           keyId: started.keyId, amount: started.amount, razorpayOrderId: started.razorpayOrderId,
-          name: started.name, email: started.email, phone: started.phone,
+          name: started.name, email: started.email, phone: started.phone, orderId: started.orderId,
         });
       } catch (e) {
         setErr(e instanceof Error ? e.message : "Payment window failed to open."); return;
@@ -114,14 +121,44 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
       <main style={{ maxWidth: 640, margin: "0 auto", padding: "48px 28px" }}>
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "40px 28px", textAlign: "center" }}>
           <div style={{ fontSize: 40, marginBottom: 8 }}>🎉</div>
-          <h1 style={{ fontFamily: GROTESK, fontSize: 24, fontWeight: 600, margin: "0 0 6px" }}>Order placed</h1>
-          <p style={{ fontSize: 14, color: "#56627A", margin: "0 0 4px" }}>Order <b>{done.orderId}</b> · {fmt(done.total)}</p>
+          <h1 style={{ fontFamily: GROTESK, fontSize: 24, fontWeight: 600, margin: "0 0 6px" }}>Order confirmed</h1>
+          <p style={{ fontSize: 14, color: "#56627A", margin: "0 0 4px" }}>Order <b>{done.orderId}</b> · {fmt(done.total)} paid</p>
           <p style={{ fontSize: 13, color: "#8A93A6", margin: "0 0 20px" }}>We&apos;ve got it — a confirmation is on its way to {f.email}. Pan-India delivery in 3–7 working days.</p>
-          <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+          <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
             <Link href={`/track?order=${encodeURIComponent(done.orderId)}&email=${encodeURIComponent(f.email)}`} style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14, padding: "11px 22px", borderRadius: 11 }}>Track order</Link>
             <Link href="/catalogue" style={{ background: "#EEF0FE", color: "#4E5BDC", fontWeight: 700, fontSize: 14, padding: "11px 22px", borderRadius: 11 }}>Continue shopping</Link>
           </div>
         </div>
+
+        {/* Guests: nudge them to create an account so the order lands in their dashboard */}
+        {!prefill.signedIn && (
+          <div style={{ marginTop: 16, background: "linear-gradient(135deg,#EEF0FE,#F7F8FB)", border: "1px solid #D9DDFB", borderRadius: 16, padding: "24px 26px" }}>
+            <div style={{ fontFamily: GROTESK, fontSize: 17, fontWeight: 600, color: "#19202E" }}>Create an account to track this order</div>
+            <p style={{ fontSize: 13, color: "#56627A", lineHeight: 1.6, margin: "6px 0 14px" }}>
+              We&apos;ll link order <b>{done.orderId}</b> to <b>{f.email}</b> so you can follow it to your door, and never re-type your address again.
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "8px 16px", marginBottom: 16 }}>
+              {[
+                ["📦", "Track every order in one place"],
+                ["⚡", "One-tap checkout next time"],
+                ["🧾", "All your GST invoices, downloadable"],
+                ["💰", "Wholesale rates + 30-day credit when it launches"],
+              ].map(([icon, text]) => (
+                <div key={text} style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 12.5, color: "#3A4358" }}>
+                  <span>{icon}</span>
+                  <span>{text}</span>
+                </div>
+              ))}
+            </div>
+            <Link
+              href={`/signin?mode=signup&email=${encodeURIComponent(f.email)}`}
+              style={{ display: "inline-block", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14, padding: "12px 24px", borderRadius: 11 }}
+            >
+              Create my account →
+            </Link>
+            <span style={{ fontSize: 11.5, color: "#8A93A6", marginLeft: 12 }}>Takes 20 seconds. Your order is safe either way.</span>
+          </div>
+        )}
       </main>
     );
   }
@@ -190,10 +227,28 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
               </div>
             )}
           </Section>
+
+          {/* Pay CTA at the natural end of the form, so nobody has to scroll
+              back up to the summary after filling everything in. */}
+          <div ref={errRef} style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "16px 18px" }}>
+            {err && <div style={{ background: "#FBE9E4", color: "#9a3b16", fontSize: 13, fontWeight: 600, padding: "10px 12px", borderRadius: 9, marginBottom: 12 }}>{err}</div>}
+            <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+              <div>
+                <div style={{ fontSize: 11.5, color: "#8A93A6" }}>Total payable (incl. GST)</div>
+                <div style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 700, lineHeight: 1.2 }}>{fmt(total)}</div>
+              </div>
+              <button onClick={submit} disabled={pending || !onlineEnabled} title={onlineEnabled ? "" : "Online payment is being enabled - ordering opens shortly"} style={{ flex: 1, minWidth: 200, marginLeft: "auto", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 15, border: "none", padding: 15, borderRadius: 11, cursor: pending || !onlineEnabled ? "default" : "pointer", opacity: pending || !onlineEnabled ? 0.6 : 1 }}>
+                {pending ? "Opening payment…" : onlineEnabled ? `Pay securely · ${fmt(total)}` : "Payments enabling soon"}
+              </button>
+            </div>
+            <div style={{ fontSize: 11.5, color: "#8A93A6", marginTop: 10 }}>
+              🔒 Secured by Razorpay · you stay on Elume · UPI, cards, net banking &amp; wallets
+            </div>
+          </div>
         </div>
 
-        {/* Order summary */}
-        <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "18px 20px", position: "sticky", top: 84 }}>
+        {/* Order summary (sticky beside the form on desktop) */}
+        <div className="co-summary" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "18px 20px", position: "sticky", top: 84 }}>
           <div style={{ fontFamily: GROTESK, fontWeight: 600, fontSize: 15, marginBottom: 12 }}>Order summary</div>
           {items.map((it) => (
             <div key={it.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12.5, marginBottom: 7 }}>
@@ -211,10 +266,10 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
               <span style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 700 }}>{fmt(total)}</span>
             </div>
           </div>
-          {err && <div style={{ fontSize: 12.5, color: "#C0392B", fontWeight: 600, marginTop: 10 }}>{err}</div>}
           <button onClick={submit} disabled={pending || !onlineEnabled} title={onlineEnabled ? "" : "Online payment is being enabled - ordering opens shortly"} style={{ width: "100%", marginTop: 14, background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14.5, border: "none", padding: 13, borderRadius: 11, cursor: pending || !onlineEnabled ? "default" : "pointer", opacity: pending || !onlineEnabled ? 0.6 : 1 }}>
             {pending ? "Opening payment…" : onlineEnabled ? `Pay securely · ${fmt(total)}` : "Payments enabling soon"}
           </button>
+          <div style={{ fontSize: 11, color: "#A0A7B5", textAlign: "center", marginTop: 8 }}>🔒 Secured by Razorpay</div>
         </div>
       </div>
     </main>

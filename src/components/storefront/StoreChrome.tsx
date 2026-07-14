@@ -21,7 +21,11 @@ export default async function StoreChrome({ children }: { children: React.ReactN
     : null;
   return (
     <CartProvider>
-    <div style={{ fontFamily: "var(--hanken)", background: "#F7F8FB", minHeight: "100vh", color: "#19202e", overflowX: "hidden" }}>
+    {/* overflowX must be `clip`, not `hidden`: `hidden` creates a scroll
+        container that silently breaks `position: sticky` for every descendant
+        (the checkout summary would scroll away). `clip` stops the horizontal
+        overflow without creating one. */}
+    <div style={{ fontFamily: "var(--hanken)", background: "#F7F8FB", minHeight: "100vh", color: "#19202e", overflowX: "clip" }}>
       {/* Announcement strip */}
       <div className="hdr-strip" style={{ background: "#19202E", color: "#C6CDE2", fontSize: 12.5, textAlign: "center", padding: "8px 16px" }}>
         🚚 We deliver <strong style={{ color: "#fff" }}>pan-India</strong> · GST invoice on every order ·{" "}

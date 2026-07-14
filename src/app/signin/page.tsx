@@ -6,11 +6,19 @@ import Link from "next/link";
 import { Mark, Wordmark } from "@/components/Brand";
 import { createClient } from "@/lib/supabase/client";
 
+/** Read a query param on first render (client-only; safe during SSR). */
+function param(key: string): string {
+  if (typeof window === "undefined") return "";
+  return new URLSearchParams(window.location.search).get(key) ?? "";
+}
+
 export default function SignIn() {
   const router = useRouter();
   const [tab, setTab] = useState<"email" | "phone">("email");
-  const [mode, setMode] = useState<"in" | "up">("in");
-  const [email, setEmail] = useState("");
+  // ?mode=signup (e.g. the post-order "create an account" nudge) opens on the
+  // create-account tab with the buyer's email already filled in.
+  const [mode, setMode] = useState<"in" | "up">(() => (param("mode") === "signup" ? "up" : "in"));
+  const [email, setEmail] = useState(() => param("email"));
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
