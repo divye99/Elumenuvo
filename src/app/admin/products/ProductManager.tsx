@@ -16,6 +16,7 @@ import {
   updateMapCondition,
   setMapApproval,
   acceptSuggestion,
+  applyRecommendedPrices,
 } from "@/lib/admin/actions";
 
 export type SourceInfo = { id: string; name: string; siteUrl: string | null; enabled: boolean };
@@ -65,9 +66,13 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
   const [cat, setCat] = useState("All");
   const [view, setView] = useState<MapView>("all");
   const [sellersN, setSellersN] = useState<"any" | number>("any"); // exact number of sellers mapped
+  const [priceView, setPriceView] = useState<"any" | "cheaper" | "winning">("any");
   const [openId, setOpenId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showImport, setShowImport] = useState(false);
+  const [applying, startApply] = useTransition();
+  const [applyMsg, setApplyMsg] = useState<{ ok: boolean; t: string } | null>(null);
+  const router = useRouter();
 
   // How many competitor sellers this product is mapped to.
   const mappedCount = (r: ManagerRow) => sources.filter((s) => r.perSource[s.id]?.map).length;
@@ -81,6 +86,39 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
     return [...m.entries()].sort((a, b) => a[0] - b[0]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rows, sources]);
+
+  /* ── Price suggestions ──
+   * A seller only counts if the mapping is APPROVED and the listing is BUYABLE
+   * (in stock, real >0 price) — a pending match or an out-of-stock competitor
+   * must never drag our price down. Suggestion = undercut the cheapest such
+   * seller by ₹1, and only when they are actually cheaper than us today. */
+  const sellerPrice = (r: ManagerRow, s: SourceInfo): number | null => {
+    const cell = r.perSource[s.id];
+    if (!cell?.map || cell.map.approval === "pending") return null;
+    const p = cell.price;
+    if (!p || p.status === "unavailable" || p.in_stock === false) return null;
+    return p.comparable_price != null && p.comparable_price > 0 ? p.comparable_price : null;
+  };
+  const lowestFor = (r: ManagerRow): number | null => {
+    const ps = sources.map((s) => sellerPrice(r, s)).filter((v): v is number => v != null);
+    return ps.length ? Math.min(...ps) : null;
+  };
+  /** The price we'd move to: ₹1 under the cheapest live competitor. */
+  const targetFor = (r: ManagerRow): number | null => {
+    const lo = lowestFor(r);
+    return lo != null ? Math.max(1, Math.round(lo) - 1) : null;
+  };
+  /** A competitor is genuinely cheaper than us today, and the move is real. */
+  const needsReprice = (r: ManagerRow): boolean => {
+    const lo = lowestFor(r);
+    const t = targetFor(r);
+    return lo != null && lo < r.elume_price && t != null && t !== Math.round(r.elume_price);
+  };
+  /** We're already at or under every live competitor. */
+  const isWinning = (r: ManagerRow): boolean => {
+    const lo = lowestFor(r);
+    return lo != null && lo >= r.elume_price;
+  };
 
   // Counts for the mapping-status dropdown labels.
   const counts = useMemo(() => {
@@ -103,17 +141,36 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
       if (view === "unmapped" && n !== 0) return false;
       if (view === "multi" && n < 2) return false;
       if (sellersN !== "any" && n !== sellersN) return false;
+      if (priceView === "cheaper" && !needsReprice(r)) return false;
+      if (priceView === "winning" && !isWinning(r)) return false;
       return true;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows, q, cat, view, sellersN, sources]);
+  }, [rows, q, cat, view, sellersN, priceView, sources]);
 
-  // A product has a live suggestion when any source's price differs from ₹1-under.
-  const hasSuggestion = (r: ManagerRow) =>
-    sources.some((s) => {
-      const p = r.perSource[s.id]?.price;
-      return p && p.status === "pending" && p.suggested_price != null && Math.round(r.elume_price) !== p.suggested_price;
+  const suggestionCount = useMemo(() => rows.filter(needsReprice).length, [rows, sources]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /** Apply "₹1 under the cheapest live competitor" to every currently-filtered
+   *  product that has a real suggestion. Confirmed first — this changes live
+   *  storefront prices. */
+  const applyAllSuggestions = () => {
+    const items = filtered.filter(needsReprice).map((r) => ({ id: r.id, target: targetFor(r) as number }));
+    if (items.length === 0) return;
+    const ok = window.confirm(
+      `Apply ${items.length} price suggestion${items.length === 1 ? "" : "s"}?\n\n` +
+        `Each product will be repriced to ₹1 under its cheapest in-stock competitor. ` +
+        `This changes live storefront prices immediately.`
+    );
+    if (!ok) return;
+    setApplyMsg(null);
+    startApply(async () => {
+      const res = await applyRecommendedPrices(items);
+      if (res.ok) {
+        setApplyMsg({ ok: true, t: `Applied ${res.applied} price${res.applied === 1 ? "" : "s"}${res.skipped ? ` · ${res.skipped} skipped` : ""}.` });
+        router.refresh();
+      } else setApplyMsg({ ok: false, t: res.error ?? "Failed to apply." });
     });
+  };
 
   /* ── Selection (for the Excel template download) ── */
   const allVisibleSelected = filtered.length > 0 && filtered.every((r) => selected.has(r.id));
@@ -167,8 +224,38 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
             <option key={n} value={n}>{n} seller{n === 1 ? "" : "s"} ({count})</option>
           ))}
         </select>
+        <select value={priceView} onChange={(e) => setPriceView(e.target.value as typeof priceView)} style={{ border: "1px solid #E0E4ED", borderRadius: 10, padding: "9px 12px", fontSize: 13.5, background: "#fff", fontWeight: priceView !== "any" ? 700 : 400, color: priceView === "cheaper" ? "#C0392B" : undefined }}>
+          <option value="any">Price: all</option>
+          <option value="cheaper">⚠ Competitor cheaper — needs repricing ({suggestionCount})</option>
+          <option value="winning">✓ We&apos;re at or under every competitor</option>
+        </select>
         <span style={{ fontSize: 12.5, color: "#8A93A6" }}>{filtered.length} shown</span>
       </div>
+
+      {/* Price-suggestion bar: only when the current filter contains suggestions */}
+      {filtered.some(needsReprice) && (
+        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", marginBottom: 14, background: "#FFF9EE", border: "1px solid #F0DFC0", borderRadius: 12, padding: "11px 14px" }}>
+          <span style={{ fontSize: 18 }}>⚠</span>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 13.5, fontWeight: 700, color: "#8a6116" }}>
+              {filtered.filter(needsReprice).length} product{filtered.filter(needsReprice).length === 1 ? "" : "s"} priced above a live competitor
+            </div>
+            <div style={{ fontSize: 11.5, color: "#8A93A6" }}>
+              Applying reprices each to ₹1 under its cheapest in-stock competitor. Out-of-stock and unapproved matches are ignored.
+            </div>
+          </div>
+          {applyMsg && (
+            <span style={{ fontSize: 12.5, fontWeight: 600, color: applyMsg.ok ? "#137a4b" : "#C0392B" }}>{applyMsg.t}</span>
+          )}
+          <button
+            onClick={applyAllSuggestions}
+            disabled={applying}
+            style={{ marginLeft: "auto", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13.5, border: "none", padding: "10px 18px", borderRadius: 10, cursor: applying ? "wait" : "pointer", opacity: applying ? 0.6 : 1, whiteSpace: "nowrap" }}
+          >
+            {applying ? "Applying…" : `✓ Apply all ${filtered.filter(needsReprice).length} price suggestions`}
+          </button>
+        </div>
+      )}
 
       {/* Selection + Excel tools */}
       <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginBottom: 14, background: "#fff", border: "1px solid #E8EBF1", borderRadius: 12, padding: "9px 14px" }}>
@@ -203,7 +290,8 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
       <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflow: "hidden" }}>
         {filtered.map((r, i) => {
           const open = openId === r.id;
-          const sug = hasSuggestion(r);
+          const sug = needsReprice(r);
+          const sugTarget = sug ? targetFor(r) : null;
           const n = mappedCount(r);
           return (
             <div key={r.id} style={{ borderTop: i ? "1px solid #F0F2F6" : undefined }}>
@@ -237,7 +325,14 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
                 >
                   {n === 0 ? "unmapped" : n > 1 ? `${n} sellers` : "1 seller"}
                 </span>
-                {sug && <span style={{ fontSize: 10.5, fontWeight: 700, color: "#fff", background: "#E0612A", borderRadius: 20, padding: "2px 9px", whiteSpace: "nowrap" }}>price suggestion</span>}
+                {sug && sugTarget != null && (
+                  <span
+                    title={`A live competitor sells this for ${fmt(lowestFor(r)!)} — undercut to ${fmt(sugTarget)}`}
+                    style={{ fontSize: 10.5, fontWeight: 700, color: "#fff", background: "#E0612A", borderRadius: 20, padding: "2px 9px", whiteSpace: "nowrap" }}
+                  >
+                    ↓ {fmt(sugTarget)}
+                  </span>
+                )}
               </div>
 
               {open && <ExpandedPanel row={r} sources={sources} onClose={() => setOpenId(null)} />}
