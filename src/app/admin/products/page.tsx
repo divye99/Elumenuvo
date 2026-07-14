@@ -9,6 +9,10 @@ import {
 import ProductManager, { type ManagerRow, type SourceInfo } from "@/app/admin/products/ProductManager";
 
 export const dynamic = "force-dynamic";
+// Bulk Excel imports and "apply all price suggestions" run as server actions on
+// this page and can touch hundreds of rows; the default 10s budget killed them
+// mid-flight and left the UI spinning.
+export const maxDuration = 60;
 
 function guessFactor(attrs: Record<string, string> | null): number {
   const m = attrs?.Length?.match(/(\d+)\s*m/);

@@ -179,17 +179,23 @@ export async function applyImport(
   if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
   if (!diffs.length) return { ok: false, error: "Nothing to apply." };
 
-  let added = 0, updated = 0, removed = 0;
-  for (const d of diffs) {
-    if (d.action === "remove") {
-      const { error } = await db.from("products").delete().eq("id", d.id);
-      if (error) return { ok: false, error: `Remove ${d.id}: ${error.message}` };
-      removed++;
-    } else if (d.payload) {
-      const { error } = await db.from("products").upsert(d.payload);
-      if (error) return { ok: false, error: `${d.action} ${d.id}: ${error.message}` };
-      if (d.action === "add") added++; else updated++;
-    }
+  // BATCHED: one round-trip per chunk, not per row. A row-at-a-time loop meant
+  // a few hundred edits blew the serverless time limit and the request died
+  // mid-import, leaving the UI hanging on "Applying…".
+  const CHUNK = 200;
+  const removeIds = diffs.filter((d) => d.action === "remove").map((d) => d.id);
+  const upserts = diffs.filter((d) => d.action !== "remove" && d.payload).map((d) => d.payload as Record<string, unknown>);
+  const added = diffs.filter((d) => d.action === "add" && d.payload).length;
+  const updated = diffs.filter((d) => d.action === "update" && d.payload).length;
+  const removed = removeIds.length;
+
+  for (let i = 0; i < removeIds.length; i += CHUNK) {
+    const { error } = await db.from("products").delete().in("id", removeIds.slice(i, i + CHUNK));
+    if (error) return { ok: false, error: `Removing products: ${error.message}` };
+  }
+  for (let i = 0; i < upserts.length; i += CHUNK) {
+    const { error } = await db.from("products").upsert(upserts.slice(i, i + CHUNK));
+    if (error) return { ok: false, error: `Saving products: ${error.message}` };
   }
 
   // Change log (best-effort — never blocks the import if the table is absent).
