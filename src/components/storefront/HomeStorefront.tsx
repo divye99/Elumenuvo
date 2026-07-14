@@ -57,25 +57,20 @@ function Shelf({
  *  shelves, pricing explainer, brands, buying guides. Pure server component;
  *  interactivity lives in the header search and product-card image slots. */
 export default function HomeStorefront({ products, posts }: { products: Product[]; posts: BlogPost[] }) {
-  // Tiebreak on id — hundreds of products share the exact same discount, and an
+  // "Today's best prices" mechanism (user-defined, Jul 2026):
+  //   1. Only products priced above ₹2,000 qualify (no trinket deals).
+  //   2. Ranked by % discount, the highest wins.
+  //   3. Exactly ONE listing per category on the shelf.
+  // Tiebreak on id — products can share the exact same discount, and an
   // unstable tie order would differ between server and client renders (hydration).
-  const byDiscount = [...products].sort((a, b) => (1 - b.price / b.market) - (1 - a.price / a.market) || a.id.localeCompare(b.id));
-  // "Today's best prices": products where OUR price beats the lowest trusted
-  // competitor (products.market_low, from the pricing intelligence), ranked by
-  // how hard we beat it. % off MRP is only the FALLBACK filler — MRPs are
-  // manufacturer theatre, market_low is a live, verified seller price.
-  // One card per variant family, or eight colour twins would fill the shelf.
-  const beat = (p: Product) => (p.marketLow != null && p.marketLow > p.price ? (p.marketLow - p.price) / p.marketLow : -1);
-  const byBeat = [...products].filter((p) => beat(p) > 0).sort((a, b) => beat(b) - beat(a) || a.id.localeCompare(b.id));
-  const deals: Product[] = [];
-  const seenFamilies = new Set<string>();
-  for (const p of [...byBeat, ...byDiscount]) {
-    if (deals.length >= 8) break;
-    const fam = familyKey(p);
-    if (seenFamilies.has(fam)) continue;
-    seenFamilies.add(fam);
-    deals.push(p);
+  const discount = (p: Product) => 1 - p.price / p.market;
+  const bestByCat = new Map<string, Product>();
+  for (const p of products) {
+    if (p.price <= 2000 || p.market <= p.price) continue;
+    const cur = bestByCat.get(p.cat);
+    if (!cur || discount(p) > discount(cur) || (discount(p) === discount(cur) && p.id.localeCompare(cur.id) < 0)) bestByCat.set(p.cat, p);
   }
+  const deals = [...bestByCat.values()].sort((a, b) => discount(b) - discount(a) || a.id.localeCompare(b.id));
   const brands = Array.from(new Set(products.map((p) => p.brand))).sort();
   const countFor = (cat: string) => products.filter((p) => p.cat === cat).length;
   const groups = groupVariants(products);
@@ -149,7 +144,7 @@ export default function HomeStorefront({ products, posts }: { products: Product[
       {/* ── Deals shelf ── */}
       <Shelf
         title="Today's best prices"
-        sub="Priced below every seller we track, verified against live market prices."
+        sub="The deepest discount in every category right now."
         products={deals}
         seeAll="/catalogue"
         groups={groups}
