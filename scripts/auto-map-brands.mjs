@@ -302,6 +302,37 @@ function dimsConflict(a, b) {
   return null;
 }
 
+/* Device type: when BOTH names state one and they differ, the products are
+ * different regardless of shared spec tokens. This is what stops a "20 A
+ * Motor Starter" matching a "20A C-Curve MCB" on the shared amperage.
+ * Order matters: specific types before generic ones ("Motor Starter Switch"
+ * must resolve to motor-starter, not switch). */
+const DEVICE_TYPES = [
+  ["rcbo", /\brcbo\b/i],
+  ["rccb", /\brccb\b|residual current/i],
+  ["mcb", /\bmcb\b|miniature circuit/i],
+  ["isolator", /isolator|disconnector/i],
+  ["motor-starter", /motor starter/i],
+  ["changeover", /changeover/i],
+  ["contactor", /contactor/i],
+  ["surge", /surge|spike guard|\bspd\b/i],
+  ["db", /distribution board|\bdb\b|enclosure/i],
+  ["fan", /\bfans?\b/i],
+  ["pump", /pump/i],
+  ["geyser", /geyser|water heater/i],
+  ["socket", /socket|plug top/i],
+  ["regulator", /regulator|dimmer/i],
+  ["switch", /\bswitch(es)?\b/i],
+];
+function deviceType(name) {
+  for (const [t, re] of DEVICE_TYPES) if (re.test(name)) return t;
+  return null;
+}
+function deviceConflict(a, b) {
+  const ta = deviceType(a), tb = deviceType(b);
+  return !!(ta && tb && ta !== tb);
+}
+
 function score(p, cand) {
   const typeRe = TYPE[p.category];
   if (typeRe && !typeRe.test(cand.name)) return { s: -1, hard: 0, sim: 0 };
@@ -313,6 +344,8 @@ function score(p, cand) {
   if (p.category === "Wires & Cables" && !/\d\s*core/.test(a)) a += " 1core";
   // Conflicting spec dimension (core count, size, amperage…) → different product.
   if (dimsConflict(a, b)) return { s: -1, hard: 0, sim: 0 };
+  // Conflicting device type (motor starter vs MCB…) → different product.
+  if (deviceConflict(p.name, cand.name)) return { s: -1, hard: 0, sim: 0 };
   // Wires: the sqmm size is the product's identity — the candidate must state
   // the SAME size, not merely avoid contradicting it.
   if (p.category === "Wires & Cables") {
