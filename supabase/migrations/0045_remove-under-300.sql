@@ -16,9 +16,9 @@
 --      RLS), the rest deleted. competitor_map / competitor_prices / reviews
 --      cascade on delete.
 --
--- RUN AFTER 0044 if you have it (its mapping inserts reference product ids
--- that this file deletes; running 0045 first would make 0044 fail its FKs).
--- Idempotent: re-running is a no-op once the rows are gone.
+-- Safe to run NOW: 0044 (the multi-seller mapping file, generated after this)
+-- is emitted with sub-300 product ids already filtered out, so order between
+-- the two does not matter. Idempotent: re-running is a no-op once rows are gone.
 -- ═══════════════════════════════════════════════════════════════
 
 -- ── 1. Promote a surviving sibling where the family parent is doomed ──
