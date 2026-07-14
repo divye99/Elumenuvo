@@ -4,9 +4,24 @@ import { useActionState, useState } from "react";
 import { Mark, Wordmark } from "@/components/Brand";
 import { saveProfile, type ProfileState } from "@/lib/profile-actions";
 
+export const BUSINESS_TYPES = [
+  "Contractor",
+  "Builder / developer",
+  "Electrical retailer / distributor",
+  "Electrician",
+  "MEP consultant",
+  "Facility management",
+  "Interior fit-out",
+  "Other",
+];
+
 export default function OnboardingForm({ defaultName }: { defaultName: string }) {
   const [state, action, pending] = useActionState<ProfileState, FormData>(saveProfile, null);
   const [type, setType] = useState<"business" | "individual" | null>(null);
+  // Split any name captured at sign-up into first / last for the two fields.
+  const parts = (defaultName ?? "").trim().split(/\s+/).filter(Boolean);
+  const defaultFirst = parts[0] ?? "";
+  const defaultLast = parts.slice(1).join(" ");
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#F7F8FB", fontFamily: "var(--hanken)", padding: 20 }}>
@@ -34,12 +49,26 @@ export default function OnboardingForm({ defaultName }: { defaultName: string })
             ))}
           </div>
 
-          <Field label="Your name"><input name="full_name" defaultValue={defaultName} required style={inp} /></Field>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <Field label="First name"><input name="first_name" defaultValue={defaultFirst} required style={inp} /></Field>
+            <Field label="Last name"><input name="last_name" defaultValue={defaultLast} required style={inp} /></Field>
+          </div>
 
           {type === "business" && (
             <>
               <Field label="Company name"><input name="company" required style={inp} placeholder="Acme Electricals Pvt Ltd" /></Field>
-              <Field label="GSTIN"><input name="gstin" required style={{ ...inp, textTransform: "uppercase", fontFamily: "var(--space-mono)" }} placeholder="27AAACE1234F1Z5" maxLength={15} /></Field>
+              <Field label="GSTIN">
+                <input name="gstin" required style={{ ...inp, textTransform: "uppercase", fontFamily: "var(--space-mono)" }} placeholder="27AAACE1234F1Z5" maxLength={15} />
+                <span style={{ fontSize: 11, color: "#8A93A6", display: "block", marginTop: 4 }}>
+                  We&apos;ll put this on every invoice automatically, so you&apos;ll never be asked for it at checkout.
+                </span>
+              </Field>
+              <Field label="Type of business">
+                <select name="business_type" required style={inp} defaultValue="">
+                  <option value="" disabled>Select…</option>
+                  {BUSINESS_TYPES.map((b) => <option key={b} value={b}>{b}</option>)}
+                </select>
+              </Field>
             </>
           )}
           <Field label="Phone (optional)"><input name="phone" style={inp} placeholder="+91 98765 43210" /></Field>

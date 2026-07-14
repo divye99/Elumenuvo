@@ -1,30 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Mark, Wordmark } from "@/components/Brand";
 import { createClient } from "@/lib/supabase/client";
 
-/** Read a query param on first render (client-only; safe during SSR). */
-function param(key: string): string {
-  if (typeof window === "undefined") return "";
-  return new URLSearchParams(window.location.search).get(key) ?? "";
-}
-
 export default function SignIn() {
   const router = useRouter();
   const [tab, setTab] = useState<"email" | "phone">("email");
-  // ?mode=signup (e.g. the post-order "create an account" nudge) opens on the
-  // create-account tab with the buyer's email already filled in.
-  const [mode, setMode] = useState<"in" | "up">(() => (param("mode") === "signup" ? "up" : "in"));
-  const [email, setEmail] = useState(() => param("email"));
+  const [mode, setMode] = useState<"in" | "up">("in");
+  const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: "err" | "ok"; text: string } | null>(null);
+
+  // Apply ?mode=signup&email=… after mount (reading window during render would
+  // desync the server-rendered HTML from the client). Drives the "Create
+  // account" button and the post-order signup nudge.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("mode") === "signup") setMode("up");
+    const e = q.get("email");
+    if (e) setEmail(e);
+  }, []);
 
   // Where to go after a successful sign-in (honours ?next=, defaults to /app).
   const dest = () => (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("next")) || "/app";
@@ -45,11 +49,19 @@ export default function SignIn() {
         if (error) throw error;
         router.push(dest()); router.refresh();
       } else {
-        const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { phone } } });
+        const first = firstName.trim(), last = lastName.trim();
+        if (!first || !last) { setMsg({ kind: "err", text: "Please enter your first and last name." }); setBusy(false); return; }
+        const { data, error } = await supabase.auth.signUp({
+          email, password,
+          options: { data: { phone, first_name: first, last_name: last, full_name: `${first} ${last}` } },
+        });
         if (error) throw error;
         if (data.session) {
-          // Save phone to the profile right away (profile row auto-created by trigger).
-          if (phone) await supabase.from("profiles").update({ phone: e164(phone) }).eq("id", data.user!.id);
+          // Profile row is auto-created by a trigger; fill in what we collected.
+          await supabase.from("profiles").update({
+            first_name: first, last_name: last, full_name: `${first} ${last}`,
+            ...(phone ? { phone: e164(phone) } : {}),
+          }).eq("id", data.user!.id);
           router.push("/onboarding"); router.refresh();
         } else {
           setMsg({ kind: "ok", text: "Account created — check your email to confirm, then sign in." });
@@ -106,6 +118,12 @@ export default function SignIn() {
             <h1 style={{ fontSize: 19, fontWeight: 700, margin: "0 0 4px" }}>{mode === "in" ? "Sign in" : "Create your account"}</h1>
             <p style={{ fontSize: 12.5, color: "#8A93A6", margin: "0 0 16px" }}>Buy electrical goods with GST invoicing, orders & more.</p>
             <form onSubmit={emailSubmit} className="space-y-3">
+              {mode === "up" && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  <input className={field} placeholder="First name" value={firstName} onChange={(e) => setFirstName(e.target.value)} required autoComplete="given-name" />
+                  <input className={field} placeholder="Last name" value={lastName} onChange={(e) => setLastName(e.target.value)} required autoComplete="family-name" />
+                </div>
+              )}
               <input className={field} type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
               {mode === "up" && <input className={field} type="tel" placeholder="Phone number" value={phone} onChange={(e) => setPhone(e.target.value)} required autoComplete="tel" />}
               <input className={field} type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} autoComplete={mode === "in" ? "current-password" : "new-password"} />

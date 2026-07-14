@@ -9,7 +9,7 @@ import { useCart } from "@/lib/cart";
 import { startOnlinePayment, confirmOnlinePayment } from "@/lib/order-actions";
 import { openRazorpay } from "@/lib/razorpay-checkout";
 
-type Prefill = { name: string; email: string; phone: string; gstin: string; isBusiness: boolean; signedIn: boolean };
+type Prefill = { name: string; email: string; phone: string; gstin: string; company: string; isBusiness: boolean; signedIn: boolean };
 
 /** All Indian states + union territories, for the address dropdown. */
 const INDIA_STATES = [
@@ -66,11 +66,15 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
 
   const gst = useMemo(() => ({ base: baseTotal, tax: gstTotal }), [baseTotal, gstTotal]);
 
+  // Business account with a GSTIN already on file: invoice it automatically and
+  // never ask again at checkout.
+  const gstOnFile = prefill.isBusiness && !!prefill.gstin;
+
   const orderInput = () => ({
     name: f.name, email: f.email, phone: f.phone,
     billing_address: composeAddress(f.billing),
     shipping_address: composeAddress(f.sameAsBilling ? f.billing : f.shipping),
-    gstin: f.wantGst ? f.gstin : undefined,
+    gstin: gstOnFile ? prefill.gstin : f.wantGst ? f.gstin : undefined,
     payment_method: "online", // pay-on-delivery is retired; Razorpay only
     items: items.map((i) => ({ id: i.id, name: i.name, qty: i.qty, price: i.price, cat: i.cat })),
   });
@@ -87,7 +91,7 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
         const shipErr = addressError(f.shipping, "shipping address");
         if (shipErr) { setErr(shipErr); return; }
       }
-      if (f.wantGst && !/^[0-9]{2}[A-Z0-9]{13}$/.test(f.gstin.trim())) { setErr("Please enter a valid 15-character GSTIN, or untick the GST invoice option."); return; }
+      if (!gstOnFile && f.wantGst && !/^[0-9]{2}[A-Z0-9]{13}$/.test(f.gstin.trim())) { setErr("Please enter a valid 15-character GSTIN, or untick the GST invoice option."); return; }
       if (!onlineEnabled) { setErr("Online payment is being enabled - ordering opens as soon as Razorpay goes live."); return; }
 
       const input = orderInput();
@@ -203,11 +207,38 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
             </Section>
           )}
 
-          {/* GST (optional) */}
-          <Section title="GST invoice (optional)">
-            <label style={ck}><input type="checkbox" checked={f.wantGst} onChange={(e) => set("wantGst", e.target.checked)} /> I want a GST invoice</label>
-            {f.wantGst && <Field label="GSTIN *"><input value={f.gstin} onChange={(e) => set("gstin", e.target.value.toUpperCase())} maxLength={15} placeholder="27AAACE1234F1Z5" style={{ ...inp, fontFamily: "var(--space-mono)" }} /></Field>}
-          </Section>
+          {/* GST. Business accounts already gave us their GSTIN at sign-up, so we
+              just confirm it — they're never asked again. Everyone else is offered it. */}
+          {gstOnFile ? (
+            <Section title="GST invoice">
+              <div style={{ display: "flex", gap: 12, alignItems: "flex-start", background: "#E6F5EE", border: "1px solid #BEE7D2", borderRadius: 11, padding: "12px 14px" }}>
+                <span style={{ fontSize: 17 }}>🧾</span>
+                <div>
+                  <div style={{ fontSize: 13.5, fontWeight: 700, color: "#166A44" }}>A GST invoice will be issued automatically</div>
+                  <div style={{ fontSize: 12.5, color: "#3A4358", marginTop: 3 }}>
+                    {prefill.company && <><b>{prefill.company}</b> · </>}
+                    <span style={{ fontFamily: "var(--space-mono)" }}>{prefill.gstin}</span>
+                  </div>
+                  <div style={{ fontSize: 11.5, color: "#56627A", marginTop: 4 }}>
+                    Input tax credit claimable. To change your GSTIN, update it in{" "}
+                    <Link href="/app" style={{ color: "#4E5BDC", fontWeight: 600 }}>your account</Link>.
+                  </div>
+                </div>
+              </div>
+            </Section>
+          ) : (
+            <Section title="GST invoice (optional)">
+              <label style={ck}><input type="checkbox" checked={f.wantGst} onChange={(e) => set("wantGst", e.target.checked)} /> I want a GST invoice</label>
+              {f.wantGst && <Field label="GSTIN *"><input value={f.gstin} onChange={(e) => set("gstin", e.target.value.toUpperCase())} maxLength={15} placeholder="27AAACE1234F1Z5" style={{ ...inp, fontFamily: "var(--space-mono)" }} /></Field>}
+              {!prefill.signedIn && (
+                <div style={{ fontSize: 11.5, color: "#8A93A6" }}>
+                  Buying for a business?{" "}
+                  <Link href="/business" style={{ color: "#4E5BDC", fontWeight: 600 }}>Open a business account</Link>{" "}
+                  and we&apos;ll invoice your GSTIN automatically, every time.
+                </div>
+              )}
+            </Section>
+          )}
 
           {/* Payment: online only (pay-on-delivery is retired) */}
           <Section title="Payment">

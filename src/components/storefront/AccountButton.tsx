@@ -120,7 +120,7 @@ export default function AccountButton({ user }: { user: AccountUser | null }) {
                 <Link href="/signin" style={{ display: "block", textAlign: "center", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13.5, padding: "10px 12px", borderRadius: 10 }}>
                   Sign in
                 </Link>
-                <Link href="/signin" style={{ display: "block", textAlign: "center", background: "#fff", color: "#4E5BDC", fontWeight: 700, fontSize: 13.5, padding: "9px 12px", borderRadius: 10, border: "1.5px solid #D9DDFB", marginTop: 8 }}>
+                <Link href="/signin?mode=signup" style={{ display: "block", textAlign: "center", background: "#fff", color: "#4E5BDC", fontWeight: 700, fontSize: 13.5, padding: "9px 12px", borderRadius: 10, border: "1.5px solid #D9DDFB", marginTop: 8 }}>
                   Create account
                 </Link>
                 <div style={{ borderTop: "1px solid #F0F2F6", marginTop: 10, paddingTop: 4 }}>

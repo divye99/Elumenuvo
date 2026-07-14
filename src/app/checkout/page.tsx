@@ -19,6 +19,7 @@ export default async function CheckoutPage() {
           email: profile?.email ?? "",
           phone: profile?.phone ?? "",
           gstin: profile?.gstin ?? "",
+          company: profile?.company ?? "",
           isBusiness: profile?.account_type === "business",
           signedIn: !!profile,
         }}
