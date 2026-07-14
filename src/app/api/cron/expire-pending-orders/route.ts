@@ -14,7 +14,11 @@ import { adminClient } from "@/lib/supabase/admin";
  * retire an order that is about to be marked paid.
  *
  * Auth: Vercel Cron sends `Authorization: Bearer $CRON_SECRET`.
- * Schedule it hourly in vercel.json.
+ * Scheduled DAILY in vercel.json — Vercel's Hobby plan rejects any cron that
+ * runs more than once a day, and an invalid schedule fails the whole
+ * deployment. Daily is fine: these rows are already hidden from customers and
+ * badged "Awaiting payment" in admin, so the sweep is only housekeeping.
+ * (Safe to move to hourly on a Pro plan.)
  */
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
