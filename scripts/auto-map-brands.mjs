@@ -165,22 +165,32 @@ const MULTI = ["bestofelectricals", "handypanda", "vashi"];
 // Brands whose single-core house wires Vashi stocks (per METRE → ×90 for a 90 m coil).
 const VASHI_WIRE_BRANDS = new Set(["polycab", "finolex", "kei", "rr kabel"]);
 
+// Optional scoping:
+//   SKIP_SOURCES=havells,crompton  never map these sources this run (e.g. the
+//     own store already has exact SKU mappings from a catalogue import)
+//   ONLY_BRAND=Havells             only process this brand's products
+//   EXTRA_ROWS_FILE=path.json      append product rows not in the DB yet
+//     (a generated import that has not been applied), same shape as the
+//     products select below.
+const SKIP_SOURCES = new Set((process.env.SKIP_SOURCES || "").split(",").map((s) => s.trim()).filter(Boolean));
+const ONLY_BRAND = (process.env.ONLY_BRAND || "").trim().toLowerCase();
+
 /** Candidate sources for a product = its own store (if any) + the multi-brand
  *  sites that plausibly carry its category. */
 function sourcesFor(p) {
   const brand = (p.brand || "").toLowerCase();
+  const out = new Set();
   if (p.category === "Wires & Cables") {
-    const out = new Set();
     if (OWN_STORE[brand]) out.add(OWN_STORE[brand]); // Havells wires on havells.com
     if (VASHI_WIRE_BRANDS.has(brand)) out.add("vashi"); // Polycab/KEI/Finolex/RR on Vashi
     if (BOE_SLUG[brand]) out.add("bestofelectricals");
-    return [...out];
+  } else {
+    if (OWN_STORE[brand]) out.add(OWN_STORE[brand]);
+    out.add("bestofelectricals");
+    out.add("handypanda");
+    if (p.category === "Switchgear" || p.category === "DB & Panels") out.add("vashi");
   }
-  const out = new Set();
-  if (OWN_STORE[brand]) out.add(OWN_STORE[brand]);
-  out.add("bestofelectricals");
-  out.add("handypanda");
-  if (p.category === "Switchgear" || p.category === "DB & Panels") out.add("vashi");
+  for (const s of SKIP_SOURCES) out.delete(s);
   return [...out];
 }
 const BRAND_DIRECT_SRC = new Set(Object.values(OWN_STORE));
@@ -455,6 +465,17 @@ async function allProducts() {
     out.push(...page);
     if (page.length < 1000) break;
   }
+  // Rows from a generated-but-unapplied import (same shape). The emitted SQL
+  // references their ids, so it must run AFTER the import migration.
+  if (process.env.EXTRA_ROWS_FILE) {
+    const { readFileSync } = await import("node:fs");
+    const extra = JSON.parse(readFileSync(process.env.EXTRA_ROWS_FILE, "utf8"));
+    const have = new Set(out.map((p) => p.id));
+    let added = 0;
+    for (const p of extra) if (!have.has(p.id)) { out.push(p); added++; }
+    console.log(`Extra rows appended from ${process.env.EXTRA_ROWS_FILE}: ${added}`);
+  }
+  if (ONLY_BRAND) return out.filter((p) => (p.brand || "").toLowerCase() === ONLY_BRAND);
   return out;
 }
 
@@ -597,8 +618,9 @@ async function main() {
       `select approval, match_method, count(*) from public.competitor_map group by 1, 2 order by 1, 2;`,
       "",
     ].join("\n");
-    fs.writeFileSync("supabase/migrations/0030_competitor-map-v2.sql", sql);
-    console.log(`SQL written → supabase/migrations/0030_competitor-map-v2.sql (review, then run in Supabase).`);
+    const outFile = process.env.OUT_SQL || "supabase/migrations/0030_competitor-map-v2.sql";
+    fs.writeFileSync(outFile, sql);
+    console.log(`SQL written → ${outFile} (review, then run in Supabase).`);
   }
 }
 
