@@ -106,7 +106,11 @@ export default function ImageSlot({
     >
       {src ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        // "contain", not "cover": product photography must show the WHOLE
+        // product at first glance. Cover zoomed to fill the slot and cropped
+        // tops/bottoms off fans and wire boxes. The slot's white background
+        // letterboxes cleanly, and the padding keeps the product off the edges.
+        <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", padding: "6%", boxSizing: "border-box" }} />
       ) : (
         <div style={{ textAlign: "center", pointerEvents: "none", padding: "0 10px" }}>
           <div style={{ fontSize: 11.5, fontWeight: 600, color: "#8A93A6" }}>{placeholder}</div>
