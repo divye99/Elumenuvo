@@ -1,4 +1,5 @@
 import Link from "next/link";
+import WholesaleAddButton from "@/components/storefront/WholesaleAddButton";
 import { GROTESK, MONO } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import { wholesalePrice, offMrpPct, WHOLESALE_MIN_QTY, baseExGst } from "@/lib/pricing";
@@ -47,6 +48,9 @@ export default function ProductDeepDive({
             <div style={{ fontSize: 18, marginBottom: 6 }}>{icon}</div>
             <div style={{ fontSize: 13, fontWeight: 700, color: "#19202E" }}>{title}</div>
             <div style={{ fontSize: 11.5, color: "#56627A", lineHeight: 1.45, marginTop: 3 }}>{body}</div>
+            {/* Quoting a wholesale price without a way to act on it is a dead
+                end: one click drops the qualifying quantity in the cart. */}
+            {title === "Wholesale built in" && <WholesaleAddButton p={p} />}
           </div>
         ))}
       </div>

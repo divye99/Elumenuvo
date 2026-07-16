@@ -7,6 +7,7 @@ import VariantPicker from "@/components/storefront/VariantPicker";
 import Rating from "@/components/storefront/Rating";
 import MobileBuyBar from "@/components/storefront/MobileBuyBar";
 import { useCart } from "@/lib/cart";
+import { WHOLESALE_MIN_QTY } from "@/lib/pricing";
 import type { Product } from "@/lib/data";
 
 /** Public wrapper around the shared dashboard ProductDetail (browse-only),
@@ -17,6 +18,10 @@ export default function PublicProductView({ p, siblings = [], business = false }
   const [qty, setQty] = useState(1);
 
   const toCart = () => cart.add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.market, unit: p.unit, cat: p.cat, image: p.image }, qty);
+  // Adds the qualifying wholesale quantity directly; must NOT read the qty
+  // state (a stale closure would add the stepper's count instead of 15).
+  const wholesaleToCart = () =>
+    cart.add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.market, unit: p.unit, cat: p.cat, image: p.image }, WHOLESALE_MIN_QTY);
 
   return (
     <>
@@ -27,6 +32,7 @@ export default function PublicProductView({ p, siblings = [], business = false }
         variant="public"
         onCatalogue={() => router.push("/catalogue")}
         onAddToCart={() => { toCart(); router.push("/cart"); }}
+        onAddWholesale={() => { wholesaleToCart(); router.push("/cart"); }}
         onBuyNow={() => { toCart(); router.push("/checkout"); }}
         ratingSummary={p.rating && p.ratingCount ? <Rating rating={p.rating} count={p.ratingCount} /> : undefined}
         variantSlot={<VariantPicker p={p} siblings={siblings} />}

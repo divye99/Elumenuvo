@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import ImageSlot from "@/components/ImageSlot";
 import { GROTESK } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
-import { baseExGst } from "@/lib/pricing";
+import { baseExGst, unitPriceFor, WHOLESALE_MIN_QTY } from "@/lib/pricing";
 import { tileFor } from "@/lib/data";
 import { useCart } from "@/lib/cart";
 
@@ -39,14 +39,17 @@ export default function CartClient() {
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <Link href={`/catalogue/${it.id}`} style={{ fontSize: 14, fontWeight: 600, color: "#19202E" }}>{it.name}</Link>
-                <div style={{ fontSize: 12, color: "#8A93A6" }}>{it.brand} · {fmt(baseExGst(it.price, it.cat))}+GST/{it.unit}</div>
+                <div style={{ fontSize: 12, color: "#8A93A6" }}>
+                  {it.brand} · {fmt(baseExGst(unitPriceFor(it.price, it.qty), it.cat))}+GST/{it.unit}
+                  {it.qty >= WHOLESALE_MIN_QTY && <span style={{ marginLeft: 6, fontSize: 10.5, fontWeight: 700, color: "#1F9D63", background: "#E6F5EE", padding: "2px 7px", borderRadius: 6 }}>wholesale −5% applied</span>}
+                </div>
               </div>
               <div style={{ display: "flex", alignItems: "center", border: "1px solid #E8EBF1", borderRadius: 10, overflow: "hidden" }}>
                 <button onClick={() => setQty(it.id, it.qty - 1)} style={qtyBtn}>−</button>
                 <span style={{ width: 40, textAlign: "center", fontFamily: GROTESK, fontSize: 14, fontWeight: 600 }}>{it.qty}</span>
                 <button onClick={() => setQty(it.id, it.qty + 1)} style={qtyBtn}>+</button>
               </div>
-              <div style={{ width: 90, textAlign: "right", fontFamily: GROTESK, fontWeight: 700, fontSize: 14 }}>{fmt(baseExGst(it.price, it.cat) * it.qty)}</div>
+              <div style={{ width: 90, textAlign: "right", fontFamily: GROTESK, fontWeight: 700, fontSize: 14 }}>{fmt(baseExGst(unitPriceFor(it.price, it.qty), it.cat) * it.qty)}</div>
               <button onClick={() => remove(it.id)} style={{ background: "none", border: "none", color: "#C7CEDC", fontSize: 18, cursor: "pointer" }}>×</button>
             </div>
           ))}

@@ -29,6 +29,7 @@ export default function ProductDetail({
   onSignIn,
   onAddToCart,
   onBuyNow,
+  onAddWholesale,
   ratingSummary,
   variantSlot,
   priceHistorySlot,
@@ -44,6 +45,8 @@ export default function ProductDetail({
   onSignIn?: () => void;
   onAddToCart?: () => void;
   onBuyNow?: () => void;
+  /** One click adds the qualifying wholesale quantity (15+) to the cart. */
+  onAddWholesale?: () => void;
   /** Optional slots (public storefront): star summary next to the brand row,
    *  a variant picker between the title and price, and a compact price-history
    *  bar under the specs (left column). */
@@ -136,7 +139,17 @@ export default function ProductDetail({
                   {fmt(baseExGst(ws, p.cat))} <span style={{ fontSize: 12, color: "#8A93A6", fontWeight: 400 }}>+GST /{p.unit}</span>
                 </div>
               </div>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "#1F9D63", background: "#E6F5EE", padding: "5px 10px", borderRadius: 8 }}>save 5%</span>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 7 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#1F9D63", background: "#E6F5EE", padding: "5px 10px", borderRadius: 8 }}>save 5%</span>
+                {variant === "public" && onAddWholesale && (
+                  <button
+                    onClick={onAddWholesale}
+                    style={{ background: "#4E5BDC", color: "#fff", border: "none", fontWeight: 700, fontSize: 11.5, padding: "7px 12px", borderRadius: 8, cursor: "pointer", whiteSpace: "nowrap" }}
+                  >
+                    Add {WHOLESALE_MIN_QTY} to cart
+                  </button>
+                )}
+              </div>
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>

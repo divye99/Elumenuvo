@@ -6,7 +6,7 @@
  * cart, which is the signed-in B2B PO flow.
  */
 import { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react";
-import { baseExGst } from "@/lib/pricing";
+import { baseExGst, unitPriceFor } from "@/lib/pricing";
 
 export type CartItem = {
   id: string;
@@ -73,8 +73,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const clear = useCallback(() => persist([]), [persist]);
 
   const value = useMemo<Ctx>(() => {
-    const total = items.reduce((s, i) => s + i.price * i.qty, 0);
-    const baseTotal = items.reduce((s, i) => s + baseExGst(i.price, i.cat) * i.qty, 0);
+    // The wholesale tier (-5% at 15+ units, promised on every product page and
+    // in the Terms) applies PER LINE via unitPriceFor. The server re-prices
+    // from the database with the same rule at checkout, so what the cart shows
+    // is what the customer is charged.
+    const total = items.reduce((s, i) => s + unitPriceFor(i.price, i.qty) * i.qty, 0);
+    const baseTotal = items.reduce((s, i) => s + baseExGst(unitPriceFor(i.price, i.qty), i.cat) * i.qty, 0);
     return {
       items,
       count: items.reduce((s, i) => s + i.qty, 0),

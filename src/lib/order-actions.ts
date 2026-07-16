@@ -2,7 +2,7 @@
 
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { exGst, gstPart, baseExGst } from "@/lib/pricing";
+import { exGst, gstPart, baseExGst, unitPriceFor } from "@/lib/pricing";
 import { sendAdminNewOrder, sendCustomerOrderConfirmation } from "@/lib/email";
 import { createRazorpayOrder, verifyPaymentSignature, razorpayConfigured, razorpayKeyId } from "@/lib/razorpay";
 
@@ -28,15 +28,36 @@ function orderId(): string {
   return `ELM-${ym}-${rand}`;
 }
 
-/** Validate the checkout input; returns cleaned items + total, or an error. */
-function validate(input: PlaceOrderInput): { ok: true; items: CheckoutItem[]; total: number } | { ok: false; error: string } {
-  const items = (input.items ?? []).filter((i) => i.id && i.qty > 0 && i.price > 0);
-  if (items.length === 0) return { ok: false, error: "Your cart is empty." };
+/** Validate the checkout input and RE-PRICE every line from the database.
+ *  The client's prices are never trusted: the unit price is the live
+ *  elume_price with the wholesale tier (-5% at 15+ units, as promised on the
+ *  product page and in the Terms) applied per line. */
+async function validate(
+  db: NonNullable<ReturnType<typeof adminClient>>,
+  input: PlaceOrderInput
+): Promise<{ ok: true; items: CheckoutItem[]; total: number } | { ok: false; error: string }> {
+  const raw = (input.items ?? []).filter((i) => i.id && Number.isFinite(i.qty) && i.qty > 0);
+  if (raw.length === 0) return { ok: false, error: "Your cart is empty." };
   if (!input.name.trim()) return { ok: false, error: "Please enter your name." };
   if (!/^[0-9+\-\s]{8,15}$/.test(input.phone.trim())) return { ok: false, error: "Please enter a valid phone number." };
   if (!/^\S+@\S+\.\S+$/.test(input.email.trim())) return { ok: false, error: "Please enter a valid email." };
   if (!input.billing_address.trim()) return { ok: false, error: "Please enter a billing address." };
   if (!input.shipping_address.trim()) return { ok: false, error: "Please enter a shipping address." };
+
+  const ids = [...new Set(raw.map((i) => i.id))];
+  const { data, error } = await db.from("products").select("id,name,category,elume_price,is_active").in("id", ids);
+  if (error) return { ok: false, error: "We could not verify prices just now. Please try again." };
+  const byId = new Map((data ?? []).map((p) => [p.id, p]));
+
+  const items: CheckoutItem[] = [];
+  for (const i of raw) {
+    const p = byId.get(i.id);
+    if (!p || p.is_active === false) {
+      return { ok: false, error: `"${i.name || i.id}" is no longer available. Please remove it from your cart and try again.` };
+    }
+    const qty = Math.min(Math.floor(i.qty), 9999);
+    items.push({ id: i.id, name: p.name, qty, price: unitPriceFor(Number(p.elume_price), qty), cat: p.category });
+  }
   const total = Math.round(items.reduce((s, i) => s + i.price * i.qty, 0) * 100) / 100;
   return { ok: true, items, total };
 }
@@ -149,11 +170,11 @@ export async function onlinePaymentAvailable(): Promise<boolean> {
  * app-switched mid-UPI) — otherwise they'd be charged with no order to show.
  */
 export async function startOnlinePayment(input: PlaceOrderInput): Promise<StartPaymentResult> {
-  const v = validate(input);
-  if (!v.ok) return v;
   if (!razorpayConfigured()) return { ok: false, error: "Online payment isn't set up yet. Please try again shortly." };
   const db = adminClient();
   if (!db) return { ok: false, error: "Ordering isn't available right now." };
+  const v = await validate(db, input);
+  if (!v.ok) return v;
 
   const id = orderId();
   const rp = await createRazorpayOrder(Math.round(v.total * 100), id, { orderId: id, email: input.email.trim().toLowerCase() });
