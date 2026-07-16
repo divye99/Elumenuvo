@@ -68,13 +68,16 @@ export default function CatalogueBrowser({
   const variantGroups = useMemo(() => groupVariants(products), [products]);
 
   const filtered = useMemo(() => {
-    const needle = q.trim().toLowerCase();
+    // Word-based matching, same rule as the header's suggest API: EVERY word
+    // must appear somewhere in brand/name/spec/sku/category. A whole-string
+    // substring test made "hav mcb" (a suggestion the search bar itself
+    // offers) return zero results, since no single field contains it.
+    const words = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
     const list = products.filter((p) => {
       const inCat = cat === "All" || p.cat === cat;
       const inBrand = picked.size === 0 || picked.has(p.brand);
-      const inSearch =
-        !needle ||
-        `${p.brand} ${p.name} ${p.spec} ${p.sku} ${p.cat}`.toLowerCase().includes(needle);
+      const hay = `${p.brand} ${p.name} ${p.spec} ${p.sku} ${p.cat}`.toLowerCase();
+      const inSearch = words.every((w) => hay.includes(w));
       return inCat && inBrand && inSearch;
     });
     switch (sort) {
