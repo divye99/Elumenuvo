@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import SiteTracker from "@/components/SiteTracker";
 import { Suspense } from "react";
 import type { Metadata } from "next";
@@ -76,6 +77,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <SiteTracker />
         </Suspense>
+        <Analytics />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSONLD) }} />
         {children}
         <Toaster richColors position="top-center" />
