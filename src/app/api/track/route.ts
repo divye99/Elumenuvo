@@ -35,6 +35,8 @@ const geo = (h: Headers, k: string) => {
   try { return v ? decodeURIComponent(v).slice(0, 80) : null; } catch { return v?.slice(0, 80) ?? null; }
 };
 
+const BOT_RE = /bot|crawl|spider|slurp|headless|lighthouse|pingdom|uptime|monitor|gtmetrix|preview|facebookexternalhit|whatsapp|telegram|slack|twitter|linkedin|discord|embedly|quora|python-requests|python-httpx|curl\/|wget|axios|node-fetch|go-http-client|vercel-screenshot|prerender/i;
+
 export async function POST(request: Request) {
   let body: { sid?: unknown; events?: unknown };
   try { body = await request.json(); } catch { return ok(); }
@@ -47,6 +49,10 @@ export async function POST(request: Request) {
   if (!db) return ok(); // local dev without the service key
 
   const h = request.headers;
+  // Crawlers, link-preview fetchers and monitors pollute journey data; the
+  // interesting stream is humans. (Most bots never run the client tracker,
+  // but Googlebot and preview bots execute JS.)
+  if (BOT_RE.test(h.get("user-agent") ?? "")) return ok();
   const ip = (h.get("x-forwarded-for") ?? "").split(",")[0].trim().slice(0, 60) || null;
   const device = deviceOf(h.get("user-agent") ?? "");
   const country = geo(h, "x-vercel-ip-country");

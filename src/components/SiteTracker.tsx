@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { track, flushNow } from "@/lib/analytics";
+import { track, flushNow, setOptOut } from "@/lib/analytics";
 
 /**
  * Mounted once in the root layout. Records, per visitor:
@@ -19,6 +19,17 @@ export default function SiteTracker() {
   const pageStart = useRef<number>(Date.now());
   const lastPath = useRef<string | null>(null);
   const landed = useRef(false);
+
+  /* ── owner/device opt-out ──
+     Opening the admin marks this browser as the owner's, permanently
+     excluding it from analytics. ?notrack=1 does the same for devices that
+     never open the admin (e.g. the owner's phone); ?notrack=0 re-enables. */
+  useEffect(() => {
+    if (pathname.startsWith("/admin")) setOptOut(true);
+    const nt = search.get("notrack");
+    if (nt === "1") setOptOut(true);
+    if (nt === "0") setOptOut(false);
+  }, [pathname, search]);
 
   /* ── pageviews + time-on-page ── */
   useEffect(() => {

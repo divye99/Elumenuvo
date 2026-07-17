@@ -39,9 +39,22 @@ function flush() {
   } catch { /* analytics must never break the site */ }
 }
 
+const NOTRACK_KEY = "elume.notrack";
+
+/** Owner/device opt-out: any browser that has opened the admin (or visited
+ *  with ?notrack=1) is permanently excluded from analytics. */
+export function isOptedOut(): boolean {
+  try { return localStorage.getItem(NOTRACK_KEY) === "1"; } catch { return false; }
+}
+export function setOptOut(on: boolean) {
+  try { on ? localStorage.setItem(NOTRACK_KEY, "1") : localStorage.removeItem(NOTRACK_KEY); } catch { /* ignore */ }
+}
+
 export function track(type: string, extra?: Partial<Omit<Ev, "type" | "ts">>) {
   try {
     if (location.pathname.startsWith("/admin")) return; // never track the admin
+    if (isOptedOut()) return;                            // owner devices
+    if (/^(localhost|127\.|192\.168\.)/.test(location.hostname)) return; // dev
     queue.push({ type, path: location.pathname + location.search, ts: Date.now(), ...extra });
     if (queue.length >= 20) flush();
     else if (!timer) timer = setTimeout(flush, 4000);
