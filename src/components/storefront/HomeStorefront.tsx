@@ -151,17 +151,17 @@ export default function HomeStorefront({ products, posts }: { products: Product[
       />
 
       {/* ── Category shelves ── */}
-      {/* One card per variant FAMILY: a 168-variant family (Elume FR) or a
-          six-colour wire would otherwise fill the whole shelf with siblings.
-          The family's parent (or first-seen member) represents it. */}
+      {/* One card per BRAND per shelf (user rule), each represented by the
+          brand's first variant family's parent: a 168-variant family or a
+          six-colour wire cannot fill a shelf, and neither can one brand. */}
       {CATS.map((cat) => {
-        const seen = new Set<string>();
+        const seenBrands = new Set<string>();
         const shelf: Product[] = [];
         for (const p of products) {
           if (p.cat !== cat || shelf.length >= 8) continue;
+          if (seenBrands.has(p.brand)) continue;
+          seenBrands.add(p.brand);
           const fam = familyKey(p);
-          if (seen.has(fam)) continue;
-          seen.add(fam);
           shelf.push(p.parentId ? groups[fam]?.find((s) => !s.parentId) ?? p : p);
         }
         return (
