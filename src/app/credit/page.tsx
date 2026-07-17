@@ -9,6 +9,7 @@ export const metadata: Metadata = {
     "Elume is building 30-day purchase credit for electrical procurement with NBFC partners. Join the waitlist to get early access when it launches.",
   alternates: { canonical: "https://elumenuvo.com/credit" },
   openGraph: {
+    images: [{ url: "https://elumenuvo.com/og.png", width: 1200, height: 630, alt: "Elume" }],
     title: "Elume Credit — 30-day NBFC credit for FMEG procurement",
     description: "Buy now, pay in 30 days. Coming soon — join the waitlist.",
     url: "https://elumenuvo.com/credit",

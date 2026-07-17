@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: post.title,
     description: post.description,
     alternates: { canonical: url },
-    openGraph: { title: post.title, description: post.description, url, type: "article", publishedTime: post.date, authors: [post.author] },
+    openGraph: { title: post.title, description: post.description, url, type: "article", publishedTime: post.date, authors: [post.author], images: [{ url: "https://elumenuvo.com/og.png", width: 1200, height: 630, alt: "Elume" }] },
     twitter: { card: "summary_large_image", title: post.title, description: post.description },
   };
 }

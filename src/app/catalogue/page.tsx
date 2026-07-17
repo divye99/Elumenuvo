@@ -9,7 +9,8 @@ export const metadata: Metadata = {
   description:
     "Browse multi-brand electrical goods in India: house wires, switchgear, modular switches, distribution boards, fans and LED lighting. MRP, Elume price and wholesale rates on every product.",
   alternates: { canonical: "https://elumenuvo.com/catalogue" },
-  openGraph: { title: "Elume FMEG Catalogue", description: "Multi-brand electrical goods with transparent pricing.", url: "https://elumenuvo.com/catalogue", type: "website" },
+  openGraph: {
+    images: [{ url: "https://elumenuvo.com/og.png", width: 1200, height: 630, alt: "Elume" }], title: "Elume FMEG Catalogue", description: "Multi-brand electrical goods with transparent pricing.", url: "https://elumenuvo.com/catalogue", type: "website" },
 };
 
 export default async function CataloguePage({

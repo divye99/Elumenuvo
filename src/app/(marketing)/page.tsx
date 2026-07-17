@@ -12,6 +12,7 @@ export const metadata: Metadata = {
     "India's FMEG store: house wires, MCBs & switchgear, modular switches, distribution boards, fans and LED lighting from Havells, Polycab, Finolex, CMI and more. MRP, Elume price and wholesale rates on every product.",
   alternates: { canonical: "https://elumenuvo.com" },
   openGraph: {
+    images: [{ url: "https://elumenuvo.com/og.png", width: 1200, height: 630, alt: "Elume" }],
     title: "Elume — Buy electrical goods online in India",
     description: "Every electrical brand. One transparent price list.",
     url: "https://elumenuvo.com",

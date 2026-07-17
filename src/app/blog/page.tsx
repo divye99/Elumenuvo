@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   description:
     "Buying guides and Top 10 product round-ups for electrical goods in India — wires, switchgear, modular switches, distribution boards, fans and LED lighting.",
   alternates: { canonical: `${SITE}/blog` },
-  openGraph: { title: "Elume Blog — FMEG buying guides (India)", description: "Top 10 product guides for wires, switchgear, fans, lighting and more.", url: `${SITE}/blog`, type: "website" },
+  openGraph: {
+    images: [{ url: "https://elumenuvo.com/og.png", width: 1200, height: 630, alt: "Elume" }], title: "Elume Blog — FMEG buying guides (India)", description: "Top 10 product guides for wires, switchgear, fans, lighting and more.", url: `${SITE}/blog`, type: "website" },
 };
 
 export default function BlogIndex() {

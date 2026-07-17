@@ -47,8 +47,9 @@ export const metadata: Metadata = {
     title: "Elume — India's procurement backbone for FMEG",
     description: "Multi-brand electrical goods catalogue with transparent pricing and wholesale rates.",
     url: SITE,
+    images: [{ url: `${SITE}/og.png`, width: 1200, height: 630, alt: "Elume" }],
   },
-  twitter: { card: "summary_large_image", title: "Elume — FMEG procurement, India", description: "Multi-brand electrical goods with transparent pricing." },
+  twitter: { card: "summary_large_image", title: "Elume — FMEG procurement, India", description: "Multi-brand electrical goods with transparent pricing.", images: [`${SITE}/og.png`] },
   robots: { index: true, follow: true },
 };
 

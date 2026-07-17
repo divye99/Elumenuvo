@@ -10,6 +10,7 @@ export const metadata: Metadata = {
     "Looking for an electrical product we don't stock yet? Tell us what you need — brand, spec and quantity — and Elume will source it and email you a price.",
   alternates: { canonical: "https://elumenuvo.com/request-product" },
   openGraph: {
+    images: [{ url: "https://elumenuvo.com/og.png", width: 1200, height: 630, alt: "Elume" }],
     title: "Request a product on Elume",
     description: "Tell us what you need and we'll source it at an Elume price.",
     url: "https://elumenuvo.com/request-product",

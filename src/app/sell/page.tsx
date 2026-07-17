@@ -10,6 +10,7 @@ export const metadata: Metadata = {
     "Manufacture or distribute electrical goods? List your brand on Elume and reach electricians, contractors and businesses buying FMEG across India.",
   alternates: { canonical: "https://elumenuvo.com/sell" },
   openGraph: {
+    images: [{ url: "https://elumenuvo.com/og.png", width: 1200, height: 630, alt: "Elume" }],
     title: "Sell on Elume",
     description: "List your electrical brand on India's transparent FMEG store.",
     url: "https://elumenuvo.com/sell",
