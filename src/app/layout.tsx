@@ -1,3 +1,5 @@
+import SiteTracker from "@/components/SiteTracker";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Hanken_Grotesk, Space_Grotesk, Space_Mono } from "next/font/google";
 import { Toaster } from "sonner";
@@ -71,6 +73,9 @@ export default function RootLayout({
       className={`${hanken.variable} ${spaceGrotesk.variable} ${spaceMono.variable}`}
     >
       <body>
+        <Suspense fallback={null}>
+          <SiteTracker />
+        </Suspense>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSONLD) }} />
         {children}
         <Toaster richColors position="top-center" />

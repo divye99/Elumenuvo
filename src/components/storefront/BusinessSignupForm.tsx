@@ -1,5 +1,6 @@
 "use client";
 
+import { identify } from "@/lib/analytics";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -79,6 +80,7 @@ export default function BusinessSignupForm({ signedIn, existingCompany }: { sign
           : res.message);
         return;
       }
+      identify(f.email?.trim?.() || null, `${f.first_name.trim()} ${f.last_name.trim()}`);
       router.push("/app");
       router.refresh();
     } catch (e2) {

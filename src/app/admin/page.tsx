@@ -45,6 +45,16 @@ export default async function AdminHome() {
           <div style={{ fontSize: 28, fontWeight: 700 }}>{content.length}</div>
           <div style={{ fontSize: 13, color: "#4E5BDC", fontWeight: 600, marginTop: 6 }}>Edit site content →</div>
         </Link>
+        <Link href="/admin/leads" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: 20 }}>
+          <div style={{ fontSize: 13, color: "#8A93A6" }}>Leads</div>
+          <div style={{ fontSize: 28, fontWeight: 700 }}>→</div>
+          <div style={{ fontSize: 13, color: "#4E5BDC", fontWeight: 600, marginTop: 6 }}>Waitlist · business · sellers →</div>
+        </Link>
+        <Link href="/admin/analytics" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: 20 }}>
+          <div style={{ fontSize: 13, color: "#8A93A6" }}>Analytics</div>
+          <div style={{ fontSize: 28, fontWeight: 700 }}>👁</div>
+          <div style={{ fontSize: 13, color: "#4E5BDC", fontWeight: 600, marginTop: 6 }}>Visitor journeys · export →</div>
+        </Link>
       </div>
     </div>
   );

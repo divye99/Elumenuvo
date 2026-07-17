@@ -7,6 +7,7 @@ import { fmt } from "@/lib/format";
 import { baseExGst } from "@/lib/pricing";
 import { useCart } from "@/lib/cart";
 import { startOnlinePayment, confirmOnlinePayment } from "@/lib/order-actions";
+import { identify } from "@/lib/analytics";
 import { openRazorpay } from "@/lib/razorpay-checkout";
 
 type Prefill = { name: string; email: string; phone: string; gstin: string; company: string; isBusiness: boolean; signedIn: boolean };
@@ -98,6 +99,7 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
 
       // Pay online: create a Razorpay order, open the modal, verify, then persist.
       const started = await startOnlinePayment(input);
+      if (started.ok) identify(input.email, input.name);
       if (!started.ok) { setErr(started.error); return; }
       let payment;
       try {

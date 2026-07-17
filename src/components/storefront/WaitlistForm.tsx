@@ -2,10 +2,15 @@
 
 import { useActionState } from "react";
 import { joinWaitlist, type FormState } from "@/lib/actions";
+import { identify } from "@/lib/analytics";
 
 /** NBFC-credit waitlist signup form (client island for /credit). */
 export default function WaitlistForm() {
-  const [state, action, pending] = useActionState<FormState, FormData>(joinWaitlist, null);
+  const [state, action, pending] = useActionState<FormState, FormData>(async (prev, fd) => {
+    const res = await joinWaitlist(prev, fd);
+    if (res?.ok) identify(String(fd.get("email") || ""), String(fd.get("name") || ""));
+    return res;
+  }, null);
 
   if (state?.ok) {
     return (
