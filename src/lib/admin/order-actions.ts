@@ -7,6 +7,20 @@ import { sendCustomerStatusUpdate } from "@/lib/email";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
+/** Safety net for every order action: an uncaught throw inside a server
+ *  action replaces the whole admin page with Next's opaque "Application
+ *  error … Digest" screen. Wrapping guarantees the worst case is a readable
+ *  inline message instead, with the real cause logged server-side. */
+async function safely(label: string, fn: () => Promise<ActionResult>): Promise<ActionResult> {
+  try {
+    return await fn();
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error(`[order-action:${label}]`, e);
+    return { ok: false, error: `${label} failed: ${msg}` };
+  }
+}
+
 // Linear status flow (partial_shipped is set automatically by shipment logic).
 export const ORDER_STATUSES = ["placed", "confirmed", "packed", "shipped", "partially_shipped", "out_for_delivery", "delivered", "cancelled"] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
@@ -47,7 +61,7 @@ async function logAndNotify(db: any, order: any, status: string, note?: string |
 }
 
 /** Advance an order to a new status: stamp, log an event, notify the customer. */
-export async function updateOrderStatus(orderId: string, status: OrderStatus, note?: string): Promise<ActionResult> {
+async function _updateOrderStatus(orderId: string, status: OrderStatus, note?: string): Promise<ActionResult> {
   const { db, err } = await guard();
   if (!db) return { ok: false, error: err };
   const order = await loadOrder(db, orderId);
@@ -64,7 +78,7 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus, no
   return { ok: true };
 }
 
-export async function cancelOrder(orderId: string, reason: string): Promise<ActionResult> {
+async function _cancelOrder(orderId: string, reason: string): Promise<ActionResult> {
   const { db, err } = await guard();
   if (!db) return { ok: false, error: err };
   const order = await loadOrder(db, orderId);
@@ -77,7 +91,7 @@ export async function cancelOrder(orderId: string, reason: string): Promise<Acti
   return { ok: true };
 }
 
-export async function saveAdminNote(orderId: string, note: string): Promise<ActionResult> {
+async function _saveAdminNote(orderId: string, note: string): Promise<ActionResult> {
   const { db, err } = await guard();
   if (!db) return { ok: false, error: err };
   const { error } = await db.from("orders").update({ admin_note: note || null, updated_at: new Date().toISOString() }).eq("id", orderId);
@@ -95,7 +109,7 @@ type ShipmentInput = {
 };
 
 /** Record a parcel (partial shipment), set order status, notify the customer. */
-export async function addShipment(input: ShipmentInput): Promise<ActionResult> {
+async function _addShipment(input: ShipmentInput): Promise<ActionResult> {
   const { db, err } = await guard();
   if (!db) return { ok: false, error: err };
   const order = await loadOrder(db, input.order_id);
@@ -124,7 +138,7 @@ export async function addShipment(input: ShipmentInput): Promise<ActionResult> {
 }
 
 /** Mark a parcel delivered (optionally with a proof image); roll up to the order. */
-export async function markShipmentDelivered(shipmentId: string, orderId: string, proofUrl?: string): Promise<ActionResult> {
+async function _markShipmentDelivered(shipmentId: string, orderId: string, proofUrl?: string): Promise<ActionResult> {
   const { db, err } = await guard();
   if (!db) return { ok: false, error: err };
   const nowIso = new Date().toISOString();
@@ -148,6 +162,15 @@ export async function markShipmentDelivered(shipmentId: string, orderId: string,
 
 /** Upload a delivery-proof photo to Storage; returns its public URL. */
 export async function uploadDeliveryProof(fd: FormData): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+  try {
+    return await _uploadDeliveryProof(fd);
+  } catch (e) {
+    console.error("[order-action:upload-proof]", e);
+    return { ok: false, error: `Upload failed: ${e instanceof Error ? e.message : String(e)}` };
+  }
+}
+
+async function _uploadDeliveryProof(fd: FormData): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
   const { db, err } = await guard();
   if (!db) return { ok: false, error: err };
   const file = fd.get("file") as File | null;
@@ -163,4 +186,21 @@ export async function uploadDeliveryProof(fd: FormData): Promise<{ ok: true; url
 
 function sumQty(items: { qty?: number }[]): number {
   return items.reduce((s, i) => s + (Number(i.qty) || 0), 0);
+}
+
+
+export async function updateOrderStatus(orderId: string, status: OrderStatus, note?: string): Promise<ActionResult> {
+  return safely("Status update", () => _updateOrderStatus(orderId, status, note));
+}
+export async function cancelOrder(orderId: string, reason: string): Promise<ActionResult> {
+  return safely("Cancel", () => _cancelOrder(orderId, reason));
+}
+export async function saveAdminNote(orderId: string, note: string): Promise<ActionResult> {
+  return safely("Saving the note", () => _saveAdminNote(orderId, note));
+}
+export async function addShipment(input: ShipmentInput): Promise<ActionResult> {
+  return safely("Adding the shipment", () => _addShipment(input));
+}
+export async function markShipmentDelivered(shipmentId: string, orderId: string, proofUrl?: string): Promise<ActionResult> {
+  return safely("Marking delivered", () => _markShipmentDelivered(shipmentId, orderId, proofUrl));
 }
