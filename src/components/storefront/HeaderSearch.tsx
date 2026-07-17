@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { fmt } from "@/lib/format";
 import { baseExGst } from "@/lib/pricing";
+import { logSearch } from "@/lib/search-log";
 
 /**
  * Amazon-style header search: as-you-type dropdown with text completions
@@ -97,8 +98,15 @@ export default function HeaderSearch({ compact = false }: { compact?: boolean })
   const choose = (i: number) => {
     const o = options[i];
     if (!o) return goSearch(q.trim());
-    if (o.kind === "product") { setOpen(false); saveRecent(q.trim() || o.name); router.push(`/catalogue/${o.id}`); return; }
+    if (o.kind === "product") {
+      setOpen(false);
+      saveRecent(q.trim() || o.name);
+      if (q.trim().length >= 2) logSearch({ q: q.trim(), source: "suggest", picked: `product:${o.id}` });
+      router.push(`/catalogue/${o.id}`);
+      return;
+    }
     if (o.kind === "recent") return goSearch(o.label);
+    if (q.trim().length >= 2) logSearch({ q: q.trim(), source: "suggest", picked: o.label, cat: o.cat });
     return goSearch(o.q, o.cat);
   };
 

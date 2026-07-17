@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ProductCard from "@/components/storefront/ProductCard";
 import { GROTESK } from "@/lib/fonts";
 import { CATS, type Product } from "@/lib/data";
 import { groupVariants, familyKey } from "@/lib/variants";
+import { logSearch } from "@/lib/search-log";
 
 const CAT_ICONS: Record<string, string> = {
   All: "◈",
@@ -67,6 +68,11 @@ export default function CatalogueBrowser({
   }, [products]);
   const variantGroups = useMemo(() => groupVariants(products), [products]);
 
+  // Stage-1 search logging: record a SETTLED search (1.2s after the last
+  // keystroke) with its result count, once per distinct query per visit.
+  // Zero-result rows become the "demand we do not carry" report.
+  const loggedRef = useRef<Set<string>>(new Set());
+
   const filtered = useMemo(() => {
     // Word-based matching, same rule as the header's suggest API: EVERY word
     // must appear somewhere in brand/name/spec/sku/category. A whole-string
@@ -102,6 +108,18 @@ export default function CatalogueBrowser({
         return list;
     }
   }, [products, cat, picked, q, sort]);
+
+  useEffect(() => {
+    const needle = q.trim();
+    if (needle.length < 2) return;
+    const t = setTimeout(() => {
+      const key = `${needle.toLowerCase()}|${cat}`;
+      if (loggedRef.current.has(key)) return;
+      loggedRef.current.add(key);
+      logSearch({ q: needle, source: "search", results: filtered.length, cat: cat === "All" ? undefined : cat });
+    }, 1200);
+    return () => clearTimeout(t);
+  }, [q, cat, filtered.length]);
 
   const toggleBrand = (b: string) =>
     setPicked((prev) => {
