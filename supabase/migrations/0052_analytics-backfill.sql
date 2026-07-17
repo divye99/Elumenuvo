@@ -14,6 +14,32 @@
 -- per person so the visitor list shows their name. Idempotent.
 -- ═══════════════════════════════════════════════════════════════
 
+-- ── 0. Schema repair ─────────────────────────────────────────
+-- The live waitlist table PREDATES migration 0002's definition, and that
+-- migration used "create table if not exists", which silently does nothing
+-- when an older table already exists. Result: the live table is missing
+-- columns the code writes (this failed the first run of this file, and
+-- worse, likely made the live waitlist FORM fail whenever it inserted
+-- `name`). The same guard is applied to partner_leads and the business
+-- profile columns, all "if not exists", all harmless where already correct.
+alter table public.waitlist add column if not exists name    text;
+alter table public.waitlist add column if not exists company text;
+alter table public.waitlist add column if not exists feature text not null default 'nbfc-credit';
+
+alter table public.partner_leads add column if not exists kind    text;
+alter table public.partner_leads add column if not exists name    text;
+alter table public.partner_leads add column if not exists phone   text;
+alter table public.partner_leads add column if not exists company text;
+alter table public.partner_leads add column if not exists message text;
+alter table public.partner_leads add column if not exists details jsonb not null default '{}'::jsonb;
+
+alter table public.profiles add column if not exists account_type text;
+alter table public.profiles add column if not exists company      text;
+alter table public.profiles add column if not exists gstin        text;
+alter table public.profiles add column if not exists full_name    text;
+alter table public.profiles add column if not exists phone        text;
+alter table public.profiles add column if not exists updated_at   timestamptz;
+
 -- ── One identify per known email (earliest occurrence wins) ──
 with people as (
   select lower(email) as email, max(name) as name, min(created_at) as first_at
