@@ -43,18 +43,49 @@ export async function fetchEvents(days: number, sid?: string): Promise<SiteEvent
   return out;
 }
 
-export async function fetchSearches(sid: string, days: number): Promise<{ query: string; source: string; results: number | null; picked: string | null; created_at: string }[]> {
+export async function fetchAllSearches(days: number): Promise<Map<string, SearchRow[]>> {
   const db = adminClient();
-  if (!db) return [];
+  if (!db) return new Map();
   const since = new Date(Date.now() - days * 86400000).toISOString();
   const { data } = await db
     .from("search_queries")
-    .select("query, source, results, picked, created_at")
-    .eq("session_id", sid)
+    .select("session_id, query, source, results, picked, created_at")
     .gte("created_at", since)
+    .not("session_id", "is", null)
     .order("created_at", { ascending: true })
-    .limit(500);
-  return (data ?? []) as any[];
+    .limit(5000);
+  const by = new Map<string, SearchRow[]>();
+  for (const r of (data ?? []) as (SearchRow & { session_id: string })[]) {
+    (by.get(r.session_id) ?? by.set(r.session_id, []).get(r.session_id)!).push(r);
+  }
+  return by;
+}
+
+export type SearchRow = { query: string; source: string; results: number | null; picked: string | null; created_at: string };
+
+export type JourneyItem = { at: string; icon: string; title: string; sub?: string };
+
+const ICON: Record<string, string> = { pageview: "📄", leave: "⏱", click: "👆", product_click: "🛍", add_to_cart: "🛒", identify: "🪪", search: "🔎", legacy: "🗂" };
+const durTxt = (ms: number) => (ms < 60000 ? `${Math.round(ms / 1000)}s` : `${Math.floor(ms / 60000)}m ${Math.round((ms % 60000) / 1000)}s`);
+
+/** One visitor's ordered timeline from their events + searches. */
+export function buildJourney(events: SiteEvent[], searches: SearchRow[]): JourneyItem[] {
+  const items: JourneyItem[] = [];
+  for (const e of events) {
+    const d = (e.detail ?? {}) as Record<string, string>;
+    if (e.type === "pageview") items.push({ at: e.created_at, icon: ICON.pageview, title: e.path ?? "/", sub: d.referrer_landing ? `arrived from ${d.referrer_landing}` : undefined });
+    else if (e.type === "leave") items.push({ at: e.created_at, icon: ICON.leave, title: `spent ${durTxt(e.duration_ms ?? 0)} on ${e.path ?? "page"}` });
+    else if (e.type === "product_click") items.push({ at: e.created_at, icon: ICON.product_click, title: `tapped product: ${d.label || d.product_id}`, sub: d.product_id });
+    else if (e.type === "add_to_cart") items.push({ at: e.created_at, icon: ICON.add_to_cart, title: `added to cart (${d.label ?? ""})` });
+    else if (e.type === "identify") items.push({ at: e.created_at, icon: ICON.identify, title: `identified as ${e.name || e.email}`, sub: e.email ?? undefined });
+    else if (e.type === "legacy") items.push({ at: e.created_at, icon: ICON.legacy, title: d.label ?? "recorded action", sub: "from records predating analytics" });
+    else items.push({ at: e.created_at, icon: ICON.click, title: `tapped "${d.label ?? "?"}"`, sub: d.href });
+  }
+  for (const s of searches) {
+    items.push({ at: s.created_at, icon: ICON.search, title: s.source === "suggest" ? `picked suggestion "${s.picked}" after typing "${s.query}"` : `searched "${s.query}" (${s.results ?? "?"} results)` });
+  }
+  items.sort((a, b) => (a.at < b.at ? -1 : 1));
+  return items;
 }
 
 /** Group an event stream into visitor summaries, newest activity first.

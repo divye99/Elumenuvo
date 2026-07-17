@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
-import { fetchEvents, toVisitors } from "@/lib/admin/analytics-data";
+import { fetchEvents, fetchAllSearches, toVisitors, buildJourney, type SiteEvent } from "@/lib/admin/analytics-data";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -12,9 +12,11 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
   await requireAdmin();
   const { days: d } = await searchParams;
   const days = Math.min(90, Math.max(1, Number(d) || 14));
-  const events = await fetchEvents(days);
+  const [events, searchesBySid] = await Promise.all([fetchEvents(days), fetchAllSearches(days)]);
   const visitors = toVisitors(events);
   const identified = visitors.filter((v) => v.identity.email).length;
+  const eventsBySid = new Map<string, SiteEvent[]>();
+  for (const e of events) (eventsBySid.get(e.sid) ?? eventsBySid.set(e.sid, []).get(e.sid)!).push(e);
 
   return (
     <div>
@@ -23,7 +25,7 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
         <Link href="/admin" style={{ fontSize: 13, color: "#8A93A6" }}>← Dashboard</Link>
       </div>
       <p style={{ fontSize: 14, color: "#56627A", margin: "0 0 18px" }}>
-        Every visitor's journey: pages, time spent, taps, searches, device and location. Click a visitor for the full timeline.
+        Every visitor's journey: pages, time spent, taps, searches, device and location. Open a visitor to see their full activity.
       </p>
 
       <div style={{ display: "flex", gap: 8, marginBottom: 16, alignItems: "center", flexWrap: "wrap" }}>
@@ -42,25 +44,56 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
         </div>
       ) : (
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflow: "hidden" }}>
-          {visitors.slice(0, 200).map((v, i) => (
-            <Link key={v.sid} href={`/admin/analytics/${v.sid}`} style={{ display: "flex", gap: 14, alignItems: "baseline", padding: "13px 16px", borderTop: i ? "1px solid #F0F2F6" : undefined, flexWrap: "wrap", color: "inherit" }}>
-              <div style={{ minWidth: 230 }}>
-                <div style={{ fontSize: 13.5, fontWeight: 700, color: v.identity.email ? "#137a4b" : "#19202E" }}>
-                  {v.identity.name || v.identity.email || `Anonymous · ${v.sid.slice(0, 6)}`}
+          {visitors.slice(0, 200).map((v, i) => {
+            const journey = buildJourney(eventsBySid.get(v.sid) ?? [], searchesBySid.get(v.sid) ?? []).slice(0, 400);
+            return (
+              <details key={v.sid} style={{ borderTop: i ? "1px solid #F0F2F6" : undefined }}>
+                <summary style={{ display: "flex", gap: 14, alignItems: "baseline", padding: "13px 16px", flexWrap: "wrap", cursor: "pointer", listStyle: "none" }}>
+                  <span style={{ color: "#A0A7B5", fontSize: 11 }}>▸</span>
+                  <span style={{ minWidth: 220 }}>
+                    <span style={{ display: "block", fontSize: 13.5, fontWeight: 700, color: v.identity.email ? "#137a4b" : "#19202E" }}>
+                      {v.identity.name || v.identity.email || `Anonymous · ${v.sid.slice(0, 6)}`}
+                    </span>
+                    <span style={{ fontSize: 11.5, color: "#4E5BDC" }}>{v.identity.email ?? "not identified yet"}</span>
+                  </span>
+                  <span style={{ fontSize: 12, color: "#56627A", minWidth: 160 }}>{v.location ?? "location unknown"}{v.ip ? ` · ${v.ip}` : ""}</span>
+                  <span style={{ fontSize: 12, color: "#56627A", minWidth: 140 }}>{v.device ?? "–"}</span>
+                  <span style={{ fontSize: 12, color: "#56627A" }}>
+                    {v.pageviews} pages · {v.clicks} taps{v.addToCarts ? ` · ${v.addToCarts} add-to-cart` : ""} · {dur(v.totalMs)}
+                  </span>
+                  {(v.utm || v.landingReferrer) && (
+                    <span style={{ fontSize: 11.5, color: "#C77700" }}>{v.utm ?? new URL(v.landingReferrer!).hostname}</span>
+                  )}
+                  <span style={{ marginLeft: "auto", fontSize: 11.5, color: "#A0A7B5", whiteSpace: "nowrap" }}>{dt(v.lastSeen)}</span>
+                </summary>
+
+                <div style={{ background: "#F8F9FC", borderTop: "1px solid #F0F2F6", padding: "4px 0 10px" }}>
+                  {journey.length === 0 && <div style={{ padding: "14px 46px", fontSize: 12.5, color: "#8A93A6" }}>No recorded activity in this window.</div>}
+                  {journey.map((it, j) => {
+                    const day = new Date(it.at).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+                    const prevDay = j > 0 ? new Date(journey[j - 1].at).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : null;
+                    return (
+                      <div key={j}>
+                        {day !== prevDay && (
+                          <div style={{ padding: "9px 46px 3px", fontSize: 10.5, fontWeight: 700, letterSpacing: "0.6px", textTransform: "uppercase", color: "#A0A7B5" }}>{day}</div>
+                        )}
+                        <div style={{ display: "flex", gap: 11, alignItems: "baseline", padding: "4px 46px" }}>
+                          <span style={{ fontFamily: "var(--space-mono)", fontSize: 10.5, color: "#A0A7B5", minWidth: 58 }}>
+                            {new Date(it.at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                          </span>
+                          <span style={{ fontSize: 12.5 }}>{it.icon}</span>
+                          <span style={{ fontSize: 12.5, color: "#19202E" }}>
+                            {it.title}
+                            {it.sub && <span style={{ color: "#8A93A6", fontSize: 11 }}> · {it.sub}</span>}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div style={{ fontSize: 11.5, color: "#4E5BDC" }}>{v.identity.email ?? "not identified yet"}</div>
-              </div>
-              <div style={{ fontSize: 12, color: "#56627A", minWidth: 170 }}>{v.location ?? "location unknown"}{v.ip ? ` · ${v.ip}` : ""}</div>
-              <div style={{ fontSize: 12, color: "#56627A", minWidth: 150 }}>{v.device ?? "–"}</div>
-              <div style={{ fontSize: 12, color: "#56627A" }}>
-                {v.pageviews} pages · {v.clicks} taps{v.addToCarts ? ` · ${v.addToCarts} add-to-cart` : ""} · {dur(v.totalMs)}
-              </div>
-              {(v.utm || v.landingReferrer) && (
-                <div style={{ fontSize: 11.5, color: "#C77700" }}>{v.utm ?? new URL(v.landingReferrer!).hostname}</div>
-              )}
-              <div style={{ marginLeft: "auto", fontSize: 11.5, color: "#A0A7B5", whiteSpace: "nowrap" }}>{dt(v.lastSeen)}</div>
-            </Link>
-          ))}
+              </details>
+            );
+          })}
         </div>
       )}
     </div>
