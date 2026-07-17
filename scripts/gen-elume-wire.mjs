@@ -158,7 +158,7 @@ async function main() {
         const name = `Elume FR House Wire ${size} sq mm — ${c.name}${len !== 90 ? ` · ${len} m` : ""}`;
         const spec = `Elume FR · ${size} sq mm · single core · class-5 flexible copper (IS 8130) · ${len} m coil · FR PVC, self-extinguishing · 1100 V · IS 694 · ${c.name} (${c.real})`;
         const attrs = { Size: `${size} sq mm`, Length: `${len} m`, Colour: c.name };
-        rows.push(`(${q(id)}, ${q(sku)}, ${q(name)}, 'Elume', 'Wires & Cables', ${q(spec)}, ${price}, ${price}, 'coil', '/elume/box-front.jpg', ${jsonb(attrs)}, ${q(sku)}, ${id === parentId ? "null" : q(parentId)}, ${jsonb(TECH(len))}, true, true, -10)`);
+        rows.push(`(${q(id)}, ${q(sku)}, ${q(name)}, 'Elume', 'Wires & Cables', ${q(spec)}, ${price}, ${price}, 'coil', '/elume/box-front-white.jpg', ${jsonb(attrs)}, ${q(sku)}, ${id === parentId ? "null" : q(parentId)}, ${jsonb(TECH(len))}, true, true, -10)`);
   } } }
 
   // Parent must be first for the self-referencing FK within one statement set.
