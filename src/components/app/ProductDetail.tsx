@@ -56,7 +56,8 @@ export default function ProductDetail({
   /** Business accounts see the price split into base + GST. */
   showGst?: boolean;
 }) {
-  const off = offMrpPct(p.price, p.market) + "%";
+  const offPct = offMrpPct(p.price, p.market);
+  const off = offPct + "%";
   const ws = wholesalePrice(p.price);
   const isWholesale = qty >= WHOLESALE_MIN_QTY;
   const lineTotal = unitPriceFor(p.price, qty) * qty;
@@ -82,7 +83,7 @@ export default function ProductDetail({
             <div style={{ height: 230, position: "relative" }}>
               <ImageSlot id={`img-${p.sku}`} tile={tileFor(p.cat)} imageUrl={p.image} />
               <span style={{ position: "absolute", left: 14, bottom: 14, zIndex: 2, pointerEvents: "none", fontFamily: MONO, fontSize: 10.5, color: "#6b748c", background: "rgba(255,255,255,0.9)", padding: "4px 8px", borderRadius: 6 }}>{p.sku}</span>
-              <span style={{ position: "absolute", right: 14, bottom: 14, zIndex: 2, pointerEvents: "none", fontSize: 12, fontWeight: 700, color: "#1F9D63", background: "#fff", padding: "5px 10px", borderRadius: 7 }}>↓ {off} off MRP</span>
+              {offPct >= 1 && <span style={{ position: "absolute", right: 14, bottom: 14, zIndex: 2, pointerEvents: "none", fontSize: 12, fontWeight: 700, color: "#1F9D63", background: "#fff", padding: "5px 10px", borderRadius: 7 }}>↓ {off} off MRP</span>}
             </div>
           </div>
           <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "6px 18px" }}>
@@ -118,9 +119,14 @@ export default function ProductDetail({
             </div>
             {/* Inclusive total + MRP reference (all figures ex-GST for a like-for-like %) */}
             <div style={{ fontSize: 13, color: "#56627A", marginBottom: showGst ? 8 : 14 }}>
-              <b style={{ color: "#19202E" }}>{fmt(gb.incl)}</b> incl. GST · MRP{" "}
-              <span style={{ textDecoration: "line-through", color: "#A0A7B5" }}>{fmt(baseExGst(p.market, p.cat))}</span>
-              <span style={{ color: "#1F9D63", fontWeight: 700, marginLeft: 8 }}>{off} off</span>
+              <b style={{ color: "#19202E" }}>{fmt(gb.incl)}</b> incl. GST
+              {offPct >= 1 && (
+                <>
+                  {" "}· MRP{" "}
+                  <span style={{ textDecoration: "line-through", color: "#A0A7B5" }}>{fmt(baseExGst(p.market, p.cat))}</span>
+                  <span style={{ color: "#1F9D63", fontWeight: 700, marginLeft: 8 }}>{off} off</span>
+                </>
+              )}
             </div>
             {/* GST breakdown for business accounts */}
             {showGst && (

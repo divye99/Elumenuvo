@@ -4,6 +4,7 @@ import { fetchProduct, fetchFamily } from "@/lib/products";
 import { fetchReviews } from "@/lib/reviews";
 import { fetchPriceHistory } from "@/lib/competitor-history";
 import CompetitorPriceChart from "@/components/storefront/CompetitorPriceChart";
+import ElumeFlagship from "@/components/storefront/ElumeFlagship";
 import { getProfile, isBusiness } from "@/lib/profile";
 import { wholesalePrice } from "@/lib/pricing";
 import { getAllPosts, CATEGORY_TO_CATALOGUE } from "@/lib/blog";
@@ -84,6 +85,11 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <PublicProductView p={product} siblings={siblings} business={business} />
+      {product.brand === "Elume" && (
+        <div style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px" }}>
+          <ElumeFlagship p={product} />
+        </div>
+      )}
       <div style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px" }}>
         <CompetitorPriceChart series={priceHistory} mrp={product.market} />
       </div>

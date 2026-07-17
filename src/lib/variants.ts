@@ -27,6 +27,14 @@ export const COLOUR_HEX: Record<string, string> = {
   "Metallic Gold": "#C9A24B",
   "Dark Teakwood": "#4E3423",
   "Sand Grey": "#B3AFA5",
+  // Elume house-label palette (a palette of light)
+  Ultraviolet: "#7A2FD1",
+  "Solar Flare": "#FFC400",
+  Aurora: "#12A15E",
+  Ember: "#D93025",
+  Midnight: "#25348F",
+  Moonlight: "#F4F5F0",
+  Eclipse: "#16181D",
   // Norisys modular finishes
   "Frost White": "#F4F5F7",
   "Quartz Grey": "#8D9299",

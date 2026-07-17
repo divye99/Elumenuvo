@@ -96,8 +96,9 @@ export default function ProductDeepDive({
           </h3>
           <div style={{ fontSize: 12.5, color: "#8A93A6", marginBottom: 14 }}>
             Every option is its own product with live pricing — tap a row to switch.
+            {family.length > 48 ? " Showing the first 48; use the option picker above to reach any combination." : ""}
           </div>
-          <div style={{ overflowX: "auto" }}>
+          <div style={{ overflowX: "auto", maxHeight: 560, overflowY: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
               <thead>
                 <tr>
@@ -109,7 +110,7 @@ export default function ProductDeepDive({
                 </tr>
               </thead>
               <tbody>
-                {family.map((s) => {
+                {family.slice(0, 48).map((s) => {
                   const current = s.id === p.id;
                   const m = coilMetres(s);
                   return (

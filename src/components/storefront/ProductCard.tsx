@@ -40,7 +40,10 @@ export default function ProductCard({
   const [shown, setShown] = useState(p);
   const [added, setAdded] = useState(false);
   const { add } = useCart();
-  const save = Math.round((1 - shown.price / shown.market) * 100) + "%";
+  const savePct = Math.round((1 - shown.price / shown.market) * 100);
+  const save = savePct + "%";
+  // The house label prices with MRP == price: no strikethrough, no save badge.
+  const hasDiscount = savePct >= 1;
 
   const hasVariants = siblings.length > 1 && !!shown.attrs;
   const colours = hasVariants ? valuesOf(siblings, "Colour") : [];
@@ -84,12 +87,14 @@ export default function ProductCard({
         >
           {shown.sku}
         </span>
-        <span
-          className="pc-save"
-          style={{ position: "absolute", right: 11, bottom: 11, zIndex: 2, pointerEvents: "none", fontSize: 11, fontWeight: 700, color: "#1F9D63", background: "#fff", padding: "4px 8px", borderRadius: 6 }}
-        >
-          ↓ {save}
-        </span>
+        {hasDiscount && (
+          <span
+            className="pc-save"
+            style={{ position: "absolute", right: 11, bottom: 11, zIndex: 2, pointerEvents: "none", fontSize: 11, fontWeight: 700, color: "#1F9D63", background: "#fff", padding: "4px 8px", borderRadius: 6 }}
+          >
+            ↓ {save}
+          </span>
+        )}
 
         {/* Hover variant swatches (Amazon-style) */}
         {showSwatches && (
@@ -206,7 +211,11 @@ export default function ProductCard({
             <span style={{ fontSize: 10, fontWeight: 600, color: "#8A93A6" }}>+GST</span>
           </div>
           <div className="pc-mrp" style={{ fontSize: 11.5, color: "#A0A7B5" }}>
-            MRP <span style={{ textDecoration: "line-through" }}>{fmt(baseExGst(shown.market, shown.cat))}</span> · {fmt(shown.price)} incl.
+            {hasDiscount ? (
+              <>MRP <span style={{ textDecoration: "line-through" }}>{fmt(baseExGst(shown.market, shown.cat))}</span> · {fmt(shown.price)} incl.</>
+            ) : (
+              <>{fmt(shown.price)} incl. GST</>
+            )}
           </div>
           <span className="pc-deliv" suppressHydrationWarning>Delivery by {deliveryBy()}</span>
           <button
