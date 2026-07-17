@@ -26,6 +26,26 @@ async function loadOrder(db: any, orderId: string) {
   return data;
 }
 
+/** Update an order, tolerating schema drift: if the live table is missing an
+ *  optional column (Postgres 42703), retry with the minimal status-only patch
+ *  rather than failing the whole action. Returns an error message or null. */
+async function patchOrder(db: any, orderId: string, patch: Record<string, any>): Promise<string | null> {
+  const { error } = await db.from("orders").update(patch).eq("id", orderId);
+  if (!error) return null;
+  if (error.code === "42703" && patch.status) {
+    const retry = await db.from("orders").update({ status: patch.status }).eq("id", orderId);
+    if (!retry.error) return null;
+    return retry.error.message;
+  }
+  return error.message;
+}
+
+/** Event log + customer email are best-effort: they must never fail the action. */
+async function logAndNotify(db: any, order: any, status: string, note?: string | null, extra?: any) {
+  try { await db.from("order_events").insert({ order_id: order.id, status, note: note || null }); } catch { /* optional table */ }
+  try { if (order.email) await sendCustomerStatusUpdate(order, status, { note, ...extra }); } catch (e) { console.warn("[order-email]", e instanceof Error ? e.message : e); }
+}
+
 /** Advance an order to a new status: stamp, log an event, notify the customer. */
 export async function updateOrderStatus(orderId: string, status: OrderStatus, note?: string): Promise<ActionResult> {
   const { db, err } = await guard();
@@ -35,11 +55,10 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus, no
 
   const patch: Record<string, any> = { status, updated_at: new Date().toISOString() };
   if (STAMP[status]) patch[STAMP[status]] = new Date().toISOString();
-  const { error } = await db.from("orders").update(patch).eq("id", orderId);
-  if (error) return { ok: false, error: error.message };
+  const failed = await patchOrder(db, orderId, patch);
+  if (failed) return { ok: false, error: failed };
 
-  await db.from("order_events").insert({ order_id: orderId, status, note: note || null });
-  await sendCustomerStatusUpdate(order, status, { note });
+  await logAndNotify(db, order, status, note);
   revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath("/admin/orders");
   return { ok: true };
@@ -50,10 +69,9 @@ export async function cancelOrder(orderId: string, reason: string): Promise<Acti
   if (!db) return { ok: false, error: err };
   const order = await loadOrder(db, orderId);
   if (!order) return { ok: false, error: "Order not found." };
-  const { error } = await db.from("orders").update({ status: "cancelled", cancelled_at: new Date().toISOString(), cancel_reason: reason || null, updated_at: new Date().toISOString() }).eq("id", orderId);
-  if (error) return { ok: false, error: error.message };
-  await db.from("order_events").insert({ order_id: orderId, status: "cancelled", note: reason || null });
-  await sendCustomerStatusUpdate(order, "cancelled", { note: reason });
+  const failed = await patchOrder(db, orderId, { status: "cancelled", cancelled_at: new Date().toISOString(), cancel_reason: reason || null, updated_at: new Date().toISOString() });
+  if (failed) return { ok: false, error: failed };
+  await logAndNotify(db, order, "cancelled", reason);
   revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath("/admin/orders");
   return { ok: true };
