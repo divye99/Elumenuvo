@@ -151,15 +151,29 @@ export default function HomeStorefront({ products, posts }: { products: Product[
       />
 
       {/* ── Category shelves ── */}
-      {CATS.map((cat) => (
-        <Shelf
-          key={cat}
-          title={cat}
-          products={products.filter((p) => p.cat === cat).slice(0, 8)}
-          seeAll={`/catalogue?cat=${encodeURIComponent(cat)}`}
-          groups={groups}
-        />
-      ))}
+      {/* One card per variant FAMILY: a 168-variant family (Elume FR) or a
+          six-colour wire would otherwise fill the whole shelf with siblings.
+          The family's parent (or first-seen member) represents it. */}
+      {CATS.map((cat) => {
+        const seen = new Set<string>();
+        const shelf: Product[] = [];
+        for (const p of products) {
+          if (p.cat !== cat || shelf.length >= 8) continue;
+          const fam = familyKey(p);
+          if (seen.has(fam)) continue;
+          seen.add(fam);
+          shelf.push(p.parentId ? groups[fam]?.find((s) => !s.parentId) ?? p : p);
+        }
+        return (
+          <Shelf
+            key={cat}
+            title={cat}
+            products={shelf}
+            seeAll={`/catalogue?cat=${encodeURIComponent(cat)}`}
+            groups={groups}
+          />
+        );
+      })}
 
       {/* ── Brand strip ── */}
       <section className="home-brands" style={{ marginTop: 44, background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "22px 26px" }}>
