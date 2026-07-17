@@ -9,7 +9,7 @@ export const maxDuration = 60;
  *  taps, add-to-carts, searches (merged in from the search log, same sid)
  *  and the identify moments that name an anonymous history. */
 
-const ICON: Record<string, string> = { pageview: "📄", leave: "⏱", click: "👆", product_click: "🛍", add_to_cart: "🛒", identify: "🪪", search: "🔎", suggest: "🔎" };
+const ICON: Record<string, string> = { pageview: "📄", leave: "⏱", click: "👆", product_click: "🛍", add_to_cart: "🛒", identify: "🪪", search: "🔎", suggest: "🔎", legacy: "🗂" };
 const dur = (ms: number) => (ms < 60000 ? `${Math.round(ms / 1000)}s` : `${Math.floor(ms / 60000)}m ${Math.round((ms % 60000) / 1000)}s`);
 
 export default async function VisitorJourney({ params }: { params: Promise<{ sid: string }> }) {
@@ -28,6 +28,7 @@ export default async function VisitorJourney({ params }: { params: Promise<{ sid
     else if (e.type === "product_click") items.push({ at: e.created_at, icon: ICON.product_click, title: `tapped product: ${d.label || d.product_id}`, sub: d.product_id });
     else if (e.type === "add_to_cart") items.push({ at: e.created_at, icon: ICON.add_to_cart, title: `added to cart (${d.label ?? ""})` });
     else if (e.type === "identify") items.push({ at: e.created_at, icon: ICON.identify, title: `identified as ${e.name || e.email}`, sub: e.email ?? undefined });
+    else if (e.type === "legacy") items.push({ at: e.created_at, icon: ICON.legacy, title: d.label ?? "recorded action", sub: "from records predating analytics" });
     else items.push({ at: e.created_at, icon: ICON.click, title: `tapped "${d.label ?? "?"}"`, sub: d.href });
   }
   for (const s of searches) {
