@@ -24,8 +24,14 @@ export default function OrderDetailClient({ order, shipments, events }: { order:
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
     start(async () => {
       setErr(null);
-      const res = await fn();
-      if (!res.ok) setErr(res.error || "Something went wrong.");
+      try {
+        const res = await fn();
+        if (!res.ok) setErr(res.error || "Something went wrong.");
+      } catch {
+        // A rejected action call usually means the deployment changed while
+        // this tab was open (server-action ids rotate per deploy).
+        setErr("The site was updated while this page was open. Reload the page and try again.");
+      }
     });
 
   return (

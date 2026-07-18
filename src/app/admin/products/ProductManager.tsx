@@ -164,11 +164,15 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
     if (!ok) return;
     setApplyMsg(null);
     startApply(async () => {
-      const res = await applyRecommendedPrices(items);
-      if (res.ok) {
-        setApplyMsg({ ok: true, t: `Applied ${res.applied} price${res.applied === 1 ? "" : "s"}${res.skipped ? ` · ${res.skipped} skipped` : ""}.` });
-        router.refresh();
-      } else setApplyMsg({ ok: false, t: res.error ?? "Failed to apply." });
+      try {
+        const res = await applyRecommendedPrices(items);
+        if (res.ok) {
+          setApplyMsg({ ok: true, t: `Applied ${res.applied} price${res.applied === 1 ? "" : "s"}${res.skipped ? ` · ${res.skipped} skipped` : ""}.` });
+          router.refresh();
+        } else setApplyMsg({ ok: false, t: res.error ?? "Failed to apply." });
+      } catch {
+        setApplyMsg({ ok: false, t: "The site was updated while this page was open. Reload the page and try again." });
+      }
     });
   };
 

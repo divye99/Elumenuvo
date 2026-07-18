@@ -118,9 +118,13 @@ export default function RadarClient({
 
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>, okMsg: string) =>
     startTransition(async () => {
-      const res = await fn();
-      setFlash(res.ok ? { ok: true, msg: okMsg } : { ok: false, msg: res.error ?? "Failed." });
-      if (res.ok) router.refresh();
+      try {
+        const res = await fn();
+        setFlash(res.ok ? { ok: true, msg: okMsg } : { ok: false, msg: res.error ?? "Failed." });
+        if (res.ok) router.refresh();
+      } catch {
+        setFlash({ ok: false, msg: "The site was updated while this page was open. Reload the page and try again." });
+      }
     });
 
   const syncAll = () =>
