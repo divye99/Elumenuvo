@@ -16,70 +16,80 @@
       "name": "Double Door SPN & TPN DB Range",
       "brand": "Havells",
       "body": "Havells' Double Door range is the default choice for Indian homes and offices, and for good reason. The recessed second door hides the wiring for a clean finish while the inner door carries the MCB knockouts, so live parts stay shrouded. You get SPN options from 4 to 16-way and TPN from 4 to 12-way, with tinned copper busbars, a generous gutter space for neat looping and IP43 protection. Powder-coated CRCA steel resists rust in humid coastal conditions. Incomer-compatible with Havells' own MCBs, RCCBs and isolators, it is the safest all-round pick for a typical residential or commercial board.",
-      "bestFor": "All-round homes & offices"
+      "bestFor": "All-round homes & offices",
+      "productId": "hav-db-8spn"
     },
     {
       "rank": 2,
       "name": "Acti9 Easy9 & Acti9 Distribution Boards",
       "brand": "Schneider Electric",
       "body": "Schneider's Acti9 ecosystem is the benchmark for engineered panels. The Easy9 boards suit residential and small commercial work, while the full Acti9 range scales to serious TPN distribution. The standout is the comb busbar (insulated pin-type) that links MCBs cleanly and cuts heat versus loop wiring, plus precise DIN rails that make assembly fast. Double door SPN and TPN enclosures in 4 to 16-way carry IP43 protection and a robust metal body. If you are specifying a board for a builder project or a load that needs documented short-circuit ratings and tidy comb-bar distribution, Acti9 is hard to beat.",
-      "bestFor": "Engineered builder projects"
+      "bestFor": "Engineered builder projects",
+      "productId": null
     },
     {
       "rank": 3,
       "name": "Lexic & Ekinoxe Distribution Boards",
       "brand": "Legrand",
       "body": "Legrand brings European build quality to the Indian DB market. The Lexic and Ekinoxe ranges offer SPN and TPN boards in single and double door, with high-grade tinned busbars and excellent DIN-rail rigidity that keeps modules aligned. Fit and finish is a cut above — flush doors, smooth powder coating and IP43 sealing make them a favourite for premium apartments, hotels and corporate fit-outs. Way counts span 4 to 16 and the boards pair naturally with Legrand's MCB, RCCB and RCBO modules. Choose Legrand when the panel is on show or the spec demands a recognised international name.",
-      "bestFor": "Premium & corporate fit-outs"
+      "bestFor": "Premium & corporate fit-outs",
+      "productId": "leg-db-12spn"
     },
     {
       "rank": 4,
       "name": "SHE & Vega Distribution Boards",
       "brand": "Siemens",
       "body": "Siemens DBs are built for reliability under continuous load, which is why they show up in industrial sheds, pump rooms and three-phase commercial supplies. The TPN boards use heavy tinned copper busbars sized for higher incomer ratings, and the metal enclosures are sturdy with proper IP43 protection. Single and double door variants cover 4 to 12-way TPN and matching SPN options. They integrate with Siemens MCBs, MCCBs and isolators, so you can build a coordinated panel from incomer to final circuit. If your application is three-phase, heat-prone or duty-cycle heavy, Siemens earns its place.",
-      "bestFor": "Three-phase & industrial loads"
+      "bestFor": "Three-phase & industrial loads",
+      "productId": null
     },
     {
       "rank": 5,
       "name": "System pro M compact Distribution Boards",
       "brand": "ABB",
       "body": "ABB's System pro M compact range is a go-to for projects that value safety certification and modular flexibility. The enclosures are robust metal with IP43 indoor protection, and the busbar arrangement is designed for low temperature rise even at high MCB counts. SPN and TPN versions run from 4 to 16-way in single and double door. ABB's strength is its breaker ecosystem — pairing the DB with ABB MCBs, RCCBs and isolators gives you fully coordinated, tested short-circuit performance. It is a strong specification choice for offices, healthcare and any installation where documented protection coordination matters.",
-      "bestFor": "Certified, coordinated panels"
+      "bestFor": "Certified, coordinated panels",
+      "productId": null
     },
     {
       "rank": 6,
       "name": "Heavy-Duty SPN & TPN Metal DB Range",
       "brand": "Polycab",
       "body": "Polycab has grown from cables into a credible switchgear and DB brand, and its distribution boards offer strong value for contractors. The metal SPN and TPN enclosures come in 4 to 12-way with tinned busbars, ample gutter space and IP43 protection, in both single and double door. Build quality is solid for the price, with neat knockouts and clean powder coating. They pair well with Polycab's own MCBs and isolators for a single-brand bill of materials. For residential builders and SI contractors chasing reliable boards without a premium-brand markup, Polycab is a sensible mid-tier pick.",
-      "bestFor": "Value-focused contractors"
+      "bestFor": "Value-focused contractors",
+      "productId": null
     },
     {
       "rank": 7,
       "name": "Volta & Vector Distribution Boards",
       "brand": "Hager",
       "body": "Hager is a specialist DB and enclosure maker, and it shows in the detailing. The Volta and Vector ranges deliver flush double doors, captive screws, generous wiring space and IP-rated enclosures with excellent insulated busbar systems. SPN and TPN options cover the common 4 to 16-way spread. Hager boards are favoured by consultants and electricians who want a clean, professional panel that is fast to wire and easy to maintain. They are typically a premium buy, so reserve them for high-spec residential, boutique commercial and projects where panel quality is part of the brief.",
-      "bestFor": "Spec-driven clean panels"
+      "bestFor": "Spec-driven clean panels",
+      "productId": null
     },
     {
       "rank": 8,
       "name": "Penta & Roma Distribution Boards",
       "brand": "Anchor by Panasonic",
       "body": "Anchor, now backed by Panasonic, covers the value end of the market with dependable SPN and TPN boards. Expect metal enclosures, IP43 protection and standard busbars in 4 to 12-way, in single and double door formats. The finish is functional rather than flashy, but the boards are well-priced and widely stocked, making them a practical choice for budget homes, rental units and shops where the priority is a safe, code-compliant board over premium aesthetics. Paired with Anchor MCBs and isolators, they give a complete low-cost panel that gets the job done.",
-      "bestFor": "Budget homes & rentals"
+      "bestFor": "Budget homes & rentals",
+      "productId": null
     },
     {
       "rank": 9,
       "name": "Industrial TPN & Vertical Distribution Boards",
       "brand": "L&T",
       "body": "L&T is synonymous with industrial switchgear in India, and its TPN and vertical distribution boards are built for heavier three-phase applications. Expect rugged metal enclosures, high-current tinned busbars and IP-rated protection sized for demanding incomers. These boards shine in factories, commercial complexes and panel rooms where they sit alongside L&T MCCBs, ACBs and metering. For small homes they are overkill, but for any installation with substantial three-phase load, fault-level requirements or a need for trusted industrial-grade engineering, L&T is a name procurement managers reach for with confidence.",
-      "bestFor": "Industrial three-phase panels"
+      "bestFor": "Industrial three-phase panels",
+      "productId": null
     },
     {
       "rank": 10,
       "name": "SPN & TPN Metal Distribution Boards",
       "brand": "CMI",
       "body": "CMI rounds out the list as a dependable economy option for high-volume projects. Its SPN and TPN metal DBs come in the standard 4 to 12-way range with IP43 protection and serviceable busbars, in single and double door. The boards are cost-effective and readily available, which makes them attractive for large residential developments, affordable-housing schemes and projects where DBs are needed by the hundred. Quality is consistent for the segment. When a procurement manager needs to balance a tight budget against safe, compliant distribution across many units, CMI is a practical workhorse choice.",
-      "bestFor": "High-volume projects"
+      "bestFor": "High-volume projects",
+      "productId": null
     }
   ],
   "buyingTips": [

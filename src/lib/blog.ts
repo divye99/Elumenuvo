@@ -14,7 +14,7 @@ export type BlogPost = {
   author: string;
   readMins: number;
   intro: string[];
-  items: { rank: number; name: string; brand: string; body: string; bestFor: string }[];
+  items: { rank: number; name: string; brand: string; body: string; bestFor: string; productId?: string | null }[];
   buyingTips: string[];
   faq: { q: string; a: string }[];
 };

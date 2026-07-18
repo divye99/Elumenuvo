@@ -16,70 +16,80 @@
       "name": "Acti9 iC60N MCB & iID RCCB Range",
       "brand": "Schneider Electric",
       "body": "Schneider's Acti9 platform is the benchmark for premium Indian distribution boards. The iC60N MCBs offer 6kA and 10kA breaking capacity across B, C and D curves in SP, DP, TP and FP from 6A to 63A, with the VisiTrip and VisiSafe indicators making fault diagnosis genuinely faster on site. Paired with iID Type AC and Type A RCCBs at 30mA, 100mA and 300mA, and the comb busbar system, it builds a clean, fast-to-wire board. Compliant with IS/IEC 60898-1. Premium pricing, but the build quality and tight terminal tolerances justify it for commercial and high-end residential work.",
-      "bestFor": "Premium commercial & high-end residential boards"
+      "bestFor": "Premium commercial & high-end residential boards",
+      "productId": null
     },
     {
       "rank": 2,
       "name": "Havells MCB & RCCB (Euro-II / Active series)",
       "brand": "Havells",
       "body": "Havells dominates Indian residential switchgear on availability and dealer reach, and the quality has caught up to the price. The Euro-II MCBs cover 0.5A to 63A in B and C curves, SP to FP, with 10kA breaking capacity on the higher range - useful close to the transformer. The Active and Fab-series RCCBs come in 25A, 40A and 63A, Type AC and Type A, at 30mA and 100mA sensitivity. Trip consistency is reliable and the ISI marking is genuine. For most Indian flats, builder floors and small commercial units, Havells is the safe, stock-anywhere default.",
-      "bestFor": "Mainstream residential & builder projects"
+      "bestFor": "Mainstream residential & builder projects",
+      "productId": "hav-dcvncspa016"
     },
     {
       "rank": 3,
       "name": "Legrand DX3 MCB & RCCB Range",
       "brand": "Legrand",
       "body": "Legrand's DX3 range is a strong number-three for projects wanting European engineering without full Acti9 pricing. DX3 MCBs span 6A to 63A in B, C and D curves with 6kA and 10kA options, and the auto-terminals speed up board assembly. The DX3 RCCBs and DX3 RCBOs (combined MCB + RCCB in one module) are a highlight - the RCBO saves DIN rail space and isolates faults per circuit, which is excellent for IT rooms and clinics where one earth-leakage fault shouldn't kill a whole board. Type A versions handle electronic loads with DC leakage components well.",
-      "bestFor": "Space-saving RCBO boards & electronic loads"
+      "bestFor": "Space-saving RCBO boards & electronic loads",
+      "productId": "leg-rccb-63"
     },
     {
       "rank": 4,
       "name": "ABB SH200 MCB & F200 RCCB Series",
       "brand": "ABB",
       "body": "ABB switchgear is the engineer's choice for industrial and infrastructure work. The SH200 MCBs deliver 6kA, with the System pro M compact platform extending to 10kA and higher across B, C and D curves from 6A to 63A. The F200 RCCBs are exceptionally robust, available in Type AC, Type A and Type B (for solar inverters and VFDs that produce smooth DC fault currents), at 30mA, 100mA and 300mA. If your project has variable-frequency drives, EV chargers or solar, ABB's Type A/B RCCBs prevent the blinding problem that trips cheaper Type AC devices. Built to last in tough environments.",
-      "bestFor": "Industrial, solar & EV-charger installations"
+      "bestFor": "Industrial, solar & EV-charger installations",
+      "productId": null
     },
     {
       "rank": 5,
       "name": "Siemens 5SL / Betagard MCB & RCCB",
       "brand": "Siemens",
       "body": "Siemens 5SL MCBs and Betagard RCCBs are a dependable mid-to-premium option, strong on three-phase commercial boards. The 5SL range covers 6A to 63A in B, C and D curves with 6kA and 10kA breaking capacity, and the positive-contact indication confirms true isolation - a real safety feature, not marketing. Betagard 5SV RCCBs come in Type AC and Type A at 30mA and 100mA, 25A to 63A. Terminal access is good for thick three-phase cabling. Stock in India is steadier than it used to be, and pricing sits comfortably between Havells and Schneider.",
-      "bestFor": "Three-phase commercial distribution"
+      "bestFor": "Three-phase commercial distribution",
+      "productId": null
     },
     {
       "rank": 6,
       "name": "Polycab MCB & RCCB Range",
       "brand": "Polycab",
       "body": "Best known for wires, Polycab has built a credible switchgear line that suits contractors who want one trusted brand across cable and protection. The MCBs cover 6A to 63A in B and C curves, SP to FP, with 10kA breaking capacity on the upper range and clean trip performance. The RCCBs are available in 40A and 63A, Type AC and Type A, at 30mA and 100mA. Pricing is keen and dealer availability through Polycab's distribution is wide. A sensible pick for residential and light-commercial jobs where you're already specifying Polycab FRLS cable.",
-      "bestFor": "Value residential where you already use Polycab cable"
+      "bestFor": "Value residential where you already use Polycab cable",
+      "productId": null
     },
     {
       "rank": 7,
       "name": "L&T Exora & Hexa MCB / RCCB",
       "brand": "L&T",
       "body": "L&T is an Indian industrial heavyweight, and its Exora MCBs and Hexa RCCBs bring that pedigree to distribution boards. Exora MCBs span 6A to 63A in B, C and D curves with 10kA breaking capacity widely available - genuinely useful where fault levels are high. The Hexa RCCBs offer 25A to 63A in Type AC and Type A at 30mA, 100mA and 300mA, with good immunity to nuisance tripping. L&T's after-sales and pan-India service network is a real advantage for large projects and facilities teams who need warranty support and spares without delay.",
-      "bestFor": "Large projects needing strong service & 10kA"
+      "bestFor": "Large projects needing strong service & 10kA",
+      "productId": null
     },
     {
       "rank": 8,
       "name": "Schneider Acti9 / EasyPact MCCB (NSX, EZC)",
       "brand": "Schneider Electric",
       "body": "When load exceeds the ~63A-100A MCB ceiling, you move to MCCBs, and Schneider's EasyPact EZC and ComPact NSX are the references. The EZC range covers 16A to 250A with adjustable thermal-magnetic trips and breaking capacities up to 36kA, while the NSX adds electronic Micrologic trip units, earth-fault protection and metering up to 630A. For incomers, sub-mains and motor feeders in commercial buildings and small industry, an MCCB with adjustable settings lets you coordinate protection properly and discriminate from downstream MCBs. Specify the kA rating against your fault-level calculation.",
-      "bestFor": "Incomers, sub-mains & feeders above 63A"
+      "bestFor": "Incomers, sub-mains & feeders above 63A",
+      "productId": null
     },
     {
       "rank": 9,
       "name": "Havells / Standard Isolators & Changeover Switches",
       "brand": "Havells",
       "body": "Every board needs isolation, and a dedicated isolator (no trip mechanism, pure on/off) is the correct device for main switches, geyser points and AC outdoor units where you want guaranteed manual disconnection for maintenance. Havells and Standard (a Havells brand) offer DP, TP and FP isolators from 40A to 125A, plus manual changeover switches for generator/grid backup - essential in Indian homes and shops with inverters or DG sets. These are simple, robust and cheap insurance. Don't substitute an MCB for an isolator where the design calls for a true disconnector - the contact gap and rating differ.",
-      "bestFor": "Main switches, AC/geyser isolation & DG changeover"
+      "bestFor": "Main switches, AC/geyser isolation & DG changeover",
+      "productId": "hav-dhmxodpx025"
     },
     {
       "rank": 10,
       "name": "Anchor (Panasonic) Roma / Penta MCB & RCCB",
       "brand": "Anchor",
       "body": "Anchor, now part of Panasonic, rounds out the list as a budget-friendly, widely-stocked choice for cost-sensitive residential and rental projects. The MCBs cover 6A to 63A in B and C curves with 6kA breaking capacity, and the RCCBs offer 40A and 63A in Type AC at 30mA - adequate for standard homes with mostly resistive and basic inductive loads. The ISI marking is genuine and trip reliability is fine within rating. For mass housing, low-rent units and projects where Schneider or Legrand blows the budget, Anchor delivers compliant protection at the lowest sensible price.",
-      "bestFor": "Budget housing & rental units"
+      "bestFor": "Budget housing & rental units",
+      "productId": null
     }
   ],
   "buyingTips": [

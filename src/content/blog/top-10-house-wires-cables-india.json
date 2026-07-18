@@ -16,70 +16,80 @@
       "name": "APAR Anushakti (EBXL HR FR)",
       "brand": "APAR",
       "bestFor": "Best overall value: premium safety at a near-standard price",
-      "body": "APAR's flagship uses electron-beam (EBXL) cross-linked HR FR-PVC rated to 105 C, with a critical oxygen index of 30%+, plus claimed 50% higher current capacity and a 50-year life. You get genuine top-tier heat and fire performance at a per-metre price close to ordinary FR wire, and on Elume it lands around 46% below MRP. For most homes wanting the most protection per rupee, this is the pick."
+      "body": "APAR's flagship uses electron-beam (EBXL) cross-linked HR FR-PVC rated to 105 C, with a critical oxygen index of 30%+, plus claimed 50% higher current capacity and a 50-year life. You get genuine top-tier heat and fire performance at a per-metre price close to ordinary FR wire, and on Elume it lands around 46% below MRP. For most homes wanting the most protection per rupee, this is the pick.",
+      "productId": "wire-apar-hrfr-0p5-red"
     },
     {
       "rank": 2,
       "name": "Polycab Maxima+ Green Wire (HR FR-LSH)",
       "brand": "Polycab",
       "bestFor": "Best mainstream value: HR FR-LSH at an FR price",
-      "body": "Polycab's Maxima+ Green Wire is HR FR-LSH, low-smoke low-halogen insulation to IS 694, 85 C rated, from India's largest wire maker. It is one of the most affordable premium wires per metre on Elume and carries the deepest discount here (around 54% off MRP), so you get low-smoke fire safety without paying a premium. Ideal for enclosed homes and commercial fit-outs."
+      "body": "Polycab's Maxima+ Green Wire is HR FR-LSH, low-smoke low-halogen insulation to IS 694, 85 C rated, from India's largest wire maker. It is one of the most affordable premium wires per metre on Elume and carries the deepest discount here (around 54% off MRP), so you get low-smoke fire safety without paying a premium. Ideal for enclosed homes and commercial fit-outs.",
+      "productId": "poly25"
     },
     {
       "rank": 3,
       "name": "KEI Conflame Green+ (HR FR-LSH)",
       "brand": "KEI",
       "bestFor": "Heat-prone, high-load circuits (AC, geyser, kitchen)",
-      "body": "Conflame Green+ is KEI's HR FR-LSH line: 85 C rated, oxygen index 31%+, and the highest 2.5 sq mm current rating in this list at 28A. Low smoke and low halogen keep enclosed spaces safe, and the heat headroom suits AC, geyser and kitchen runs. Strong value for a premium grade."
+      "body": "Conflame Green+ is KEI's HR FR-LSH line: 85 C rated, oxygen index 31%+, and the highest 2.5 sq mm current rating in this list at 28A. Low smoke and low halogen keep enclosed spaces safe, and the heat headroom suits AC, geyser and kitchen runs. Strong value for a premium grade.",
+      "productId": "wire-kei-frlsh-0p5-green"
     },
     {
       "rank": 4,
       "name": "RR Kabel Superex (FR)",
       "brand": "RR Kabel",
       "bestFor": "Best budget value: lowest cost per metre",
-      "body": "Superex is RR Kabel's FR house wire (LOI >29%, temperature index >250 C, IS 694). It is by far the most affordable per metre in this list, so for standard lighting and general-purpose circuits where FR is enough, it delivers unbeatable cost per metre from a reputable brand. It is not low-smoke, so pair it with an FR-LSH grade in enclosed areas."
+      "body": "Superex is RR Kabel's FR house wire (LOI >29%, temperature index >250 C, IS 694). It is by far the most affordable per metre in this list, so for standard lighting and general-purpose circuits where FR is enough, it delivers unbeatable cost per metre from a reputable brand. It is not low-smoke, so pair it with an FR-LSH grade in enclosed areas.",
+      "productId": "rr-fr-10"
     },
     {
       "rank": 5,
       "name": "APAR Shakti Green Wire (HR FR-LSH)",
       "brand": "APAR",
       "bestFor": "Low-smoke safety on a tighter budget",
-      "body": "APAR's Shakti Green Wire offers HR FR-LSH low-smoke insulation at a keener price than most premium lines. It is the sensible middle ground when you want better-than-FR fire behaviour without stepping all the way up to e-beam."
+      "body": "APAR's Shakti Green Wire offers HR FR-LSH low-smoke insulation at a keener price than most premium lines. It is the sensible middle ground when you want better-than-FR fire behaviour without stepping all the way up to e-beam.",
+      "productId": "wire-apar-hrfrlsh-0p5-grey"
     },
     {
       "rank": 6,
       "name": "KEI Banfire (HFFR)",
       "brand": "KEI",
       "bestFor": "Halogen-free: hospitals, hotels, high-rises",
-      "body": "Banfire is halogen-free flame retardant (HFFR) with the best fire-emission numbers in the range: smoke density max 20% and acid-gas generation max 0.5%. When a fire must not produce toxic or corrosive fumes, in hospitals, hotels and crowded high-rises, this is the safety-first choice, at fair value for a specialist grade."
+      "body": "Banfire is halogen-free flame retardant (HFFR) with the best fire-emission numbers in the range: smoke density max 20% and acid-gas generation max 0.5%. When a fire must not produce toxic or corrosive fumes, in hospitals, hotels and crowded high-rises, this is the safety-first choice, at fair value for a specialist grade.",
+      "productId": "wire-kei-hffr-0p5-red"
     },
     {
       "rank": 7,
       "name": "KEI Conflame (FR-LSH)",
       "brand": "KEI",
       "bestFor": "All-round low-smoke residential wiring",
-      "body": "The standard Conflame is FR-LSH: flame retardant with low smoke and low halogen, oxygen index 29%+. A dependable step up from plain FR for everyday home wiring, well priced for the added safety."
+      "body": "The standard Conflame is FR-LSH: flame retardant with low smoke and low halogen, oxygen index 29%+. A dependable step up from plain FR for everyday home wiring, well priced for the added safety.",
+      "productId": "wire-kei-frlsh-0p5-red"
     },
     {
       "rank": 8,
       "name": "Havells Life Line Plus S3 (HRFR)",
       "brand": "Havells",
       "bestFor": "Trusted brand with heat headroom",
-      "body": "Havells' Life Line Plus S3 is HRFR, rated 28A at 2.5 sq mm, with Havells' well-known quality control and low current-leakage insulation. It sits at the premium end on price per metre, so it is about brand trust and heat headroom rather than lowest cost, and still good value if brand is your deciding factor."
+      "body": "Havells' Life Line Plus S3 is HRFR, rated 28A at 2.5 sq mm, with Havells' well-known quality control and low current-leakage insulation. It sits at the premium end on price per metre, so it is about brand trust and heat headroom rather than lowest cost, and still good value if brand is your deciding factor.",
+      "productId": "wire-havells-hrfr-0p5-red"
     },
     {
       "rank": 9,
       "name": "KEI HomeCab (FR)",
       "brand": "KEI",
       "bestFor": "Value-focused builder projects",
-      "body": "HomeCab is KEI's FR line with anti-rodent and anti-termite insulation, lead-free, to IS 694. A solid, keenly discounted FR wire (around 46% off MRP on Elume) for standard circuits at project scale where low smoke is not required."
+      "body": "HomeCab is KEI's FR line with anti-rodent and anti-termite insulation, lead-free, to IS 694. A solid, keenly discounted FR wire (around 46% off MRP on Elume) for standard circuits at project scale where low smoke is not required.",
+      "productId": "wire-kei-fr-0p5-red"
     },
     {
       "rank": 10,
       "name": "Finolex FR Wire",
       "brand": "Finolex",
       "bestFor": "Reliable heritage-brand general wiring",
-      "body": "Finolex's FR house wire is a long-trusted staple for standard residential circuits: flame retardant, 1100V, IS 694, at an affordable per-metre price. A safe default when you want a heritage brand for general-purpose wiring."
+      "body": "Finolex's FR house wire is a long-trusted staple for standard residential circuits: flame retardant, 1100V, IS 694, at an affordable per-metre price. A safe default when you want a heritage brand for general-purpose wiring.",
+      "productId": "fin-fr-10"
     }
   ],
   "buyingTips": [

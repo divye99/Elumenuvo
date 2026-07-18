@@ -2,9 +2,14 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPost, getSlugs } from "@/lib/blog";
+import { fetchProduct } from "@/lib/products";
+import BlogBuyButton from "@/components/storefront/BlogBuyButton";
 import { GROTESK, MONO } from "@/lib/fonts";
 
 const SITE = "https://elumenuvo.com";
+
+// Re-render hourly so the buy boxes show live prices, not build-time ones.
+export const revalidate = 3600;
 
 export function generateStaticParams() {
   return getSlugs().map((slug) => ({ slug }));
@@ -28,6 +33,12 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const { slug } = await params;
   const post = getPost(slug);
   if (!post) notFound();
+
+  // Live product data for ranked items we stock (curated productId in the
+  // post JSON). Missing/archived ids resolve to null and render no buy box.
+  const mapped = await Promise.all(
+    post.items.map((it) => (it.productId ? fetchProduct(it.productId).catch(() => null) : Promise.resolve(null)))
+  );
 
   const url = `${SITE}/blog/${post.slug}`;
   const jsonLd = [
@@ -65,10 +76,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       "@context": "https://schema.org",
       "@type": "ItemList",
       name: post.title,
-      itemListElement: post.items.map((it) => ({
+      itemListElement: post.items.map((it, idx) => ({
         "@type": "ListItem",
         position: it.rank,
         name: `${it.brand} ${it.name}`,
+        ...(mapped[idx] ? { url: `${SITE}/catalogue/${mapped[idx].id}` } : {}),
       })),
     },
   ];
@@ -106,6 +118,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               </div>
               <p style={{ fontSize: 15.5, lineHeight: 1.65, color: "#2c3550", margin: "12px 0 0" }}>{it.body}</p>
               <div style={{ fontSize: 13, color: "#1F9D63", fontWeight: 600, marginTop: 8 }}>Best for: {it.bestFor}</div>
+              {mapped[post.items.indexOf(it)] && <BlogBuyButton product={mapped[post.items.indexOf(it)]!} />}
             </div>
           ))}
         </div>

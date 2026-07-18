@@ -16,70 +16,80 @@
       "name": "Roma & Roma Urban",
       "brand": "Anchor by Panasonic",
       "body": "Roma is the default modular range across Indian residential and rental projects, and for good reason — wide availability, dependable 6A and 16A switches, and a module ecosystem (1M, 2M, 3M and larger plates) that electricians know by heart. The classic Roma plates are matte white with a clean rocker, while Roma Urban steps up with glossy and metallic finishes for a more contemporary look. You get the full spread: 1-way and 2-way switches, bell pushes, 6A/16A combined sockets, fan regulators and USB charger modules. It is not the most luxurious range, but on cost-per-point, fitment ease and spares availability it is hard to beat for volume work.",
-      "bestFor": "Volume residential & rental projects"
+      "bestFor": "Volume residential & rental projects",
+      "productId": null
     },
     {
       "rank": 2,
       "name": "Myrius & Myrius Nextgen",
       "brand": "Legrand",
       "body": "Myrius is Legrand's workhorse premium-modular range and a favourite for mid-to-upper residential and commercial fit-outs. Switches feel solid with a reassuring positive click, and the silver-alloy contacts are rated for long mechanism life — useful for high-traffic offices. The plate library is genuinely deep: glossy white, graphite, champagne and textured finishes, plus screwless plate options that hide fixings for a flush look. Module coverage is complete — 6A/16A switches, 1-way/2-way, 2-pin and 3-pin sockets, dimmers, fan regulators and USB-A/USB-C charger modules. Myrius Nextgen refreshes the aesthetics with slimmer profiles. A safe specification when you want a step above mass-market without jumping to glass-plate pricing.",
-      "bestFor": "Mid-premium homes & offices"
+      "bestFor": "Mid-premium homes & offices",
+      "productId": null
     },
     {
       "rank": 3,
       "name": "ZENcelo",
       "brand": "Schneider Electric",
       "body": "ZENcelo is Schneider's aspirational range and arguably the most design-led mainstream option in India. The flat, edge-to-edge switches with a soft tactile press feel distinctly premium, and the finishes — pearl white, dark grey, champagne gold and aluminium-effect — suit luxury apartments, boutique hotels and showrooms. It carries the expected 6A/16A switches, 2-way control, 3-pin 16A sockets and integrated USB charging, with indication LEDs on many modules. ZENcelo sits at a higher price tier and needs careful plate planning, but in spaces where the wall finish is part of the design language, it delivers a look that cheaper ranges simply cannot match. Pair it with Schneider's Livia for back-of-house economy.",
-      "bestFor": "Luxury interiors & showrooms"
+      "bestFor": "Luxury interiors & showrooms",
+      "productId": null
     },
     {
       "rank": 4,
       "name": "Coral",
       "brand": "Havells",
       "body": "Coral is Havells' broad, value-led modular range that has become a procurement staple for builders. It balances a clean, contemporary plate design with sensible pricing, and the module set covers everything a project needs: 6A and 16A switches, 1-way/2-way, bell pushes, fan regulators, 6A/16A multi-pin sockets and USB chargers. Finishes run from standard white to a few glossy and metallic options, so it photographs well in spec sheets without premium cost. Build quality is consistent and Havells' distribution means spares are rarely a problem. For developers fitting out multiple flats who want a recognisable brand at a controlled rate, Coral is one of the easiest decisions on this list.",
-      "bestFor": "Builders & multi-flat projects"
+      "bestFor": "Builders & multi-flat projects",
+      "productId": "hav-ahcsdiw321"
     },
     {
       "rank": 5,
       "name": "Crabtree Athena & Murano",
       "brand": "Havells Crabtree",
       "body": "Crabtree, now under Havells, is the premium British-heritage brand for buyers who want a refined alternative to mass-market plates. Athena offers crisp, minimal switches with a satisfying mechanism, while Murano brings glass and mirror-finish plates for statement walls in living rooms and master suites. Ratings and configurations are complete — 6A/16A, 2-way, 3-pin 16A sockets, dimmers and USB modules — with strong attention to contact quality and finish durability. Pricing sits in the upper-mid to premium band. Choose Crabtree when the client cares about feel and finish and you want a name with genuine design credibility behind it, without going fully imported.",
-      "bestFor": "Premium living & master suites"
+      "bestFor": "Premium living & master suites",
+      "productId": null
     },
     {
       "rank": 6,
       "name": "Levana",
       "brand": "Polycab",
       "body": "Polycab leveraged its enormous wiring and cable reach to push Levana hard, and it has become a credible mainstream modular range. The switches have a clean, slightly rounded aesthetic and a smooth press, with finishes spanning white, ivory and a few darker and metallic options. Module coverage is complete for Indian needs — 6A/16A switches, 1-way/2-way, 6A/16A sockets, fan regulators and USB charging modules. Because many projects already source Polycab wires and conduits, specifying Levana keeps the brand consistent and can simplify procurement. Pricing is competitive in the mid tier, making it a strong like-for-like alternative to the established names for contractors wanting to consolidate suppliers.",
-      "bestFor": "Single-vendor wiring + switches"
+      "bestFor": "Single-vendor wiring + switches",
+      "productId": null
     },
     {
       "rank": 7,
       "name": "Livia & Opale",
       "brand": "Schneider Electric",
       "body": "When ZENcelo is out of budget but you still want Schneider engineering, Livia and Opale fill the gap. Livia is the value range — neat white and glossy plates, reliable 6A/16A switches, 2-way control, 3-pin sockets and USB modules at a sensible price. Opale sits slightly above with more contemporary finishes and slimmer profiles for living areas. Both share Schneider's solid contact quality and safety features like shuttered sockets, and they mix well with ZENcelo so you can specify premium plates in feature rooms and economy plates in utility areas without changing brand. A smart way to control cost across a project while keeping a single, trusted manufacturer.",
-      "bestFor": "Cost-controlled Schneider projects"
+      "bestFor": "Cost-controlled Schneider projects",
+      "productId": null
     },
     {
       "rank": 8,
       "name": "Mylinc",
       "brand": "Legrand",
       "body": "Mylinc is Legrand's economy modular range, aimed at projects that want the Legrand badge and contact reliability at a budget-friendly rate. The design is clean and unfussy — standard white plates with a dependable rocker — and the module set covers the essentials: 6A and 16A switches, 1-way/2-way, bell pushes, fan regulators, 6A/16A sockets and basic USB charging. You lose the premium finishes of Myrius, but you keep Legrand's mechanism quality and nationwide spares. For affordable housing, rental units, hostels and back-of-house areas where reliability matters more than aesthetics, Mylinc is a practical specification that still carries a name installers trust.",
-      "bestFor": "Affordable & rental housing"
+      "bestFor": "Affordable & rental housing",
+      "productId": null
     },
     {
       "rank": 9,
       "name": "G-Series & Glamour",
       "brand": "GM Modular",
       "body": "GM Modular is a strong value-to-premium player that often gets overlooked next to the big names. Its ranges span clean budget plates through to glass and metallic Glamour-style finishes that look far above their price. Module coverage is comprehensive — 6A/16A switches, 1-way/2-way, 16A 3-pin sockets, fan regulators, dimmers and USB charging modules — and many SKUs include features like indicator LEDs and child-safety shutters. Build quality has improved markedly and pricing is keen, which makes GM a smart choice for contractors who want a richer finish without paying top-tier rates. Worth shortlisting when you need premium looks on a tighter mid-market budget.",
-      "bestFor": "Premium looks on a budget"
+      "bestFor": "Premium looks on a budget",
+      "productId": null
     },
     {
       "rank": 10,
       "name": "North-West Modular Range",
       "brand": "Wipro",
       "body": "Wipro rounds out the list as a dependable, no-drama modular option from a trusted Indian electrical brand. The plates are clean and contemporary, the switches have a firm, consistent action, and the range covers the standard requirements — 6A/16A switches, 1-way/2-way, 6A/16A sockets, fan regulators and USB charger modules. Finishes lean toward practical white and a few glossy options rather than statement glass. Where Wipro earns its place is reliability and value: solid contacts, sensible pricing and a brand procurement teams recognise. A sound pick for offices, institutional projects and homes where steady performance and easy availability outrank showpiece aesthetics.",
-      "bestFor": "Offices & institutional fit-outs"
+      "bestFor": "Offices & institutional fit-outs",
+      "productId": null
     }
   ],
   "buyingTips": [
