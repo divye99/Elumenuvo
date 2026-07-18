@@ -91,3 +91,53 @@ export async function saveProfile(_prev: ProfileState, form: FormData): Promise<
   revalidatePath("/catalogue");
   redirect("/app");
 }
+
+export type WsProfileResult = { ok: true } | { ok: false; error: string };
+
+/** Personal details edit from the workspace account screen (name + phone). */
+export async function updatePersonalDetails(fullName: string, phone: string): Promise<WsProfileResult> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { ok: false, error: "Please sign in again." };
+    const name = fullName.trim().slice(0, 120);
+    if (!name) return { ok: false, error: "Please enter your name." };
+    const parts = name.split(/\s+/);
+    const { error } = await supabase.from("profiles").update({
+      full_name: name,
+      first_name: parts[0],
+      last_name: parts.slice(1).join(" ") || null,
+      phone: phone.trim().slice(0, 20) || null,
+      updated_at: new Date().toISOString(),
+    }).eq("id", user.id);
+    if (error) return { ok: false, error: error.message };
+    revalidatePath("/app");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Could not save your details." };
+  }
+}
+
+/** Switch an individual account to business (or edit business fields). */
+export async function upgradeToBusiness(company: string, gstin: string): Promise<WsProfileResult> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { ok: false, error: "Please sign in again." };
+    const co = company.trim().slice(0, 160);
+    if (!co) return { ok: false, error: "Please enter your company name." };
+    const gst = gstin.trim().toUpperCase();
+    if (!GSTIN_RE.test(gst)) return { ok: false, error: "Enter a valid 15-character GSTIN (e.g. 07AABCU9603R1ZM)." };
+    const { error } = await supabase.from("profiles").update({
+      account_type: "business",
+      company: co,
+      gstin: gst,
+      updated_at: new Date().toISOString(),
+    }).eq("id", user.id);
+    if (error) return { ok: false, error: error.message };
+    revalidatePath("/app");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Could not switch the account." };
+  }
+}

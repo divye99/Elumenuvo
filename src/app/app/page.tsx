@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import AppShell from "@/components/app/AppShell";
-import { fetchProducts } from "@/lib/products";
+import { fetchProductsLite } from "@/lib/products";
 import { getSiteContent } from "@/lib/content";
 import { getProfile } from "@/lib/profile";
 import { getLiveWorkspace } from "@/lib/workspace";
@@ -16,7 +16,7 @@ export default async function Page() {
   if (!profile.account_type) redirect("/onboarding");
 
   const [products, content, live] = await Promise.all([
-    fetchProducts(),
+    fetchProductsLite(),
     getSiteContent(),
     getLiveWorkspace(profile.id, profile.email ?? null),
   ]);

@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import CatalogueBrowser from "@/components/storefront/CatalogueBrowser";
 import { fetchProducts } from "@/lib/products";
 
-export const dynamic = "force-dynamic";
+// ISR: the catalogue data is shared by everyone; serving it cached makes
+// search navigations near-instant (the browser filters client-side anyway).
+// Reading URL params moved client-side so this page can stay static.
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "FMEG Catalogue — wires, switchgear, fans & lighting (India)",
@@ -13,11 +16,7 @@ export const metadata: Metadata = {
     images: [{ url: "https://elumenuvo.com/og.png", width: 1200, height: 630, alt: "Elume" }], title: "Elume FMEG Catalogue", description: "Multi-brand electrical goods with transparent pricing.", url: "https://elumenuvo.com/catalogue", type: "website" },
 };
 
-export default async function CataloguePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string; cat?: string; sort?: string }>;
-}) {
-  const [{ q, cat, sort }, products] = await Promise.all([searchParams, fetchProducts()]);
-  return <CatalogueBrowser products={products} initialQ={q ?? ""} initialCat={cat ?? "All"} initialSort={sort ?? "featured"} />;
+export default async function CataloguePage() {
+  const products = await fetchProducts();
+  return <CatalogueBrowser products={products} />;
 }

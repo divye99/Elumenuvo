@@ -48,12 +48,18 @@ export default function SignIn() {
   async function emailSubmit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true); setMsg(null);
+    let navigating = false; // stay busy through the redirect on success
     const supabase = createClient();
     try {
       if (mode === "in") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        // Keep the button in its busy state through the redirect: the /app
+        // render takes a moment, and a re-enabled button reads as "broken".
+        setMsg({ kind: "ok", text: "Signed in. Opening your workspace…" });
+        navigating = true;
         router.push(dest()); router.refresh();
+        return;
       } else {
         const first = firstName.trim(), last = lastName.trim();
         if (!first || !last) { setMsg({ kind: "err", text: "Please enter your first and last name." }); setBusy(false); return; }
@@ -73,6 +79,7 @@ export default function SignIn() {
             first_name: first, last_name: last, full_name: `${first} ${last}`,
             ...(phone ? { phone: e164(phone) } : {}),
           }).eq("id", data.user!.id);
+          navigating = true;
           router.push("/onboarding"); router.refresh();
         } else {
           setMsg({ kind: "ok", text: "Account created — check your email to confirm, then sign in." });
@@ -81,7 +88,7 @@ export default function SignIn() {
       }
     } catch (err) {
       setMsg({ kind: "err", text: err instanceof Error ? err.message : "Something went wrong." });
-    } finally { setBusy(false); }
+    } finally { if (!navigating) setBusy(false); }
   }
 
   async function sendOtp(e: React.FormEvent) {
@@ -100,13 +107,16 @@ export default function SignIn() {
   async function verifyOtp(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true); setMsg(null);
+    let navigating = false;
     try {
       const { error } = await createClient().auth.verifyOtp({ phone: e164(phone), token: otp, type: "sms" });
       if (error) throw error;
+      setMsg({ kind: "ok", text: "Signed in. Opening your workspace…" });
+      navigating = true;
       router.push(dest()); router.refresh();
     } catch (err) {
       setMsg({ kind: "err", text: err instanceof Error ? err.message : "Incorrect or expired code." });
-    } finally { setBusy(false); }
+    } finally { if (!navigating) setBusy(false); }
   }
 
   const field = "w-full rounded-lg border border-[#E0E4ED] px-3 py-2.5 text-sm outline-none focus:border-[#4E5BDC]";
@@ -139,7 +149,7 @@ export default function SignIn() {
               {mode === "up" && <input className={field} type="tel" placeholder="Phone number" value={phone} onChange={(e) => setPhone(e.target.value)} required autoComplete="tel" />}
               <input className={field} type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} autoComplete={mode === "in" ? "current-password" : "new-password"} />
               {msg && <p style={{ fontSize: 12.5, color: msg.kind === "err" ? "#E0612A" : "#137a4b" }}>{msg.text}</p>}
-              <button disabled={busy} style={btn(busy)}>{busy ? "…" : mode === "in" ? "Sign in" : "Create account"}</button>
+              <button disabled={busy} style={btn(busy)}>{busy ? (mode === "in" ? "Signing you in…" : "Creating your account…") : mode === "in" ? "Sign in" : "Create account"}</button>
             </form>
             <div style={{ marginTop: 14, fontSize: 13, color: "#56627A", textAlign: "center" }}>
               {mode === "in"

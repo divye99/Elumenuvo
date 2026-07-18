@@ -6,7 +6,7 @@ import { adminClient } from "@/lib/supabase/admin";
  *  accounts on the live site. */
 
 export type LiveProject = { id: string; name: string; site: string | null; stage: string; created_at: string };
-export type LiveOrder = { id: string; total: number; status: string; created_at: string; items: number };
+export type LiveOrder = { id: string; total: number; status: string; created_at: string; items: number; lines: { name: string; qty: number }[] };
 export type LiveWorkspace = {
   projects: LiveProject[];
   orders: LiveOrder[];
@@ -43,7 +43,11 @@ export async function getLiveWorkspace(userId: string, email: string | null): Pr
       let q = db.from("orders").select("id, total, status, created_at, items, user_id, email").in("status", REAL).order("created_at", { ascending: false }).limit(200);
       const { data } = await q;
       const mine = (data ?? []).filter((o: any) => o.user_id === userId || (email && o.email && o.email.toLowerCase() === email.toLowerCase()));
-      orders = mine.map((o: any) => ({ id: o.id, total: Number(o.total ?? 0), status: o.status, created_at: o.created_at, items: Array.isArray(o.items) ? o.items.length : 0 }));
+      orders = mine.map((o: any) => ({
+        id: o.id, total: Number(o.total ?? 0), status: o.status, created_at: o.created_at,
+        items: Array.isArray(o.items) ? o.items.length : 0,
+        lines: Array.isArray(o.items) ? o.items.slice(0, 12).map((i: any) => ({ name: String(i.name ?? i.id ?? "item"), qty: Number(i.qty ?? 1) })) : [],
+      }));
     } catch { /* keep zeros */ }
   }
 

@@ -89,6 +89,31 @@ export async function fetchProducts(): Promise<Product[]> {
   }
 }
 
+/**
+ * Catalogue-grid fetch: display columns only. Skips the attrs/tech_specs
+ * jsonb blobs and the reviews join, cutting the payload by an order of
+ * magnitude. Use for grids (storefront catalogue, buyer workspace); detail
+ * pages keep fetchProduct/fetchProducts for the full record.
+ */
+const LITE_COLS = "id, sku, name, brand, category, spec, mrp, elume_price, unit, image_url, units_sold, is_recommended, parent_id, market_low";
+
+export async function fetchProductsLite(): Promise<Product[]> {
+  const c = client();
+  if (!c) return [];
+  try {
+    const all: Row[] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await c.from("products").select(LITE_COLS).eq("is_active", true).order("sort_order").order("id").range(from, from + 999);
+      if (error || !data?.length) break;
+      all.push(...(data as unknown as Row[]));
+      if (data.length < 1000) break;
+    }
+    return all.map(toProduct);
+  } catch {
+    return [];
+  }
+}
+
 export async function fetchProduct(id: string): Promise<Product | null> {
   const c = client();
   if (!c) return null;

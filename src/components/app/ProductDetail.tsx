@@ -166,8 +166,8 @@ export default function ProductDetail({
               </div>
               {variant === "app" ? (
                 <>
-                  <div onClick={onAdd} style={{ flex: 1, background: "#4E5BDC", color: "#fff", fontWeight: 600, fontSize: 14.5, textAlign: "center", padding: 14, borderRadius: 11, cursor: "pointer" }}>Add to PO · {fmt(lineTotal)}</div>
-                  <div onClick={onProject} style={{ background: "#fff", border: "1.5px solid #E0E4ED", color: "#19202E", fontWeight: 600, fontSize: 13.5, padding: "13px 18px", borderRadius: 11, cursor: "pointer", whiteSpace: "nowrap" }}>Add to a project</div>
+                  <div onClick={onAdd} style={{ flex: 1, background: "#4E5BDC", color: "#fff", fontWeight: 600, fontSize: 14.5, textAlign: "center", padding: 14, borderRadius: 11, cursor: "pointer" }}>{onProject ? "Add to PO" : "Add to cart"} · {fmt(lineTotal)}</div>
+                  {onProject && <div onClick={onProject} style={{ background: "#fff", border: "1.5px solid #E0E4ED", color: "#19202E", fontWeight: 600, fontSize: 13.5, padding: "13px 18px", borderRadius: 11, cursor: "pointer", whiteSpace: "nowrap" }}>Add to a project</div>}
                 </>
               ) : (
                 <>

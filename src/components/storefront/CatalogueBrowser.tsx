@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import ProductCard from "@/components/storefront/ProductCard";
 import { GROTESK } from "@/lib/fonts";
 import { CATS, type Product } from "@/lib/data";
 import { groupVariants, familyKey } from "@/lib/variants";
 import { logSearch } from "@/lib/search-log";
+import { useSearchParams } from "next/navigation";
 import { searchTokens, matchesAll } from "@/lib/search-normalize";
 
 const CAT_ICONS: Record<string, string> = {
@@ -45,10 +46,23 @@ export default function CatalogueBrowser({
   initialCat?: string;
   initialSort?: string;
 }) {
-  const [cat, setCat] = useState(CATS.includes(initialCat) ? initialCat : "All");
+  // URL params are read client-side (the page itself is static/cached).
+  const sp = useSearchParams();
+  const urlQ = sp.get("q") ?? initialQ;
+  const urlCat = sp.get("cat") ?? initialCat;
+  const urlSort = sp.get("sort") ?? initialSort;
+  const [cat, setCat] = useState(CATS.includes(urlCat) ? urlCat : "All");
   const [picked, setPicked] = useState<Set<string>>(new Set());
-  const [q, setQ] = useState(initialQ);
-  const [sort, setSort] = useState<Sort>(isSort(initialSort) ? initialSort : "featured");
+  const [q, setQ] = useState(urlQ);
+  const [sort, setSort] = useState<Sort>(isSort(urlSort) ? urlSort : "featured");
+  // Header search while already on the catalogue: only the URL changes, so
+  // sync the filters when params move.
+  useEffect(() => {
+    setQ(sp.get("q") ?? "");
+    const c = sp.get("cat");
+    if (c !== null || sp.get("q") !== null) setCat(c && CATS.includes(c) ? c : "All");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sp]);
   const [open, setOpen] = useState<"cat" | "brand" | "sort" | null>(null);
   const [sheet, setSheet] = useState(false); // mobile filter bottom-sheet
   const searchRef = useRef<HTMLInputElement>(null);
@@ -74,12 +88,22 @@ export default function CatalogueBrowser({
   // Zero-result rows become the "demand we do not carry" report.
   const loggedRef = useRef<Set<string>>(new Set());
 
+  // Render the grid in pages of 60; mounting thousands of cards at once is
+  // what made searches feel slow. Cap resets whenever the filters change.
+  const PAGE = 60;
+  const [shown, setShown] = useState(PAGE);
+
+  // Typing stays instant: React renders the keystroke first and re-filters
+  // the 3,300-row grid at deferred priority.
+  const dq = useDeferredValue(q);
+  useEffect(() => { setShown(PAGE); }, [dq, cat, picked, sort]);
+
   const filtered = useMemo(() => {
     // Word-based matching, same rule as the header's suggest API: EVERY word
     // must appear somewhere in brand/name/spec/sku/category. A whole-string
     // substring test made "hav mcb" (a suggestion the search bar itself
     // offers) return zero results, since no single field contains it.
-    const tokens = searchTokens(q);
+    const tokens = searchTokens(dq);
     const list = products.filter((p) => {
       const inCat = cat === "All" || p.cat === cat;
       const inBrand = picked.size === 0 || picked.has(p.brand);
@@ -107,7 +131,7 @@ export default function CatalogueBrowser({
       default:
         return list;
     }
-  }, [products, cat, picked, q, sort]);
+  }, [products, cat, picked, dq, sort]);
 
   useEffect(() => {
     const needle = q.trim();
@@ -482,11 +506,20 @@ export default function CatalogueBrowser({
           </button>
         </div>
       ) : (
-        <div className="cat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(232px, 1fr))", gap: 16 }}>
-          {filtered.map((p) => (
-            <ProductCard key={p.id} p={p} siblings={variantGroups[familyKey(p)]} />
-          ))}
-        </div>
+        <>
+          <div className="cat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(232px, 1fr))", gap: 16 }}>
+            {filtered.slice(0, shown).map((p) => (
+              <ProductCard key={p.id} p={p} siblings={variantGroups[familyKey(p)]} />
+            ))}
+          </div>
+          {filtered.length > shown && (
+            <div style={{ textAlign: "center", marginTop: 26 }}>
+              <button onClick={() => setShown((n) => n + PAGE)} style={{ background: "#fff", border: "1px solid #E0E4ED", borderRadius: 10, padding: "11px 26px", fontSize: 13.5, fontWeight: 700, color: "#19202E", cursor: "pointer" }}>
+                Show more · {filtered.length - shown} left
+              </button>
+            </div>
+          )}
+        </>
       )}
     </main>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Mark, Wordmark } from "@/components/Brand";
 import ImageSlot from "@/components/ImageSlot";
@@ -11,9 +11,11 @@ import { tileFor, type Product } from "@/lib/data";
 import { type SiteContent } from "@/lib/content";
 import { type LiveWorkspace } from "@/lib/workspace";
 import { createAppProject, deleteAppProject } from "@/lib/workspace-actions";
+import { updatePersonalDetails, upgradeToBusiness } from "@/lib/profile-actions";
+import { searchTokens, matchesAll } from "@/lib/search-normalize";
 import { unitPriceFor, WHOLESALE_MIN_QTY, exGst, GST_RATE } from "@/lib/pricing";
 
-type Screen = "portfolio" | "catalogue" | "product" | "project" | "smartbom" | "cart" | "confirm";
+type Screen = "portfolio" | "catalogue" | "product" | "project" | "smartbom" | "cart" | "confirm" | "account";
 type CartItem = Product & { qty: number };
 type Pay = "now" | "credit";
 type BomState = "idle" | "parsing" | "ready";
@@ -69,8 +71,17 @@ export default function AppShell({ products, content, user, live }: { products: 
   const userInitials = (user?.name || userEmail || "U").slice(0, 2).toUpperCase();
   const userName = user?.name || (userEmail ? userEmail.split("@")[0] : "Guest");
   const userOrg = user?.org || (isBusiness ? "Business account" : "Individual account");
-  // Individuals get a simpler workspace — no Smart BOM / Projects.
-  const NAV = isBusiness ? NAV_META : NAV_META.filter((n) => !["smartbom", "project"].includes(n.key));
+  // Live accounts (real users) get the real screens: Overview, Catalogue,
+  // Cart and Orders. The Smart BOM / Projects demo screens and "PO" language
+  // stay demo-only until those features actually exist.
+  const NAV = live
+    ? ([
+        { key: "portfolio", label: "Overview" },
+        { key: "catalogue", label: "Catalogue" },
+        { key: "cart", label: "Cart" },
+        { key: "confirm", label: "Orders" },
+      ] as { key: Screen; label: string }[])
+    : isBusiness ? NAV_META : NAV_META.filter((n) => !["smartbom", "project"].includes(n.key));
   const router = useRouter();
   const params = useSearchParams();
   const initial: Screen = params.get("screen") === "catalogue" ? "catalogue" : "portfolio";
@@ -84,6 +95,9 @@ export default function AppShell({ products, content, user, live }: { products: 
   const [cat, setCat] = useState("All");
   const [pd, setPd] = useState<Product | null>(null);
   const [pdQty, setPdQty] = useState(1);
+  const [topQ, setTopQ] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [acctSection, setAcctSection] = useState<"personal" | "business">("personal");
 
   const contentRef = useRef<HTMLDivElement>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -107,7 +121,7 @@ export default function AppShell({ products, content, user, live }: { products: 
       if (ex) return prev.map((i) => (i.id === p.id ? { ...i, qty: i.qty + 1 } : i));
       return [...prev, { ...p, qty: 1 }];
     });
-    flash(p.name + " added to PO");
+    flash(p.name + (live ? " added to cart" : " added to PO"));
   };
   const setQty = (id: string, d: number) => {
     setCart((prev) =>
@@ -130,7 +144,7 @@ export default function AppShell({ products, content, user, live }: { products: 
       if (ex) return prev.map((i) => (i.id === p.id ? { ...i, qty: i.qty + qty } : i));
       return [...prev, { ...p, qty }];
     });
-    flash(qty + "× " + p.name + " added to PO");
+    flash(qty + "× " + p.name + (live ? " added to cart" : " added to PO"));
   };
 
   const releaseAutoPO = () => {
@@ -191,16 +205,21 @@ export default function AppShell({ products, content, user, live }: { products: 
     catalogue: ["Catalogue", "Multi-brand FMEG · transparent pricing"],
     project: ["Aurelia Towers", "Project procurement plan"],
     smartbom: ["Smart BOM", "Upload a BOQ — Elume does the rest"],
-    cart: ["Purchase order", cart.length + " line items"],
-    confirm: live ? ["Deliveries", "Your orders and their status"] : ["Order placed", "Delivery tracking"],
+    cart: [live ? "Cart" : "Purchase order", cart.length + " line item" + (cart.length === 1 ? "" : "s")],
+    confirm: live ? ["Orders", "Every order with live tracking"] : ["Order placed", "Delivery tracking"],
     product: [pd ? pd.name : "Product", pd ? pd.brand : ""],
+    account: ["Your account", userEmail],
   };
   const [pageTitle, pageSub] = titles[screen];
-  const showBack = ["project", "catalogue", "cart", "smartbom", "confirm", "product"].includes(screen);
+  const showBack = ["project", "catalogue", "cart", "smartbom", "confirm", "product", "account"].includes(screen);
   const cartCount = cart.reduce((a, i) => a + i.qty, 0);
   const credit = pay === "credit";
 
-  const catProducts = products.filter((p) => cat === "All" || p.cat === cat);
+  const searchTokensMemo = useMemo(() => searchTokens(topQ), [topQ]);
+  const catProducts = products.filter((p) =>
+    (cat === "All" || p.cat === cat) &&
+    (searchTokensMemo.length === 0 || matchesAll(`${p.brand} ${p.name} ${p.spec} ${p.sku} ${p.cat}`, searchTokensMemo))
+  );
 
   return (
     <div style={{ height: "100vh", display: "flex", overflow: "hidden", fontFamily: "var(--hanken)", color: "#19202E", background: "#F5F6F9" }}>
@@ -268,12 +287,18 @@ export default function AppShell({ products, content, user, live }: { products: 
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <div
-              onClick={() => nav("catalogue")}
-              style={{ width: 248, height: 38, background: "#F5F6F9", borderRadius: 9, border: "1px solid #E8EBF1", display: "flex", alignItems: "center", padding: "0 13px", fontSize: 12.5, color: "#8A93A6", cursor: "pointer", gap: 8 }}
-            >
-              <span style={{ width: 13, height: 13, border: "2px solid #b6bdcb", borderRadius: "50%", display: "inline-block" }} />
-              Search SKUs, brands, projects…
+            <div style={{ position: "relative", width: 264, height: 38, background: "#F5F6F9", borderRadius: 9, border: "1px solid #E8EBF1", display: "flex", alignItems: "center", padding: "0 11px", gap: 8 }}>
+              <span style={{ width: 13, height: 13, flex: "none", border: "2px solid #b6bdcb", borderRadius: "50%", display: "inline-block" }} />
+              <input
+                value={topQ}
+                onChange={(e) => { setTopQ(e.target.value); if (screen !== "catalogue" && e.target.value.trim()) nav("catalogue"); }}
+                onFocus={() => { if (screen !== "catalogue" && topQ.trim()) nav("catalogue"); }}
+                placeholder="Search the catalogue…"
+                style={{ border: "none", outline: "none", background: "transparent", fontSize: 12.5, color: "#19202E", width: "100%" }}
+              />
+              {topQ && (
+                <span onClick={() => setTopQ("")} style={{ cursor: "pointer", color: "#8A93A6", fontSize: 14, lineHeight: 1 }}>×</span>
+              )}
             </div>
             <div onClick={() => nav("cart")} style={{ position: "relative", width: 38, height: 38, borderRadius: 9, border: "1px solid #E8EBF1", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <span style={{ width: 15, height: 13, border: "2px solid #56627A", borderRadius: 3, display: "inline-block" }} />
@@ -283,16 +308,39 @@ export default function AppShell({ products, content, user, live }: { products: 
                 </span>
               )}
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 9, paddingLeft: 6 }}>
-              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#3a2d6b,#E0612A)", color: "#fff", fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>{userInitials}</div>
-              <div style={{ lineHeight: 1.2 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 600, color: "#19202E" }}>{userName}</div>
-                <div style={{ fontSize: 11, color: "#8A93A6" }}>{userOrg}</div>
+            <div style={{ position: "relative", paddingLeft: 6 }}>
+              <div onClick={() => setMenuOpen((o) => !o)} style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer", userSelect: "none" }}>
+                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#3a2d6b,#E0612A)", color: "#fff", fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>{userInitials}</div>
+                <div style={{ lineHeight: 1.2 }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 600, color: "#19202E" }}>{userName}</div>
+                  <div style={{ fontSize: 11, color: "#8A93A6" }}>{userOrg}</div>
+                </div>
+                <span style={{ color: "#8A93A6", fontSize: 10, transform: menuOpen ? "rotate(180deg)" : "none", transition: "transform .15s" }}>▼</span>
               </div>
-              {userEmail && (
-                <form action="/auth/signout" method="post" style={{ marginLeft: 4 }}>
-                  <button title="Sign out" style={{ background: "none", border: "none", cursor: "pointer", color: "#8A93A6", fontSize: 12, fontWeight: 600 }}>Sign out</button>
-                </form>
+              {menuOpen && (
+                <>
+                  <div onClick={() => setMenuOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 40 }} />
+                  <div style={{ position: "absolute", top: "calc(100% + 10px)", right: 0, zIndex: 50, width: 230, background: "#fff", border: "1px solid #E0E4ED", borderRadius: 12, boxShadow: "0 16px 40px rgba(20,24,45,.14)", overflow: "hidden", padding: "6px 0" }}>
+                    {([
+                      ["Account details", () => { setAcctSection("business"); nav("account"); }],
+                      ["Personal details", () => { setAcctSection("personal"); nav("account"); }],
+                      ...(!isBusiness ? [["Switch to Business account", () => { setAcctSection("business"); nav("account"); }] as [string, () => void]] : []),
+                    ] as [string, () => void][]).map(([label, fn]) => (
+                      <div key={label} onClick={() => { setMenuOpen(false); fn(); }} style={{ padding: "10px 16px", fontSize: 13, fontWeight: 600, color: "#19202E", cursor: "pointer" }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "#F5F6F9")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "#fff")}
+                      >{label}</div>
+                    ))}
+                    {userEmail && (
+                      <form action="/auth/signout" method="post" style={{ borderTop: "1px solid #F0F2F6", marginTop: 4, paddingTop: 4 }}>
+                        <button style={{ width: "100%", textAlign: "left", padding: "10px 16px", fontSize: 13, fontWeight: 600, color: "#B43A16", background: "none", border: "none", cursor: "pointer" }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = "#FBF1EC")}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                        >Sign out</button>
+                      </form>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -303,8 +351,8 @@ export default function AppShell({ products, content, user, live }: { products: 
           {screen === "portfolio" && (live
             ? <LivePortfolio live={live} onCatalogue={() => nav("catalogue")} />
             : <Portfolio projects={PROJECTS} onProject={() => nav("project")} onReleaseAutoPO={releaseAutoPO} />)}
-          {screen === "catalogue" && <Catalogue products={catProducts} cats={CATS} cat={cat} setCat={setCat} onOpen={openProduct} onAdd={add} />}
-          {screen === "product" && pd && <ProductDetail p={pd} qty={pdQty} setQty={setPdQty} onAdd={() => addQty(pd, pdQty)} onCatalogue={() => nav("catalogue")} onProject={() => nav("smartbom")} showGst={isBusiness} />}
+          {screen === "catalogue" && <Catalogue products={catProducts} cats={CATS} cat={cat} setCat={setCat} onOpen={openProduct} onAdd={add} q={topQ} onClearQ={() => setTopQ("")} allowUpload={!live} />}
+          {screen === "product" && pd && <ProductDetail p={pd} qty={pdQty} setQty={setPdQty} onAdd={() => addQty(pd, pdQty)} onCatalogue={() => nav("catalogue")} onProject={live ? undefined : () => nav("smartbom")} showGst={isBusiness} />}
           {screen === "project" && <ProjectDetail stages={STAGES} bomRows={BOM_ROWS} onReleaseAutoPO={releaseAutoPO} onSmartBom={() => nav("smartbom")} />}
           {screen === "smartbom" && <SmartBom parsedRows={PARSED_ROWS} state={bomState} onUpload={uploadBOQ} onProject={() => nav("project")} />}
           {screen === "cart" && (
@@ -318,12 +366,19 @@ export default function AppShell({ products, content, user, live }: { products: 
               onRemove={remove}
               onPlace={placeOrder}
               business={isBusiness}
+              liveMode={!!live}
               gstinDefault={user?.gstin ?? ""}
             />
           )}
           {screen === "confirm" && (live
-            ? <LiveDeliveries live={live} onCatalogue={() => nav("catalogue")} />
+            ? <LiveOrders live={live} onCatalogue={() => nav("catalogue")} />
             : order && <Confirmation trackSteps={TRACK_STEPS} order={order} onPortfolio={() => nav("portfolio")} />)}
+          {screen === "account" && user && (
+            <AccountScreen
+              user={user}
+              section={acctSection}
+            />
+          )}
         </div>
       </div>
 
@@ -447,6 +502,9 @@ function Catalogue({
   setCat,
   onOpen,
   onAdd,
+  q = "",
+  onClearQ,
+  allowUpload = true,
 }: {
   products: Product[];
   cats: SiteContent["categories"];
@@ -454,9 +512,22 @@ function Catalogue({
   setCat: (c: string) => void;
   onOpen: (p: Product) => void;
   onAdd: (p: Product) => void;
+  q?: string;
+  onClearQ?: () => void;
+  allowUpload?: boolean;
 }) {
+  const [shown, setShown] = useState(48);
+  useEffect(() => { setShown(48); }, [q, cat]);
   return (
     <div style={{ padding: "24px 30px", animation: "elumeFade .35s ease" }}>
+      {q.trim() && (
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, fontSize: 13.5 }}>
+          <span style={{ color: "#56627A" }}>
+            <b style={{ color: "#19202E" }}>{products.length}</b> result{products.length === 1 ? "" : "s"} for &ldquo;{q.trim()}&rdquo;
+          </span>
+          {onClearQ && <span onClick={onClearQ} style={{ color: "#4E5BDC", fontWeight: 700, cursor: "pointer" }}>Clear search</span>}
+        </div>
+      )}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {CATS.map((label) => {
@@ -473,13 +544,18 @@ function Catalogue({
         </div>
       </div>
 
+      {products.length === 0 && (
+        <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "44px 20px", textAlign: "center", color: "#8A93A6", fontSize: 14 }}>
+          Nothing matches{q.trim() ? ` “${q.trim()}”` : ""} in {cat === "All" ? "the catalogue" : cat}. Try fewer words.
+        </div>
+      )}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
-        {products.map((p) => {
+        {products.slice(0, shown).map((p) => {
           const save = Math.round((1 - p.price / p.market) * 100) + "%";
           return (
             <div key={p.id} onClick={() => onOpen(p)} style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer" }}>
               <div style={{ height: 128, position: "relative" }}>
-                <ImageSlot id={`img-${p.sku}`} tile={tileFor(p.cat)} imageUrl={p.image} allowUpload />
+                <ImageSlot id={`img-${p.sku}`} tile={tileFor(p.cat)} imageUrl={p.image} allowUpload={allowUpload} />
                 <span style={{ position: "absolute", left: 11, bottom: 11, zIndex: 2, pointerEvents: "none", fontFamily: MONO, fontSize: 9.5, color: "#6b748c", background: "rgba(255,255,255,0.88)", padding: "3px 6px", borderRadius: 5 }}>{p.sku}</span>
                 <span style={{ position: "absolute", right: 11, bottom: 11, zIndex: 2, pointerEvents: "none", fontSize: 11, fontWeight: 700, color: "#1F9D63", background: "#fff", padding: "4px 8px", borderRadius: 6 }}>↓ {save}</span>
               </div>
@@ -502,6 +578,13 @@ function Catalogue({
           );
         })}
       </div>
+      {products.length > shown && (
+        <div style={{ textAlign: "center", marginTop: 22 }}>
+          <button onClick={() => setShown((n) => n + 48)} style={{ background: "#fff", border: "1px solid #E0E4ED", borderRadius: 10, padding: "10px 24px", fontSize: 13, fontWeight: 700, color: "#19202E", cursor: "pointer" }}>
+            Show more · {products.length - shown} left
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -691,6 +774,7 @@ function Cart({
   onPlace,
   business = false,
   gstinDefault = "",
+  liveMode = false,
 }: {
   cart: CartItem[];
   calc: { sub: number; mkt: number; list: number; wholesaleSaved: number; save: number; taxable: number; gst: number; total: number };
@@ -702,6 +786,7 @@ function Cart({
   onPlace: () => void;
   business?: boolean;
   gstinDefault?: string;
+  liveMode?: boolean;
 }) {
   const sel = (on: boolean) => ({ bd: on ? "#4E5BDC" : "#E8EBF1", bg: on ? "#F7F8FF" : "#fff", dot: on ? "#4E5BDC" : "#C7CEDC", fill: on ? "#4E5BDC" : "transparent" });
   const pn = sel(!credit);
@@ -714,8 +799,8 @@ function Cart({
     return (
       <div style={{ padding: "24px 30px", animation: "elumeFade .35s ease" }}>
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "70px 30px", textAlign: "center" }}>
-          <div style={{ fontSize: 15, fontWeight: 600, color: "#19202E" }}>No items in this purchase order yet</div>
-          <div style={{ fontSize: 13, color: "#8A93A6", margin: "6px 0 18px" }}>Browse the catalogue or release an auto-PO from a project.</div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: "#19202E" }}>{liveMode ? "Your cart is empty" : "No items in this purchase order yet"}</div>
+          <div style={{ fontSize: 13, color: "#8A93A6", margin: "6px 0 18px" }}>{liveMode ? "Add products from the catalogue; wholesale pricing kicks in at 15+ units." : "Browse the catalogue or release an auto-PO from a project."}</div>
           <div onClick={onCatalogue} style={{ display: "inline-block", background: "#4E5BDC", color: "#fff", fontWeight: 600, fontSize: 13, padding: "11px 20px", borderRadius: 10, cursor: "pointer" }}>Browse catalogue</div>
         </div>
       </div>
@@ -828,6 +913,11 @@ function Cart({
           {/* payment / credit */}
           <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "18px 20px" }}>
             <div style={{ fontFamily: GROTESK, fontWeight: 600, fontSize: 14.5, marginBottom: 13 }}>Payment</div>
+            {liveMode ? (
+              <div style={{ fontSize: 12.5, color: "#56627A", lineHeight: 1.6 }}>
+                Choose how to pay at the next step: UPI, cards and netbanking via secure checkout. 🔒
+              </div>
+            ) : (<>
             {/* Elume-branded online payment (Razorpay powers it — coming soon) */}
             <div style={{ display: "flex", alignItems: "center", gap: 11, border: "1.5px solid #E8EBF1", background: "#FAFBFD", borderRadius: 11, padding: 13, marginBottom: 10 }}>
               <div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #D5DAE4" }} />
@@ -863,10 +953,11 @@ function Cart({
                 </div>
               </div>
             </a>
+            </>)}
           </div>
 
           <div onClick={onPlace} style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14.5, textAlign: "center", padding: 15, borderRadius: 12, cursor: "pointer" }}>
-            {credit ? "Place order on 30-day credit" : "Place order · " + fmt(calc.total)}
+            {liveMode ? "Proceed to checkout · " + fmt(calc.total) : credit ? "Place order on 30-day credit" : "Place order · " + fmt(calc.total)}
           </div>
         </div>
       </div>
@@ -1036,12 +1127,25 @@ function LivePortfolio({ live, onCatalogue }: { live: LiveWorkspace; onCatalogue
   );
 }
 
-function LiveDeliveries({ live, onCatalogue }: { live: LiveWorkspace; onCatalogue: () => void }) {
+function LiveOrders({ live, onCatalogue }: { live: LiveWorkspace; onCatalogue: () => void }) {
+  // The fulfilment journey; an order's status maps to a position on it.
+  const JOURNEY = ["placed", "confirmed", "packed", "shipped", "out_for_delivery", "delivered"];
+  const LABEL: Record<string, string> = {
+    placed: "Order placed", confirmed: "Confirmed", packed: "Packed",
+    shipped: "Shipped", partially_shipped: "Partially shipped",
+    out_for_delivery: "Out for delivery", delivered: "Delivered",
+  };
   const badge: Record<string, [string, string]> = {
     placed: ["#EEF0FE", "#4E5BDC"], confirmed: ["#E6F0FF", "#2563C9"], packed: ["#FFF3E0", "#C77700"],
     shipped: ["#E7F3EC", "#1F9D63"], partially_shipped: ["#FBF0E4", "#B4690E"],
     out_for_delivery: ["#E7F3EC", "#1F8F5B"], delivered: ["#E6F5EE", "#137a4b"],
   };
+  const posOf = (status: string) => {
+    if (status === "partially_shipped") return JOURNEY.indexOf("shipped");
+    const i = JOURNEY.indexOf(status);
+    return i === -1 ? 0 : i;
+  };
+
   return (
     <div style={{ padding: "26px 30px", animation: "elumeFade .35s ease" }}>
       <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflow: "hidden" }}>
@@ -1052,7 +1156,7 @@ function LiveDeliveries({ live, onCatalogue }: { live: LiveWorkspace; onCatalogu
           <div style={{ padding: "40px 20px", textAlign: "center" }}>
             <div style={{ fontSize: 26, marginBottom: 8 }}>📦</div>
             <div style={{ fontSize: 14, fontWeight: 600, color: "#19202E" }}>No orders yet.</div>
-            <div style={{ fontSize: 12.5, color: "#8A93A6", marginTop: 4 }}>Everything you buy will show up here with live delivery status.</div>
+            <div style={{ fontSize: 12.5, color: "#8A93A6", marginTop: 4 }}>Everything you buy shows up here with live tracking.</div>
             <div onClick={onCatalogue} style={{ display: "inline-block", marginTop: 14, background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13, padding: "10px 18px", borderRadius: 9, cursor: "pointer" }}>
               Browse the catalogue →
             </div>
@@ -1060,16 +1164,54 @@ function LiveDeliveries({ live, onCatalogue }: { live: LiveWorkspace; onCatalogu
         ) : (
           live.orders.map((o) => {
             const [bg, fg] = badge[o.status] ?? ["#F5F6F9", "#56627A"];
+            const pos = posOf(o.status);
             return (
-              <a key={o.id} href={`/track?order=${encodeURIComponent(o.id)}`} style={{ display: "flex", gap: 14, alignItems: "baseline", padding: "14px 18px", borderBottom: "1px solid #F5F6F9", color: "inherit" }}>
-                <span style={{ fontFamily: MONO, fontSize: 12.5, fontWeight: 700 }}>{o.id}</span>
-                <span style={{ fontSize: 12, color: "#8A93A6" }}>{o.items} item{o.items === 1 ? "" : "s"}</span>
-                <span style={{ fontFamily: GROTESK, fontSize: 14, fontWeight: 600 }}>{fmt(o.total)}</span>
-                <span style={{ display: "inline-block", fontSize: 11.5, fontWeight: 700, padding: "3px 10px", borderRadius: 7, background: bg, color: fg }}>{o.status.replace(/_/g, " ")}</span>
-                <span style={{ marginLeft: "auto", fontSize: 11.5, color: "#A0A7B5" }}>
-                  {new Date(o.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
-                </span>
-              </a>
+              <details key={o.id} style={{ borderBottom: "1px solid #F5F6F9" }}>
+                <summary style={{ display: "flex", gap: 14, alignItems: "baseline", padding: "14px 18px", cursor: "pointer", listStyle: "none", flexWrap: "wrap" }}>
+                  <span style={{ color: "#A0A7B5", fontSize: 11 }}>▸</span>
+                  <span style={{ fontFamily: MONO, fontSize: 12.5, fontWeight: 700 }}>{o.id}</span>
+                  <span style={{ fontSize: 12, color: "#8A93A6" }}>{o.items} item{o.items === 1 ? "" : "s"}</span>
+                  <span style={{ fontFamily: GROTESK, fontSize: 14, fontWeight: 600 }}>{fmt(o.total)}</span>
+                  <span style={{ display: "inline-block", fontSize: 11.5, fontWeight: 700, padding: "3px 10px", borderRadius: 7, background: bg, color: fg }}>{LABEL[o.status] ?? o.status.replace(/_/g, " ")}</span>
+                  <span style={{ marginLeft: "auto", fontSize: 11.5, color: "#A0A7B5" }}>
+                    {new Date(o.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                  </span>
+                </summary>
+
+                {/* Inline tracking: the full journey right here, no separate page. */}
+                <div style={{ background: "#F8F9FC", borderTop: "1px solid #F0F2F6", padding: "18px 20px 16px 43px" }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 0, marginBottom: 16, maxWidth: 640 }}>
+                    {JOURNEY.map((st, i) => {
+                      const done = i < pos, active = i === pos;
+                      return (
+                        <div key={st} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: i === 0 ? "flex-start" : "center", position: "relative" }}>
+                          {i > 0 && (
+                            <div style={{ position: "absolute", top: 7, right: "50%", width: "100%", height: 2, background: i <= pos ? "#1F9D63" : "#E0E4ED" }} />
+                          )}
+                          <span style={{ zIndex: 1, width: 15, height: 15, borderRadius: "50%", background: done || active ? "#1F9D63" : "#fff", border: done || active ? "none" : "2px solid #D6DBE6", boxShadow: active ? "0 0 0 4px #E6F5EE" : "none" }} />
+                          <span style={{ fontSize: 10, marginTop: 6, fontWeight: active ? 700 : 500, color: done || active ? "#137a4b" : "#A0A7B5", textAlign: i === 0 ? "left" : "center", lineHeight: 1.25 }}>
+                            {LABEL[st]}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {o.status === "partially_shipped" && (
+                    <div style={{ fontSize: 12, color: "#B4690E", fontWeight: 600, marginBottom: 10 }}>Part of this order has shipped; the rest is on its way.</div>
+                  )}
+                  {o.lines.length > 0 && (
+                    <div style={{ background: "#fff", border: "1px solid #EEF0F4", borderRadius: 10, padding: "10px 14px", maxWidth: 640 }}>
+                      {o.lines.map((l, i) => (
+                        <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 12.5, color: "#2c3550", padding: "3px 0" }}>
+                          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.name}</span>
+                          <span style={{ color: "#8A93A6", flex: "none" }}>× {l.qty}</span>
+                        </div>
+                      ))}
+                      {o.items > o.lines.length && <div style={{ fontSize: 11.5, color: "#A0A7B5", paddingTop: 4 }}>+ {o.items - o.lines.length} more item{o.items - o.lines.length === 1 ? "" : "s"}</div>}
+                    </div>
+                  )}
+                </div>
+              </details>
             );
           })
         )}
@@ -1077,3 +1219,96 @@ function LiveDeliveries({ live, onCatalogue }: { live: LiveWorkspace; onCatalogu
     </div>
   );
 }
+
+/* ============================ ACCOUNT ============================ */
+
+function AccountScreen({ user, section }: { user: { email: string; name?: string; org?: string; accountType?: "business" | "individual"; gstin?: string }; section: "personal" | "business" }) {
+  const router = useRouter();
+  const isBiz = user.accountType === "business";
+  const [name, setName] = useState(user.name ?? "");
+  const [phone, setPhone] = useState("");
+  const [company, setCompany] = useState(user.org && user.org !== "Business account" && user.org !== "Individual account" ? user.org : "");
+  const [gstin, setGstin] = useState(user.gstin ?? "");
+  const [busy, setBusy] = useState<"personal" | "business" | null>(null);
+  const [note, setNote] = useState<{ where: "personal" | "business"; ok: boolean; text: string } | null>(null);
+  const bizRef = useRef<HTMLDivElement>(null);
+  const persRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    (section === "business" ? bizRef : persRef).current?.scrollIntoView({ block: "start", behavior: "smooth" });
+  }, [section]);
+
+  const savePersonal = async () => {
+    setBusy("personal"); setNote(null);
+    try {
+      const res = await updatePersonalDetails(name, phone);
+      setNote({ where: "personal", ok: res.ok, text: res.ok ? "Saved." : res.error });
+      if (res.ok) router.refresh();
+    } catch { setNote({ where: "personal", ok: false, text: "The site was updated while this page was open. Reload and try again." }); }
+    finally { setBusy(null); }
+  };
+  const saveBusiness = async () => {
+    setBusy("business"); setNote(null);
+    try {
+      const res = await upgradeToBusiness(company, gstin);
+      setNote({ where: "business", ok: res.ok, text: res.ok ? (isBiz ? "Saved." : "You're on a business account now. GST details will appear on your invoices.") : res.error });
+      if (res.ok) router.refresh();
+    } catch { setNote({ where: "business", ok: false, text: "The site was updated while this page was open. Reload and try again." }); }
+    finally { setBusy(null); }
+  };
+
+  const card: React.CSSProperties = { background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "20px 22px", maxWidth: 560, marginBottom: 16 };
+  const label: React.CSSProperties = { display: "block", fontSize: 11.5, fontWeight: 700, color: "#8A93A6", textTransform: "uppercase", letterSpacing: "0.4px", margin: "12px 0 5px" };
+  const input: React.CSSProperties = { width: "100%", boxSizing: "border-box", border: "1px solid #E0E4ED", borderRadius: 9, padding: "10px 12px", fontSize: 13.5 };
+  const saveBtn = (b: boolean): React.CSSProperties => ({ marginTop: 14, background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13, border: "none", padding: "10px 20px", borderRadius: 9, cursor: "pointer", opacity: b ? 0.6 : 1 });
+
+  return (
+    <div style={{ padding: "26px 30px", animation: "elumeFade .35s ease" }}>
+      {/* ── Account details ── */}
+      <div ref={bizRef} style={card}>
+        <div style={{ fontFamily: GROTESK, fontWeight: 600, fontSize: 15.5, marginBottom: 4 }}>Account details</div>
+        <div style={{ fontSize: 12.5, color: "#8A93A6" }}>How you sign in, and what kind of account this is.</div>
+        <span style={label}>Email</span>
+        <div style={{ ...input, background: "#F5F6F9", color: "#56627A" }}>{user.email}</div>
+        <span style={label}>Account type</span>
+        <div style={{ ...input, background: "#F5F6F9", color: "#56627A", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span>{isBiz ? "Business" : "Individual"}</span>
+          {isBiz && <span style={{ fontSize: 10.5, fontWeight: 800, color: "#4E5BDC", background: "#EEF0FE", padding: "2px 8px", borderRadius: 7, textTransform: "uppercase" }}>GST invoicing on</span>}
+        </div>
+
+        {/* Business fields (editable) or the switch form */}
+        <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid #F0F2F6" }}>
+          <div style={{ fontWeight: 700, fontSize: 13.5, color: "#19202E" }}>{isBiz ? "Business details" : "Switch to a Business account"}</div>
+          {!isBiz && <div style={{ fontSize: 12.5, color: "#8A93A6", marginTop: 3 }}>Add your company and GSTIN to get GST invoices with input credit on every order.</div>}
+          <span style={label}>Company name</span>
+          <input style={input} value={company} onChange={(e) => setCompany(e.target.value)} placeholder="e.g. Sharma Electricals" />
+          <span style={label}>GSTIN</span>
+          <input style={input} value={gstin} onChange={(e) => setGstin(e.target.value.toUpperCase())} placeholder="15-character GSTIN" maxLength={15} />
+          <div>
+            <button onClick={saveBusiness} disabled={busy === "business"} style={saveBtn(busy === "business")}>
+              {busy === "business" ? "Saving…" : isBiz ? "Save business details" : "Switch to Business"}
+            </button>
+          </div>
+          {note?.where === "business" && <div style={{ marginTop: 10, fontSize: 12.5, fontWeight: 600, color: note.ok ? "#1F9D63" : "#D14343" }}>{note.text}</div>}
+        </div>
+      </div>
+
+      {/* ── Personal details ── */}
+      <div ref={persRef} style={card}>
+        <div style={{ fontFamily: GROTESK, fontWeight: 600, fontSize: 15.5, marginBottom: 4 }}>Personal details</div>
+        <div style={{ fontSize: 12.5, color: "#8A93A6" }}>The name on your orders and how we reach you about deliveries.</div>
+        <span style={label}>Full name</span>
+        <input style={input} value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" />
+        <span style={label}>Phone</span>
+        <input style={input} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="10-digit mobile (optional)" />
+        <div>
+          <button onClick={savePersonal} disabled={busy === "personal"} style={saveBtn(busy === "personal")}>
+            {busy === "personal" ? "Saving…" : "Save personal details"}
+          </button>
+        </div>
+        {note?.where === "personal" && <div style={{ marginTop: 10, fontSize: 12.5, fontWeight: 600, color: note.ok ? "#1F9D63" : "#D14343" }}>{note.text}</div>}
+      </div>
+    </div>
+  );
+}
+
