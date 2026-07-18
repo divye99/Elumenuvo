@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
 import { adminClient } from "@/lib/supabase/admin";
+import { istDateTime } from "@/lib/admin/ist";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +33,6 @@ async function load() {
   };
 }
 
-const dt = (v?: string | null) => (v ? new Date(v).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "–");
 
 export default async function AdminLeads({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   await requireAdmin();
@@ -93,7 +93,7 @@ export default async function AdminLeads({ searchParams }: { searchParams: Promi
                   {Object.entries(r.details as Record<string, string>).map(([k, v]) => `${k}: ${v}`).join(" · ").slice(0, 220)}
                 </div>
               )}
-              <div style={{ marginLeft: "auto", fontSize: 11.5, color: "#A0A7B5", whiteSpace: "nowrap" }}>{dt(r.created_at ?? r.updated_at)}</div>
+              <div style={{ marginLeft: "auto", fontSize: 11.5, color: "#A0A7B5", whiteSpace: "nowrap" }}>{istDateTime(r.created_at ?? r.updated_at)}</div>
             </div>
           ))}
         </div>

@@ -68,7 +68,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
                 <span style={{ fontSize: 11.5, color: "#8A93A6" }}>{(o.items ?? []).reduce((s, it) => s + it.qty, 0)} item{(o.items ?? []).length === 1 ? "" : "s"}{o.gstin ? " · GST" : ""}{o.is_guest ? " · guest" : ""}</span>
               </span>
               <span style={{ textAlign: "right", fontFamily: "var(--space-grotesk)", fontWeight: 700, fontSize: 14 }}>{o.total != null ? fmt(o.total) : "—"}</span>
-              <span style={{ fontSize: 12, color: "#56627A" }}>{new Date(o.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</span>
+              <span style={{ fontSize: 12, color: "#56627A" }}>{new Date(o.created_at).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short" })}</span>
               <span><OrderStatusBadge status={o.status} /></span>
             </Link>
           ))}

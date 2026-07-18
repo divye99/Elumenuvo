@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
 import { fetchEvents, fetchAllSearches, toVisitors, buildJourney, type SiteEvent } from "@/lib/admin/analytics-data";
+import { istDateTime, istDate, istTime } from "@/lib/admin/ist";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const dur = (ms: number) => (ms < 60000 ? `${Math.round(ms / 1000)}s` : `${Math.floor(ms / 60000)}m ${Math.round((ms % 60000) / 1000)}s`);
-const dt = (v: string) => new Date(v).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
 export default async function AdminAnalytics({ searchParams }: { searchParams: Promise<{ days?: string }> }) {
   await requireAdmin();
@@ -64,14 +64,14 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
                   {(v.utm || v.landingReferrer) && (
                     <span style={{ fontSize: 11.5, color: "#C77700" }}>{v.utm ?? new URL(v.landingReferrer!).hostname}</span>
                   )}
-                  <span style={{ marginLeft: "auto", fontSize: 11.5, color: "#A0A7B5", whiteSpace: "nowrap" }}>{dt(v.lastSeen)}</span>
+                  <span style={{ marginLeft: "auto", fontSize: 11.5, color: "#A0A7B5", whiteSpace: "nowrap" }}>{istDateTime(v.lastSeen)}</span>
                 </summary>
 
                 <div style={{ background: "#F8F9FC", borderTop: "1px solid #F0F2F6", padding: "4px 0 10px" }}>
                   {journey.length === 0 && <div style={{ padding: "14px 46px", fontSize: 12.5, color: "#8A93A6" }}>No recorded activity in this window.</div>}
                   {journey.map((it, j) => {
-                    const day = new Date(it.at).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
-                    const prevDay = j > 0 ? new Date(journey[j - 1].at).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : null;
+                    const day = istDate(it.at);
+                    const prevDay = j > 0 ? istDate(journey[j - 1].at) : null;
                     return (
                       <div key={j}>
                         {day !== prevDay && (
@@ -79,7 +79,7 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
                         )}
                         <div style={{ display: "flex", gap: 11, alignItems: "baseline", padding: "4px 46px" }}>
                           <span style={{ fontFamily: "var(--space-mono)", fontSize: 10.5, color: "#A0A7B5", minWidth: 58 }}>
-                            {new Date(it.at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                            {istTime(it.at)}
                           </span>
                           <span style={{ fontSize: 12.5 }}>{it.icon}</span>
                           <span style={{ fontSize: 12.5, color: "#19202E" }}>

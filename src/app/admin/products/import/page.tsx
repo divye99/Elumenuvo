@@ -39,7 +39,7 @@ export default async function ImportPage() {
                   <div style={{ fontSize: 11.5, color: "#8A93A6", marginTop: 2 }}>{l.filename} · {l.actor}</div>
                 </div>
                 <div style={{ fontSize: 12, color: "#8A93A6" }}>
-                  {new Date(l.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                  {new Date(l.created_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                 </div>
               </div>
             ))}

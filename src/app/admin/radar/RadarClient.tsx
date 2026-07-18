@@ -167,7 +167,7 @@ export default function RadarClient({
         </button>
         {actionCount > 0 && <span style={{ fontSize: 12.5, fontWeight: 700, color: "#fff", background: "#E0612A", borderRadius: 20, padding: "3px 11px" }}>{actionCount} need repricing</span>}
         <span style={{ fontSize: 12, color: "#8A93A6", marginLeft: "auto" }}>
-          {lastSync ? <>Last sync {new Date(lastSync.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</> : "Not synced yet"}
+          {lastSync ? <>Last sync {new Date(lastSync.created_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</> : "Not synced yet"}
         </span>
       </div>
 

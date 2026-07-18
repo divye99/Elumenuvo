@@ -38,13 +38,13 @@ export default function OrderDetailClient({ order, shipments, events }: { order:
     <div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
         <Link href="/admin/orders" style={{ fontSize: 13, color: "#8A93A6" }}>← Orders</Link>
-        {order.delivered_at && <span style={{ fontSize: 12, color: "#8A93A6" }}>Delivered {new Date(order.delivered_at).toLocaleDateString("en-IN")}</span>}
+        {order.delivered_at && <span style={{ fontSize: 12, color: "#8A93A6" }}>Delivered {new Date(order.delivered_at).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" })}</span>}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "6px 0 4px" }}>
         <h1 style={{ fontFamily: "var(--space-mono)", fontSize: 22, fontWeight: 700, margin: 0 }}>{order.id}</h1>
         <OrderStatusBadge status={order.status} size={13} />
       </div>
-      <p style={{ fontSize: 13, color: "#8A93A6", margin: "0 0 18px" }}>Placed {new Date(order.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}{order.payment_method ? ` · ${order.payment_method === "cod" ? "Pay on delivery" : order.payment_method}` : ""}</p>
+      <p style={{ fontSize: 13, color: "#8A93A6", margin: "0 0 18px" }}>Placed {new Date(order.created_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" })}{order.payment_method ? ` · ${order.payment_method === "cod" ? "Pay on delivery" : order.payment_method}` : ""}</p>
 
       {err && <div style={{ background: "#FBE9E4", border: "1px solid #f0c9bd", color: "#9a3b16", borderRadius: 10, padding: "10px 13px", fontSize: 13, marginBottom: 14 }}>{err}</div>}
       {order.status === "cancelled" && order.cancel_reason && <div style={{ background: "#FBE9E4", color: "#9a3b16", borderRadius: 10, padding: "10px 13px", fontSize: 13, marginBottom: 14 }}>Cancelled: {order.cancel_reason}</div>}
@@ -104,7 +104,7 @@ export default function OrderDetailClient({ order, shipments, events }: { order:
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 600 }}>{STATUS_LABEL(e.status)}</div>
                       {e.note && <div style={{ fontSize: 12, color: "#8A93A6" }}>{e.note}</div>}
-                      <div style={{ fontSize: 11, color: "#B0B7C3" }}>{new Date(e.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</div>
+                      <div style={{ fontSize: 11, color: "#B0B7C3" }}>{new Date(e.created_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" })}</div>
                     </div>
                   </div>
                 ))}

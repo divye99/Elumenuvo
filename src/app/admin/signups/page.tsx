@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
 import { loadSignups } from "@/lib/admin/signups-data";
+import { istDateTime } from "@/lib/admin/ist";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +9,6 @@ export const dynamic = "force-dynamic";
  *  their email, when they last signed in, and their profile (business
  *  accounts show company + GSTIN). Exportable as CSV. */
 
-const dt = (v?: string | null) => (v ? new Date(v).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "–");
 
 export default async function AdminSignups() {
   await requireAdmin();
@@ -53,8 +53,8 @@ export default async function AdminSignups() {
                 <span style={{ fontSize: 10.5, fontWeight: 700, color: "#C77700", background: "#FFF3E0", padding: "2px 8px", borderRadius: 7 }}>email unconfirmed</span>
               )}
               <div style={{ marginLeft: "auto", fontSize: 11.5, color: "#A0A7B5", whiteSpace: "nowrap", textAlign: "right" }}>
-                <div>joined {dt(s.created_at)}</div>
-                <div>last seen {dt(s.last_sign_in_at)}</div>
+                <div>joined {istDateTime(s.created_at)}</div>
+                <div>last seen {istDateTime(s.last_sign_in_at)}</div>
               </div>
             </div>
           ))}

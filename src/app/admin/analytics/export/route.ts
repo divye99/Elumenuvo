@@ -18,8 +18,9 @@ export async function GET(request: Request) {
   const days = Math.min(90, Math.max(1, Number(new URL(request.url).searchParams.get("days")) || 30));
   const events = await fetchEvents(days);
 
-  const cols = ["created_at", "sid", "email", "name", "type", "path", "detail", "referrer", "device", "ip", "country", "region", "city", "duration_ms"];
-  const lines = [cols.join(","), ...events.map((e) => cols.map((c) => esc((e as any)[c])).join(","))];
+  const istOf = (v: string) => new Date(v).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "medium" });
+  const cols = ["created_at_ist", "created_at", "sid", "email", "name", "type", "path", "detail", "referrer", "device", "ip", "country", "region", "city", "duration_ms"];
+  const lines = [cols.join(","), ...events.map((e) => cols.map((c) => esc(c === "created_at_ist" ? istOf((e as any).created_at) : (e as any)[c])).join(","))];
   const csv = "﻿" + lines.join("\r\n");
   return new NextResponse(csv, {
     headers: {
