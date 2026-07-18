@@ -6,6 +6,7 @@ import { GROTESK } from "@/lib/fonts";
 import { CATS, type Product } from "@/lib/data";
 import { groupVariants, familyKey } from "@/lib/variants";
 import { logSearch } from "@/lib/search-log";
+import { searchTokens, matchesAll } from "@/lib/search-normalize";
 
 const CAT_ICONS: Record<string, string> = {
   All: "◈",
@@ -78,12 +79,11 @@ export default function CatalogueBrowser({
     // must appear somewhere in brand/name/spec/sku/category. A whole-string
     // substring test made "hav mcb" (a suggestion the search bar itself
     // offers) return zero results, since no single field contains it.
-    const words = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    const tokens = searchTokens(q);
     const list = products.filter((p) => {
       const inCat = cat === "All" || p.cat === cat;
       const inBrand = picked.size === 0 || picked.has(p.brand);
-      const hay = `${p.brand} ${p.name} ${p.spec} ${p.sku} ${p.cat}`.toLowerCase();
-      const inSearch = words.every((w) => hay.includes(w));
+      const inSearch = tokens.length === 0 || matchesAll(`${p.brand} ${p.name} ${p.spec} ${p.sku} ${p.cat}`, tokens);
       return inCat && inBrand && inSearch;
     });
     switch (sort) {

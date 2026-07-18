@@ -32,12 +32,17 @@ export default function ImageSlot({
   placeholder = "Drop product photo",
   radius = 0,
   imageUrl,
+  allowUpload = false,
 }: {
   id: string;
   tile: string;
   placeholder?: string;
   radius?: number;
   imageUrl?: string;
+  /** Upload affordance is for the internal workspace only. On the public
+   *  storefront a product photo is just a photo: clicks fall through to the
+   *  card's link (the product page) instead of opening a file picker. */
+  allowUpload?: boolean;
 }) {
   const [localSrc, setSrc] = useState<string | null>(null);
   const [over, setOver] = useState(false);
@@ -72,21 +77,21 @@ export default function ImageSlot({
 
   return (
     <div
-      onClick={(e) => {
+      onClick={allowUpload ? (e) => {
         e.stopPropagation();
         inputRef.current?.click();
-      }}
-      onDragOver={(e) => {
+      } : undefined}
+      onDragOver={allowUpload ? (e) => {
         e.preventDefault();
         setOver(true);
-      }}
-      onDragLeave={() => setOver(false)}
-      onDrop={(e) => {
+      } : undefined}
+      onDragLeave={allowUpload ? () => setOver(false) : undefined}
+      onDrop={allowUpload ? (e) => {
         e.preventDefault();
         e.stopPropagation();
         setOver(false);
         ingest(e.dataTransfer.files?.[0]);
-      }}
+      } : undefined}
       style={{
         position: "absolute",
         inset: 0,
@@ -98,7 +103,7 @@ export default function ImageSlot({
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        cursor: "pointer",
+        cursor: allowUpload ? "pointer" : undefined,
         overflow: "hidden",
         outline: over ? "2px dashed #4E5BDC" : "none",
         outlineOffset: -4,
@@ -111,12 +116,12 @@ export default function ImageSlot({
         // tops/bottoms off fans and wire boxes. The slot's white background
         // letterboxes cleanly, and the padding keeps the product off the edges.
         <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", padding: "6%", boxSizing: "border-box" }} />
-      ) : (
+      ) : allowUpload ? (
         <div style={{ textAlign: "center", pointerEvents: "none", padding: "0 10px" }}>
           <div style={{ fontSize: 11.5, fontWeight: 600, color: "#8A93A6" }}>{placeholder}</div>
           <div style={{ fontSize: 10.5, color: "#A8AFBC", marginTop: 2 }}>browse files</div>
         </div>
-      )}
+      ) : null}
       <input
         ref={inputRef}
         type="file"

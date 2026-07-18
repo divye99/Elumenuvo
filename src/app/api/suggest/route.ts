@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { searchTokens, matchesAll, normalizeSearchText } from "@/lib/search-normalize";
 
 /**
  * Search-suggest API behind the Amazon-style header search.
@@ -32,9 +33,15 @@ export async function GET(request: Request) {
 
   const words = q.split(/\s+/).map(safe).filter((w) => w.length >= 1).slice(0, 6);
   if (!words.length) return NextResponse.json({ terms: [], products: [] }, { status: 200 });
+  // Normalised tokens do the REAL matching ("1 sqmm" == "1 sq mm" == "1.0 sq. mm").
+  const tokens = searchTokens(q);
 
-  // Every word must hit name OR brand OR category (multi-word = AND of ORs).
-  const per = words.map((w) => `or(name.ilike.*${w}*,brand.ilike.*${w}*,category.ilike.*${w}*)`);
+  // The DB pre-filter only needs to shortlist: use the distinctive alpha
+  // words (unit tokens like "sqmm" and bare numbers cannot be matched
+  // verbatim against the many spellings in the data). Precision comes from
+  // the normalised token filter applied after the fetch.
+  const dbWords = words.filter((w) => /[a-z]{3,}/i.test(w) && !/^(sqmm|mm2?|mtr|metre|meter)s?$/i.test(w)).slice(0, 3);
+  const per = (dbWords.length ? dbWords : words.slice(0, 2)).map((w) => `or(name.ilike.*${w}*,brand.ilike.*${w}*,category.ilike.*${w}*)`);
   const filter = per.length === 1 ? per[0].replace(/^or/, "or=") : `and=(${per.join(",")})`;
   const url = `${URL_}/rest/v1/products?select=id,name,brand,category,elume_price,image_url,units_sold,is_recommended&${filter}&order=units_sold.desc.nullslast,id&limit=120`;
 
@@ -42,15 +49,17 @@ export async function GET(request: Request) {
   try {
     const r = await fetch(url, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` }, next: { revalidate: 300 } });
     if (r.ok) rows = (await r.json()) as Row[];
+    // Precision pass: every normalised token must appear in the product.
+    rows = rows.filter((row) => matchesAll(`${row.name} ${row.brand} ${row.category}`, tokens));
   } catch {
     /* suggest must never break the page; empty is fine */
   }
 
   /* ── rank product hits: name-prefix > word-boundary > substring ── */
   const score = (r: Row) => {
-    const n = r.name.toLowerCase();
+    const n = normalizeSearchText(r.name);
     let s = 0;
-    if (n.startsWith(q)) s += 100;
+    if (n.startsWith(normalizeSearchText(q))) s += 100;
     for (const w of words) if (new RegExp(`(^|[^\\p{L}\\p{N}])${w.replace(/[.+-]/g, "\\$&")}`, "iu").test(n)) s += 10;
     if (r.is_recommended) s += 5;
     s += Math.min(Number(r.units_sold) || 0, 50) / 10;

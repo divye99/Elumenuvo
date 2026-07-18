@@ -457,7 +457,7 @@ function Catalogue({
           return (
             <div key={p.id} onClick={() => onOpen(p)} style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer" }}>
               <div style={{ height: 128, position: "relative" }}>
-                <ImageSlot id={`img-${p.sku}`} tile={tileFor(p.cat)} imageUrl={p.image} />
+                <ImageSlot id={`img-${p.sku}`} tile={tileFor(p.cat)} imageUrl={p.image} allowUpload />
                 <span style={{ position: "absolute", left: 11, bottom: 11, zIndex: 2, pointerEvents: "none", fontFamily: MONO, fontSize: 9.5, color: "#6b748c", background: "rgba(255,255,255,0.88)", padding: "3px 6px", borderRadius: 5 }}>{p.sku}</span>
                 <span style={{ position: "absolute", right: 11, bottom: 11, zIndex: 2, pointerEvents: "none", fontSize: 11, fontWeight: 700, color: "#1F9D63", background: "#fff", padding: "4px 8px", borderRadius: 6 }}>↓ {save}</span>
               </div>

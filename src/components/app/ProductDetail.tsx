@@ -81,7 +81,7 @@ export default function ProductDetail({
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, overflow: "hidden" }}>
             <div style={{ height: 230, position: "relative" }}>
-              <ImageSlot id={`img-${p.sku}`} tile={tileFor(p.cat)} imageUrl={p.image} />
+              <ImageSlot id={`img-${p.sku}`} tile={tileFor(p.cat)} imageUrl={p.image} allowUpload={variant === "app"} />
               <span style={{ position: "absolute", left: 14, bottom: 14, zIndex: 2, pointerEvents: "none", fontFamily: MONO, fontSize: 10.5, color: "#6b748c", background: "rgba(255,255,255,0.9)", padding: "4px 8px", borderRadius: 6 }}>{p.sku}</span>
               {offPct >= 1 && <span style={{ position: "absolute", right: 14, bottom: 14, zIndex: 2, pointerEvents: "none", fontSize: 12, fontWeight: 700, color: "#1F9D63", background: "#fff", padding: "5px 10px", borderRadius: 7 }}>↓ {off} off MRP</span>}
             </div>
