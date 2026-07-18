@@ -5,13 +5,15 @@
  *
  * Env:
  *   RESEND_API_KEY        — Resend key (server secret; enables sending)
- *   ORDER_FROM_EMAIL      — verified sender, e.g. "Elume <orders@elumenuvo.com>"
+ *   ORDER_FROM_EMAIL      — verified sender, e.g. "Elume <info@elumenuvo.com>"
  *   ADMIN_EMAIL           — where new-order alerts go (default divye2014@gmail.com)
  *   NEXT_PUBLIC_SITE_URL  — base for tracking links (default https://elumenuvo.com)
  */
 import { fmt } from "@/lib/format";
 
-const FROM = process.env.ORDER_FROM_EMAIL || "Elume <orders@elumenuvo.com>";
+// All customer email comes from one identity: info@elumenuvo.com (the address
+// verified in Resend and used for auth emails too). Overridable via env.
+const FROM = process.env.ORDER_FROM_EMAIL || "Elume <info@elumenuvo.com>";
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "divye2014@gmail.com";
 const SITE = (process.env.NEXT_PUBLIC_SITE_URL || "https://elumenuvo.com").replace(/\/+$/, "");
 
