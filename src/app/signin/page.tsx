@@ -28,6 +28,12 @@ export default function SignIn() {
     if (q.get("mode") === "signup") setMode("up");
     const e = q.get("email");
     if (e) setEmail(e);
+    // Landing here from the confirmation email: verification already
+    // happened at Supabase before the redirect, so just say so.
+    if (q.get("confirmed") === "1") {
+      setMode("in");
+      setMsg({ kind: "ok", text: "Email confirmed. Sign in below to get started." });
+    }
   }, []);
 
   // Where to go after a successful sign-in (honours ?next=, defaults to /app).
@@ -53,7 +59,12 @@ export default function SignIn() {
         if (!first || !last) { setMsg({ kind: "err", text: "Please enter your first and last name." }); setBusy(false); return; }
         const { data, error } = await supabase.auth.signUp({
           email, password,
-          options: { data: { phone, first_name: first, last_name: last, full_name: `${first} ${last}` } },
+          options: {
+            data: { phone, first_name: first, last_name: last, full_name: `${first} ${last}` },
+            // Confirmation links must land back on OUR sign-in page, not the
+            // Supabase/Vercel default (also set Site URL in Supabase Auth).
+            emailRedirectTo: `${window.location.origin}/signin?confirmed=1`,
+          },
         });
         if (error) throw error;
         if (data.session) {

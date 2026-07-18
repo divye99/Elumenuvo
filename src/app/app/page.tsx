@@ -4,6 +4,7 @@ import AppShell from "@/components/app/AppShell";
 import { fetchProducts } from "@/lib/products";
 import { getSiteContent } from "@/lib/content";
 import { getProfile } from "@/lib/profile";
+import { getLiveWorkspace } from "@/lib/workspace";
 
 export const dynamic = "force-dynamic";
 
@@ -14,12 +15,17 @@ export default async function Page() {
   if (!profile) redirect("/signin");
   if (!profile.account_type) redirect("/onboarding");
 
-  const [products, content] = await Promise.all([fetchProducts(), getSiteContent()]);
+  const [products, content, live] = await Promise.all([
+    fetchProducts(),
+    getSiteContent(),
+    getLiveWorkspace(profile.id, profile.email ?? null),
+  ]);
   return (
     <Suspense fallback={null}>
       <AppShell
         products={products}
         content={content}
+        live={live}
         user={{
           email: profile.email,
           name: profile.full_name ?? undefined,

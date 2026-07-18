@@ -9,6 +9,8 @@ import { fmt } from "@/lib/format";
 import ProductDetail from "@/components/app/ProductDetail";
 import { tileFor, type Product } from "@/lib/data";
 import { type SiteContent } from "@/lib/content";
+import { type LiveWorkspace } from "@/lib/workspace";
+import { createAppProject, deleteAppProject } from "@/lib/workspace-actions";
 import { unitPriceFor, WHOLESALE_MIN_QTY, exGst, GST_RATE } from "@/lib/pricing";
 
 type Screen = "portfolio" | "catalogue" | "product" | "project" | "smartbom" | "cart" | "confirm";
@@ -60,7 +62,7 @@ const TRACK_KINDS: Record<string, TrackVisual> = {
   next: { bg: "#fff", border: "2px solid #D6DBE6", fg: "#8A93A6", weight: "500" },
 };
 
-export default function AppShell({ products, content, user }: { products: Product[]; content: SiteContent; user?: { email: string; name?: string; org?: string; accountType?: "business" | "individual"; gstin?: string } }) {
+export default function AppShell({ products, content, user, live }: { products: Product[]; content: SiteContent; user?: { email: string; name?: string; org?: string; accountType?: "business" | "individual"; gstin?: string }; live?: LiveWorkspace }) {
   const { projects: PROJECTS, stages: STAGES, bomRows: BOM_ROWS, parsedRows: PARSED_ROWS, trackSteps: TRACK_STEPS, categories: CATS, autoPo: AUTOPO } = content;
   const userEmail = user?.email ?? "";
   const isBusiness = user?.accountType === "business";
@@ -161,6 +163,22 @@ export default function AppShell({ products, content, user }: { products: Produc
   }, [cart]);
 
   const placeOrder = () => {
+    if (live) {
+      // Live accounts check out for real: merge the PO lines into the
+      // storefront cart (same localStorage store) and go to payment.
+      try {
+        const KEY = "elume.cart";
+        const existing: any[] = JSON.parse(localStorage.getItem(KEY) || "[]");
+        for (const i of cart) {
+          const hit = existing.find((x) => x.id === i.id);
+          if (hit) hit.qty += i.qty;
+          else existing.push({ id: i.id, name: i.name, brand: i.brand, price: i.price, mrp: i.market, unit: i.unit, cat: i.cat, image: i.image, qty: i.qty });
+        }
+        localStorage.setItem(KEY, JSON.stringify(existing));
+      } catch { /* checkout page will show an empty cart at worst */ }
+      router.push("/checkout");
+      return;
+    }
     const payLabel = pay === "credit" ? "Elume Credit · 30 days" : "Pay on delivery";
     setOrder({ id: "ELM-2406-0142", total: fmt(calc.total), pay: payLabel, eta: "Thu, 25 Jun" });
     setCart([]);
@@ -169,12 +187,12 @@ export default function AppShell({ products, content, user }: { products: Produc
   };
 
   const titles: Record<Screen, [string, string]> = {
-    portfolio: ["Portfolio", "Meridian Developments · 6 active sites"],
+    portfolio: ["Portfolio", live ? `${userOrg} · ${live.projects.length} project${live.projects.length === 1 ? "" : "s"}` : "Meridian Developments · 6 active sites"],
     catalogue: ["Catalogue", "Multi-brand FMEG · transparent pricing"],
     project: ["Aurelia Towers", "Project procurement plan"],
     smartbom: ["Smart BOM", "Upload a BOQ — Elume does the rest"],
     cart: ["Purchase order", cart.length + " line items"],
-    confirm: ["Order placed", "Delivery tracking"],
+    confirm: live ? ["Deliveries", "Your orders and their status"] : ["Order placed", "Delivery tracking"],
     product: [pd ? pd.name : "Product", pd ? pd.brand : ""],
   };
   const [pageTitle, pageSub] = titles[screen];
@@ -282,7 +300,9 @@ export default function AppShell({ products, content, user }: { products: Produc
 
         {/* CONTENT */}
         <div ref={contentRef} style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
-          {screen === "portfolio" && <Portfolio projects={PROJECTS} onProject={() => nav("project")} onReleaseAutoPO={releaseAutoPO} />}
+          {screen === "portfolio" && (live
+            ? <LivePortfolio live={live} onCatalogue={() => nav("catalogue")} />
+            : <Portfolio projects={PROJECTS} onProject={() => nav("project")} onReleaseAutoPO={releaseAutoPO} />)}
           {screen === "catalogue" && <Catalogue products={catProducts} cats={CATS} cat={cat} setCat={setCat} onOpen={openProduct} onAdd={add} />}
           {screen === "product" && pd && <ProductDetail p={pd} qty={pdQty} setQty={setPdQty} onAdd={() => addQty(pd, pdQty)} onCatalogue={() => nav("catalogue")} onProject={() => nav("smartbom")} showGst={isBusiness} />}
           {screen === "project" && <ProjectDetail stages={STAGES} bomRows={BOM_ROWS} onReleaseAutoPO={releaseAutoPO} onSmartBom={() => nav("smartbom")} />}
@@ -301,7 +321,9 @@ export default function AppShell({ products, content, user }: { products: Produc
               gstinDefault={user?.gstin ?? ""}
             />
           )}
-          {screen === "confirm" && order && <Confirmation trackSteps={TRACK_STEPS} order={order} onPortfolio={() => nav("portfolio")} />}
+          {screen === "confirm" && (live
+            ? <LiveDeliveries live={live} onCatalogue={() => nav("catalogue")} />
+            : order && <Confirmation trackSteps={TRACK_STEPS} order={order} onPortfolio={() => nav("portfolio")} />)}
         </div>
       </div>
 
@@ -894,6 +916,163 @@ function Confirmation({ trackSteps: TRACK_STEPS, order, onPortfolio }: { trackSt
       </div>
       <div style={{ textAlign: "center" }}>
         <div onClick={onPortfolio} style={{ display: "inline-block", background: "#4E5BDC", color: "#fff", fontWeight: 600, fontSize: 13.5, padding: "13px 26px", borderRadius: 11, cursor: "pointer" }}>Back to portfolio</div>
+      </div>
+    </div>
+  );
+}
+
+
+/* ============================ LIVE MODE ============================
+ * Real accounts on the live site: KPIs derived from the user's actual
+ * orders, projects they create themselves, and honest zero-states. The
+ * demo (Meridian Developments) renders only when no live data is passed. */
+
+function LivePortfolio({ live, onCatalogue }: { live: LiveWorkspace; onCatalogue: () => void }) {
+  const [creating, setCreating] = useState(false);
+  const [name, setName] = useState("");
+  const [site, setSite] = useState("");
+  const [stage, setStage] = useState("Rough-in");
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const router = useRouter();
+
+  const submit = async () => {
+    setBusy(true); setErr(null);
+    try {
+      const res = await createAppProject(name, site, stage);
+      if (!res.ok) setErr(res.error);
+      else { setCreating(false); setName(""); setSite(""); router.refresh(); }
+    } catch {
+      setErr("The site was updated while this page was open. Reload and try again.");
+    } finally { setBusy(false); }
+  };
+  const removeProject = async (id: string) => {
+    try { await deleteAppProject(id); router.refresh(); } catch { /* refresh shows truth */ }
+  };
+
+  const { stats } = live;
+  return (
+    <div style={{ padding: "26px 30px", animation: "elumeFade .35s ease" }}>
+      {/* KPI ROW: real numbers, zeros stated plainly */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 15, marginBottom: 18 }}>
+        <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "17px 18px" }}>
+          <div style={{ fontSize: 11.5, color: "#8A93A6", marginBottom: 10 }}>Ordered · all time</div>
+          <div style={{ fontFamily: GROTESK, fontSize: 27, fontWeight: 600, letterSpacing: "-0.6px" }}>{fmt(stats.committed)}</div>
+          <div style={{ fontSize: 11.5, color: "#56627A", marginTop: 6 }}>{live.orders.length === 0 ? "your orders appear here" : `${live.orders.length} order${live.orders.length === 1 ? "" : "s"}`}</div>
+        </div>
+        <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "17px 18px" }}>
+          <div style={{ fontSize: 11.5, color: "#8A93A6", marginBottom: 10 }}>In delivery</div>
+          <div style={{ fontFamily: GROTESK, fontSize: 27, fontWeight: 600, letterSpacing: "-0.6px" }}>{fmt(stats.openValue)}</div>
+          <div style={{ fontSize: 11.5, color: "#56627A", marginTop: 6 }}>{stats.openCount} in progress · {stats.deliveredCount} delivered</div>
+        </div>
+        <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "17px 18px" }}>
+          <div style={{ fontSize: 11.5, color: "#8A93A6", marginBottom: 10 }}>Credit utilised</div>
+          <div style={{ fontFamily: GROTESK, fontSize: 27, fontWeight: 600, letterSpacing: "-0.6px" }}>0<span style={{ fontSize: 16, color: "#56627A" }}>%</span></div>
+          <div style={{ fontSize: 11.5, color: "#56627A", marginTop: 6 }}>NBFC credit line coming soon</div>
+        </div>
+        <div style={{ background: "#10271C", border: "1px solid #1a4530", borderRadius: 14, padding: "17px 18px" }}>
+          <div style={{ fontSize: 11.5, color: "#8fd9b3", marginBottom: 10 }}>Wholesale saving</div>
+          <div style={{ fontFamily: GROTESK, fontSize: 27, fontWeight: 600, color: "#fff", letterSpacing: "-0.6px" }}>−5%</div>
+          <div style={{ fontSize: 11.5, color: "#4fd591", marginTop: 6, fontWeight: 700 }}>auto-applies at {WHOLESALE_MIN_QTY}+ units</div>
+        </div>
+      </div>
+
+      {/* PROJECTS */}
+      <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflow: "hidden" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "15px 18px", borderBottom: "1px solid #F0F2F6" }}>
+          <span style={{ fontFamily: GROTESK, fontWeight: 600, fontSize: 14.5 }}>
+            Projects <span style={{ color: "#8A93A6", fontWeight: 400 }}>· {live.projects.length} site{live.projects.length === 1 ? "" : "s"}</span>
+          </span>
+          <span onClick={() => setCreating((c) => !c)} style={{ fontSize: 12.5, color: "#4E5BDC", fontWeight: 600, cursor: "pointer" }}>
+            {creating ? "Close" : "+ New project"}
+          </span>
+        </div>
+
+        {creating && (
+          <div style={{ padding: "14px 18px", borderBottom: "1px solid #F0F2F6", display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center", background: "#F8F9FC" }}>
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Project name (e.g. Site A wiring)" style={{ border: "1px solid #E0E4ED", borderRadius: 9, padding: "9px 12px", fontSize: 13, minWidth: 220 }} />
+            <input value={site} onChange={(e) => setSite(e.target.value)} placeholder="Location (optional)" style={{ border: "1px solid #E0E4ED", borderRadius: 9, padding: "9px 12px", fontSize: 13, minWidth: 180 }} />
+            <select value={stage} onChange={(e) => setStage(e.target.value)} style={{ border: "1px solid #E0E4ED", borderRadius: 9, padding: "9px 12px", fontSize: 13, background: "#fff" }}>
+              {["Rough-in", "Wiring", "Panel & DB", "Finishing"].map((st) => <option key={st}>{st}</option>)}
+            </select>
+            <button onClick={submit} disabled={busy || !name.trim()} style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 12.5, border: "none", padding: "10px 16px", borderRadius: 9, cursor: "pointer", opacity: busy || !name.trim() ? 0.6 : 1 }}>
+              {busy ? "Creating…" : "Create project"}
+            </button>
+            {err && <span style={{ fontSize: 12.5, color: "#D14343", fontWeight: 600 }}>{err}</span>}
+          </div>
+        )}
+
+        {live.projects.length === 0 ? (
+          <div style={{ padding: "40px 20px", textAlign: "center" }}>
+            <div style={{ fontSize: 26, marginBottom: 8 }}>🏗️</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "#19202E" }}>A clean slate.</div>
+            <div style={{ fontSize: 12.5, color: "#8A93A6", marginTop: 4, lineHeight: 1.6 }}>
+              Create your first project to organise purchases by site, or head straight to the catalogue.
+            </div>
+            <div onClick={onCatalogue} style={{ display: "inline-block", marginTop: 14, background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13, padding: "10px 18px", borderRadius: 9, cursor: "pointer" }}>
+              Browse the catalogue →
+            </div>
+          </div>
+        ) : (
+          live.projects.map((pr) => {
+            const [stageBg, stageFg] = STAGE_COLORS[pr.stage] ?? ["#F5F6F9", "#56627A"];
+            return (
+              <div key={pr.id} style={{ display: "flex", gap: 14, padding: "15px 18px", alignItems: "center", borderBottom: "1px solid #F5F6F9" }}>
+                <div style={{ minWidth: 220 }}>
+                  <div style={{ fontWeight: 600, fontSize: 13.5, color: "#19202E" }}>{pr.name}</div>
+                  <div style={{ fontSize: 11, color: "#8A93A6" }}>{pr.site ?? "location not set"}</div>
+                </div>
+                <span style={{ display: "inline-block", fontSize: 12, fontWeight: 600, padding: "3px 9px", borderRadius: 6, background: stageBg, color: stageFg }}>{pr.stage}</span>
+                <span style={{ fontSize: 11.5, color: "#A0A7B5", marginLeft: "auto" }}>
+                  since {new Date(pr.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                </span>
+                <span onClick={() => removeProject(pr.id)} title="Delete project" style={{ color: "#B43A16", cursor: "pointer", fontSize: 15, padding: "0 4px" }}>×</span>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
+function LiveDeliveries({ live, onCatalogue }: { live: LiveWorkspace; onCatalogue: () => void }) {
+  const badge: Record<string, [string, string]> = {
+    placed: ["#EEF0FE", "#4E5BDC"], confirmed: ["#E6F0FF", "#2563C9"], packed: ["#FFF3E0", "#C77700"],
+    shipped: ["#E7F3EC", "#1F9D63"], partially_shipped: ["#FBF0E4", "#B4690E"],
+    out_for_delivery: ["#E7F3EC", "#1F8F5B"], delivered: ["#E6F5EE", "#137a4b"],
+  };
+  return (
+    <div style={{ padding: "26px 30px", animation: "elumeFade .35s ease" }}>
+      <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflow: "hidden" }}>
+        <div style={{ padding: "15px 18px", borderBottom: "1px solid #F0F2F6", fontFamily: GROTESK, fontWeight: 600, fontSize: 14.5 }}>
+          Your orders <span style={{ color: "#8A93A6", fontWeight: 400 }}>· {live.orders.length}</span>
+        </div>
+        {live.orders.length === 0 ? (
+          <div style={{ padding: "40px 20px", textAlign: "center" }}>
+            <div style={{ fontSize: 26, marginBottom: 8 }}>📦</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "#19202E" }}>No orders yet.</div>
+            <div style={{ fontSize: 12.5, color: "#8A93A6", marginTop: 4 }}>Everything you buy will show up here with live delivery status.</div>
+            <div onClick={onCatalogue} style={{ display: "inline-block", marginTop: 14, background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13, padding: "10px 18px", borderRadius: 9, cursor: "pointer" }}>
+              Browse the catalogue →
+            </div>
+          </div>
+        ) : (
+          live.orders.map((o) => {
+            const [bg, fg] = badge[o.status] ?? ["#F5F6F9", "#56627A"];
+            return (
+              <a key={o.id} href={`/track?order=${encodeURIComponent(o.id)}`} style={{ display: "flex", gap: 14, alignItems: "baseline", padding: "14px 18px", borderBottom: "1px solid #F5F6F9", color: "inherit" }}>
+                <span style={{ fontFamily: MONO, fontSize: 12.5, fontWeight: 700 }}>{o.id}</span>
+                <span style={{ fontSize: 12, color: "#8A93A6" }}>{o.items} item{o.items === 1 ? "" : "s"}</span>
+                <span style={{ fontFamily: GROTESK, fontSize: 14, fontWeight: 600 }}>{fmt(o.total)}</span>
+                <span style={{ display: "inline-block", fontSize: 11.5, fontWeight: 700, padding: "3px 10px", borderRadius: 7, background: bg, color: fg }}>{o.status.replace(/_/g, " ")}</span>
+                <span style={{ marginLeft: "auto", fontSize: 11.5, color: "#A0A7B5" }}>
+                  {new Date(o.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                </span>
+              </a>
+            );
+          })
+        )}
       </div>
     </div>
   );

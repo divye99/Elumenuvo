@@ -57,7 +57,10 @@ export default function BusinessSignupForm({ signedIn, existingCompany }: { sign
         const supabase = createClient();
         const { error } = await supabase.auth.signUp({
           email: f.email.trim(), password: f.password,
-          options: { data: { first_name: f.first_name.trim(), last_name: f.last_name.trim(), full_name: `${f.first_name.trim()} ${f.last_name.trim()}`, phone: f.phone.trim() } },
+          options: {
+            data: { first_name: f.first_name.trim(), last_name: f.last_name.trim(), full_name: `${f.first_name.trim()} ${f.last_name.trim()}`, phone: f.phone.trim() },
+            emailRedirectTo: `${window.location.origin}/signin?confirmed=1`,
+          },
         });
         if (error) throw error;
       }
