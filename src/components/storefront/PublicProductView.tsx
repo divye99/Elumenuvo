@@ -12,7 +12,7 @@ import type { Product } from "@/lib/data";
 
 /** Public wrapper around the shared dashboard ProductDetail (browse-only),
  *  with storefront extras: star summary, variant picker, cart / buy-now. */
-export default function PublicProductView({ p, siblings = [], business = false }: { p: Product; siblings?: Product[]; business?: boolean }) {
+export default function PublicProductView({ p, siblings = [], business = false, abovePrice }: { p: Product; siblings?: Product[]; business?: boolean; abovePrice?: React.ReactNode }) {
   const router = useRouter();
   const cart = useCart();
   const [qty, setQty] = useState(1);
@@ -35,6 +35,7 @@ export default function PublicProductView({ p, siblings = [], business = false }
         onAddWholesale={() => { wholesaleToCart(); router.push("/cart"); }}
         onBuyNow={() => { toCart(); router.push("/checkout"); }}
         ratingSummary={p.rating && p.ratingCount ? <Rating rating={p.rating} count={p.ratingCount} /> : undefined}
+        abovePrice={abovePrice}
         variantSlot={<VariantPicker p={p} siblings={siblings} />}
         showGst={business}
       />

@@ -88,21 +88,16 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLd(jsonLd) }} />
-      <PublicProductView p={product} siblings={siblings} business={business} />
-      {pick && (
-        <section style={{ maxWidth: 1120, margin: "0 auto", padding: "0 30px 26px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", background: "linear-gradient(120deg,#F2FBF6,#EEF0FD)", border: "1px solid #DCEDE3", borderRadius: 14, padding: "16px 20px" }}>
-            <span style={{ fontSize: 22 }}>⚡</span>
-            <div style={{ flex: 1, minWidth: 240 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.6px", textTransform: "uppercase", color: "#1F9D63" }}>Based on our analysis</div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "#19202E", marginTop: 2 }}>{pick.bestFor}</div>
-            </div>
-            <Link href={`/blog/${pick.slug}`} style={{ fontSize: 12.5, fontWeight: 700, color: "#4E5BDC", whiteSpace: "nowrap" }}>
-              Ranked #{pick.rank} · {pick.postTitle.replace(/ \(2026\).*$/, "")} →
-            </Link>
-          </div>
-        </section>
-      )}
+      <PublicProductView
+        p={product}
+        siblings={siblings}
+        business={business}
+        abovePrice={pick ? (
+          <a href={`/blog/${pick.slug}`} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12.5, fontWeight: 700, color: "#137a4b", margin: "0 0 10px", borderBottom: "1px dashed #9ECBB1", paddingBottom: 2, width: "fit-content", maxWidth: "100%" }}>
+            ⚡ Ranked #{pick.rank} in {pick.postTitle.replace(/ \(2026\).*$/, "")} · {pick.bestFor.replace(/^Best for:?\s*/i, "")} →
+          </a>
+        ) : undefined}
+      />
       {product.brand === "Elume" && (
         <div style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px" }}>
           <ElumeFlagship p={product} />

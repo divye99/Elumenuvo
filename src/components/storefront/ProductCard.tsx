@@ -82,6 +82,14 @@ export default function ProductCard({
       }}
     >
       <div className="pc-img" style={{ height: 150, position: "relative" }}>
+        {editorial[shown.id] && (
+          <span
+            title={`Ranked #${editorial[shown.id].rank} in ${editorial[shown.id].postTitle} — ${editorial[shown.id].bestFor}`}
+            style={{ position: "absolute", right: 9, top: 9, zIndex: 3, pointerEvents: "none", display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 800, color: "#7A4E00", background: "linear-gradient(135deg,#FFE9B8,#FFD873)", border: "1px solid #F0C64E", padding: "4px 9px", borderRadius: 999, boxShadow: "0 2px 8px rgba(122,78,0,.18)", letterSpacing: "0.2px" }}
+          >
+            🏆 #{editorial[shown.id].rank}
+          </span>
+        )}
         <ImageSlot id={`img-${shown.sku}`} tile={tileFor(shown.cat)} imageUrl={shown.image} />
         <span
           className="pc-sku"
@@ -187,12 +195,7 @@ export default function ProductCard({
           )}
         </div>
         <div className="pc-name" style={{ fontSize: 14, fontWeight: 600, color: "#19202E", margin: "4px 0", lineHeight: 1.3 }}>{shown.name}</div>
-        {editorial[shown.id] && (
-          <div title={`Ranked #${editorial[shown.id].rank} in ${editorial[shown.id].postTitle}`} style={{ display: "flex", alignItems: "baseline", gap: 5, fontSize: 11, color: "#137a4b", fontWeight: 600, margin: "1px 0 3px", lineHeight: 1.35 }}>
-            <span style={{ flexShrink: 0 }}>⚡ Our analysis:</span>
-            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{editorial[shown.id].bestFor.replace(/^Best for:?\s*/i, "")}</span>
-          </div>
-        )}
+
         {shown.rating && shown.ratingCount ? (
           <div style={{ margin: "1px 0 4px" }}>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>

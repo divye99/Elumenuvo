@@ -31,6 +31,7 @@ export default function ProductDetail({
   onBuyNow,
   onAddWholesale,
   ratingSummary,
+  abovePrice,
   variantSlot,
   priceHistorySlot,
   showGst = false,
@@ -51,6 +52,7 @@ export default function ProductDetail({
    *  a variant picker between the title and price, and a compact price-history
    *  bar under the specs (left column). */
   ratingSummary?: React.ReactNode;
+  abovePrice?: React.ReactNode;
   variantSlot?: React.ReactNode;
   priceHistorySlot?: React.ReactNode;
   /** Business accounts see the price split into base + GST. */
@@ -110,6 +112,8 @@ export default function ProductDetail({
             <h2 style={{ fontFamily: GROTESK, fontSize: 25, fontWeight: 600, letterSpacing: "-0.5px", margin: "0 0 16px" }}>{p.name}</h2>
 
             {variantSlot}
+
+            {abovePrice}
 
             {/* Elume price — ex-GST is the headline; GST shown as a statutory add-on */}
             <div style={{ display: "flex", alignItems: "flex-end", gap: 10, marginBottom: 4 }}>
