@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin/auth";
+import { adminClient } from "@/lib/supabase/admin";
+import { sendAccountInvite } from "@/lib/email";
 import {
   updateOrderStatus,
   cancelOrder,
@@ -61,6 +63,16 @@ export async function POST(request: Request) {
         items: Array.isArray(body.items) ? body.items : [],
       });
       break;
+    case "invite": {
+      // Invite a guest-checkout customer to create an account for tracking.
+      const db = adminClient();
+      if (!db) return NextResponse.json({ ok: false, error: "Server not configured." }, { status: 500 });
+      const { data: order } = await db.from("orders").select("id, name, email").eq("id", String(body.orderId)).maybeSingle();
+      if (!order?.email) return NextResponse.json({ ok: false, error: "Order or email not found." }, { status: 400 });
+      const sent = await sendAccountInvite(order);
+      res = sent.ok ? { ok: true } : { ok: false, error: "Email failed to send — check RESEND_API_KEY / logs." };
+      break;
+    }
     case "deliver":
       res = await markShipmentDelivered(String(body.shipmentId), String(body.orderId), body.proofUrl ? String(body.proofUrl) : undefined);
       break;

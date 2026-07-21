@@ -33,7 +33,7 @@ type OrderLike = {
   gstin?: string | null;
 };
 
-async function send(to: string, subject: string, html: string, opts?: { bcc?: string }): Promise<EmailResult> {
+async function send(to: string, subject: string, html: string, opts?: { bcc?: string; scheduledAt?: string }): Promise<EmailResult> {
   const key = (process.env.RESEND_API_KEY || "").trim();
   if (!key) {
     console.log(`[email] RESEND_API_KEY unset — skipped "${subject}" → ${to}`);
@@ -45,7 +45,7 @@ async function send(to: string, subject: string, html: string, opts?: { bcc?: st
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: FROM, to, subject, html, ...(bcc ? { bcc } : {}) }),
+      body: JSON.stringify({ from: FROM, to, subject, html, ...(bcc ? { bcc } : {}), ...(opts?.scheduledAt ? { scheduled_at: opts.scheduledAt } : {}) }),
     });
     if (!res.ok) {
       const body = await res.text();
@@ -170,3 +170,32 @@ const STATUS_COPY: Record<string, { title: string; line: string }> = {
   delivered: { title: "Delivered ✅", line: "your order has been delivered —" },
   cancelled: { title: "Order cancelled", line: "your order has been cancelled —" },
 };
+
+/** Scheduled 35 minutes after signup: nudge an unconfirmed account to finish.
+ *  Resend delivers it at scheduled_at; if they confirm in the meantime the
+ *  copy makes it harmless. */
+export async function sendConfirmReminder(email: string, name?: string | null): Promise<EmailResult> {
+  const when = new Date(Date.now() + 35 * 60_000).toISOString();
+  const html = shell(
+    "One tap left on your Elume account",
+    `<p style="font-size:14px;color:#56627A;margin:0 0 10px">Hi ${escapeHtml(name || "there")}, you created an Elume account a little while ago but the email isn't confirmed yet.</p>
+     <p style="font-size:13.5px;color:#56627A;margin:0 0 10px">Find the email from <b>info@elumenuvo.com</b> titled "Confirm your email" (check spam too) and tap the button inside. That's it — you can then sign in and see your orders.</p>
+     ${btn(`${SITE}/signin`, "Go to sign in →")}
+     <p style="font-size:12px;color:#8A93A6;margin:14px 0 0">Already confirmed? You're all set — ignore this.</p>`
+  );
+  return send(email, "Reminder: confirm your Elume email", html, { bcc: BCC_SELF, scheduledAt: when });
+}
+
+/** Invite a guest-checkout customer to create an account so they can track
+ *  their order from a dashboard (signup link arrives pre-filled). */
+export async function sendAccountInvite(order: OrderLike): Promise<EmailResult> {
+  const signupUrl = `${SITE}/signin?mode=signup&email=${encodeURIComponent(order.email)}`;
+  const html = shell(
+    "Track your order from your own dashboard",
+    `<p style="font-size:14px;color:#56627A;margin:0 0 10px">Hi ${escapeHtml(order.name || "there")}, thanks for your order <b>${order.id}</b>!</p>
+     <p style="font-size:13.5px;color:#56627A;margin:0 0 12px">Create your free Elume account with this same email and the order appears in your dashboard automatically — live delivery tracking, order history and GST invoices in one place.</p>
+     ${btn(signupUrl, "Create my account →")}
+     <p style="font-size:12px;color:#8A93A6;margin:14px 0 0">Prefer not to? No problem — you can always track with just your order number at ${SITE}/track</p>`
+  );
+  return send(order.email, `Track order ${order.id} — create your Elume account`, html, { bcc: BCC_SELF });
+}

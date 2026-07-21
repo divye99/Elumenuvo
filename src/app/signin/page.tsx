@@ -99,6 +99,14 @@ export default function SignIn() {
           navigating = true;
           router.push("/onboarding"); router.refresh();
         } else {
+          // Schedule the 35-minute "still unconfirmed" nudge (fire-and-forget).
+          if (data.user?.id) {
+            fetch("/api/auth/confirm-reminder", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ userId: data.user.id, email }),
+            }).catch(() => {});
+          }
           setMsg({ kind: "ok", text: "Account created — check your email to confirm, then sign in." });
           setMode("in");
         }

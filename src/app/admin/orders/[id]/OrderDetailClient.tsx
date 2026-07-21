@@ -25,6 +25,7 @@ const cancelOrder = (orderId: string, reason: string) => callAdmin({ op: "cancel
 const saveAdminNote = (orderId: string, note: string) => callAdmin({ op: "note", orderId, note });
 const addShipment = (input: { order_id: string; courier: string; awb: string; tracking_url?: string; items: { id: string; name: string; qty: number }[] }) => callAdmin({ op: "shipment", ...input });
 const markShipmentDelivered = (shipmentId: string, orderId: string, proofUrl?: string) => callAdmin({ op: "deliver", shipmentId, orderId, proofUrl });
+const inviteAccount = (orderId: string) => callAdmin({ op: "invite", orderId });
 async function uploadDeliveryProof(fd: FormData): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
   const r = await fetch("/api/admin/orders/action", { method: "POST", body: fd });
   try { return await r.json(); } catch { return { ok: false, error: `Upload failed (${r.status}).` }; }
@@ -33,6 +34,7 @@ async function uploadDeliveryProof(fd: FormData): Promise<{ ok: true; url: strin
 export default function OrderDetailClient({ order, shipments, events }: { order: OrderRow; shipments: Shipment[]; events: OrderEvent[] }) {
   const [pending, start] = useTransition();
   const [err, setErr] = useState<string | null>(null);
+  const [inviteMsg, setInviteMsg] = useState<string | null>(null);
   const items = order.items ?? [];
 
   // Remaining-to-ship per line = ordered − already in a shipment.
@@ -148,6 +150,22 @@ export default function OrderDetailClient({ order, shipments, events }: { order:
                 ))}
               </div>
               <p style={{ fontSize: 11.5, color: "#A0A7B5", margin: "10px 0 0" }}>Each change emails the customer an update.</p>
+              <div style={{ borderTop: "1px solid #F0F2F6", marginTop: 12, paddingTop: 12 }}>
+                <button
+                  disabled={pending}
+                  onClick={() => {
+                    setInviteMsg(null);
+                    inviteAccount(order.id).then((r) => setInviteMsg(r.ok ? `Invite sent to ${order.email}.` : r.error || "Failed."))
+                      .catch(() => setInviteMsg("Network hiccup — try again."));
+                  }}
+                  style={{ background: "#fff", border: "1.5px solid #4E5BDC", color: "#4E5BDC", fontWeight: 700, fontSize: 12.5, padding: "9px 14px", borderRadius: 9, cursor: "pointer" }}
+                >
+                  ✉️ Invite to create an account
+                </button>
+                <p style={{ fontSize: 11.5, color: inviteMsg?.startsWith("Invite sent") ? "#1F9D63" : "#A0A7B5", margin: "8px 0 0" }}>
+                  {inviteMsg ?? "For guest orders: emails a signup link so they can track this order from a dashboard."}
+                </p>
+              </div>
             </Card>
           )}
 

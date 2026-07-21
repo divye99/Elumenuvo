@@ -55,7 +55,7 @@ export default function BusinessSignupForm({ signedIn, existingCompany }: { sign
       // New customer: create the account first (signed-in users skip this).
       if (!signedIn) {
         const supabase = createClient();
-        const { error } = await supabase.auth.signUp({
+        const { data: suData, error } = await supabase.auth.signUp({
           email: f.email.trim(), password: f.password,
           options: {
             data: { first_name: f.first_name.trim(), last_name: f.last_name.trim(), full_name: `${f.first_name.trim()} ${f.last_name.trim()}`, phone: f.phone.trim() },
@@ -63,6 +63,13 @@ export default function BusinessSignupForm({ signedIn, existingCompany }: { sign
           },
         });
         if (error) throw error;
+        if (suData?.user?.id && !suData.session) {
+          fetch("/api/auth/confirm-reminder", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId: suData.user.id, email: f.email.trim() }),
+          }).catch(() => {});
+        }
       }
 
       // Write the business profile (server-side; works whether the signup
