@@ -11,8 +11,22 @@ import { track, flushNow, setOptOut } from "@/lib/analytics";
  *    tab hides, carrying duration_ms)
  *  - every click on a link or button (product taps and add-to-cart get their
  *    own types so journeys read cleanly)
+ *  - every typed form field on blur/submit (`input` events) — EXCEPT
+ *    passwords, OTPs and card fields, which are never recorded
  * The admin area is never tracked.
  */
+
+/** Fields whose values must never be captured. */
+function isSensitiveField(el: HTMLInputElement | HTMLTextAreaElement): boolean {
+  if (el instanceof HTMLInputElement && el.type === "password") return true;
+  const hint = `${el.name} ${el.id} ${el.getAttribute("placeholder") ?? ""} ${el.getAttribute("autocomplete") ?? ""}`.toLowerCase();
+  return /password|passcode|otp|one.?time|cvv|cvc|card.?number|cc-/.test(hint);
+}
+
+/** A stable, readable label for the field ("Email", "phone", "gstin"…). */
+function fieldLabel(el: HTMLInputElement | HTMLTextAreaElement): string {
+  return (el.getAttribute("placeholder") || el.name || el.id || el.getAttribute("aria-label") || (el instanceof HTMLInputElement ? el.type : "text")).slice(0, 60);
+}
 export default function SiteTracker() {
   const pathname = usePathname();
   const search = useSearchParams();
@@ -30,6 +44,37 @@ export default function SiteTracker() {
     if (nt === "1") setOptOut(true);
     if (nt === "0") setOptOut(false);
   }, [pathname, search]);
+
+  /* ── typed inputs: anything entered anywhere is data (blur + submit).
+        Dedupes per field so tabbing back and forth doesn't spam. ── */
+  const lastTyped = useRef<Map<string, string>>(new Map());
+  useEffect(() => {
+    const capture = (el: Element | null) => {
+      if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return;
+      if (window.location.pathname.startsWith("/admin")) return;
+      if (isSensitiveField(el)) return;
+      const value = el.value.trim().slice(0, 300);
+      if (!value) return;
+      const label = fieldLabel(el);
+      const key = `${window.location.pathname}|${label}`;
+      if (lastTyped.current.get(key) === value) return;
+      lastTyped.current.set(key, value);
+      track("input", { path: window.location.pathname, detail: { label, value } });
+    };
+    const onBlur = (e: FocusEvent) => capture(e.target as Element);
+    const onSubmit = (e: Event) => {
+      const form = e.target as HTMLFormElement | null;
+      if (!form?.querySelectorAll) return;
+      form.querySelectorAll("input, textarea").forEach((el) => capture(el));
+      flushNow(); // submits often navigate — don't lose the batch
+    };
+    document.addEventListener("blur", onBlur, true);
+    document.addEventListener("submit", onSubmit, true);
+    return () => {
+      document.removeEventListener("blur", onBlur, true);
+      document.removeEventListener("submit", onSubmit, true);
+    };
+  }, []);
 
   /* ── pageviews + time-on-page ── */
   useEffect(() => {
