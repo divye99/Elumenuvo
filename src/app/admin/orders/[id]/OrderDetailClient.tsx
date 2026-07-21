@@ -1,11 +1,34 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { fmt } from "@/lib/format";
 import OrderStatusBadge, { STATUS_LABEL } from "@/components/admin/OrderStatusBadge";
 import type { OrderRow, Shipment, OrderEvent, OrderItem } from "@/lib/admin/data";
-import { updateOrderStatus, cancelOrder, saveAdminNote, addShipment, markShipmentDelivered, uploadDeliveryProof, type OrderStatus } from "@/lib/admin/order-actions";
+import type { OrderStatus } from "@/lib/admin/order-actions";
+
+/* Admin mutations go through a fixed API route, NOT server actions: action ids
+ * rotate every deploy (many per day here), which made confirm/cancel throw
+ * from any tab opened before a push. A plain URL survives deployments. */
+type ActionResult = { ok: boolean; error?: string };
+async function callAdmin(payload: Record<string, unknown>): Promise<ActionResult> {
+  const r = await fetch("/api/admin/orders/action", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  try { return await r.json(); } catch { return { ok: false, error: `Request failed (${r.status}). Try again.` }; }
+}
+const updateOrderStatus = (orderId: string, status: OrderStatus, note?: string) => callAdmin({ op: "status", orderId, status, note });
+const cancelOrder = (orderId: string, reason: string) => callAdmin({ op: "cancel", orderId, reason });
+const saveAdminNote = (orderId: string, note: string) => callAdmin({ op: "note", orderId, note });
+const addShipment = (input: { order_id: string; courier: string; awb: string; tracking_url?: string; items: { id: string; name: string; qty: number }[] }) => callAdmin({ op: "shipment", ...input });
+const markShipmentDelivered = (shipmentId: string, orderId: string, proofUrl?: string) => callAdmin({ op: "deliver", shipmentId, orderId, proofUrl });
+async function uploadDeliveryProof(fd: FormData): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+  const r = await fetch("/api/admin/orders/action", { method: "POST", body: fd });
+  try { return await r.json(); } catch { return { ok: false, error: `Upload failed (${r.status}).` }; }
+}
 
 export default function OrderDetailClient({ order, shipments, events }: { order: OrderRow; shipments: Shipment[]; events: OrderEvent[] }) {
   const [pending, start] = useTransition();
@@ -21,16 +44,16 @@ export default function OrderDetailClient({ order, shipments, events }: { order:
   const anyRemaining = remaining.some((r) => r.remaining > 0);
   const isClosed = order.status === "delivered" || order.status === "cancelled";
 
+  const router = useRouter();
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
     start(async () => {
       setErr(null);
       try {
         const res = await fn();
         if (!res.ok) setErr(res.error || "Something went wrong.");
+        else router.refresh(); // route-handler mutations don't auto-refresh like server actions did
       } catch {
-        // A rejected action call usually means the deployment changed while
-        // this tab was open (server-action ids rotate per deploy).
-        setErr("The site was updated while this page was open. Reload the page and try again.");
+        setErr("Network hiccup — check your connection and try again.");
       }
     });
 

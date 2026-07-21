@@ -33,6 +33,10 @@ export async function POST(request: Request) {
   const raw = await request.text();
   const signature = request.headers.get("x-razorpay-signature") ?? "";
   if (!verifyWebhookSignature(raw, signature)) {
+    // Razorpay counts non-2xx as delivery failure and disables the webhook
+    // after enough of them. A signature mismatch means the secret in the
+    // Razorpay dashboard differs from RAZORPAY_WEBHOOK_SECRET here.
+    console.error(`[razorpay-webhook] SIGNATURE MISMATCH — dashboard secret != RAZORPAY_WEBHOOK_SECRET (sig ${signature ? "present" : "MISSING"}, body ${raw.length}B)`);
     return NextResponse.json({ error: "Invalid signature." }, { status: 400 });
   }
 
