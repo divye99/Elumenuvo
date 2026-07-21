@@ -56,6 +56,44 @@ export default async function TrackPage({ searchParams }: { searchParams: Promis
   );
 }
 
+const JOURNEY = ["placed", "confirmed", "packed", "shipped", "out_for_delivery", "delivered"] as const;
+const JOURNEY_LABEL: Record<string, string> = {
+  placed: "Order placed", confirmed: "Confirmed", packed: "Packed",
+  shipped: "Shipped", out_for_delivery: "Out for delivery", delivered: "Delivered",
+};
+
+/** Where the order sits on the fulfilment journey (partial shipping counts as shipped). */
+function journeyPos(status: string): number {
+  if (status === "partially_shipped") return JOURNEY.indexOf("shipped");
+  const i = JOURNEY.indexOf(status as any);
+  return i === -1 ? 0 : i;
+}
+
+function JourneyBar({ status }: { status: string }) {
+  if (status === "cancelled") {
+    return (
+      <div style={{ background: "#FBE9E4", color: "#9a3b16", borderRadius: 10, padding: "11px 14px", fontSize: 13, fontWeight: 600 }}>
+        This order was cancelled. If you were charged, the refund follows our returns policy — reply to any order email and we&apos;ll sort it out.
+      </div>
+    );
+  }
+  const pos = journeyPos(status);
+  return (
+    <div style={{ display: "flex", alignItems: "flex-start", margin: "2px 0 4px" }}>
+      {JOURNEY.map((st, i) => {
+        const done = i < pos, active = i === pos;
+        return (
+          <div key={st} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
+            {i > 0 && <div style={{ position: "absolute", top: 7, right: "50%", width: "100%", height: 2, background: i <= pos ? "#1F9D63" : "#E0E4ED" }} />}
+            <span style={{ zIndex: 1, width: 15, height: 15, borderRadius: "50%", background: done || active ? "#1F9D63" : "#fff", border: done || active ? "none" : "2px solid #D6DBE6", boxShadow: active ? "0 0 0 4px #E6F5EE" : "none" }} />
+            <span style={{ fontSize: 10, marginTop: 6, fontWeight: active ? 700 : 500, color: done || active ? "#137a4b" : "#A0A7B5", textAlign: "center", lineHeight: 1.25 }}>{JOURNEY_LABEL[st]}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function OrderView({ order, shipments, events }: { order: any; shipments: any[]; events: any[] }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -63,9 +101,12 @@ function OrderView({ order, shipments, events }: { order: any; shipments: any[];
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
           <div>
             <div style={{ fontFamily: "var(--space-mono)", fontSize: 16, fontWeight: 700 }}>{order.id}</div>
-            <div style={{ fontSize: 12.5, color: "#8A93A6" }}>Placed {new Date(order.created_at).toLocaleDateString("en-IN", { dateStyle: "medium" } as any)}</div>
+            <div style={{ fontSize: 12.5, color: "#8A93A6" }}>Placed {new Date(order.created_at).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium" } as any)}</div>
           </div>
           <OrderStatusBadge status={order.status} size={13} />
+        </div>
+        <div style={{ marginTop: 16 }}>
+          <JourneyBar status={order.status} />
         </div>
         <div style={{ borderTop: "1px solid #F0F2F6", marginTop: 14, paddingTop: 12 }}>
           {(order.items ?? []).map((it: any) => (
@@ -99,7 +140,7 @@ function OrderView({ order, shipments, events }: { order: any; shipments: any[];
         </div>
       )}
 
-      <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "18px 20px" }}>
+      {events.length > 0 && <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "18px 20px" }}>
         <div style={{ fontSize: 12, fontWeight: 700, color: "#8A93A6", textTransform: "uppercase", letterSpacing: "0.4px", marginBottom: 12 }}>Progress</div>
         {events.map((e, i) => (
           <div key={e.id} style={{ display: "flex", gap: 11, paddingBottom: i === events.length - 1 ? 0 : 14 }}>
@@ -110,11 +151,11 @@ function OrderView({ order, shipments, events }: { order: any; shipments: any[];
             <div>
               <div style={{ fontSize: 13.5, fontWeight: 600 }}>{STATUS_LABEL(e.status)}</div>
               {e.note && <div style={{ fontSize: 12, color: "#8A93A6" }}>{e.note}</div>}
-              <div style={{ fontSize: 11, color: "#B0B7C3" }}>{new Date(e.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" } as any)}</div>
+              <div style={{ fontSize: 11, color: "#B0B7C3" }}>{new Date(e.created_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" } as any)}</div>
             </div>
           </div>
         ))}
-      </div>
+      </div>}
 
       <Link href="/catalogue" style={{ textAlign: "center", fontSize: 13, color: "#4E5BDC", fontWeight: 600 }}>Continue shopping →</Link>
     </div>
