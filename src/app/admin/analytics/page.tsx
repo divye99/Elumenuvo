@@ -9,9 +9,9 @@ export const maxDuration = 60;
 
 const dur = (ms: number) => (ms < 60000 ? `${Math.round(ms / 1000)}s` : `${Math.floor(ms / 60000)}m ${Math.round((ms % 60000) / 1000)}s`);
 
-export default async function AdminAnalytics({ searchParams }: { searchParams: Promise<{ days?: string; identity?: string; device?: string; country?: string; state?: string; src?: string; min?: string; bots?: string }> }) {
+export default async function AdminAnalytics({ searchParams }: { searchParams: Promise<{ days?: string; identity?: string; device?: string; country?: string; state?: string; src?: string; min?: string; bots?: string; view?: string }> }) {
   await requireAdmin();
-  const { days: d, identity, device, country, state, src, min, bots } = await searchParams;
+  const { days: d, identity, device, country, state, src, min, bots, view } = await searchParams;
   const days = Math.min(90, Math.max(1, Number(d) || 14));
   const [events, searchesBySid] = await Promise.all([fetchEvents(days), fetchAllSearches(days)]);
   const allVisitors = toVisitors(events);
@@ -43,6 +43,31 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
     return true;
   });
   const identified = visitors.filter((v) => v.identity.email).length;
+
+  // Top pages: pageview counts across the filtered sessions only, so the
+  // bot-hiding and dropdown filters shape this view too.
+  const keptSids = new Set(visitors.map((v) => v.sid));
+  const pageAgg = new Map<string, { views: number; sids: Set<string>; ms: number }>();
+  for (const e of events) {
+    if (!keptSids.has(e.sid)) continue;
+    const path = e.path ?? "/";
+    if (e.type === "pageview") {
+      const a = pageAgg.get(path) ?? { views: 0, sids: new Set<string>(), ms: 0 };
+      a.views += 1; a.sids.add(e.sid);
+      pageAgg.set(path, a);
+    } else if (e.type === "leave" && e.duration_ms) {
+      const a = pageAgg.get(path) ?? { views: 0, sids: new Set<string>(), ms: 0 };
+      a.ms += e.duration_ms;
+      pageAgg.set(path, a);
+    }
+  }
+  const topPages = [...pageAgg.entries()]
+    .filter(([, a]) => a.views > 0)
+    .sort((a, b) => b[1].views - a[1].views)
+    .slice(0, 10);
+  const maxViews = topPages[0]?.[1].views ?? 1;
+  const durTxt = (ms: number) => (ms < 60000 ? `${Math.round(ms / 1000)}s` : `${Math.floor(ms / 60000)}m ${Math.round((ms % 60000) / 1000)}s`);
+  const showPages = view === "pages";
   const eventsBySid = new Map<string, SiteEvent[]>();
   for (const e of events) (eventsBySid.get(e.sid) ?? eventsBySid.set(e.sid, []).get(e.sid)!).push(e);
 
@@ -58,7 +83,7 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
 
       <div style={{ display: "flex", gap: 8, marginBottom: 16, alignItems: "center", flexWrap: "wrap" }}>
         {[7, 14, 30, 90].map((n) => (
-          <Link key={n} href={`/admin/analytics?days=${n}`} style={{ fontSize: 13, fontWeight: 600, padding: "6px 13px", borderRadius: 8, background: days === n ? "#161D2B" : "#fff", color: days === n ? "#fff" : "#56627A", border: "1px solid #E8EBF1" }}>
+          <Link key={n} href={`/admin/analytics?days=${n}${view === "pages" ? "&view=pages" : ""}`} style={{ fontSize: 13, fontWeight: 600, padding: "6px 13px", borderRadius: 8, background: days === n ? "#161D2B" : "#fff", color: days === n ? "#fff" : "#56627A", border: "1px solid #E8EBF1" }}>
             {n} days
           </Link>
         ))}
@@ -66,11 +91,38 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
         <a href={`/admin/analytics/export?days=${days}`} style={{ marginLeft: "auto", fontSize: 13, fontWeight: 700, color: "#4E5BDC" }}>⬇ Export CSV (raw events)</a>
       </div>
 
+      <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+        {([["", "Visitors"], ["pages", "Top pages"]] as [string, string][]).map(([key, label]) => (
+          <Link key={label} href={`/admin/analytics?days=${days}${key ? `&view=${key}` : ""}`} style={{ fontSize: 13, fontWeight: 600, padding: "6px 14px", borderRadius: 8, background: showPages === (key === "pages") ? "#161D2B" : "#fff", color: showPages === (key === "pages") ? "#fff" : "#56627A", border: "1px solid #E8EBF1" }}>
+            {label}
+          </Link>
+        ))}
+      </div>
+
       <div style={{ marginBottom: 16 }}>
         <Filters countries={countries} states={states} devices={deviceOSes} />
       </div>
 
-      {visitors.length === 0 ? (
+      {showPages && (
+        <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflow: "hidden", marginBottom: 20 }}>
+          <div style={{ padding: "15px 18px", borderBottom: "1px solid #F0F2F6", fontWeight: 700, fontSize: 14.5 }}>
+            Top 10 pages <span style={{ color: "#8A93A6", fontWeight: 400 }}>· last {days} days · humans in current filter</span>
+          </div>
+          {topPages.length === 0 && <div style={{ padding: "36px 20px", textAlign: "center", color: "#8A93A6", fontSize: 13.5 }}>No pageviews in this window.</div>}
+          {topPages.map(([path, a], i) => (
+            <div key={path} style={{ display: "flex", alignItems: "center", gap: 14, padding: "11px 18px", borderTop: i ? "1px solid #F5F6F9" : undefined, position: "relative" }}>
+              <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${Math.round((a.views / maxViews) * 100)}%`, background: "#F0F2FE", zIndex: 0 }} />
+              <span style={{ zIndex: 1, width: 22, fontFamily: "var(--space-mono)", fontSize: 12, fontWeight: 700, color: "#8A93A6" }}>{i + 1}</span>
+              <a href={path} target="_blank" style={{ zIndex: 1, flex: 1, fontSize: 13.5, fontWeight: 600, color: "#19202E", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{path}</a>
+              <span style={{ zIndex: 1, fontSize: 12.5, color: "#56627A", whiteSpace: "nowrap" }}><b style={{ color: "#19202E" }}>{a.views}</b> views</span>
+              <span style={{ zIndex: 1, fontSize: 12.5, color: "#56627A", whiteSpace: "nowrap" }}>{a.sids.size} visitor{a.sids.size === 1 ? "" : "s"}</span>
+              <span style={{ zIndex: 1, fontSize: 12, color: "#8A93A6", whiteSpace: "nowrap" }}>{a.ms > 0 ? `${durTxt(Math.round(a.ms / Math.max(a.views, 1)))} avg` : ""}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {showPages ? null : visitors.length === 0 ? (
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "44px 20px", textAlign: "center", color: "#8A93A6", fontSize: 14 }}>
           No visits recorded yet. Data starts flowing once migration 0051 is run and the site is redeployed.
         </div>
