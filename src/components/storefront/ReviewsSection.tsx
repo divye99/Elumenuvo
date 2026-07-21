@@ -16,7 +16,8 @@ export default function ReviewsSection({ productId, reviews }: { productId: stri
   const avg = reviews.length ? reviews.reduce((a, r) => a + r.rating, 0) / reviews.length : 0;
 
   return (
-    <div style={{ maxWidth: 1120, margin: "0 auto", padding: "0 30px 40px" }}>
+    // id anchors the review-request email's deep links (…/catalogue/<id>#reviews)
+    <div id="reviews" style={{ maxWidth: 1120, margin: "0 auto", padding: "0 30px 40px", scrollMarginTop: 90 }}>
       <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "18px 20px" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>

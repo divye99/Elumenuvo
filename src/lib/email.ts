@@ -129,9 +129,30 @@ export async function sendCustomerStatusUpdate(
     `<p style="font-size:14px;color:#56627A;margin:0 0 8px">Hi ${escapeHtml(order.name || "there")}, ${label.line} <b>${order.id}</b>.</p>
      ${extra?.note ? `<p style="font-size:13px;color:#56627A;margin:0 0 8px">${escapeHtml(extra.note)}</p>` : ""}
      ${tracking}
-     ${btn(trackUrl(order), "View order →")}`
+     ${btn(trackUrl(order), "View order →")}
+     ${status === "delivered" ? reviewAsk(order) : ""}`
   );
   return send(order.email, `Order ${order.id} — ${label.title}`, html);
+}
+
+/** Post-delivery review request: reviews are purchase-verified (order ID +
+ *  email checked in the database), so we hand the customer both up front.
+ *  Real reviews also light up star ratings on Google for that product. */
+function reviewAsk(order: OrderLike): string {
+  const items = (order.items ?? []).slice(0, 3);
+  const links = items
+    .map((i: any) => i.id ? `<a href="${SITE}/catalogue/${encodeURIComponent(i.id)}#reviews" style="color:#4E5BDC;font-weight:600">${escapeHtml(String(i.name ?? i.id))}</a>` : escapeHtml(String(i.name ?? "")))
+    .filter(Boolean)
+    .join("<br>");
+  return `
+    <div style="margin-top:22px;padding:16px 18px;background:#F7F8FB;border:1px solid #E8EBF1;border-radius:12px">
+      <p style="font-size:13.5px;color:#19202E;font-weight:700;margin:0 0 6px">How did we do? ⚡</p>
+      <p style="font-size:13px;color:#56627A;margin:0 0 10px">
+        A 1-minute review helps other electricians and builders buy with confidence.
+        Use order ID <b>${escapeHtml(order.id)}</b> and this email address on the review form.
+      </p>
+      ${links ? `<p style="font-size:13px;margin:0">${links}</p>` : ""}
+    </div>`;
 }
 
 const STATUS_COPY: Record<string, { title: string; line: string }> = {
