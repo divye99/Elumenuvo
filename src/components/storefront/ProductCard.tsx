@@ -30,10 +30,12 @@ export default function ProductCard({
   p,
   fixedWidth,
   siblings = [],
+  editorial = {},
 }: {
   p: Product;
   fixedWidth?: number;
   siblings?: Product[];
+  editorial?: Record<string, { bestFor: string; rank: number; slug: string; postTitle: string }>;
 }) {
   const [hover, setHover] = useState(false);
   // The variant currently shown on this card — swatch clicks swap it in place.
@@ -185,6 +187,12 @@ export default function ProductCard({
           )}
         </div>
         <div className="pc-name" style={{ fontSize: 14, fontWeight: 600, color: "#19202E", margin: "4px 0", lineHeight: 1.3 }}>{shown.name}</div>
+        {editorial[shown.id] && (
+          <div title={`Ranked #${editorial[shown.id].rank} in ${editorial[shown.id].postTitle}`} style={{ display: "flex", alignItems: "baseline", gap: 5, fontSize: 11, color: "#137a4b", fontWeight: 600, margin: "1px 0 3px", lineHeight: 1.35 }}>
+            <span style={{ flexShrink: 0 }}>⚡ Our analysis:</span>
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{editorial[shown.id].bestFor.replace(/^Best for:?\s*/i, "")}</span>
+          </div>
+        )}
         {shown.rating && shown.ratingCount ? (
           <div style={{ margin: "1px 0 4px" }}>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>

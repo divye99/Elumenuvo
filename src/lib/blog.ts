@@ -42,3 +42,19 @@ export function getPost(slug: string): BlogPost | null {
 export function getSlugs(): string[] {
   return ALL.map((p) => p.slug);
 }
+
+/** One product's editorial verdict from the top-10 guides. */
+export type EditorialPick = { bestFor: string; rank: number; slug: string; postTitle: string };
+
+/** productId -> verdict, built from every ranked item mapped to a real SKU.
+ *  Server-side only (keeps the post JSONs out of client bundles); pages pass
+ *  the slim result down as props. */
+export function getEditorialPicks(): Record<string, EditorialPick> {
+  const picks: Record<string, EditorialPick> = {};
+  for (const post of ALL) {
+    for (const it of post.items) {
+      if (it.productId) picks[it.productId] = { bestFor: it.bestFor, rank: it.rank, slug: post.slug, postTitle: post.title };
+    }
+  }
+  return picks;
+}

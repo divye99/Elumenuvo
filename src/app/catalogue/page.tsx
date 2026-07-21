@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import CatalogueBrowser from "@/components/storefront/CatalogueBrowser";
 import { fetchProducts } from "@/lib/products";
+import { getEditorialPicks } from "@/lib/blog";
 
 // ISR: the catalogue data is shared by everyone; serving it cached makes
 // search navigations near-instant (the browser filters client-side anyway).
@@ -18,5 +19,5 @@ export const metadata: Metadata = {
 
 export default async function CataloguePage() {
   const products = await fetchProducts();
-  return <CatalogueBrowser products={products} />;
+  return <CatalogueBrowser products={products} editorial={getEditorialPicks()} />;
 }

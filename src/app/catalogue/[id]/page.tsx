@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { fetchProduct, fetchFamily } from "@/lib/products";
+import { getEditorialPicks } from "@/lib/blog";
+import Link from "next/link";
 import { fetchReviews } from "@/lib/reviews";
 import { fetchPriceHistory } from "@/lib/competitor-history";
 import CompetitorPriceChart from "@/components/storefront/CompetitorPriceChart";
@@ -41,6 +43,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const product = await fetchProduct(id);
+  const pick = product ? getEditorialPicks()[product.id] ?? null : null;
   if (!product) notFound();
 
   // Family = parent + all variations, whichever member this page is.
@@ -85,6 +88,20 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <PublicProductView p={product} siblings={siblings} business={business} />
+      {pick && (
+        <section style={{ maxWidth: 1120, margin: "0 auto", padding: "0 30px 26px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", background: "linear-gradient(120deg,#F2FBF6,#EEF0FD)", border: "1px solid #DCEDE3", borderRadius: 14, padding: "16px 20px" }}>
+            <span style={{ fontSize: 22 }}>⚡</span>
+            <div style={{ flex: 1, minWidth: 240 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.6px", textTransform: "uppercase", color: "#1F9D63" }}>Based on our analysis</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#19202E", marginTop: 2 }}>{pick.bestFor}</div>
+            </div>
+            <Link href={`/blog/${pick.slug}`} style={{ fontSize: 12.5, fontWeight: 700, color: "#4E5BDC", whiteSpace: "nowrap" }}>
+              Ranked #{pick.rank} · {pick.postTitle.replace(/ \(2026\).*$/, "")} →
+            </Link>
+          </div>
+        </section>
+      )}
       {product.brand === "Elume" && (
         <div style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px" }}>
           <ElumeFlagship p={product} />

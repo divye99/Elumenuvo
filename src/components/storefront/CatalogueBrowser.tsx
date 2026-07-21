@@ -40,11 +40,13 @@ export default function CatalogueBrowser({
   initialQ = "",
   initialCat = "All",
   initialSort = "featured",
+  editorial = {},
 }: {
   products: Product[];
   initialQ?: string;
   initialCat?: string;
   initialSort?: string;
+  editorial?: Record<string, { bestFor: string; rank: number; slug: string; postTitle: string }>;
 }) {
   // URL params are read client-side (the page itself is static/cached).
   const sp = useSearchParams();
@@ -509,7 +511,7 @@ export default function CatalogueBrowser({
         <>
           <div className="cat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(232px, 1fr))", gap: 16 }}>
             {filtered.slice(0, shown).map((p) => (
-              <ProductCard key={p.id} p={p} siblings={variantGroups[familyKey(p)]} />
+              <ProductCard key={p.id} p={p} siblings={variantGroups[familyKey(p)]} editorial={editorial} />
             ))}
           </div>
           {filtered.length > shown && (
