@@ -2,18 +2,40 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
 import { fetchEvents, fetchAllSearches, toVisitors, buildJourney, type SiteEvent } from "@/lib/admin/analytics-data";
 import { istDateTime, istDate, istTime } from "@/lib/admin/ist";
+import Filters from "./Filters";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const dur = (ms: number) => (ms < 60000 ? `${Math.round(ms / 1000)}s` : `${Math.floor(ms / 60000)}m ${Math.round((ms % 60000) / 1000)}s`);
 
-export default async function AdminAnalytics({ searchParams }: { searchParams: Promise<{ days?: string }> }) {
+export default async function AdminAnalytics({ searchParams }: { searchParams: Promise<{ days?: string; identity?: string; device?: string; loc?: string; src?: string; min?: string }> }) {
   await requireAdmin();
-  const { days: d } = await searchParams;
+  const { days: d, identity, device, loc, src, min } = await searchParams;
   const days = Math.min(90, Math.max(1, Number(d) || 14));
   const [events, searchesBySid] = await Promise.all([fetchEvents(days), fetchAllSearches(days)]);
-  const visitors = toVisitors(events);
+  const allVisitors = toVisitors(events);
+
+  // Dropdown options come from the data itself.
+  const cities = [...new Set(allVisitors.map((v) => v.location).filter(Boolean) as string[])].sort();
+  const deviceOSes = [...new Set(allVisitors.map((v) => v.device?.split(" · ")[0]).filter(Boolean) as string[])].sort();
+
+  const visitors = allVisitors.filter((v) => {
+    if (identity === "identified" && !v.identity.email) return false;
+    if (identity === "anonymous" && v.identity.email) return false;
+    if (device && !(v.device ?? "").startsWith(device)) return false;
+    if (loc && v.location !== loc) return false;
+    if (src) {
+      const ref = (v.landingReferrer ?? "").toLowerCase();
+      if (src === "google" && !ref.includes("google")) return false;
+      if (src === "campaign" && !v.utm) return false;
+      if (src === "referral" && (!ref || ref.includes("google") || v.utm)) return false;
+      if (src === "direct" && (ref || v.utm)) return false;
+    }
+    if (min === "cart" && !v.addToCarts) return false;
+    if (min && min !== "cart" && v.pageviews < Number(min)) return false;
+    return true;
+  });
   const identified = visitors.filter((v) => v.identity.email).length;
   const eventsBySid = new Map<string, SiteEvent[]>();
   for (const e of events) (eventsBySid.get(e.sid) ?? eventsBySid.set(e.sid, []).get(e.sid)!).push(e);
@@ -34,8 +56,12 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
             {n} days
           </Link>
         ))}
-        <span style={{ fontSize: 12.5, color: "#8A93A6" }}>{visitors.length} visitors · {identified} identified · {events.length} events</span>
+        <span style={{ fontSize: 12.5, color: "#8A93A6" }}>{visitors.length} of {allVisitors.length} visitors · {identified} identified · {events.length} events</span>
         <a href={`/admin/analytics/export?days=${days}`} style={{ marginLeft: "auto", fontSize: 13, fontWeight: 700, color: "#4E5BDC" }}>⬇ Export CSV (raw events)</a>
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <Filters cities={cities} devices={deviceOSes} />
       </div>
 
       {visitors.length === 0 ? (

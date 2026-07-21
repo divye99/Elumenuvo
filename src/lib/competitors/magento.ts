@@ -77,6 +77,27 @@ export function makeMagentoAdapter(cfg: { key: string; name: string; siteUrl: st
       const sku = code.trim();
       if (!sku) return null;
       try {
+        // Composite "PARENT::CHILD" codes: some stores (Atomberg) don't expose
+        // configurable children to direct sku queries at all — the child's
+        // price only exists inside the parent's variant tree. Fetch the
+        // parent, pick the child, return its prices with the parent's URL.
+        if (sku.includes("::")) {
+          const [parent, child] = sku.split("::").map((x) => x.trim());
+          const data = await gql(`query{products(filter:{sku:{eq:${JSON.stringify(parent)}}}){items{sku name url_key canonical_url stock_status ... on ConfigurableProduct{variants{product{sku name stock_status price_range{minimum_price{regular_price{value} final_price{value}}}} attributes{label}}}}}}`);
+          const par = data?.data?.products?.items?.[0];
+          const hit = (par?.variants ?? []).find((v: any) => v?.product?.sku === child);
+          if (!par || !hit) return null;
+          const cp = hit.product.price_range?.minimum_price;
+          return {
+            code: sku,
+            name: `${par.name} — ${(hit.attributes ?? []).map((a: any) => a.label).join(" / ")}`,
+            brand: null,
+            listPrice: num(cp?.regular_price?.value),
+            netPrice: num(cp?.final_price?.value),
+            url: productUrl(base, par),
+            inStock: hit.product.stock_status ? hit.product.stock_status === "IN_STOCK" : null,
+          };
+        }
         const data = await gql(`query{products(filter:{sku:{eq:${JSON.stringify(sku)}}}){${FIELDS}}}`);
         const it = data?.data?.products?.items?.[0];
         return it ? toItem(it) : null;

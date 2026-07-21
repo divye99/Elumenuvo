@@ -11,12 +11,24 @@ import {
   setMapApproval,
   syncCompetitorNow,
   syncAllCompetitors,
-  applyRecommendedPrice,
-  applyRecommendedPrices,
-  setElumePrice,
   saveRepricingRule,
   deleteRepricingRule,
 } from "@/lib/admin/actions";
+
+/* Pricing ops go through a fixed API route: server-action ids rotate on every
+ * deploy, which made Save/Accept throw from any radar tab opened before a
+ * push ("The site was updated…"). A plain URL survives deployments. */
+async function callRadar(payload: Record<string, unknown>): Promise<{ ok: boolean; error?: string; applied?: number; skipped?: number }> {
+  const r = await fetch("/api/admin/radar/action", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  try { return await r.json(); } catch { return { ok: false, error: `Request failed (${r.status}). Try again.` }; }
+}
+const setElumePrice = (productId: string, price: number) => callRadar({ op: "set-price", productId, price });
+const applyRecommendedPrice = (productId: string, target: number) => callRadar({ op: "apply", productId, target });
+const applyRecommendedPrices = (items: { id: string; target: number }[]) => callRadar({ op: "apply-all", items });
 import type { RepricingRule } from "@/lib/admin/repricing";
 
 export type SourceInfo = { id: string; name: string; siteUrl: string | null; enabled: boolean; needsLogin: boolean };
@@ -291,10 +303,20 @@ function MappedRow({ r, first, pending, run }: { r: RadarRow; first: boolean; pe
           </>
         ) : (
           <div style={{ display: "flex", gap: 14, alignItems: "center", marginLeft: "auto" }}>
-            <Stat label="Elume · incl. GST" value={fmt(r.ourPrice)} sub={exGst(r.ourPrice)} />
+            <Stat label="Elume · incl. GST" value={editing ? undefined : fmt(r.ourPrice)} sub={exGst(editing ? price : r.ourPrice)}>
+              {editing && <input autoFocus value={val} onChange={(e) => setVal(e.target.value.replace(/[^\d]/g, ""))} type="text" inputMode="numeric" style={{ width: 78, border: "1px solid #4E5BDC", borderRadius: 7, padding: "3px 7px", fontSize: 13, fontWeight: 700, textAlign: "right" }} />}
+            </Stat>
             <span style={{ fontSize: 12, fontWeight: 600, color: r.mappedCount ? "#C77700" : "#C0392B", background: r.mappedCount ? "#FFF3E0" : "#FBE9E4", padding: "4px 10px", borderRadius: 8 }}>
               {r.pendingCount ? `${r.pendingCount} match${r.pendingCount === 1 ? "" : "es"} awaiting approval` : r.mappedCount ? "Mapped — run Refresh prices" : "Not mapped"}
             </span>
+            {editing ? (
+              <>
+                <button onClick={() => run(() => setElumePrice(r.id, Number(val)), `${r.name} set to ${fmt(Number(val))}.`)} disabled={pending || !(Number(val) > 0)} style={btnAccept}>Save</button>
+                <button onClick={() => { setEditing(false); setVal(String(r.ourPrice)); }} style={linkBtn}>Cancel</button>
+              </>
+            ) : (
+              <button onClick={() => { setEditing(true); setVal(String(r.ourPrice)); }} style={btnGhost}>Edit</button>
+            )}
           </div>
         )}
       </div>
