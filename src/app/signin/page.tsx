@@ -112,7 +112,14 @@ export default function SignIn() {
         }
       }
     } catch (err) {
-      setMsg({ kind: "err", text: err instanceof Error ? err.message : "Something went wrong." });
+      // Supabase returns 500 "Error sending confirmation email" (sometimes an
+      // empty "{}" body) when its SMTP can't send — an infrastructure problem,
+      // not a user mistake. Say so honestly instead of leaking "{}".
+      const raw = err instanceof Error ? err.message : "";
+      const infra = !raw || raw === "{}" || /error sending confirmation email|unexpected_failure/i.test(raw);
+      setMsg({ kind: "err", text: infra
+        ? "We couldn't create your account right now — our email service hiccuped (this is on us, not you). Please try again in a little while, or write to info@elumenuvo.com and we'll set you up."
+        : raw });
     } finally { if (!navigating) setBusy(false); }
   }
 
