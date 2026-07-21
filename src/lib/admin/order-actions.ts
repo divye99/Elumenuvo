@@ -22,9 +22,9 @@ async function safely(label: string, fn: () => Promise<ActionResult>): Promise<A
 }
 
 // Linear status flow (partial_shipped is set automatically by shipment logic).
-export const ORDER_STATUSES = ["placed", "confirmed", "packed", "shipped", "partially_shipped", "out_for_delivery", "delivered", "cancelled"] as const;
+const ORDER_STATUSES = ["placed", "confirmed", "packed", "shipped", "partially_shipped", "out_for_delivery", "delivered", "cancelled"] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
-export const OPEN_STATUSES = ["placed", "confirmed", "packed", "shipped", "partially_shipped", "out_for_delivery"];
+const OPEN_STATUSES = ["placed", "confirmed", "packed", "shipped", "partially_shipped", "out_for_delivery"];
 
 const STAMP: Record<string, string> = { confirmed: "confirmed_at", delivered: "delivered_at", cancelled: "cancelled_at" };
 
