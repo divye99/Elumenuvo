@@ -19,6 +19,7 @@ export default function SignIn() {
   const [otpSent, setOtpSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: "err" | "ok"; text: string } | null>(null);
+  const [showResend, setShowResend] = useState(false);
 
   // Apply ?mode=signup&email=… after mount (reading window during render would
   // desync the server-rendered HTML from the client). Drives the "Create
@@ -53,7 +54,15 @@ export default function SignIn() {
     try {
       if (mode === "in") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        if (error) {
+          if (/not confirmed/i.test(error.message)) {
+            setShowResend(true);
+            setMsg({ kind: "err", text: "Your email isn't confirmed yet — tap the link in the email we sent you, then sign in. No email? Resend it below." });
+            setBusy(false);
+            return;
+          }
+          throw error;
+        }
         // Keep the button in its busy state through the redirect: the /app
         // render takes a moment, and a re-enabled button reads as "broken".
         setMsg({ kind: "ok", text: "Signed in. Opening your workspace…" });
@@ -72,7 +81,15 @@ export default function SignIn() {
             emailRedirectTo: `${window.location.origin}/signin?confirmed=1`,
           },
         });
-        if (error) throw error;
+        if (error) {
+          if (/already registered|already exists/i.test(error.message)) {
+            setMode("in");
+            setMsg({ kind: "err", text: "You already have an account with this email — sign in below. Forgot the password? Use a different email or contact info@elumenuvo.com." });
+            setBusy(false);
+            return;
+          }
+          throw error;
+        }
         if (data.session) {
           // Profile row is auto-created by a trigger; fill in what we collected.
           await supabase.from("profiles").update({
@@ -89,6 +106,21 @@ export default function SignIn() {
     } catch (err) {
       setMsg({ kind: "err", text: err instanceof Error ? err.message : "Something went wrong." });
     } finally { if (!navigating) setBusy(false); }
+  }
+
+  async function resendConfirmation() {
+    setBusy(true); setMsg(null);
+    try {
+      const { error } = await createClient().auth.resend({
+        type: "signup", email,
+        options: { emailRedirectTo: `${window.location.origin}/signin?confirmed=1` },
+      });
+      if (error) throw error;
+      setShowResend(false);
+      setMsg({ kind: "ok", text: `Confirmation email re-sent to ${email}. Tap the link inside, then sign in.` });
+    } catch (err) {
+      setMsg({ kind: "err", text: err instanceof Error ? err.message : "Couldn't resend right now — try again in a minute." });
+    } finally { setBusy(false); }
   }
 
   async function sendOtp(e: React.FormEvent) {
@@ -129,10 +161,15 @@ export default function SignIn() {
           <Mark height={26} /><Wordmark height={15} />
         </Link>
 
-        <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
-          <button onClick={() => { setTab("email"); setMsg(null); }} style={tabBtn(tab === "email")}>Email</button>
-          <button onClick={() => { setTab("phone"); setMsg(null); setOtpSent(false); }} style={tabBtn(tab === "phone")}>Phone</button>
-        </div>
+        {/* Phone OTP needs an SMS provider in Supabase; until that's configured
+            the tab is a dead end (watched a real buyer bounce off it), so it's
+            hidden behind NEXT_PUBLIC_PHONE_AUTH=1. */}
+        {process.env.NEXT_PUBLIC_PHONE_AUTH === "1" && (
+          <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+            <button onClick={() => { setTab("email"); setMsg(null); }} style={tabBtn(tab === "email")}>Email</button>
+            <button onClick={() => { setTab("phone"); setMsg(null); setOtpSent(false); }} style={tabBtn(tab === "phone")}>Phone</button>
+          </div>
+        )}
 
         {tab === "email" ? (
           <>
@@ -149,6 +186,11 @@ export default function SignIn() {
               {mode === "up" && <input className={field} type="tel" placeholder="Phone number" value={phone} onChange={(e) => setPhone(e.target.value)} required autoComplete="tel" />}
               <input className={field} type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} autoComplete={mode === "in" ? "current-password" : "new-password"} />
               {msg && <p style={{ fontSize: 12.5, color: msg.kind === "err" ? "#E0612A" : "#137a4b" }}>{msg.text}</p>}
+              {showResend && (
+                <button type="button" disabled={busy} onClick={resendConfirmation} style={{ width: "100%", background: "#fff", color: "#4E5BDC", fontWeight: 700, fontSize: 13, border: "1.5px solid #4E5BDC", padding: 10, borderRadius: 10, cursor: "pointer" }}>
+                  Resend confirmation email
+                </button>
+              )}
               <button disabled={busy} style={btn(busy)}>{busy ? (mode === "in" ? "Signing you in…" : "Creating your account…") : mode === "in" ? "Sign in" : "Create account"}</button>
             </form>
             <div style={{ marginTop: 14, fontSize: 13, color: "#56627A", textAlign: "center" }}>
