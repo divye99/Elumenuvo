@@ -14,7 +14,11 @@ export type Visitor = {
   identity: { email: string | null; name: string | null };
   device: string | null;
   location: string | null;
+  country: string | null;
+  region: string | null;
   ip: string | null;
+  ua: string | null;
+  likelyBot: boolean;
   firstSeen: string;
   lastSeen: string;
   pageviews: number;
@@ -24,6 +28,10 @@ export type Visitor = {
   landingReferrer: string | null;
   utm: string | null;
 };
+
+/** UA fragments identifying crawlers/agents (display-layer; catches rows
+ *  recorded before a bot was added to the ingest gate). */
+const BOT_UA_RE = /bot|crawl|spider|slurp|headless|lighthouse|preview|python|curl|wget|axios|node-fetch|go-http|ahrefs|semrush|petalbot|bytespider|yandex|applebot|gptbot|perplexity|ccbot|dataforseo|screaming/i;
 
 const PAGE = 1000;
 
@@ -97,12 +105,15 @@ export function toVisitors(events: SiteEvent[]): Visitor[] {
   for (const e of events) {
     let v = by.get(e.sid);
     if (!v) {
-      v = { sid: e.sid, identity: { email: null, name: null }, device: null, location: null, ip: null, firstSeen: e.created_at, lastSeen: e.created_at, pageviews: 0, clicks: 0, addToCarts: 0, totalMs: 0, landingReferrer: null, utm: null };
+      v = { sid: e.sid, identity: { email: null, name: null }, device: null, location: null, country: null, region: null, ip: null, ua: null, likelyBot: false, firstSeen: e.created_at, lastSeen: e.created_at, pageviews: 0, clicks: 0, addToCarts: 0, totalMs: 0, landingReferrer: null, utm: null };
       by.set(e.sid, v);
     }
     v.lastSeen = e.created_at;
     if (e.device) v.device = e.device;
     if (e.city || e.country) v.location = [e.city, e.region, e.country].filter(Boolean).join(", ");
+    if (e.country) v.country = e.country;
+    if (e.region) v.region = e.region;
+    if ((e as any).ua && !v.ua) v.ua = (e as any).ua;
     if (e.ip) v.ip = e.ip;
     if (e.type === "pageview") {
       v.pageviews++;
@@ -119,5 +130,14 @@ export function toVisitors(events: SiteEvent[]): Visitor[] {
       if (e.name) v.identity.name = e.name;
     }
   }
-  return [...by.values()].sort((a, b) => (a.lastSeen < b.lastSeen ? 1 : -1));
+  const all = [...by.values()];
+  for (const v of all) {
+    // Classified a bot when the UA says so, or when the behaviour is a
+    // crawler's signature: outside India, barely any events, no interaction,
+    // zero measured dwell. Indian sessions are never behaviour-flagged.
+    const uaBot = !!v.ua && BOT_UA_RE.test(v.ua);
+    const behaviourBot = v.country !== "IN" && v.pageviews <= 2 && v.clicks === 0 && v.addToCarts === 0 && v.totalMs === 0 && !v.identity.email;
+    v.likelyBot = uaBot || behaviourBot;
+  }
+  return all.sort((a, b) => (a.lastSeen < b.lastSeen ? 1 : -1));
 }

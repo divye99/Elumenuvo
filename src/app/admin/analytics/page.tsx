@@ -9,22 +9,28 @@ export const maxDuration = 60;
 
 const dur = (ms: number) => (ms < 60000 ? `${Math.round(ms / 1000)}s` : `${Math.floor(ms / 60000)}m ${Math.round((ms % 60000) / 1000)}s`);
 
-export default async function AdminAnalytics({ searchParams }: { searchParams: Promise<{ days?: string; identity?: string; device?: string; loc?: string; src?: string; min?: string }> }) {
+export default async function AdminAnalytics({ searchParams }: { searchParams: Promise<{ days?: string; identity?: string; device?: string; country?: string; state?: string; src?: string; min?: string; bots?: string }> }) {
   await requireAdmin();
-  const { days: d, identity, device, loc, src, min } = await searchParams;
+  const { days: d, identity, device, country, state, src, min, bots } = await searchParams;
   const days = Math.min(90, Math.max(1, Number(d) || 14));
   const [events, searchesBySid] = await Promise.all([fetchEvents(days), fetchAllSearches(days)]);
   const allVisitors = toVisitors(events);
 
-  // Dropdown options come from the data itself.
-  const cities = [...new Set(allVisitors.map((v) => v.location).filter(Boolean) as string[])].sort();
+  // Dropdown options come from the data itself. India leads the country list.
+  const countries = [...new Set(allVisitors.map((v) => v.country).filter(Boolean) as string[])]
+    .sort((a, b) => (a === "IN" ? -1 : b === "IN" ? 1 : a.localeCompare(b)));
+  const states = [...new Set(allVisitors.filter((v) => !country || v.country === country).map((v) => v.region).filter(Boolean) as string[])].sort();
   const deviceOSes = [...new Set(allVisitors.map((v) => v.device?.split(" · ")[0]).filter(Boolean) as string[])].sort();
 
   const visitors = allVisitors.filter((v) => {
+    // Likely bots are hidden unless explicitly requested.
+    if (bots === "only") { if (!v.likelyBot) return false; }
+    else if (bots !== "1" && v.likelyBot) return false;
     if (identity === "identified" && !v.identity.email) return false;
     if (identity === "anonymous" && v.identity.email) return false;
     if (device && !(v.device ?? "").startsWith(device)) return false;
-    if (loc && v.location !== loc) return false;
+    if (country && v.country !== country) return false;
+    if (state && v.region !== state) return false;
     if (src) {
       const ref = (v.landingReferrer ?? "").toLowerCase();
       if (src === "google" && !ref.includes("google")) return false;
@@ -61,7 +67,7 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
       </div>
 
       <div style={{ marginBottom: 16 }}>
-        <Filters cities={cities} devices={deviceOSes} />
+        <Filters countries={countries} states={states} devices={deviceOSes} />
       </div>
 
       {visitors.length === 0 ? (
