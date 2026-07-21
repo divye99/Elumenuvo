@@ -203,7 +203,7 @@ export default function AppShell({ products, content, user, live }: { products: 
   };
 
   const titles: Record<Screen, [string, string]> = {
-    portfolio: ["Portfolio", live ? `${userOrg} · ${live.projects.length} project${live.projects.length === 1 ? "" : "s"}` : "Meridian Developments · 6 active sites"],
+    portfolio: [live ? "Overview" : "Portfolio", live ? `${userOrg} · ${live.projects.length} project${live.projects.length === 1 ? "" : "s"}` : "Meridian Developments · 6 active sites"],
     catalogue: ["Catalogue", "Multi-brand FMEG · transparent pricing"],
     project: ["Aurelia Towers", "Project procurement plan"],
     smartbom: ["Smart BOM", "Upload a BOQ — Elume does the rest"],
@@ -226,7 +226,7 @@ export default function AppShell({ products, content, user, live }: { products: 
   return (
     <div style={{ height: "100vh", display: "flex", overflow: "hidden", fontFamily: "var(--hanken)", color: "#19202E", background: "#F5F6F9" }}>
       {/* ===================== SIDEBAR ===================== */}
-      <div style={{ width: 224, flex: "none", background: "#161D2B", padding: "20px 15px", display: "flex", flexDirection: "column" }}>
+      <div className="ws-sidebar" style={{ width: 224, flex: "none", background: "#161D2B", padding: "20px 15px", display: "flex", flexDirection: "column" }}>
         <div onClick={() => router.push("/")} style={{ display: "flex", alignItems: "center", gap: 9, margin: "6px 6px 26px", cursor: "pointer" }}>
           <Mark height={30} />
           <Wordmark height={17} white opacity={0.96} />
@@ -273,7 +273,7 @@ export default function AppShell({ products, content, user, live }: { products: 
       {/* ===================== MAIN ===================== */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, background: "#F5F6F9" }}>
         {/* TOPBAR */}
-        <div style={{ height: 64, flex: "none", background: "#fff", borderBottom: "1px solid #E8EBF1", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 28px", zIndex: 5 }}>
+        <div className="ws-topbar" style={{ height: 64, flex: "none", background: "#fff", borderBottom: "1px solid #E8EBF1", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 28px", zIndex: 5 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
             {showBack && (
               <div
@@ -289,7 +289,7 @@ export default function AppShell({ products, content, user, live }: { products: 
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{ position: "relative", width: 264, height: 38, background: "#F5F6F9", borderRadius: 9, border: "1px solid #E8EBF1", display: "flex", alignItems: "center", padding: "0 11px", gap: 8 }}>
+            <div className="ws-search" style={{ position: "relative", width: 264, height: 38, background: "#F5F6F9", borderRadius: 9, border: "1px solid #E8EBF1", display: "flex", alignItems: "center", padding: "0 11px", gap: 8 }}>
               <span style={{ width: 13, height: 13, flex: "none", border: "2px solid #b6bdcb", borderRadius: "50%", display: "inline-block" }} />
               <input
                 value={topQ}
@@ -302,7 +302,7 @@ export default function AppShell({ products, content, user, live }: { products: 
                 <span onClick={() => setTopQ("")} style={{ cursor: "pointer", color: "#8A93A6", fontSize: 14, lineHeight: 1 }}>×</span>
               )}
             </div>
-            <div onClick={() => nav("cart")} style={{ position: "relative", width: 38, height: 38, borderRadius: 9, border: "1px solid #E8EBF1", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div onClick={() => nav("cart")} className="ws-topcart" style={{ position: "relative", width: 38, height: 38, borderRadius: 9, border: "1px solid #E8EBF1", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <span style={{ width: 15, height: 13, border: "2px solid #56627A", borderRadius: 3, display: "inline-block" }} />
               {cartCount > 0 && (
                 <span style={{ position: "absolute", top: -6, right: -6, minWidth: 18, height: 18, padding: "0 4px", background: "#E0612A", color: "#fff", fontSize: 10.5, fontWeight: 700, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -313,7 +313,7 @@ export default function AppShell({ products, content, user, live }: { products: 
             <div style={{ position: "relative", paddingLeft: 6 }}>
               <div onClick={() => setMenuOpen((o) => !o)} style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer", userSelect: "none" }}>
                 <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#3a2d6b,#E0612A)", color: "#fff", fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>{userInitials}</div>
-                <div style={{ lineHeight: 1.2 }}>
+                <div className="ws-usertext" style={{ lineHeight: 1.2 }}>
                   <div style={{ fontSize: 12.5, fontWeight: 600, color: "#19202E" }}>{userName}</div>
                   <div style={{ fontSize: 11, color: "#8A93A6" }}>{userOrg}</div>
                 </div>
@@ -382,11 +382,33 @@ export default function AppShell({ products, content, user, live }: { products: 
             />
           )}
         </div>
+
+        {/* ═══ MOBILE TAB BAR (phones only; the sidebar hides) ═══ */}
+        <div
+          className="ws-bottombar"
+          style={{ display: "none", position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 40, background: "#fff", borderTop: "1px solid #E8EBF1", boxShadow: "0 -6px 24px rgba(20,24,45,.06)", paddingBottom: "env(safe-area-inset-bottom)" }}
+        >
+          {NAV.map((n) => {
+            const active = n.key === screen || (n.key === "catalogue" && screen === "product");
+            const badge = n.key === "cart" ? cartCount : 0;
+            return (
+              <div key={n.key} onClick={() => nav(n.key)} style={{ flex: 1, padding: "9px 0 7px", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, cursor: "pointer", color: active ? "#4E5BDC" : "#8A93A6" }}>
+                <span style={{ position: "relative", display: "inline-flex" }}>
+                  <TabIcon name={n.key} active={active} />
+                  {badge > 0 && (
+                    <span style={{ position: "absolute", top: -5, right: -9, minWidth: 16, height: 16, padding: "0 4px", background: "#E0612A", color: "#fff", fontSize: 9.5, fontWeight: 700, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>{badge}</span>
+                  )}
+                </span>
+                <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, letterSpacing: "0.1px" }}>{n.label}</span>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* TOAST */}
       {toast && (
-        <div style={{ position: "fixed", bottom: 26, left: "50%", transform: "translateX(-50%)", background: "#161D2B", color: "#fff", fontSize: 13, fontWeight: 500, padding: "13px 20px", borderRadius: 11, boxShadow: "0 8px 30px rgba(0,0,0,.25)", animation: "elumeToast .3s ease", zIndex: 50, display: "flex", alignItems: "center", gap: 10 }}>
+        <div className="ws-toast" style={{ position: "fixed", bottom: 26, left: "50%", transform: "translateX(-50%)", background: "#161D2B", color: "#fff", fontSize: 13, fontWeight: 500, padding: "13px 20px", borderRadius: 11, boxShadow: "0 8px 30px rgba(0,0,0,.25)", animation: "elumeToast .3s ease", zIndex: 50, display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#4fd591" }} />
           {toast}
         </div>
@@ -398,9 +420,9 @@ export default function AppShell({ products, content, user, live }: { products: 
 /* ============================ PORTFOLIO ============================ */
 function Portfolio({ projects: PROJECTS, onProject, onReleaseAutoPO }: { projects: SiteContent["projects"]; onProject: () => void; onReleaseAutoPO: () => void }) {
   return (
-    <div style={{ padding: "26px 30px", animation: "elumeFade .35s ease" }}>
+    <div className="ws-pad" style={{ padding: "26px 30px", animation: "elumeFade .35s ease" }}>
       {/* KPI ROW */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 15, marginBottom: 18 }}>
+      <div className="ws-kpis" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 15, marginBottom: 18 }}>
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "17px 18px" }}>
           <div style={{ fontSize: 11.5, color: "#8A93A6", marginBottom: 10 }}>Committed · this quarter</div>
           <div style={{ fontFamily: GROTESK, fontSize: 27, fontWeight: 600, letterSpacing: "-0.6px" }}>
@@ -521,7 +543,7 @@ function Catalogue({
   const [shown, setShown] = useState(48);
   useEffect(() => { setShown(48); }, [q, cat]);
   return (
-    <div style={{ padding: "24px 30px", animation: "elumeFade .35s ease" }}>
+    <div className="ws-pad" style={{ padding: "24px 30px", animation: "elumeFade .35s ease" }}>
       {q.trim() && (
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, fontSize: 13.5 }}>
           <span style={{ color: "#56627A" }}>
@@ -551,7 +573,7 @@ function Catalogue({
           Nothing matches{q.trim() ? ` “${q.trim()}”` : ""} in {cat === "All" ? "the catalogue" : cat}. Try fewer words.
         </div>
       )}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+      <div className="ws-catgrid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
         {products.slice(0, shown).map((p) => {
           const save = Math.round((1 - p.price / p.market) * 100) + "%";
           return (
@@ -567,7 +589,7 @@ function Catalogue({
                   <span style={{ fontSize: 11, color: "#8A93A6", fontWeight: 600, letterSpacing: "0.2px" }}>{p.brand}</span>
                 </div>
                 <div style={{ fontSize: 14, fontWeight: 600, color: "#19202E", margin: "4px 0 4px", lineHeight: 1.3 }}>{p.name}</div>
-                <div style={{ fontFamily: MONO, fontSize: 10.5, color: "#8A93A6", marginBottom: 13 }}>{p.spec}</div>
+                <div className="ws-spec" style={{ fontFamily: MONO, fontSize: 10.5, color: "#8A93A6", marginBottom: 13 }}>{p.spec}</div>
                 <div style={{ marginTop: "auto", display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
                   <div>
                     <div style={{ fontFamily: GROTESK, fontSize: 19, fontWeight: 600, color: "#19202E" }}>{fmt(p.price)}</div>
@@ -595,7 +617,7 @@ function Catalogue({
 /* ============================ PROJECT DETAIL ============================ */
 function ProjectDetail({ stages: STAGES, bomRows: BOM_ROWS, onReleaseAutoPO, onSmartBom }: { stages: SiteContent["stages"]; bomRows: SiteContent["bomRows"]; onReleaseAutoPO: () => void; onSmartBom: () => void }) {
   return (
-    <div style={{ padding: "24px 30px", animation: "elumeFade .35s ease" }}>
+    <div className="ws-pad" style={{ padding: "24px 30px", animation: "elumeFade .35s ease" }}>
       {/* project header */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
         <div>
@@ -691,7 +713,7 @@ function HeaderStat({ label, value, color = "#19202E" }: { label: string; value:
 /* ============================ SMART BOM ============================ */
 function SmartBom({ parsedRows: PARSED_ROWS, state, onUpload, onProject }: { parsedRows: SiteContent["parsedRows"]; state: BomState; onUpload: () => void; onProject: () => void }) {
   return (
-    <div style={{ padding: "24px 30px", maxWidth: 1080, animation: "elumeFade .35s ease" }}>
+    <div className="ws-pad" style={{ padding: "24px 30px", maxWidth: 1080, animation: "elumeFade .35s ease" }}>
       {state === "idle" && (
         <div>
           <div style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600, letterSpacing: "-0.4px" }}>Smart BOM</div>
@@ -799,7 +821,7 @@ function Cart({
 
   if (cart.length === 0) {
     return (
-      <div style={{ padding: "24px 30px", animation: "elumeFade .35s ease" }}>
+      <div className="ws-pad" style={{ padding: "24px 30px", animation: "elumeFade .35s ease" }}>
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "70px 30px", textAlign: "center" }}>
           <div style={{ fontSize: 15, fontWeight: 600, color: "#19202E" }}>{liveMode ? "Your cart is empty" : "No items in this purchase order yet"}</div>
           <div style={{ fontSize: 13, color: "#8A93A6", margin: "6px 0 18px" }}>{liveMode ? "Add products from the catalogue; wholesale pricing kicks in at 15+ units." : "Browse the catalogue or release an auto-PO from a project."}</div>
@@ -810,16 +832,16 @@ function Cart({
   }
 
   return (
-    <div style={{ padding: "24px 30px", animation: "elumeFade .35s ease" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 20, alignItems: "start" }}>
+    <div className="ws-pad" style={{ padding: "24px 30px", animation: "elumeFade .35s ease" }}>
+      <div className="ws-cartgrid" style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 20, alignItems: "start" }}>
         {/* line items */}
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflow: "hidden" }}>
           <div style={{ padding: "16px 20px", borderBottom: "1px solid #F0F2F6" }}>
-            <div style={{ fontFamily: GROTESK, fontWeight: 600, fontSize: 15 }}>Purchase order · {cart.length} items</div>
-            <div style={{ fontSize: 12.5, color: "#8A93A6", marginTop: 2 }}>Delivering to Aurelia Towers · Noida Sec 150</div>
+            <div style={{ fontFamily: GROTESK, fontWeight: 600, fontSize: 15 }}>{liveMode ? "Cart" : "Purchase order"} · {cart.length} item{cart.length === 1 ? "" : "s"}</div>
+            <div style={{ fontSize: 12.5, color: "#8A93A6", marginTop: 2 }}>{liveMode ? "Delivery address is picked at checkout" : "Delivering to Aurelia Towers · Noida Sec 150"}</div>
           </div>
           {cart.map((it) => (
-            <div key={it.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "15px 20px", borderBottom: "1px solid #F5F6F9" }}>
+            <div key={it.id} className="ws-cartrow" style={{ display: "flex", alignItems: "center", gap: 14, padding: "15px 20px", borderBottom: "1px solid #F5F6F9" }}>
               <div style={{ width: 52, height: 52, flex: "none", borderRadius: 10, background: "repeating-linear-gradient(135deg,#F3F4F8,#F3F4F8 7px,#EDEFF4 7px,#EDEFF4 14px)" }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 11, color: "#8A93A6", fontWeight: 600 }}>{it.brand}</div>
@@ -861,7 +883,7 @@ function Cart({
               </div>
             )}
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#56627A", marginBottom: 9 }}>
-              <span>Delivery · Noida</span>
+              <span>Delivery</span>
               <span style={{ color: "#1F9D63", fontWeight: 600 }}>Free</span>
             </div>
 
@@ -1045,9 +1067,9 @@ function LivePortfolio({ live, onCatalogue }: { live: LiveWorkspace; onCatalogue
 
   const { stats } = live;
   return (
-    <div style={{ padding: "26px 30px", animation: "elumeFade .35s ease" }}>
+    <div className="ws-pad" style={{ padding: "26px 30px", animation: "elumeFade .35s ease" }}>
       {/* KPI ROW: real numbers, zeros stated plainly */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 15, marginBottom: 18 }}>
+      <div className="ws-kpis" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 15, marginBottom: 18 }}>
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "17px 18px" }}>
           <div style={{ fontSize: 11.5, color: "#8A93A6", marginBottom: 10 }}>Ordered · all time</div>
           <div style={{ fontFamily: GROTESK, fontSize: 27, fontWeight: 600, letterSpacing: "-0.6px" }}>{fmt(stats.committed)}</div>
@@ -1116,7 +1138,7 @@ function LivePortfolio({ live, onCatalogue }: { live: LiveWorkspace; onCatalogue
                   <div style={{ fontSize: 11, color: "#8A93A6" }}>{pr.site ?? "location not set"}</div>
                 </div>
                 <span style={{ display: "inline-block", fontSize: 12, fontWeight: 600, padding: "3px 9px", borderRadius: 6, background: stageBg, color: stageFg }}>{pr.stage}</span>
-                <span style={{ fontSize: 11.5, color: "#A0A7B5", marginLeft: "auto" }}>
+                <span style={{ fontSize: 11.5, color: "#A0A7B5", marginLeft: "auto", whiteSpace: "nowrap" }}>
                   since {new Date(pr.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                 </span>
                 <span onClick={() => removeProject(pr.id)} title="Delete project" style={{ color: "#B43A16", cursor: "pointer", fontSize: 15, padding: "0 4px" }}>×</span>
@@ -1149,7 +1171,7 @@ function LiveOrders({ live, onCatalogue }: { live: LiveWorkspace; onCatalogue: (
   };
 
   return (
-    <div style={{ padding: "26px 30px", animation: "elumeFade .35s ease" }}>
+    <div className="ws-pad" style={{ padding: "26px 30px", animation: "elumeFade .35s ease" }}>
       <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflow: "hidden" }}>
         <div style={{ padding: "15px 18px", borderBottom: "1px solid #F0F2F6", fontFamily: GROTESK, fontWeight: 600, fontSize: 14.5 }}>
           Your orders <span style={{ color: "#8A93A6", fontWeight: 400 }}>· {live.orders.length}</span>
@@ -1181,8 +1203,9 @@ function LiveOrders({ live, onCatalogue }: { live: LiveWorkspace; onCatalogue: (
                 </summary>
 
                 {/* Inline tracking: the full journey right here, no separate page. */}
-                <div style={{ background: "#F8F9FC", borderTop: "1px solid #F0F2F6", padding: "18px 20px 16px 43px" }}>
-                  <div style={{ display: "flex", alignItems: "flex-start", gap: 0, marginBottom: 16, maxWidth: 640 }}>
+                <div style={{ background: "#F8F9FC", borderTop: "1px solid #F0F2F6", padding: "18px 20px 16px 20px" }}>
+                  <div className="ws-journey-scroll">
+                  <div className="ws-journey" style={{ display: "flex", alignItems: "flex-start", gap: 0, marginBottom: 16, maxWidth: 640 }}>
                     {JOURNEY.map((st, i) => {
                       const done = i < pos, active = i === pos;
                       return (
@@ -1197,6 +1220,7 @@ function LiveOrders({ live, onCatalogue }: { live: LiveWorkspace; onCatalogue: (
                         </div>
                       );
                     })}
+                  </div>
                   </div>
                   {o.status === "partially_shipped" && (
                     <div style={{ fontSize: 12, color: "#B4690E", fontWeight: 600, marginBottom: 10 }}>Part of this order has shipped; the rest is on its way.</div>
@@ -1265,7 +1289,7 @@ function AccountScreen({ user, section }: { user: { email: string; name?: string
   const saveBtn = (b: boolean): React.CSSProperties => ({ marginTop: 14, background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13, border: "none", padding: "10px 20px", borderRadius: 9, cursor: "pointer", opacity: b ? 0.6 : 1 });
 
   return (
-    <div style={{ padding: "26px 30px", animation: "elumeFade .35s ease" }}>
+    <div className="ws-pad" style={{ padding: "26px 30px", animation: "elumeFade .35s ease" }}>
       {/* ── Account details ── */}
       <div ref={bizRef} style={card}>
         <div style={{ fontFamily: GROTESK, fontWeight: 600, fontSize: 15.5, marginBottom: 4 }}>Account details</div>
@@ -1314,3 +1338,20 @@ function AccountScreen({ user, section }: { user: { email: string; name?: string
   );
 }
 
+/** Thin line icons for the mobile tab bar (currentColor, 22px). */
+function TabIcon({ name, active }: { name: string; active: boolean }) {
+  const sw = active ? 2 : 1.7;
+  const common = { width: 22, height: 22, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: sw, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  switch (name) {
+    case "portfolio": // home
+      return <svg {...common}><path d="M3 10.5 12 3l9 7.5" /><path d="M5.5 9.5V20h13V9.5" /><path d="M9.5 20v-5.5h5V20" /></svg>;
+    case "catalogue": // grid
+      return <svg {...common}><rect x="3.5" y="3.5" width="7" height="7" rx="1.5" /><rect x="13.5" y="3.5" width="7" height="7" rx="1.5" /><rect x="3.5" y="13.5" width="7" height="7" rx="1.5" /><rect x="13.5" y="13.5" width="7" height="7" rx="1.5" /></svg>;
+    case "cart":
+      return <svg {...common}><path d="M3 4h2.2l2.1 11.2a1.6 1.6 0 0 0 1.6 1.3h7.9a1.6 1.6 0 0 0 1.6-1.2L20.5 8H6" /><circle cx="9.7" cy="20" r="1.3" /><circle cx="16.6" cy="20" r="1.3" /></svg>;
+    case "confirm": // package
+      return <svg {...common}><path d="M12 3 4 7v10l8 4 8-4V7l-8-4Z" /><path d="M4 7l8 4 8-4" /><path d="M12 11v9" /></svg>;
+    default:
+      return <svg {...common}><circle cx="12" cy="12" r="8" /></svg>;
+  }
+}
