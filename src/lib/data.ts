@@ -88,6 +88,20 @@ export const HOME_CATS = ["All", "Wires & Cables", "Switchgear", "Modular", "Lig
 
 export const HERO_CATS = ["Wires & Cables", "Switchgear", "Lighting", "Fans", "Modular", "DB & Panels"];
 
+/** Every browsable category with its menu icon — one source for the desktop
+ *  mega-menu and the mobile drawer, so they always show the same thing. */
+export const MENU_CATS: [string, string][] = [
+  ["Wires & Cables", "〰️"],
+  ["Switchgear", "⚡"],
+  ["Modular", "▣"],
+  ["Lighting", "💡"],
+  ["Fans", "🌀"],
+  ["DB & Panels", "🗄️"],
+  ["Pumps", "🚰"],
+  ["Electrical Accessories", "🔌"],
+  ["EV Charging", "🔋"],
+];
+
 export const FEATURE_TAGS = [
   "Every brand, one cart",
   "See savings per line",

@@ -3,16 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { HERO_CATS, HOME_BRANDS } from "@/lib/data";
-
-const CAT_ICONS: Record<string, string> = {
-  "Wires & Cables": "〰️",
-  Switchgear: "⚡",
-  Modular: "▣",
-  Lighting: "💡",
-  Fans: "🌀",
-  "DB & Panels": "🗄️",
-};
+import { MENU_CATS, HOME_BRANDS } from "@/lib/data";
 
 /** Hamburger + LEFT slide-in drawer — a shopping-first menu (Amazon-style):
  *  top deals / trending, wholesale hook, categories and brands. Account links
@@ -69,9 +60,9 @@ export default function MobileMenu() {
         {/* Categories */}
         <div className="drw-section">Top categories for you</div>
         <div className="drw-grid">
-          {HERO_CATS.map((c) => (
+          {MENU_CATS.map(([c, icon]) => (
             <Link key={c} href={`/catalogue?cat=${encodeURIComponent(c)}`} onClick={close}>
-              <span style={{ fontSize: 13 }}>{CAT_ICONS[c]}</span> {c}
+              <span style={{ fontSize: 13 }}>{icon}</span> {c}
             </Link>
           ))}
         </div>

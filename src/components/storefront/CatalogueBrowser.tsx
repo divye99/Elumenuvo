@@ -133,11 +133,30 @@ export default function CatalogueBrowser({
       case "new":
         // Catalogue rows are appended over time, so reverse featured order ≈ newest first.
         return [...list].reverse();
-      default:
-        // Featured learns: products people actually choose from search rise,
-        // damped so the curated sort_order still matters. Stable sort keeps
-        // the curated order within equal boost.
-        return [...list].sort((a, b) => Math.min(searchBoost[b.id] ?? 0, 20) - Math.min(searchBoost[a.id] ?? 0, 20));
+      default: {
+        // Featured = TRENDING (sales + search picks + recommendation), and the
+        // landing view opens with a diverse shelf: the first 20 products are
+        // all different brands, cycling through categories, so no single
+        // brand (like our own) walls off the top of the catalogue.
+        const trend = (p: Product) =>
+          Math.min(searchBoost[p.id] ?? 0, 20) * 3 + Math.min(p.unitsSold ?? 0, 200) + (p.recommended ? 8 : 0);
+        const ranked = [...list].sort((a, b) => trend(b) - trend(a));
+        const filtersActive = cat !== "All" || picked.size > 0 || tokens.length > 0;
+        if (filtersActive) return ranked;
+
+        const lead: Product[] = [];
+        const chosen = new Set<string>();
+        const usedBrand = new Set<string>();
+        let usedCat = new Set<string>();
+        while (lead.length < 20) {
+          let pick = ranked.find((p) => !chosen.has(p.id) && !usedBrand.has(p.brand) && !usedCat.has(p.cat));
+          if (!pick && usedCat.size) { usedCat = new Set(); continue; }   // category cycle restarts
+          if (!pick) pick = ranked.find((p) => !chosen.has(p.id));        // brands exhausted → best remaining
+          if (!pick) break;
+          lead.push(pick); chosen.add(pick.id); usedBrand.add(pick.brand); usedCat.add(pick.cat);
+        }
+        return [...lead, ...ranked.filter((p) => !chosen.has(p.id))];
+      }
     }
   }, [products, cat, picked, dq, sort, searchBoost]);
 

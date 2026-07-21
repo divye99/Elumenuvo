@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Mark, Wordmark } from "@/components/Brand";
 import HeaderSearch from "@/components/storefront/HeaderSearch";
+import CatalogueMegaMenu from "@/components/storefront/CatalogueMegaMenu";
 import ScrollTopButton from "@/components/storefront/ScrollTopButton";
 import CartButton from "@/components/storefront/CartButton";
 import AccountButton from "@/components/storefront/AccountButton";
@@ -56,9 +57,7 @@ export default async function StoreChrome({ children }: { children: React.ReactN
           </div>
 
           <nav className="hdr-actions">
-            <Link href="/catalogue" className="hdr-navlink" style={{ fontSize: 14, fontWeight: 600, color: "#19202E" }}>
-              Catalogue
-            </Link>
+            <CatalogueMegaMenu />
             <Link href="/blog" className="hdr-navlink" style={{ fontSize: 14, fontWeight: 500, color: "#56627A" }}>
               Blog
             </Link>
