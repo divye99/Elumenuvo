@@ -199,3 +199,30 @@ export async function sendAccountInvite(order: OrderLike): Promise<EmailResult> 
   );
   return send(order.email, `Track order ${order.id} — create your Elume account`, html, { bcc: BCC_SELF });
 }
+
+/** Order confirmation restated + account nudge + a personal one-time
+ *  discount code for the next purchase. Sent manually from admin. */
+export async function sendWelcomeOffer(order: OrderLike, code: string, percent: number, expiresAt: Date): Promise<EmailResult> {
+  const signupUrl = `${SITE}/signin?mode=signup&email=${encodeURIComponent(order.email)}`;
+  const until = expiresAt.toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "long" });
+  const html = shell(
+    "Your order is confirmed — and a welcome gift 🎁",
+    `<p style="font-size:14px;color:#56627A;margin:0 0 10px">Hi ${escapeHtml(order.name || "there")}, your order <b>${order.id}</b> is confirmed and being prepared.</p>
+     ${itemsTable(order)}
+     <p style="font-size:13px;color:#56627A;margin:12px 0 4px">Track it anytime:</p>
+     ${btn(trackUrl(order), "Track my order →")}
+
+     <div style="margin-top:24px;padding:18px 20px;background:linear-gradient(120deg,#F2FBF6,#EEF0FD);border:1px solid #DCEDE3;border-radius:12px">
+       <p style="font-size:13.5px;font-weight:700;color:#19202E;margin:0 0 6px">As a new Elume customer, here's ${percent}% off your next order:</p>
+       <p style="font-family:monospace;font-size:22px;font-weight:700;letter-spacing:1px;color:#1F9D63;margin:0 0 6px">${escapeHtml(code)}</p>
+       <p style="font-size:12px;color:#56627A;margin:0">One-time use, tied to this email, valid until <b>${until}</b>. Enter it in the "Discount code" box at checkout.</p>
+     </div>
+
+     <div style="margin-top:18px;padding:16px 18px;background:#F7F8FB;border:1px solid #E8EBF1;border-radius:12px">
+       <p style="font-size:13.5px;font-weight:700;color:#19202E;margin:0 0 6px">See your orders in one place</p>
+       <p style="font-size:13px;color:#56627A;margin:0 0 10px">Create your free account with this email and this order appears in your dashboard automatically — live tracking, history and GST invoices.</p>
+       ${btn(signupUrl, "Create my account →")}
+     </div>`
+  );
+  return send(order.email, `Order ${order.id} confirmed — plus ${percent}% off your next order`, html, { bcc: BCC_SELF });
+}

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { searchTokens, matchesAll, normalizeSearchText } from "@/lib/search-normalize";
+import { loadSearchSignals } from "@/lib/search-signals";
 
 /**
  * Search-suggest API behind the Amazon-style header search.
@@ -33,6 +34,9 @@ export async function GET(request: Request) {
 
   const words = q.split(/\s+/).map(safe).filter((w) => w.length >= 1).slice(0, 6);
   if (!words.length) return NextResponse.json({ terms: [], products: [] }, { status: 200 });
+  // Learned signals from the query log (cached 10 min; empty when cold).
+  const signals = await loadSearchSignals();
+  const normQ = normalizeSearchText(q);
   // Normalised tokens do the REAL matching ("1 sqmm" == "1 sq mm" == "1.0 sq. mm").
   const tokens = searchTokens(q);
 
@@ -55,11 +59,16 @@ export async function GET(request: Request) {
     /* suggest must never break the page; empty is fine */
   }
 
-  /* ── rank product hits: name-prefix > word-boundary > substring ── */
+  /* ── rank product hits: learned picks > name-prefix > word-boundary ── */
+  const queryPicks = signals.picksByQuery[normQ] ?? {};
   const score = (r: Row) => {
     const n = normalizeSearchText(r.name);
     let s = 0;
-    if (n.startsWith(normalizeSearchText(q))) s += 100;
+    // What people CHOSE after this exact query outranks everything.
+    s += Math.min(queryPicks[r.id] ?? 0, 10) * 30;
+    // Products picked from search anywhere get a damped global boost.
+    s += Math.min(signals.pickTotals[r.id] ?? 0, 25) * 2;
+    if (n.startsWith(normQ)) s += 100;
     for (const w of words) if (new RegExp(`(^|[^\\p{L}\\p{N}])${w.replace(/[.+-]/g, "\\$&")}`, "iu").test(n)) s += 10;
     if (r.is_recommended) s += 5;
     s += Math.min(Number(r.units_sold) || 0, 50) / 10;
@@ -79,6 +88,15 @@ export async function GET(request: Request) {
     seen.add(k);
     terms.push({ label, q: qq, ...(cat ? { cat } : {}) });
   };
+
+  // LEARNED first: completions from what real visitors actually searched
+  // (frequency-ranked, successful queries only). The list grows and reorders
+  // itself as search volume accumulates.
+  for (const pq of signals.popularQueries) {
+    if (terms.length >= 3) break; // leave room for brand/category suggestions
+    if (pq.q === q) continue;
+    if (pq.q.startsWith(q) || normalizeSearchText(pq.q).startsWith(normQ)) add(pq.q, pq.q);
+  }
 
   // Brand completions when the query looks like a brand prefix.
   for (const b of new Set(rows.map((r) => r.brand))) {

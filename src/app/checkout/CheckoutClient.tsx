@@ -47,6 +47,8 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
   const { items, total, baseTotal, gstTotal, clear } = useCart();
   const [pending, start] = useTransition();
   const [done, setDone] = useState<{ orderId: string; total: number } | null>(null);
+  const [code, setCode] = useState("");
+  const [codeState, setCodeState] = useState<{ status: "idle" | "checking" | "ok" | "err"; percent?: number; msg?: string }>({ status: "idle" });
   const [err, setErr] = useState<string | null>(null);
   const errRef = useRef<HTMLDivElement>(null);
 
@@ -78,7 +80,21 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
     gstin: gstOnFile ? prefill.gstin : f.wantGst ? f.gstin : undefined,
     payment_method: "online", // pay-on-delivery is retired; Razorpay only
     items: items.map((i) => ({ id: i.id, name: i.name, qty: i.qty, price: i.price, cat: i.cat })),
+    discount_code: codeState.status === "ok" ? code.trim().toUpperCase() : undefined,
   });
+
+  const applyCode = async () => {
+    if (!code.trim()) return;
+    if (!f.email.trim()) { setCodeState({ status: "err", msg: "Fill in your email first — codes can be tied to an email." }); return; }
+    setCodeState({ status: "checking" });
+    try {
+      const r = await fetch("/api/discount/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: code.trim(), email: f.email.trim() }) });
+      const d = await r.json();
+      setCodeState(d.ok ? { status: "ok", percent: d.percent } : { status: "err", msg: d.error });
+    } catch { setCodeState({ status: "err", msg: "Couldn't check the code — try again." }); }
+  };
+  const discount = codeState.status === "ok" ? Math.round(total * ((codeState.percent ?? 0) / 100) * 100) / 100 : 0;
+  const payable = Math.round((total - discount) * 100) / 100;
 
   const submit = () =>
     start(async () => {
@@ -271,10 +287,10 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
             <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
               <div>
                 <div style={{ fontSize: 11.5, color: "#8A93A6" }}>Total payable (incl. GST)</div>
-                <div style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 700, lineHeight: 1.2 }}>{fmt(total)}</div>
+                <div style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 700, lineHeight: 1.2 }}>{fmt(payable)}</div>
               </div>
               <button onClick={submit} disabled={pending || !onlineEnabled} title={onlineEnabled ? "" : "Online payment is being enabled - ordering opens shortly"} style={{ flex: 1, minWidth: 200, marginLeft: "auto", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 15, border: "none", padding: 15, borderRadius: 11, cursor: pending || !onlineEnabled ? "default" : "pointer", opacity: pending || !onlineEnabled ? 0.6 : 1 }}>
-                {pending ? "Opening payment…" : onlineEnabled ? `Pay securely · ${fmt(total)}` : "Payments enabling soon"}
+                {pending ? "Opening payment…" : onlineEnabled ? `Pay securely · ${fmt(payable)}` : "Payments enabling soon"}
               </button>
             </div>
             <div style={{ fontSize: 11.5, color: "#8A93A6", marginTop: 10 }}>
@@ -297,13 +313,25 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
             <SumRow label="Subtotal (excl. GST)" value={fmt(gst.base)} muted />
             <SumRow label="GST" value={fmt(gst.tax)} muted />
             <SumRow label="Delivery" value="Free" green />
+            {discount > 0 && <SumRow label={`Discount (${codeState.percent}% · ${code.trim().toUpperCase()})`} value={`− ${fmt(discount)}`} green />}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 8 }}>
               <span style={{ fontWeight: 600, fontSize: 14 }}>Total <span style={{ fontSize: 11, color: "#8A93A6", fontWeight: 500 }}>incl. GST</span></span>
-              <span style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 700 }}>{fmt(total)}</span>
+              <span style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 700 }}>{fmt(payable)}</span>
             </div>
           </div>
+          {/* Discount code */}
+          <div style={{ marginTop: 10 }}>
+            <div style={{ display: "flex", gap: 7 }}>
+              <input value={code} onChange={(e) => { setCode(e.target.value.toUpperCase()); setCodeState({ status: "idle" }); }} placeholder="Discount code" style={{ flex: 1, border: "1px solid #E0E4ED", borderRadius: 9, padding: "9px 11px", fontSize: 12.5, textTransform: "uppercase" }} />
+              <button onClick={applyCode} disabled={codeState.status === "checking" || !code.trim()} style={{ border: "1.5px solid #4E5BDC", background: "#fff", color: "#4E5BDC", fontWeight: 700, fontSize: 12.5, borderRadius: 9, padding: "0 14px", cursor: "pointer", opacity: codeState.status === "checking" ? 0.6 : 1 }}>
+                {codeState.status === "checking" ? "…" : codeState.status === "ok" ? "✓" : "Apply"}
+              </button>
+            </div>
+            {codeState.status === "ok" && <div style={{ fontSize: 12, color: "#1F9D63", fontWeight: 600, marginTop: 5 }}>{codeState.percent}% off applied.</div>}
+            {codeState.status === "err" && <div style={{ fontSize: 12, color: "#D14343", fontWeight: 600, marginTop: 5 }}>{codeState.msg}</div>}
+          </div>
           <button onClick={submit} disabled={pending || !onlineEnabled} title={onlineEnabled ? "" : "Online payment is being enabled - ordering opens shortly"} style={{ width: "100%", marginTop: 14, background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14.5, border: "none", padding: 13, borderRadius: 11, cursor: pending || !onlineEnabled ? "default" : "pointer", opacity: pending || !onlineEnabled ? 0.6 : 1 }}>
-            {pending ? "Opening payment…" : onlineEnabled ? `Pay securely · ${fmt(total)}` : "Payments enabling soon"}
+            {pending ? "Opening payment…" : onlineEnabled ? `Pay securely · ${fmt(payable)}` : "Payments enabling soon"}
           </button>
           <div style={{ fontSize: 11, color: "#A0A7B5", textAlign: "center", marginTop: 8 }}>🔒 Secured by Razorpay</div>
         </div>

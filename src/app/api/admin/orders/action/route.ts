@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin/auth";
 import { adminClient } from "@/lib/supabase/admin";
-import { sendAccountInvite } from "@/lib/email";
+import { sendAccountInvite, sendWelcomeOffer, sendCustomerStatusUpdate } from "@/lib/email";
 import {
   updateOrderStatus,
   cancelOrder,
@@ -63,6 +63,36 @@ export async function POST(request: Request) {
         items: Array.isArray(body.items) ? body.items : [],
       });
       break;
+    case "notify": {
+      // Resend the email for the order's CURRENT status (e.g. a confirmation
+      // that never went out while the email domain was unverified).
+      const db = adminClient();
+      if (!db) return NextResponse.json({ ok: false, error: "Server not configured." }, { status: 500 });
+      const { data: order } = await db.from("orders").select("*").eq("id", String(body.orderId)).maybeSingle();
+      if (!order?.email) return NextResponse.json({ ok: false, error: "Order or email not found." }, { status: 400 });
+      const sent = await sendCustomerStatusUpdate(order, order.status);
+      res = sent.ok ? { ok: true } : { ok: false, error: "Email failed — check Resend logs." };
+      break;
+    }
+    case "welcome-offer": {
+      // One-time personal discount for a first order: create the code, then
+      // send confirmation + code + account nudge in one email.
+      const db = adminClient();
+      if (!db) return NextResponse.json({ ok: false, error: "Server not configured." }, { status: 500 });
+      const { data: order } = await db.from("orders").select("*").eq("id", String(body.orderId)).maybeSingle();
+      if (!order?.email) return NextResponse.json({ ok: false, error: "Order or email not found." }, { status: 400 });
+      const percent = 10;
+      const expires = new Date(Date.now() + 30 * 86_400_000);
+      const code = `ELUME10-${String(body.orderId).slice(-4)}${Math.floor(10 + Math.random() * 90)}`;
+      const { error: insErr } = await db.from("discount_codes").insert({
+        code, percent, email_lock: order.email.toLowerCase(), expires_at: expires.toISOString(),
+        max_uses: 1, note: `Welcome offer · order ${order.id}`,
+      });
+      if (insErr) return NextResponse.json({ ok: false, error: `Couldn't create the code: ${insErr.message} (run migration 0056?)` }, { status: 400 });
+      const sent = await sendWelcomeOffer(order, code, percent, expires);
+      res = sent.ok ? { ok: true } : { ok: false, error: `Code ${code} created but the email failed — check Resend logs.` };
+      break;
+    }
     case "invite": {
       // Invite a guest-checkout customer to create an account for tracking.
       const db = adminClient();

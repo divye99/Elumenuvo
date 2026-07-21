@@ -16,6 +16,7 @@ export type PlaceOrderInput = {
   gstin?: string;
   payment_method: string; // 'cod' | 'online'
   items: CheckoutItem[];
+  discount_code?: string;
 };
 export type PlaceOrderResult =
   | { ok: true; orderId: string; total: number }
@@ -63,13 +64,36 @@ async function validate(
 }
 
 /** Insert the order row as AWAITING PAYMENT (no emails yet — nothing is paid). */
+/** Validate a discount code for this email. Returns the percent or an error.
+ *  Consumption happens at markOrderPaid — an abandoned checkout never burns
+ *  a one-time code. */
+export async function checkDiscountCode(
+  code: string,
+  email: string
+): Promise<{ ok: true; percent: number } | { ok: false; error: string }> {
+  const db = adminClient();
+  if (!db) return { ok: false, error: "Discounts unavailable right now." };
+  const cc = code.trim().toUpperCase();
+  if (!cc) return { ok: false, error: "Enter a code." };
+  const { data: d } = await db.from("discount_codes").select("*").eq("code", cc).maybeSingle();
+  if (!d) return { ok: false, error: "That code doesn't exist." };
+  if (new Date(d.expires_at).getTime() < Date.now()) return { ok: false, error: "That code has expired." };
+  if (d.used_count >= d.max_uses) return { ok: false, error: "That code has already been used." };
+  if (d.email_lock && d.email_lock.toLowerCase() !== email.trim().toLowerCase()) {
+    return { ok: false, error: "That code belongs to a different email address." };
+  }
+  return { ok: true, percent: Number(d.percent) };
+}
+
 async function insertPendingOrder(
   db: NonNullable<ReturnType<typeof adminClient>>,
   id: string,
   input: PlaceOrderInput,
   items: CheckoutItem[],
   total: number,
-  razorpayOrderId: string
+  razorpayOrderId: string,
+  discountCode: string | null = null,
+  discountAmount = 0
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   let userId: string | null = null;
   try {
@@ -95,6 +119,8 @@ async function insertPendingOrder(
       ? items.reduce((s, i) => s + baseExGst(i.price, i.cat) * i.qty, 0)
       : Math.round(exGst(total) * 100) / 100,
     total,
+    discount_code: discountCode,
+    discount_amount: discountAmount || null,
     is_guest: !userId,
     user_id: userId,
     status: "awaiting_payment",
@@ -140,6 +166,13 @@ export async function markOrderPaid(
   }
 
   try { await db.from("order_events").insert({ order_id: orderId, status: "placed", note: "Order placed · paid online" }); } catch { /* table may not exist */ }
+  // Consume the discount code only now that money actually landed.
+  if (order.discount_code) {
+    try {
+      const { data: dc } = await db.from("discount_codes").select("used_count").eq("code", order.discount_code).maybeSingle();
+      if (dc) await db.from("discount_codes").update({ used_count: Number(dc.used_count) + 1 }).eq("code", order.discount_code);
+    } catch { /* never block payment on this */ }
+  }
   const mail = {
     id: orderId, email: order.email, name: order.name, phone: order.phone,
     total: Number(order.total), items: order.items ?? [],
@@ -176,15 +209,27 @@ export async function startOnlinePayment(input: PlaceOrderInput): Promise<StartP
   const v = await validate(db, input);
   if (!v.ok) return v;
 
+  // Apply a discount code AFTER re-pricing — always on OUR numbers.
+  let discount = 0;
+  let appliedCode: string | null = null;
+  if (input.discount_code?.trim()) {
+    const dc = await checkDiscountCode(input.discount_code, input.email);
+    if (!dc.ok) return { ok: false, error: dc.error };
+    discount = Math.round(v.total * (dc.percent / 100) * 100) / 100;
+    appliedCode = input.discount_code.trim().toUpperCase();
+  }
+  const payable = Math.round((v.total - discount) * 100) / 100;
+  if (payable < 1) return { ok: false, error: "Order total too small." };
+
   const id = orderId();
-  const rp = await createRazorpayOrder(Math.round(v.total * 100), id, { orderId: id, email: input.email.trim().toLowerCase() });
+  const rp = await createRazorpayOrder(Math.round(payable * 100), id, { orderId: id, email: input.email.trim().toLowerCase() });
   if (!rp.ok) return { ok: false, error: rp.error };
 
-  const pending = await insertPendingOrder(db, id, input, v.items, v.total, rp.id);
+  const pending = await insertPendingOrder(db, id, input, v.items, payable, rp.id, appliedCode, discount);
   if (!pending.ok) return { ok: false, error: pending.error };
 
   return {
-    ok: true, orderId: id, razorpayOrderId: rp.id, keyId: razorpayKeyId(), amount: Math.round(v.total * 100),
+    ok: true, orderId: id, razorpayOrderId: rp.id, keyId: razorpayKeyId(), amount: Math.round(payable * 100),
     name: input.name.trim(), email: input.email.trim().toLowerCase(), phone: input.phone.trim(),
   };
 }

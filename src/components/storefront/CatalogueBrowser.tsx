@@ -41,12 +41,15 @@ export default function CatalogueBrowser({
   initialCat = "All",
   initialSort = "featured",
   editorial = {},
+  searchBoost = {},
 }: {
   products: Product[];
   initialQ?: string;
   initialCat?: string;
   initialSort?: string;
   editorial?: Record<string, { bestFor: string; rank: number; slug: string; postTitle: string }>;
+  /** productId -> times chosen from search; learned signal reshaping Featured. */
+  searchBoost?: Record<string, number>;
 }) {
   // URL params are read client-side (the page itself is static/cached).
   const sp = useSearchParams();
@@ -131,9 +134,12 @@ export default function CatalogueBrowser({
         // Catalogue rows are appended over time, so reverse featured order ≈ newest first.
         return [...list].reverse();
       default:
-        return list;
+        // Featured learns: products people actually choose from search rise,
+        // damped so the curated sort_order still matters. Stable sort keeps
+        // the curated order within equal boost.
+        return [...list].sort((a, b) => Math.min(searchBoost[b.id] ?? 0, 20) - Math.min(searchBoost[a.id] ?? 0, 20));
     }
-  }, [products, cat, picked, dq, sort]);
+  }, [products, cat, picked, dq, sort, searchBoost]);
 
   useEffect(() => {
     const needle = q.trim();
