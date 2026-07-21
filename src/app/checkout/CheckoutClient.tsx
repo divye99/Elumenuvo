@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { GROTESK } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
-import { baseExGst } from "@/lib/pricing";
+import { unitPriceFor, baseExGst } from "@/lib/pricing";
 import { useCart } from "@/lib/cart";
 import { startOnlinePayment, confirmOnlinePayment } from "@/lib/order-actions";
 import { identify } from "@/lib/analytics";
@@ -305,7 +305,7 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
           {items.map((it) => (
             <div key={it.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12.5, marginBottom: 7 }}>
               <span style={{ color: "#56627A", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{it.qty}× {it.name}</span>
-              <span style={{ fontFamily: GROTESK, fontWeight: 600 }}>{fmt(baseExGst(it.price, it.cat) * it.qty)}</span>
+              <span style={{ fontFamily: GROTESK, fontWeight: 600 }}>{fmt(baseExGst(unitPriceFor(it.price, it.qty), it.cat) * it.qty)}</span>
             </div>
           ))}
           <div style={{ borderTop: "1px solid #F0F2F6", marginTop: 8, paddingTop: 10 }}>

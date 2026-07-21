@@ -4,10 +4,6 @@
   "installCommand": "npm install",
   "crons": [
     {
-      "path": "/api/cron/reap-sandboxes",
-      "schedule": "0 3 * * *"
-    },
-    {
       "path": "/api/cron/expire-pending-orders",
       "schedule": "0 4 * * *"
     },

@@ -9,9 +9,12 @@ import { createHmac, timingSafeEqual } from "crypto";
 export const ADMIN_COOKIE = "elume_admin";
 export const ADMIN_TTL_MS = 12 * 60 * 60 * 1000; // 12h
 
-const secret = process.env.SANDBOX_COOKIE_SECRET || "dev-only-insecure-admin-secret";
+// Fail CLOSED: without the signing secret, admin tokens can neither be
+// minted nor verified — nobody gets in, instead of everybody.
+const secret = (process.env.SANDBOX_COOKIE_SECRET || "").trim();
 
 function sign(payload: string) {
+  if (!secret) throw new Error("SANDBOX_COOKIE_SECRET is not set — admin auth disabled.");
   return createHmac("sha256", secret).update(payload).digest("base64url");
 }
 
@@ -21,7 +24,7 @@ export function makeAdminToken(exp: number): string {
 }
 
 export function readAdminToken(value: string | undefined): boolean {
-  if (!value) return false;
+  if (!value || !secret) return false;
   const parts = value.split(".");
   if (parts.length !== 3) return false;
   const [a, expStr, sig] = parts;

@@ -113,11 +113,17 @@ async function insertPendingOrder(
     payment_method: "online",
     items,
     product_ids: items.map((i) => i.id),
-    // Taxable value = sum of each item's ex-GST base at its category rate
-    // (falls back to the flat split if items predate the cat field).
-    subtotal: items.some((i) => i.cat)
-      ? items.reduce((s, i) => s + baseExGst(i.price, i.cat) * i.qty, 0)
-      : Math.round(exGst(total) * 100) / 100,
+    // Taxable value = sum of each item's ex-GST base at its category rate,
+    // scaled down proportionally when a discount applies — GST is charged on
+    // what the customer actually pays, so subtotal + GST always equals total.
+    subtotal: (() => {
+      const gross = items.some((i) => i.cat)
+        ? items.reduce((s, i) => s + baseExGst(i.price, i.cat) * i.qty, 0)
+        : Math.round(exGst(total + discountAmount) * 100) / 100;
+      const preDiscount = total + discountAmount;
+      const scale = preDiscount > 0 ? total / preDiscount : 1;
+      return Math.round(gross * scale * 100) / 100;
+    })(),
     total,
     discount_code: discountCode,
     discount_amount: discountAmount || null,
@@ -156,7 +162,7 @@ export async function markOrderPaid(
     .from("orders")
     .update({ status: "placed", paid_at: new Date().toISOString(), razorpay_payment_id: razorpayPaymentId })
     .eq("id", orderId)
-    .eq("status", "awaiting_payment") // ← the idempotency guard
+    .in("status", ["awaiting_payment", "payment_abandoned"]) // late UPI captures recover swept orders // ← the idempotency guard
     .select("id");
 
   const newlyPaid = !!updated && updated.length > 0;
@@ -169,8 +175,13 @@ export async function markOrderPaid(
   // Consume the discount code only now that money actually landed.
   if (order.discount_code) {
     try {
-      const { data: dc } = await db.from("discount_codes").select("used_count").eq("code", order.discount_code).maybeSingle();
-      if (dc) await db.from("discount_codes").update({ used_count: Number(dc.used_count) + 1 }).eq("code", order.discount_code);
+      // Atomic, capped increment (migration 0058); falls back to
+      // read-then-write if the function hasn't been created yet.
+      const { error: rpcErr } = await db.rpc("consume_discount_code", { p_code: order.discount_code });
+      if (rpcErr) {
+        const { data: dc } = await db.from("discount_codes").select("used_count").eq("code", order.discount_code).maybeSingle();
+        if (dc) await db.from("discount_codes").update({ used_count: Number(dc.used_count) + 1 }).eq("code", order.discount_code);
+      }
     } catch { /* never block payment on this */ }
   }
   const mail = {

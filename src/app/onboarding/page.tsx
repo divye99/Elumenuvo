@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { getProfile } from "@/lib/profile";
 import OnboardingForm from "@/app/onboarding/OnboardingForm";
 
+export const metadata = { robots: { index: false } };
+
 export const dynamic = "force-dynamic";
 
 export default async function OnboardingPage() {

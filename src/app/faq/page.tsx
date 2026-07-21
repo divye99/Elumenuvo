@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { jsonLd as toJsonLd } from "@/lib/jsonld";
 import InfoPage from "@/components/storefront/InfoPage";
 import { faqJsonLd, type Faq } from "@/lib/seo";
 
@@ -24,7 +25,7 @@ const FAQS: Faq[] = [
 export default function FaqPage() {
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(FAQS)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLd(faqJsonLd(FAQS)) }} />
       <InfoPage
         kicker="Help centre"
         title="Frequently asked questions"

@@ -89,6 +89,12 @@ export default function OrderDetailClient({ order, shipments, events }: { order:
                 </div>
               );
             })}
+            {(order as any).discount_amount > 0 && (
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, paddingTop: 8, borderTop: "1px solid #F0F2F6", fontSize: 13, color: "#1F9D63", fontWeight: 600 }}>
+                <span>Discount{(order as any).discount_code ? ` · ${(order as any).discount_code}` : ""}</span>
+                <span>− {fmt((order as any).discount_amount)}</span>
+              </div>
+            )}
             <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid #F0F2F6", marginTop: 8, paddingTop: 10, fontWeight: 700 }}>
               <span>Total <span style={{ fontSize: 11, color: "#8A93A6", fontWeight: 500 }}>incl. GST</span></span>
               <span style={{ fontFamily: "var(--space-grotesk)" }}>{order.total != null ? fmt(order.total) : "—"}</span>

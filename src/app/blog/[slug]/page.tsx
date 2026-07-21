@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { jsonLd as toJsonLd } from "@/lib/jsonld";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPost, getSlugs } from "@/lib/blog";
@@ -87,7 +88,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   return (
     <main style={{ maxWidth: 760, margin: "0 auto", padding: "40px 24px 70px" }}>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLd(jsonLd) }} />
 
       {/* Breadcrumb */}
       <nav style={{ fontSize: 13, color: "#8A93A6", marginBottom: 18 }}>

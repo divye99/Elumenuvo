@@ -83,6 +83,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, warning: "no matching order" }, { status: 200 });
   }
 
+  // Defense in depth: the captured amount must match what the order says.
+  const paidPaise = Number(payment.amount);
+  if (Number.isFinite(paidPaise) && paidPaise > 0) {
+    const { data: ord } = await db.from("orders").select("total").eq("id", orderId).maybeSingle();
+    const expected = ord ? Math.round(Number(ord.total) * 100) : null;
+    if (expected != null && paidPaise !== expected) {
+      console.error(`[razorpay-webhook] AMOUNT MISMATCH on ${orderId}: paid ${paidPaise} vs expected ${expected} — NOT marking paid`);
+      return NextResponse.json({ error: "Amount mismatch." }, { status: 500 }); // retry + loud log; needs a human
+    }
+  }
+
   const res = await markOrderPaid(db, orderId, razorpayOrderId, razorpayPaymentId);
   if (!res.ok) {
     console.error(`[razorpay-webhook] markOrderPaid failed for ${orderId}: ${res.error}`);

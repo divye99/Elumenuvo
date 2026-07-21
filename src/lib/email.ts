@@ -127,7 +127,7 @@ export async function sendCustomerStatusUpdate(
 ): Promise<EmailResult> {
   const label = STATUS_COPY[status] ?? { title: `Order ${status}`, line: "" };
   const tracking = extra?.awb
-    ? `<p style="font-size:13px;color:#56627A;margin:10px 0"><b>Courier:</b> ${escapeHtml(extra.courier || "—")} · <b>AWB:</b> ${escapeHtml(extra.awb)}${extra.tracking_url ? `<br><a href="${extra.tracking_url}" style="color:#4E5BDC">Track parcel →</a>` : ""}</p>`
+    ? `<p style="font-size:13px;color:#56627A;margin:10px 0"><b>Courier:</b> ${escapeHtml(extra.courier || "—")} · <b>AWB:</b> ${escapeHtml(extra.awb)}${extra.tracking_url && /^https?:\/\//i.test(extra.tracking_url) ? `<br><a href="${escapeHtml(extra.tracking_url)}" style="color:#4E5BDC">Track parcel →</a>` : ""}</p>`
     : "";
   const html = shell(
     label.title,

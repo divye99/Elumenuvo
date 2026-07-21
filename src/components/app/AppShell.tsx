@@ -13,7 +13,7 @@ import { type LiveWorkspace } from "@/lib/workspace";
 import { createAppProject, deleteAppProject } from "@/lib/workspace-actions";
 import { updatePersonalDetails, upgradeToBusiness } from "@/lib/profile-actions";
 import { searchTokens, matchesAll } from "@/lib/search-normalize";
-import { unitPriceFor, WHOLESALE_MIN_QTY, exGst, GST_RATE } from "@/lib/pricing";
+import { unitPriceFor, WHOLESALE_MIN_QTY, exGst, baseExGst } from "@/lib/pricing";
 
 type Screen = "portfolio" | "catalogue" | "product" | "project" | "smartbom" | "cart" | "confirm" | "account";
 type CartItem = Product & { qty: number };
@@ -171,7 +171,9 @@ export default function AppShell({ products, content, user, live }: { products: 
     const sub = cart.reduce((s, i) => s + unitPriceFor(i.price, i.qty) * i.qty, 0);
     const mkt = cart.reduce((s, i) => s + i.market * i.qty, 0);
     const list = cart.reduce((s, i) => s + i.price * i.qty, 0); // pre-wholesale Elume total
-    const taxable = exGst(sub);
+    // Per-category GST split (Lighting 12%, Pumps/EV 5%, rest 18%) — matches
+    // the storefront cart and the eventual invoice.
+    const taxable = cart.reduce((s, i) => s + baseExGst(unitPriceFor(i.price, i.qty), i.cat) * i.qty, 0);
     const gst = sub - taxable;
     return { sub, mkt, list, wholesaleSaved: list - sub, save: mkt - sub, taxable, gst, total: sub };
   }, [cart]);
@@ -890,7 +892,7 @@ function Cart({
                     <span style={{ fontFamily: GROTESK, color: "#19202E" }}>{fmt(calc.taxable)}</span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: "#56627A", marginTop: 6 }}>
-                    <span>GST ({Math.round(GST_RATE * 100)}%)</span>
+                    <span>GST (at category rates)</span>
                     <span style={{ fontFamily: GROTESK, color: "#19202E" }}>{fmt(calc.gst)}</span>
                   </div>
                   <div style={{ fontSize: 11, color: "#8A93A6", marginTop: 7 }}>

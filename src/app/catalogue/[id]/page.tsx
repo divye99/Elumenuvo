@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { jsonLd as toJsonLd } from "@/lib/jsonld";
 import { notFound } from "next/navigation";
 import { fetchProduct, fetchFamily } from "@/lib/products";
 import { getEditorialPicks } from "@/lib/blog";
@@ -86,7 +87,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLd(jsonLd) }} />
       <PublicProductView p={product} siblings={siblings} business={business} />
       {pick && (
         <section style={{ maxWidth: 1120, margin: "0 auto", padding: "0 30px 26px" }}>

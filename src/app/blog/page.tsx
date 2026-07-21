@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { jsonLd as toJsonLd } from "@/lib/jsonld";
 import type { Metadata } from "next";
 import { getAllPosts } from "@/lib/blog";
 import { GROTESK, MONO } from "@/lib/fonts";
@@ -34,7 +35,7 @@ export default function BlogIndex() {
 
   return (
     <main style={{ maxWidth: 1100, margin: "0 auto", padding: "40px 24px 64px" }}>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLd(jsonLd) }} />
       <div style={{ marginBottom: 28 }}>
         <h1 style={{ fontFamily: GROTESK, fontSize: 36, fontWeight: 600, letterSpacing: "-1px", margin: 0 }}>The Elume Blog</h1>
         <p style={{ fontSize: 16, color: "#56627A", margin: "10px 0 0", maxWidth: 640 }}>
