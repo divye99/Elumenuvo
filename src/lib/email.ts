@@ -14,6 +14,9 @@ import { fmt } from "@/lib/format";
 // All customer email comes from one identity: info@elumenuvo.com (the address
 // verified in Resend and used for auth emails too). Overridable via env.
 const FROM = process.env.ORDER_FROM_EMAIL || "Elume <info@elumenuvo.com>";
+// Every customer-facing email is BCC'd here so the business inbox holds a
+// copy of exactly what each customer was told (audit trail + quick replies).
+const BCC_SELF = (process.env.ORDER_BCC_EMAIL ?? "info@elumenuvo.com").trim();
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "divye2014@gmail.com";
 const SITE = (process.env.NEXT_PUBLIC_SITE_URL || "https://elumenuvo.com").replace(/\/+$/, "");
 
@@ -30,17 +33,19 @@ type OrderLike = {
   gstin?: string | null;
 };
 
-async function send(to: string, subject: string, html: string): Promise<EmailResult> {
+async function send(to: string, subject: string, html: string, opts?: { bcc?: string }): Promise<EmailResult> {
   const key = (process.env.RESEND_API_KEY || "").trim();
   if (!key) {
     console.log(`[email] RESEND_API_KEY unset — skipped "${subject}" → ${to}`);
     return { ok: false, skipped: true };
   }
   try {
+    // Never BCC an address to itself (Resend dedupes, but keep it clean).
+    const bcc = opts?.bcc && opts.bcc.toLowerCase() !== to.toLowerCase() ? [opts.bcc] : undefined;
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: FROM, to, subject, html }),
+      body: JSON.stringify({ from: FROM, to, subject, html, ...(bcc ? { bcc } : {}) }),
     });
     if (!res.ok) {
       const body = await res.text();
@@ -111,7 +116,7 @@ export async function sendCustomerOrderConfirmation(order: OrderLike): Promise<E
      <p style="font-size:13px;color:#56627A;margin:12px 0 4px">Track your order anytime:</p>
      ${btn(trackUrl(order), "Track my order →")}`
   );
-  return send(order.email, `Order ${order.id} confirmed`, html);
+  return send(order.email, `Order ${order.id} confirmed`, html, { bcc: BCC_SELF });
 }
 
 /** Notify the customer their order status changed (optionally with tracking). */
@@ -128,11 +133,12 @@ export async function sendCustomerStatusUpdate(
     label.title,
     `<p style="font-size:14px;color:#56627A;margin:0 0 8px">Hi ${escapeHtml(order.name || "there")}, ${label.line} <b>${order.id}</b>.</p>
      ${extra?.note ? `<p style="font-size:13px;color:#56627A;margin:0 0 8px">${escapeHtml(extra.note)}</p>` : ""}
+     ${itemsTable(order)}
      ${tracking}
      ${btn(trackUrl(order), "View order →")}
      ${status === "delivered" ? reviewAsk(order) : ""}`
   );
-  return send(order.email, `Order ${order.id} — ${label.title}`, html);
+  return send(order.email, `Order ${order.id} — ${label.title}`, html, { bcc: BCC_SELF });
 }
 
 /** Post-delivery review request: reviews are purchase-verified (order ID +
