@@ -1,0 +1,114 @@
+{
+  "slug": "led-colour-temperature-guide",
+  "title": "3000K vs 4000K vs 6500K: LED Colour Temperature Room by Room",
+  "description": "3000K, 4000K or 6500K? A room-by-room LED colour temperature guide for Indian homes: warm vs cool light, where each shade works best, and how to mix them.",
+  "category": "Lighting",
+  "date": "2026-07-22",
+  "author": "Elume Editorial",
+  "readMins": 7,
+  "intro": [
+    "Two LED panels with identical wattage can make the same room feel like a cosy lounge or a hospital corridor. The difference is colour temperature, measured in kelvin (K): lower numbers glow warm and yellowish like a filament bulb, higher numbers turn crisp and bluish-white like midday sky. It is the single most underrated decision in home lighting, and it costs nothing to get right.",
+    "Indian homes have historically defaulted to 6500K cool daylight everywhere, a habit from the tube-light era. Modern practice is more deliberate: warm light where you relax, neutral light where you work with your hands, cool light where you need alertness and clear colour judgement. This guide walks room by room.",
+    "One rule before we start: pick one temperature per room and stick to it. A 3000K panel beside a 6500K batten in the same ceiling always looks like a mistake, because it is one."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "First, decode the numbers: 2700K to 6500K",
+      "brand": "",
+      "body": "The scale runs opposite to intuition: lower kelvin is warmer. 2700 to 3000K is warm white, the amber glow of old incandescent bulbs, flattering to skin and wood tones. 4000K is neutral or natural white, clean without harshness. 6500K is cool daylight, the bluish crispness of the standard Indian tube light. None is universally better; each sets a different mood and suits a different task. Wattage and lumens are unaffected: a 10 W panel gives similar brightness at any temperature, so choose temperature by feel, brightness by lumens.",
+      "bestFor": "Warm 2700 to 3000K relaxes, 4000K balances, 6500K energises",
+      "productId": null
+    },
+    {
+      "rank": 2,
+      "name": "Living room: 3000K, with 4000K as the versatile compromise",
+      "brand": "",
+      "body": "The living room is for unwinding and hosting, and 3000K warm white does both beautifully: it softens wall colours, warms wood furniture and makes evening gatherings feel intimate. Homes that double the living area as a daytime work or study space can go 4000K for a more neutral canvas. Layering solves the dilemma elegantly: warm panels for general light plus warm accent spots for art and texture. Havells' Trim LED Panel Round 10 W in 3000K, around Rs 319 on Elume, is an easy building block; add a 3000K COB spot like the Crysta Deco range for accents.",
+      "bestFor": "3000K for cosy evenings; 4000K if the room doubles as workspace",
+      "productId": "hav-lhebldp5in1w010"
+    },
+    {
+      "rank": 3,
+      "name": "Bedroom: 2700K to 3000K, always warm",
+      "brand": "",
+      "body": "Bedrooms are the strongest case for warmth. Cooler, bluer light in the evening works against winding down, while warm light signals rest; this is also why phone screens offer night modes. Keep ceiling panels at 3000K or lower, use warm bedside lamps for reading, and if you want true luxury, a 2700K accent like Havells' Azstro LED COB downlight, around Rs 2,205 on Elume, gives a hotel-suite glow. Reserve any cooler light for inside the wardrobe, where judging navy against black actually matters more than ambience.",
+      "bestFor": "2700 to 3000K everywhere you sleep and wind down",
+      "productId": "hav-lhebafpaie1k007"
+    },
+    {
+      "rank": 4,
+      "name": "Kitchen: 4000K to 6500K for clarity at the counter",
+      "brand": "",
+      "body": "The kitchen is a workspace: you are judging whether the dal is done, whether the vegetables are fresh, whether the counter is actually clean. Neutral-to-cool light earns its keep here, 4000K for a warmer-leaning home, up to 6500K for maximum crispness. Battens under lofts and over counters spread shadow-free light where knives work; a 4 ft 20 W batten like Syska's, around Rs 355 on Elume, or Havells' Nimbus 4000K panels cover general light. If the kitchen opens into a warm living area, 4000K bridges the two temperatures gracefully.",
+      "bestFor": "4000K balanced, 6500K for maximum task clarity",
+      "productId": "sys-bat-20"
+    },
+    {
+      "rank": 5,
+      "name": "Study and home office: 4000K to 6500K for alertness",
+      "brand": "",
+      "body": "Cool light measurably supports alertness, which is why offices run neutral to cool. For a home study, 4000K is the sweet spot: focused without feeling clinical through long evenings, and kinder on video calls than a blue-white glare. Exam-season desks and workshops can push to 6500K; Philips' 9 W 6500K bulb two-pack, around Rs 315 on Elume, is a cheap way to cool an existing fixture. Position light to avoid screen glare, and if the room turns into a guest room at night, a warm secondary lamp lets it change character.",
+      "bestFor": "4000K for daily work, 6500K for maximum-focus desks",
+      "productId": null
+    },
+    {
+      "rank": 6,
+      "name": "Bathroom: 4000K, with warmth for the wind-down bath",
+      "brand": "",
+      "body": "Bathrooms juggle two jobs: grooming, which wants accurate, even light around the mirror, and relaxation, which wants softness. 4000K handles the first well, cool enough for shaving and makeup without turning skin tones grey the way harsh 6500K can. Keep mirror lighting at face height or angled to kill shadows. In master bathrooms with a tub, a warm 3000K wall light adds the spa note; Havells' Thor HD wall lights at 3000K are IP65-rated, around Rs 980 on Elume, so moisture is no concern. Ventilated damp-area fittings should always carry an IP rating.",
+      "bestFor": "4000K at the mirror; 3000K accents for relaxation",
+      "productId": null
+    },
+    {
+      "rank": 7,
+      "name": "Balcony and outdoors: warm 3000K, weather-sealed",
+      "brand": "",
+      "body": "Outdoor evening spaces almost always look best warm: 3000K flatters plants, brick and stone, feels welcoming from the street, and attracts marginally fewer insects than cold blue-white light. The non-negotiable is ingress protection: balconies and facades need IP65-rated fittings that shrug off rain and dust. Havells' Flexion rope light in warm white, IP65 across a 50 m run, suits railings and cove edges, while 3000K wall lights frame doorways. Save 6500K floods for security corners and driveways, where visibility beats charm.",
+      "bestFor": "3000K IP65 fittings for ambience; cool floods only for security",
+      "productId": "hav-lhehbpp5tn6f325"
+    },
+    {
+      "rank": 8,
+      "name": "Cannot decide? CCT-selectable fittings change temperature on demand",
+      "brand": "",
+      "body": "A newer class of 3-in-1 or CCT fittings switches between 3000K, 4000K and 6500K, usually by toggling the wall switch, so one fitting serves a room whose mood changes through the day. They are ideal for multipurpose rooms, rentals where you cannot re-do ceilings, and anyone paralysed by the choice. Havells' Trim Surface Panel Round 3-in-1 7 W, around Rs 466 on Elume, and the Fazer Neo 3-in-1 series carry a small premium over fixed-temperature panels, cheap insurance against picking wrong.",
+      "bestFor": "One fitting, three temperatures: perfect for multipurpose rooms",
+      "productId": "hav-lheabmp9ul1w007"
+    }
+  ],
+  "buyingTips": [
+    "Decide the temperature map room by room before ordering a single fitting, and write it into the order: warm 2700 to 3000K for bedrooms and living, 4000K for kitchens, baths and studies, 6500K only where crisp task light truly helps.",
+    "Never mix temperatures within one ceiling. If you need both moods in a room, layer instead: one temperature for general light, lamps or accents in another, switched separately.",
+    "Buy all fittings for a room, ideally a home, in one order and one brand line. The same nominal 3000K can vary subtly between brands and batches, and adjacent mismatches show.",
+    "Check the kelvin rating on the box, not the marketing name: terms like cool day white or natural white vary by brand, while the number does not.",
+    "For balconies and bathrooms, confirm the IP rating (IP65 for rain and splash zones) alongside the colour temperature; a beautiful warm light that fails in the first monsoon is no bargain.",
+    "When genuinely unsure, pick 4000K or a 3-in-1 CCT fitting; neutral white is the temperature people regret least, and selectable fittings remove the gamble entirely."
+  ],
+  "faq": [
+    {
+      "q": "What do 3000K, 4000K and 6500K actually mean?",
+      "a": "They describe the colour of white light on the kelvin scale, and it runs opposite to instinct: 3000K is warm, yellowish light like an old filament bulb, 4000K is neutral white, and 6500K is cool, bluish daylight like a standard tube light. Brightness is separate; a 10 W panel delivers similar lumens at any of the three."
+    },
+    {
+      "q": "Which colour temperature is best for a bedroom?",
+      "a": "2700K to 3000K warm white. Warmer light suits the body's wind-down before sleep, while cool bluish light works against it. Keep the ceiling and bedside lights warm, and if you need crisp light for the wardrobe or dressing mirror, give that corner its own switched fitting."
+    },
+    {
+      "q": "Why do Indian homes use so much 6500K light?",
+      "a": "Habit, largely: the fluorescent tube lights that lit Indian homes for decades were cool daylight, so 6500K became the default when LEDs replaced them. It remains a fine choice for kitchens, utility areas and desks, but living rooms and bedrooms almost always feel better a step or two warmer."
+    },
+    {
+      "q": "Can I mix warm and cool lights in the same room?",
+      "a": "Mixing within one ceiling looks accidental and is best avoided. What works is deliberate layering: general lighting in one temperature and separately switched accents or lamps in another, so the room changes mood rather than fighting itself. An open kitchen beside a warm living area is the classic case for 4000K as a bridge."
+    },
+    {
+      "q": "Does colour temperature affect power consumption?",
+      "a": "No. A 10 W LED consumes 10 W whether it is 3000K or 6500K, and lumen output at each temperature is broadly similar for the same fitting. Choose temperature for comfort and task, and manage electricity through wattage, lumens and usage hours."
+    },
+    {
+      "q": "What are 3-in-1 or CCT changeable LED lights?",
+      "a": "They are fittings that can switch between roughly 3000K, 4000K and 6500K, typically by flicking the wall switch or using a remote. They cost a little more than fixed-temperature panels but suit multipurpose rooms and anyone unsure of their preference, since you can change the light's character without changing the fitting."
+    }
+  ]
+}

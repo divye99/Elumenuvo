@@ -18,7 +18,7 @@
       "brand": "",
       "body": "The thinnest size in regular domestic use, 0.75 sq mm is for genuinely light duty: calling bells, door chimes, indicator lamps, and control or looping runs inside switchboards. It typically handles loads of a few amps at most and should never feed a socket. Some electricians skip it entirely and standardise on 1 sq mm to simplify inventory, which is a perfectly reasonable choice. If you do stock it, keep it clearly separated on site so a helper never pulls it into a lighting circuit by mistake. A 90 m coil of Polycab GreenWire FR 0.75 sq mm runs around Rs 1,999 on Elume.",
       "bestFor": "Bells, indicators and switchboard looping only, never sockets",
-      "productId": "wire-polycab-fr-0p75-red"
+      "productId": null
     },
     {
       "rank": 2,
@@ -66,7 +66,7 @@
       "brand": "",
       "body": "Main incomers for larger homes, three-phase supplies, lift and pump feeders, and very long outdoor runs step up to 10 sq mm and above. At this level, sizing is driven as much by voltage drop and the sanctioned load on your connection as by current capacity, so calculation matters more than rules of thumb. This is squarely licensed-electrician territory, and often the place where a 180 m coil makes sense to avoid mid-run joints. Elume stocks a 10 sq mm FR wire in a 180 m coil for exactly these unbroken heavy runs.",
       "bestFor": "Mains and feeders: get these calculated, not guessed",
-      "productId": "elume-fr-10-180-moonlight"
+      "productId": null
     }
   ],
   "buyingTips": [
