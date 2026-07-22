@@ -1,0 +1,98 @@
+{
+  "slug": "mcb-vs-rccb-vs-rcbo-guide",
+  "title": "MCB vs RCCB vs RCBO: What Protects What (and 30mA vs 100mA)",
+  "description": "MCB, RCCB and RCBO explained simply: which device protects wiring, which protects people, why 30mA matters for shock protection, and how a home DB uses both.",
+  "category": "Switchgear",
+  "date": "2026-07-22",
+  "author": "Elume Editorial",
+  "readMins": 8,
+  "intro": [
+    "Open any modern distribution board and you will see a row of similar-looking switches doing very different jobs. One family protects your wiring from melting; another protects your family from electrocution. Confusing the two, or assuming one covers for the other, is the most common and most dangerous misunderstanding in home electricals.",
+    "This guide separates the three devices cleanly: the MCB, which watches for too much current; the RCCB, which watches for current escaping to earth; and the RCBO, which does both in one module. Along the way we decode the 30mA versus 100mA sensitivity question, which is really a question about what you are protecting.",
+    "None of this is academic. A correctly built board with both kinds of protection, tested occasionally, turns most electrical accidents into a tripped switch and a story. Have a licensed electrician design and install yours; use this guide to understand what they are proposing."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "The MCB: guarding the wiring",
+      "brand": "",
+      "body": "A Miniature Circuit Breaker disconnects a circuit when current exceeds what its wiring can safely carry. It has two tripping mechanisms: a thermal element that responds to sustained overload, like too many appliances on one circuit, and a magnetic element that fires within milliseconds on a short circuit. The rating, 6A to 32A domestically, is chosen to protect the conductor behind it, which is why MCB and wire size are always paired. What an MCB cannot do is sense a person receiving a shock; that current is far too small. Havells' 16A SP Mini MCB C Series is around Rs 317 on Elume.",
+      "bestFor": "Overload and short-circuit protection for each circuit's wiring",
+      "productId": "hav-dcvncspa016"
+    },
+    {
+      "rank": 2,
+      "name": "The RCCB: guarding people",
+      "brand": "",
+      "body": "A Residual Current Circuit Breaker compares the current leaving on the phase with the current returning on the neutral. In a healthy circuit these are identical. If they differ, even by a few thousandths of an ampere, current is leaking somewhere it should not be: through damaged insulation, a wet appliance, or a human body. The RCCB disconnects in a fraction of a second, fast enough to prevent most electrocutions. Crucially, it offers no overload protection at all: it will happily pass 60 A through a 40 A circuit if nothing is leaking. Schneider's Acti9 RCCB 40A 30mA is around Rs 2,180 on Elume.",
+      "bestFor": "Shock and earth-leakage protection for everyone in the house",
+      "productId": "schrccb"
+    },
+    {
+      "rank": 3,
+      "name": "30mA vs 100mA: what the sensitivity number protects",
+      "brand": "",
+      "body": "The sensitivity rating is the leakage current at which the device trips, and it defines its mission. 30 mA is the human-protection standard: currents above this level across the chest can trigger fibrillation, so tripping at 30 mA within milliseconds is what makes a shock survivable. 100 mA and 300 mA devices trip too late to reliably save a person; their role is fire prevention and upstream duty in larger buildings, catching gross leakage while letting downstream 30 mA units handle personal protection selectively. For a home's final circuits, 30 mA is the only correct answer. Havells' FP RCCB 40A 30mA rotary type is around Rs 2,968 on Elume.",
+      "bestFor": "30 mA for people in homes; 100 to 300 mA for fire and upstream duty",
+      "productId": "hav-dhrxcrfe030040"
+    },
+    {
+      "rank": 4,
+      "name": "The RCBO: both protections in one module",
+      "brand": "",
+      "body": "A Residual Current Breaker with Overcurrent protection combines an MCB and an RCCB in a single device: one module that trips on overload, short circuit and earth leakage. Its great advantage is selectivity. With one RCCB covering the whole board, a leaky geyser darkens the entire house; with an RCBO on each critical circuit, only that circuit trips and the refrigerator keeps running. The trade-off is cost per circuit, which is why many homes reserve RCBOs for wet-area and critical circuits. Havells' RCBO A Type SPN 25A 30mA is around Rs 3,027 on Elume.",
+      "bestFor": "Per-circuit combined protection where selectivity matters",
+      "productId": "hav-dhbmacdp4030025"
+    },
+    {
+      "rank": 5,
+      "name": "How a typical home board puts it together",
+      "brand": "",
+      "body": "The standard single-phase arrangement reads left to right: a double-pole isolator or 32A incomer MCB, then a 30 mA RCCB rated at or above the incomer (40 A or 63 A), then the row of circuit MCBs, 6A lighting, 16A sockets, 20A kitchen and ACs. Everything downstream of the RCCB gets leakage protection. Larger or three-phase homes may use a four-pole RCCB like Legrand's 63A 30mA unit, around Rs 3,582 on Elume, or split circuits across two RCCBs so one fault never blacks out the whole house. Your electrician balances cost, selectivity and board space.",
+      "bestFor": "Isolator, then 30 mA RCCB, then circuit MCBs: the standard spine",
+      "productId": "leg-rccb-63"
+    },
+    {
+      "rank": 6,
+      "name": "Nuisance tripping and Type AC vs Type A",
+      "brand": "",
+      "body": "An RCCB that trips repeatedly is telling you something: usually a genuinely leaky appliance, often an ageing geyser element or a damp outdoor fitting, found quickly by switching circuits off one by one. Cumulative small leakages from many electronics can also add up near the 30 mA threshold. Separately, the type letter matters more as homes fill with electronics: Type AC devices sense standard AC leakage, while Type A also detects the pulsating DC leakage that inverter-driven appliances can produce. Test the board's trip button monthly; it exercises the mechanism and confirms the protection is alive.",
+      "bestFor": "Trips are diagnostics, not defects; prefer Type A for electronics-heavy homes",
+      "productId": null
+    }
+  ],
+  "buyingTips": [
+    "Build the pair, not one or the other: MCBs alone leave people unprotected, an RCCB alone leaves wiring unprotected. Every modern board needs both functions, whether as MCB-plus-RCCB or as RCBOs.",
+    "Insist on 30 mA sensitivity for anything protecting people in a home. Keep 100 mA and 300 mA devices for their proper roles: fire protection and upstream selectivity in larger installations.",
+    "Size the RCCB to the incomer, not the circuits: commonly 40 A for a 2BHK and 40 to 63 A for larger homes, always at or above the incomer rating, since the RCCB does not protect itself from overload.",
+    "Spend on RCBOs where they earn it: geyser, kitchen, outdoor and AC circuits. One leaky appliance then trips one way, not the whole house at dinner time.",
+    "Buy ISI-marked devices from established brands and check breaking capacity on MCBs (10 kA is the quality domestic norm). Protection gear is the last place for unbranded bargains.",
+    "Press the RCCB's test button monthly, and remember good earthing is the silent partner: leakage protection works best in a properly earthed installation, which your electrician should verify."
+  ],
+  "faq": [
+    {
+      "q": "What is the difference between an MCB and an RCCB?",
+      "a": "An MCB protects wiring: it trips on overload and short circuit, when too much current flows. An RCCB protects people: it trips when current leaks out of the circuit to earth, as happens during an electric shock, even though the total current is tiny. They detect completely different faults, which is why a safe board needs both."
+    },
+    {
+      "q": "Do I need an RCCB if I already have MCBs?",
+      "a": "Yes. An MCB cannot detect the few milliamps flowing through a person during a shock; only a residual current device can. A single 30 mA RCCB after the incomer, or RCBOs on individual circuits, is what provides electrocution protection. It typically costs two to three thousand rupees, among the best safety value in the house."
+    },
+    {
+      "q": "Should I choose 30mA or 100mA sensitivity?",
+      "a": "For protecting people in a home, 30 mA, always: it trips below the current level that endangers the heart. 100 mA and 300 mA devices are for fire protection and upstream positions in larger buildings, where they provide selectivity above downstream 30 mA units. They are not a substitute for 30 mA personal protection."
+    },
+    {
+      "q": "What is an RCBO and when is it worth it?",
+      "a": "An RCBO combines MCB and RCCB functions in one module, giving a single circuit both overload and leakage protection. It costs more per circuit than shared protection, but earns it on wet-area and critical circuits: a leaking geyser then trips only its own breaker instead of blacking out the entire house."
+    },
+    {
+      "q": "Why does my RCCB keep tripping?",
+      "a": "Repeated tripping almost always means real leakage: commonly an ageing geyser element, a damp outdoor fitting or a faulty appliance. Isolate circuits one at a time to find the culprit, and have an electrician check it. Do not bypass the RCCB or swap it for a less sensitive one; that silences the alarm without fixing the fire."
+    },
+    {
+      "q": "Does an RCCB work without proper earthing?",
+      "a": "An RCCB senses phase-neutral imbalance, so it can still trip during a shock even in a poorly earthed installation, and this makes it especially valuable there. But good earthing remains essential: it lets faults trip protection immediately rather than waiting for someone to touch a live surface. Treat RCCB plus sound earthing as one system."
+    }
+  ]
+}

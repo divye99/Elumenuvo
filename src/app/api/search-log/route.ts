@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminClient } from "@/lib/supabase/admin";
+import { rateLimited, requestIp } from "@/lib/rate-limit";
 
 /**
  * Fire-and-forget search logging (see migration 0047). Called via
@@ -13,6 +14,7 @@ export const runtime = "nodejs";
 const ok = () => new NextResponse(null, { status: 204 });
 
 export async function POST(request: Request) {
+  if (rateLimited(`slog:${requestIp(request.headers)}`, 40, 60_000)) return new Response(null, { status: 204 });
   let body: Record<string, unknown>;
   try {
     body = await request.json();

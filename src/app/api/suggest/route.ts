@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { searchTokens, matchesAll, normalizeSearchText } from "@/lib/search-normalize";
 import { loadSearchSignals } from "@/lib/search-signals";
+import { rateLimited, requestIp } from "@/lib/rate-limit";
 
 /**
  * Search-suggest API behind the Amazon-style header search.
@@ -28,6 +29,9 @@ type Row = { id: string; name: string; brand: string; category: string; elume_pr
 const safe = (w: string) => w.replace(/[^\p{L}\p{N}.+-]/gu, "");
 
 export async function GET(request: Request) {
+  if (rateLimited(`sug:${requestIp(request.headers)}`, 90, 60_000)) {
+    return NextResponse.json({ terms: [], products: [] }, { status: 200 }); // degrade, don't error
+  }
   const q = (new URL(request.url).searchParams.get("q") || "").trim().toLowerCase();
   if (!URL_ || !KEY) return NextResponse.json({ terms: [], products: [] }, { status: 200 });
   if (q.length < 2) return NextResponse.json({ terms: [], products: [] }, { status: 200 });

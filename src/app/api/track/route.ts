@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminClient } from "@/lib/supabase/admin";
+import { rateLimited, requestIp } from "@/lib/rate-limit";
 
 /**
  * Analytics ingest (see migration 0051). Called via sendBeacon; always
@@ -54,6 +55,7 @@ export async function POST(request: Request) {
   if (!db) return ok(); // local dev without the service key
 
   const h = request.headers;
+  if (rateLimited(`track:${requestIp(h)}`, 150, 60_000)) return ok(); // silent drop — never break the page
   // Crawlers, link-preview fetchers and monitors pollute journey data; the
   // interesting stream is humans. (Most bots never run the client tracker,
   // but Googlebot and preview bots execute JS.)

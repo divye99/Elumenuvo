@@ -1,0 +1,106 @@
+{
+  "slug": "wire-coil-length-guide-2bhk-3bhk",
+  "title": "90m vs 180m Wire Coils: How Much Wire Does a 2BHK or 3BHK Need?",
+  "description": "How many 90 m wire coils does a 2BHK or 3BHK actually need? Realistic coil-count estimates by wire size, when 180 m coils help, and how to buy without waste.",
+  "category": "Wires & Cables",
+  "date": "2026-07-22",
+  "author": "Elume Editorial",
+  "readMins": 7,
+  "intro": [
+    "The most common question at the wire counter is not which brand, it is how much. Buy too little and the electrician stalls mid-job waiting for a coil; buy too much and thousands of rupees sit in a loft for a decade. The honest answer is that wire quantity depends on your exact layout, but decades of Indian residential work have produced estimates reliable enough to budget with.",
+    "This guide explains why the 90 m coil is the standard unit, how wall runs quietly multiply footage, and then gives realistic coil-count ranges for a typical 2BHK and 3BHK, broken down by wire size. Treat every figure as an estimate: a duplex 3BHK with a far-flung DB can consume half again as much wire as a compact flat of the same nominal size.",
+    "The golden rule throughout: let your electrician measure and quote from the actual conduit plan, then use these numbers to sanity-check the quote. If the two disagree wildly in either direction, ask why before money changes hands."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "Why 90 metres is the standard coil",
+      "brand": "",
+      "body": "Indian house wire retails in 90 m coils, a length that balances handling weight against fewer joints, and reputable brands print sequential metre marking along the insulation so you can verify you received all 90. Coil counts, not loose metres, are how electricians and shops quote, which is why estimates in this guide are given in coils. When comparing prices, always compare per coil of the same size and grade: a 90 m coil of Polycab GreenWire FRLS 2.5 sq mm runs around Rs 5,299 on Elume.",
+      "bestFor": "Budget in whole coils and verify length by the metre marking",
+      "productId": "wire-polycab-frls-2p5-red"
+    },
+    {
+      "rank": 2,
+      "name": "Where all that wire goes: the runs you do not see",
+      "brand": "",
+      "body": "Floor plans deceive. A wire does not travel point to point; it climbs from the switchboard to the ceiling, runs along beams, drops back down, and every light point needs phase and neutral (and earth on power circuits), instantly doubling or tripling the path length. A single bedroom can quietly absorb 60 to 80 m across its circuits. Add the DB-to-room home runs, loops at every box for termination, and 10 to 15 percent wastage from offcuts, and a modest flat's total footage lands in the high hundreds of metres.",
+      "bestFor": "Count conductor metres, not floor-plan metres: they are 2 to 3 times longer",
+      "productId": null
+    },
+    {
+      "rank": 3,
+      "name": "2BHK estimate: roughly 6 to 9 coils",
+      "brand": "",
+      "body": "For a typical 900 to 1,100 sq ft 2BHK, a workable planning mix is: 1 sq mm, 1 to 2 coils for light points; 1.5 sq mm, 2 to 3 coils for lighting and fan circuits; 2.5 sq mm, 2 to 3 coils for socket and kitchen circuits; 4 sq mm, 1 coil for geyser and AC runs; plus part of a 6 sq mm coil if the mains run is long. That totals roughly 6 to 9 coils, around 550 to 800 m. Compact layouts with a central DB sit at the low end; long corridors and balconies push it up.",
+      "bestFor": "Plan around 6 to 9 coils for a typical 2BHK, layout permitting",
+      "productId": "wire-polycab-frls-1p5-red"
+    },
+    {
+      "rank": 4,
+      "name": "3BHK estimate: roughly 10 to 13 coils",
+      "brand": "",
+      "body": "A typical 1,300 to 1,600 sq ft 3BHK steps up across the board: 1 sq mm, 2 to 3 coils; 1.5 sq mm, 3 to 4 coils; 2.5 sq mm, 3 to 4 coils; 4 sq mm, 1 to 2 coils for two or three ACs plus geysers; 6 sq mm, 1 coil for sub-mains and the largest AC. That is roughly 10 to 13 coils, around 900 to 1,200 m. Duplexes, homes with three-plus ACs, or a DB far from the living areas can exceed this comfortably, so treat the top of the range as a starting point, not a ceiling.",
+      "bestFor": "Plan around 10 to 13 coils for a typical 3BHK",
+      "productId": "wire-polycab-frls-4-red"
+    },
+    {
+      "rank": 5,
+      "name": "When a 180 m coil earns its place",
+      "brand": "",
+      "body": "Double-length 180 m coils exist for one main reason: long, unbroken runs. Joints are the weak points of any installation, and on mains, sub-mains and feeder runs to pumps or distant floors, a single continuous conductor is meaningfully better than two 90 m lengths spliced mid-wall. They also suit contractors wiring multiple flats who simply consume wire faster. Elume stocks a 10 sq mm FR wire in a 180 m coil for exactly this heavy, continuous duty. For ordinary room circuits, 90 m coils remain the practical choice.",
+      "bestFor": "180 m coils for long unbroken mains and feeder runs",
+      "productId": "elume-fr-10-180-moonlight"
+    },
+    {
+      "rank": 6,
+      "name": "Colours multiply coils: plan phase, neutral and earth",
+      "brand": "",
+      "body": "One subtlety inflates coil counts beyond raw metreage: colour coding. Convention uses red (or brown) for phase, black (or blue) for neutral, and green for earth, so each size you use in quantity is really bought as two or three coils in different colours. This is why a 2BHK needing 200 m of 2.5 sq mm still buys three coils, not two and a bit. Elume lists popular sizes in multiple colours, such as APAR's Shakti Green Wire HR FR-LSH 2.5 sq mm in yellow, to make a clean colour scheme easy to assemble.",
+      "bestFor": "Buy each size in its phase, neutral and earth colours",
+      "productId": "wire-apar-hrfrlsh-2p5-yellow"
+    },
+    {
+      "rank": 7,
+      "name": "Buffer, returns and the cost of running short",
+      "brand": "",
+      "body": "Running out of wire mid-job costs more than leftover wire ever will: the electrician idles, or worse, someone splices odd lengths or slips a different grade into the wall. Sensible practice is to buy the estimate plus about 10 percent, keep coils sealed until needed, and confirm the seller's policy on returning unopened coils before ordering. Leftover sealed coils of common sizes are also genuinely useful later for repairs and additions. What you never want is a wall that hides a joint made from desperation on a Sunday evening.",
+      "bestFor": "Order roughly 10 percent over the estimate; return or keep sealed spares",
+      "productId": null
+    }
+  ],
+  "buyingTips": [
+    "Get the electrician's measured estimate first, then sanity-check it against the ranges here: roughly 6 to 9 coils for a 2BHK, 10 to 13 for a 3BHK. Large disagreement in either direction deserves an explanation.",
+    "Budget by size, not just total: the 2.5 sq mm socket wire and 1.5 sq mm circuit wire are your volume items, while 4 and 6 sq mm are one or two coils each for dedicated appliance runs.",
+    "Buy every size in the correct colour set for phase, neutral and earth. It costs nothing extra and makes every future repair faster and safer.",
+    "Verify each coil's sequential metre marking on delivery so you know you received a full 90 m, and keep coils sealed until the day they are pulled.",
+    "Standardise on one brand and grade across the house, bought in one order. Mixed leftovers from multiple shops are how mismatched grades end up hidden in walls.",
+    "Ask about bulk pricing: multi-coil orders on Elume can unlock project rates, which matters when a 3BHK order runs into five figures."
+  ],
+  "faq": [
+    {
+      "q": "How many coils of wire does a 2BHK need in India?",
+      "a": "A typical 900 to 1,100 sq ft 2BHK uses roughly 6 to 9 coils of 90 m: about 1 to 2 coils of 1 sq mm, 2 to 3 of 1.5 sq mm, 2 to 3 of 2.5 sq mm, and 1 of 4 sq mm, plus 6 sq mm as needed for the mains. These are planning estimates; the actual figure depends on your layout and DB position, so get a measured quote."
+    },
+    {
+      "q": "How much wire does a 3BHK need?",
+      "a": "Plan around 10 to 13 coils of 90 m for a typical 1,300 to 1,600 sq ft 3BHK: roughly 2 to 3 coils of 1 sq mm, 3 to 4 of 1.5 sq mm, 3 to 4 of 2.5 sq mm, 1 to 2 of 4 sq mm and 1 of 6 sq mm. Duplex layouts, extra ACs or a distant DB can push totals higher."
+    },
+    {
+      "q": "Why does my electrician's estimate seem so high compared to my flat's size?",
+      "a": "Because wire travels up walls, across ceilings and back down, and every circuit needs two or three conductors along that path, real conductor length is typically two to three times what the floor plan suggests, plus termination loops and around 10 percent wastage. A high-hundreds-of-metres total for a modest flat is normal, not padding."
+    },
+    {
+      "q": "Should I buy 90 m or 180 m coils?",
+      "a": "For ordinary room circuits, 90 m coils are the practical standard. 180 m coils earn their place on long, unbroken runs, mains, sub-mains and feeders, where avoiding a mid-run joint improves reliability, and for contractors consuming wire at project scale."
+    },
+    {
+      "q": "What happens if I buy too much wire?",
+      "a": "Sealed, unopened coils are often returnable, so confirm the policy when ordering, and leftover coils of common sizes like 1.5 and 2.5 sq mm are genuinely useful for future repairs. Running short mid-job is the costlier mistake, which is why a roughly 10 percent buffer over the measured estimate is standard practice."
+    },
+    {
+      "q": "Do all rooms use the same wire size?",
+      "a": "No, and that is why estimates are broken down by size. Lighting and fans run on 1 to 1.5 sq mm, power sockets and kitchens on 2.5 sq mm, geysers and ACs on dedicated 4 sq mm runs, and sub-mains on 6 sq mm. Each size is bought in its own coils and colours."
+    }
+  ]
+}

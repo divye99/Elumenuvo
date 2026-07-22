@@ -1,0 +1,106 @@
+{
+  "slug": "which-wire-size-guide-india",
+  "title": "1 sq mm vs 1.5 vs 2.5 vs 4: Which Wire Size for Which Circuit (India Guide)",
+  "description": "Confused between 1 sq mm, 1.5, 2.5 and 4 sq mm wire? This India guide maps every common wire size to its circuit, typical load and IS 732 good practice.",
+  "category": "Wires & Cables",
+  "date": "2026-07-22",
+  "author": "Elume Editorial",
+  "readMins": 8,
+  "intro": [
+    "Wire sizing is the single most consequential decision in a house wiring job. Undersize a conductor and it runs hot, drops voltage and ages its insulation early; oversize everything and you burn money on copper you will never use. The good news is that Indian domestic wiring has settled into a fairly standard size ladder, and once you know which circuit each size belongs to, the shopping list almost writes itself.",
+    "This guide walks the ladder from 0.75 sq mm up to 6 sq mm and beyond, with the circuit types each size serves, the load range it comfortably carries, and the good-practice habits that codes like IS 732 encourage: separate circuits for heavy appliances, sensible circuit loading, and headroom for the future. All sizes refer to single-core copper wire to IS 694, the standard for Indian homes.",
+    "One caveat before we start: current capacity depends on how the wire is installed (in conduit, bunched, in hot ceilings), on run length and on the actual appliance load. Treat the figures here as sound rules of thumb for typical homes, and have a licensed electrician confirm the final sizing for your specific layout."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "0.75 sq mm: bell, indicator and control wiring",
+      "brand": "",
+      "body": "The thinnest size in regular domestic use, 0.75 sq mm is for genuinely light duty: calling bells, door chimes, indicator lamps, and control or looping runs inside switchboards. It typically handles loads of a few amps at most and should never feed a socket. Some electricians skip it entirely and standardise on 1 sq mm to simplify inventory, which is a perfectly reasonable choice. If you do stock it, keep it clearly separated on site so a helper never pulls it into a lighting circuit by mistake. A 90 m coil of Polycab GreenWire FR 0.75 sq mm runs around Rs 1,999 on Elume.",
+      "bestFor": "Bells, indicators and switchboard looping only, never sockets",
+      "productId": "wire-polycab-fr-0p75-red"
+    },
+    {
+      "rank": 2,
+      "name": "1 sq mm: light points and low-load lighting circuits",
+      "brand": "",
+      "body": "1 sq mm copper comfortably serves individual light points and small lighting groups, broadly up to around 6 to 8 A of connected load. With LED fixtures now sipping 6 to 20 W each, a 1 sq mm circuit can feed a whole room's lights with plenty of headroom. It is the workhorse for point wiring from the switchboard to each fixture. Keep it off fan-heavy or mixed circuits if runs are long. RR Kabel's Superex FR 1.0 sq mm, a 90 m coil around Rs 2,099 on Elume, is a solid budget pick for this duty.",
+      "bestFor": "Light points and LED lighting groups up to roughly 6 to 8 A",
+      "productId": "rr-fr-10"
+    },
+    {
+      "rank": 3,
+      "name": "1.5 sq mm: lighting and fan circuits",
+      "brand": "",
+      "body": "This is the default circuit wire for lighting and ceiling fan circuits in Indian homes, comfortable with roughly 10 to 12 A in typical conduit installation. A common pattern is one 1.5 sq mm circuit per room or per pair of rooms covering lights, fans and exhaust fans, protected by a 6 A or 10 A MCB. It also suits 6 A light-duty sockets used for chargers and routers. IS 732 good practice favours keeping lighting circuits modestly loaded rather than daisy-chaining half the house onto one run. A 90 m coil of Polycab GreenWire FRLS 1.5 sq mm is around Rs 3,499 on Elume.",
+      "bestFor": "The default for room lighting, fan and 6 A socket circuits",
+      "productId": "wire-polycab-frls-1p5-red"
+    },
+    {
+      "rank": 4,
+      "name": "2.5 sq mm: power sockets and kitchen circuits",
+      "brand": "",
+      "body": "Step up to 2.5 sq mm for power socket circuits: 16 A points for refrigerators, washing machines, microwaves, mixer-grinders and room heaters. In normal domestic installation it carries roughly 16 to 20 A, and premium grades rate higher; KEI's Conflame Green+ HR FR-LSH 2.5 sq mm claims extra current headroom thanks to its 85 C insulation. Good practice is to give the kitchen its own dedicated 2.5 sq mm circuit, separate from bedroom sockets, so one tripped MCB never darkens the whole house. Expect around Rs 5,299 for a 90 m coil on Elume.",
+      "bestFor": "16 A power sockets, kitchen appliance circuits",
+      "productId": "wire-kei-hrfr-2p5-grey"
+    },
+    {
+      "rank": 5,
+      "name": "4 sq mm: geysers and 1 to 1.5 ton air conditioners",
+      "brand": "",
+      "body": "Heavy fixed appliances deserve their own dedicated runs, and 4 sq mm is the standard size for them: storage geysers, 1 to 1.5 ton split ACs, and heavy kitchen equipment like OTGs on long runs. A 3 kW geyser draws about 13 A and a 1.5 ton inverter AC roughly 8 to 10 A running, so 4 sq mm gives comfortable margin for starting currents, long conduit runs and hot Indian summers. One appliance, one circuit, one clearly labelled MCB is the rule worth keeping. A 90 m coil of Polycab GreenWire FRLS 4 sq mm is around Rs 6,499 on Elume.",
+      "bestFor": "Dedicated geyser and 1 to 1.5 ton AC circuits",
+      "productId": "wire-polycab-frls-4-red"
+    },
+    {
+      "rank": 6,
+      "name": "6 sq mm: large ACs and sub-mains",
+      "brand": "",
+      "body": "6 sq mm handles the biggest single-phase domestic loads: 2 ton ACs, high-capacity heat pump geysers, and the sub-main runs feeding a floor's distribution board. It carries roughly 26 to 32 A in typical installation. If your meter-to-DB run is long, 6 sq mm also limits voltage drop, which keeps compressors happier and MCBs from nuisance-tripping on low voltage restarts. A 90 m coil of Polycab GreenWire FRLS 6 sq mm runs around Rs 11,499 on Elume; APAR and KEI equivalents sit at the same price point.",
+      "bestFor": "2 ton ACs, sub-mains and long meter-to-DB runs",
+      "productId": "wire-polycab-frls-6-red"
+    },
+    {
+      "rank": 7,
+      "name": "Beyond 6 sq mm: mains, three-phase and voltage drop",
+      "brand": "",
+      "body": "Main incomers for larger homes, three-phase supplies, lift and pump feeders, and very long outdoor runs step up to 10 sq mm and above. At this level, sizing is driven as much by voltage drop and the sanctioned load on your connection as by current capacity, so calculation matters more than rules of thumb. This is squarely licensed-electrician territory, and often the place where a 180 m coil makes sense to avoid mid-run joints. Elume stocks a 10 sq mm FR wire in a 180 m coil for exactly these unbroken heavy runs.",
+      "bestFor": "Mains and feeders: get these calculated, not guessed",
+      "productId": "elume-fr-10-180-moonlight"
+    }
+  ],
+  "buyingTips": [
+    "Size for the circuit, not the house: lighting on 1 to 1.5 sq mm, sockets on 2.5 sq mm, each heavy appliance on its own 4 or 6 sq mm run. Mixing loads on one oversized circuit saves nothing and complicates protection.",
+    "Match the MCB to the wire, always. The breaker must protect the conductor: a 6 or 10 A MCB on 1.5 sq mm lighting, 16 to 20 A on 2.5 sq mm sockets, 20 to 25 A on 4 sq mm appliance circuits. Never upsize an MCB to stop tripping without upsizing the wire.",
+    "Add one size for long runs. If a geyser or AC sits far from the DB, or the run bakes in a west-facing conduit, stepping up one size costs a few hundred rupees now and prevents voltage drop complaints forever.",
+    "Buy all sizes in the same brand and grade family where possible, in distinct colours for phase, neutral and earth. It makes the electrician faster and future fault-finding far easier.",
+    "Verify the ISI mark, IS 694 reference, size and 1100 V grade printed on the insulation, and check the sequential metre marking to confirm you are getting a genuine 90 m coil.",
+    "Have a licensed electrician sign off the final schedule. Rules of thumb cover typical homes; your run lengths, bunching and load list are specific to yours, and IS 732 sizing ultimately depends on them."
+  ],
+  "faq": [
+    {
+      "q": "Which wire size should I use for lights and fans in India?",
+      "a": "1.5 sq mm copper is the standard for lighting and fan circuits in Indian homes, with 1 sq mm acceptable for individual light points and small LED groups. Protect these circuits with a 6 A or 10 A MCB and keep them separate from power socket circuits."
+    },
+    {
+      "q": "What wire size do power sockets need?",
+      "a": "Use 2.5 sq mm copper for 16 A power socket circuits serving refrigerators, washing machines, microwaves and similar appliances. Give the kitchen its own dedicated 2.5 sq mm circuit rather than sharing with bedroom sockets."
+    },
+    {
+      "q": "Which wire size is right for an AC or geyser?",
+      "a": "For most storage geysers and 1 to 1.5 ton split ACs, a dedicated 4 sq mm circuit is the standard, safe choice. Step up to 6 sq mm for 2 ton ACs and for long runs where voltage drop matters. Each heavy appliance should have its own circuit and MCB."
+    },
+    {
+      "q": "Can I use a thicker wire than needed? Is oversizing bad?",
+      "a": "Electrically, a thicker wire is never unsafe; it runs cooler and drops less voltage. The downsides are cost and practicality: thicker wire costs more per metre and can be harder to terminate in small switch plates. Oversizing one step on long or hot runs is sensible; oversizing everything is just wasted money."
+    },
+    {
+      "q": "How many amps can a 2.5 sq mm copper wire carry?",
+      "a": "In typical Indian conduit installation, 2.5 sq mm copper carries roughly 16 to 20 A, with premium heat-resistant grades rated somewhat higher by their makers. The safe working figure depends on bunching, ambient temperature and run length, which is why the paired MCB is usually 16 or 20 A, and why an electrician should confirm sizing for unusual runs."
+    },
+    {
+      "q": "Does IS 732 specify exact wire sizes for each room?",
+      "a": "No. IS 732 is the code of practice for electrical wiring installations; it sets out principles like proper circuit segregation, conductor protection and allowing for voltage drop rather than a fixed room-by-room size chart. The size ladder in this guide reflects standard Indian practice that follows those principles, with final sizing done for your actual loads and run lengths."
+    }
+  ]
+}

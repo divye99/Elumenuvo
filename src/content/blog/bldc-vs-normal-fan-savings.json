@@ -1,0 +1,106 @@
+{
+  "slug": "bldc-vs-normal-fan-savings",
+  "title": "BLDC vs Normal Ceiling Fans: The Real Electricity Savings Math",
+  "description": "Honest BLDC vs normal fan math: 75W vs 28W at 12 hours a day and Rs 8 a unit, the real yearly savings, payback time, and when an induction fan still wins.",
+  "category": "Fans",
+  "date": "2026-07-22",
+  "author": "Elume Editorial",
+  "readMins": 7,
+  "intro": [
+    "Every BLDC fan advertisement promises dramatic savings, and every sceptical buyer suspects the numbers are cooked. The truth is refreshingly simple: the physics is real, the savings are real, and whether they matter for you comes down to one variable, how many hours a day your fans actually run.",
+    "This guide does the arithmetic in the open, with no rounded-up marketing figures: a typical 75 W induction fan against a 28 W BLDC fan, running 12 hours a day at Rs 8 per unit. You can rescale every number to your own usage and tariff in your head.",
+    "We will also be honest about the other side: where induction fans still make sense, what BLDC ownership is like day to day, and which fans on Elume fit each budget."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "Why a normal fan burns 75 watts",
+      "brand": "",
+      "body": "A conventional ceiling fan uses a single-phase induction motor: simple, rugged, nearly maintenance-free, and inherently lossy. Energy is spent magnetising the rotor through the air gap, and more is lost as heat in the windings; a warm motor housing after a long run is that loss made tangible. A typical 1200 mm induction fan draws around 70 to 80 W at full speed, and its regulator mostly wastes further energy at lower speeds unless it is a capacitor type. The Usha Racer 1200 mm, around Rs 1,780 on Elume, is a classic of this breed: fast, simple, inexpensive.",
+      "bestFor": "Induction fans trade efficiency for simplicity and low upfront cost",
+      "productId": "usha-racer-1200"
+    },
+    {
+      "rank": 2,
+      "name": "How a BLDC motor cuts that to 28 watts",
+      "brand": "",
+      "body": "A brushless DC motor replaces the induced rotor currents with permanent magnets, and an electronic controller switches the stator coils with precise timing. No energy is spent magnetising the rotor, so far less is lost as heat, and the electronics deliver only the power each speed actually needs. The result: comparable air delivery at roughly 26 to 35 W, with 28 W the common headline figure. The controller also enables remotes, timers and steady speed on fluctuating voltage. Atomberg's Renesa 1200 mm, a 28 W 5-star fan around Rs 3,798 on Elume, is a benchmark of the type.",
+      "bestFor": "Same breeze at roughly a third of the power draw",
+      "productId": "atm-ren-1200-brn"
+    },
+    {
+      "rank": 3,
+      "name": "The worked example: 12 hours a day at Rs 8 per unit",
+      "brand": "",
+      "body": "Induction fan: 75 W for 12 hours is 900 watt-hours, or 0.9 units a day. Over a year that is 0.9 times 365, about 328.5 units, costing roughly Rs 2,628 at Rs 8 per unit. BLDC fan: 28 W for 12 hours is 336 watt-hours, 0.336 units a day, about 122.6 units a year, roughly Rs 981. The difference is about 206 units, or Rs 1,647 per fan per year, around Rs 137 a month. Scale it honestly: at 6 hours a day, halve everything; run three fans and triple it.",
+      "bestFor": "About Rs 1,647 saved per fan per year at 12 hours daily use",
+      "productId": null
+    },
+    {
+      "rank": 4,
+      "name": "Payback: when the premium earns itself back",
+      "brand": "",
+      "body": "Take the Atomberg Efficio 1200 mm at around Rs 3,210 on Elume against the Usha Racer at Rs 1,780: a premium of Rs 1,430. At Rs 1,647 saved a year, that repays in roughly 10 to 11 months, and everything after is profit for the decade the fan lives. At 6 hours a day the payback stretches to about 21 months, still comfortably worthwhile. And the premium is shrinking: Crompton's Hill Briz 1200 mm, a 28 W BLDC fan, lists around Rs 1,640 on Elume, less than many induction fans, making the payback effectively immediate.",
+      "bestFor": "Under a year's payback at heavy use; near-instant on budget BLDC",
+      "productId": "atm-eff-1200-blk"
+    },
+    {
+      "rank": 5,
+      "name": "The benefits beyond the electricity bill",
+      "brand": "",
+      "body": "BLDC ownership has quality-of-life perks the bill never shows. Remotes with speed, timer and sleep modes replace the wall regulator. Speed stays constant through voltage sags that make induction fans visibly slow down. The motor runs cool and generally quieter, and on inverter backup a 28 W fan drains the battery roughly a third as fast as a 75 W one, tripling fan runtime in a power cut. Many models add boost and reverse modes. Havells' Elio BLDC+ 1200 mm, around Rs 3,910 on Elume, bundles the typical remote-and-5-star package.",
+      "bestFor": "Remote control, stable speed and much longer inverter backup",
+      "productId": "hav-fhce15sgry48m"
+    },
+    {
+      "rank": 6,
+      "name": "The honest case for the normal fan",
+      "brand": "",
+      "body": "Induction fans still deserve a place. For rarely used rooms, a store room or a guest bedroom running an hour a week, the savings never repay any premium. Induction motors shrug off decades of dust and neglect, while a BLDC fan's electronics are one more thing that can fail outside warranty, so brand and warranty length matter more. Remotes get lost; some people simply prefer a wall regulator. And peak speed lovers note: sturdy high-speed induction fans like 400 RPM racers still edge out many 340 to 380 RPM BLDC models on raw breeze.",
+      "bestFor": "Low-use rooms and buyers who prize simplicity over savings",
+      "productId": null
+    },
+    {
+      "rank": 7,
+      "name": "Choosing your BLDC fan on a budget ladder",
+      "brand": "",
+      "body": "Entry: Crompton Hill Briz 1200 mm at around Rs 1,640 proves BLDC no longer commands a premium. Mainstream: Atomberg Efficio at about Rs 3,210 and Renesa at Rs 3,798 add remotes, 5-star ratings and 2 plus 1 year warranties. Style tier: Havells Ambrose BLDC in copper finish around Rs 3,772, or Atomberg's Studio+ and Renesa+ for designer bedrooms. Whatever the tier, match sweep to room, 1200 mm for typical 10 by 12 ft rooms, and check warranty terms on the electronics specifically.",
+      "bestFor": "There is now a credible BLDC fan at every price point",
+      "productId": "crmfan"
+    }
+  ],
+  "buyingTips": [
+    "Do your own math before buying: watts saved times daily hours times 365, divided by 1,000, times your tariff. If a fan runs under 4 hours a day, savings are modest; above 10 hours, BLDC is close to a free lunch.",
+    "Prioritise the highest-use fans first. Converting the living room and main bedroom fans captures most of the savings; the guest room can keep its old fan.",
+    "Check the warranty split: BLDC electronics matter more than the motor. Prefer brands offering 2 plus 1 years or better, and keep the invoice.",
+    "Compare air delivery (m3/min) and RPM, not just watts. A fan that saves power but moves too little air for your room saves nothing, because comfort is the whole point.",
+    "If you rely on inverter backup, weight BLDC even more heavily: a 28 W fan roughly triples fan runtime per charge against a 75 W one.",
+    "Buy the right sweep for the room: 1200 mm suits most bedrooms and living areas, 900 mm for small rooms and kitchens, 1400 mm for large halls."
+  ],
+  "faq": [
+    {
+      "q": "How much electricity does a BLDC fan actually save?",
+      "a": "A typical 28 W BLDC fan against a 75 W induction fan saves 47 W whenever both run. At 12 hours a day that is about 206 units a year, roughly Rs 1,647 at Rs 8 per unit, per fan. At 6 hours a day, halve those figures. The physics is straightforward; only the hours of use change the answer."
+    },
+    {
+      "q": "How long does a BLDC fan take to pay for itself?",
+      "a": "At 12 hours of daily use and Rs 8 per unit, a Rs 1,400 to 1,500 price premium repays in under a year. Lighter use stretches payback proportionally. Budget BLDC models like Crompton's Hill Briz now price at or below many induction fans, making payback effectively immediate."
+    },
+    {
+      "q": "Do BLDC fans give less air than normal fans?",
+      "a": "Good BLDC fans deliver comparable air to standard induction fans, typically 210 to 255 m3/min at 1200 mm sweep. The highest-RPM induction racers still top the charts for raw speed, so if maximum breeze is your priority, compare air delivery figures model by model rather than assuming either technology wins."
+    },
+    {
+      "q": "Are BLDC fans reliable? What goes wrong with them?",
+      "a": "The motor itself is very reliable; it is the electronic controller that adds a potential failure point, particularly with poor-quality power. Buying an established brand with a strong warranty, ideally 2 plus 1 years or more, and using surge protection where supply is erratic addresses most of the risk."
+    },
+    {
+      "q": "Do BLDC fans work on inverter backup?",
+      "a": "Yes, exceptionally well. Their low draw means roughly three times the runtime per battery charge compared with an induction fan, and their electronics hold speed steady as battery voltage drops. Long power cuts are where BLDC fans quietly shine."
+    },
+    {
+      "q": "Is a 5-star induction fan as good as a BLDC fan?",
+      "a": "5-star induction fans, often around 50 W, sit between the old 75 W standard and 28 W BLDC. They narrow the gap but do not close it: against BLDC they still use nearly double the power and usually lack remotes and stable-speed electronics. For heavy daily use, BLDC remains the better buy."
+    }
+  ]
+}

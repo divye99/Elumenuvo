@@ -1,0 +1,124 @@
+{
+  "slug": "top-10-mcbs-rccbs-india",
+  "title": "Top 10 MCBs & RCCBs for Indian Homes (2026): Safety Rankings",
+  "description": "Top 10 MCBs and RCCBs for Indian homes in 2026: Havells, Schneider and Legrand breakers ranked on protection, sensitivity, ratings and price.",
+  "category": "Switchgear",
+  "date": "2026-07-22",
+  "author": "Elume Editorial",
+  "readMins": 8,
+  "intro": [
+    "Switchgear is the one category where buying cheap is genuinely dangerous. An MCB protects your wiring from overloads and short circuits; an RCCB protects people from electric shock by tripping the moment current leaks to earth. Together they are the difference between a nuisance trip and a house fire or a fatal shock, which is why every serious electrician insists on branded breakers even when the client is cutting costs everywhere else. This guide ranks the ten MCBs, RCCBs and related protection devices worth putting in an Indian distribution board in 2026, judged on protection type, ratings, build quality and Elume pricing.",
+    "The shortlist logic is straightforward. For the incomer of any home, you want an RCCB with 30mA sensitivity, the threshold that protects against fatal shock. For individual circuits, C-curve MCBs sized to the load: 6-16A for lighting, 20-25A for power sockets, 32A and up for ACs and geysers. Single pole (SP) suits single circuits, double pole (DP) switches both phase and neutral, and three-phase homes need TP or FP devices. RCBOs combine both jobs in one module. Check the amp rating, the curve, the sensitivity on residual devices, and the warranty; then buy the whole board from one or two brands so everything fits and looks consistent."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "Acti9 RCCB 40A 30mA",
+      "brand": "Schneider",
+      "body": "If a home has no earth-leakage protection today, this is the single most important device on this list. Schneider's Acti9 is the global reference range in residential switchgear, and this 4-pole, Type AC unit at 40A with 30mA sensitivity covers a typical home incomer, tripping fast enough to protect against fatal shock. At around Rs 2,180 on Elume, only a modest discount off its Rs 2,460 MRP, it holds its price the way genuinely trusted switchgear does.",
+      "bestFor": "Whole-home shock protection, first purchase",
+      "productId": "schrccb"
+    },
+    {
+      "rank": 2,
+      "name": "FP RCCB Rotary Type AC (40A, 30mA)",
+      "brand": "Havells",
+      "body": "Havells' four-pole rotary RCCB is the strong Indian alternative at the incomer. It matches the critical numbers, 40A current rating and 30mA sensitivity, and is rated for -25 to +55 degree ambient temperatures, comfortably covering Indian summers inside a hot distribution board. The rotary switching mechanism gives a positive, deliberate on-off action. At around Rs 2,968 on Elume against a Rs 4,831 MRP, it pairs naturally with Havells MCBs for a single-brand board.",
+      "bestFor": "Single-brand Havells board incomer",
+      "productId": "hav-dhrxcrfe030040"
+    },
+    {
+      "rank": 3,
+      "name": "RCCB 63A 30mA 4P",
+      "brand": "Legrand",
+      "body": "Larger homes with heavy loads, multiple ACs, geysers and a lift or pump, need more headroom at the incomer, and Legrand's 63A four-pole RCCB provides it while keeping the vital 30mA sensitivity. Legrand's French-engineered switchgear has a deserved reputation among electrical consultants, and the 63A rating means the RCCB will not become the bottleneck as household loads grow. At around Rs 3,582 on Elume against a Rs 4,980 MRP, it is the premium incomer for premium homes.",
+      "bestFor": "Large homes with heavy connected load",
+      "productId": "leg-rccb-63"
+    },
+    {
+      "rank": 4,
+      "name": "RCBO 'A' Type SPN 2M (32A, 30mA)",
+      "brand": "Havells",
+      "body": "An RCBO combines an MCB and an RCCB in one device, giving a single circuit both overload and earth-leakage protection. Havells' Type A version matters because Type A detects the pulsating DC leakage that modern electronics, inverter ACs and EV chargers can produce, which basic Type AC devices can miss. This 32A SPN unit protects a dedicated AC or geyser circuit independently, so a fault there does not black out the whole house. Around Rs 3,115 on Elume, half its Rs 6,358 MRP.",
+      "bestFor": "Dedicated AC, geyser or EV circuits",
+      "productId": "hav-dhbmacdp4030032"
+    },
+    {
+      "rank": 5,
+      "name": "16A SP Mini MCB C Series",
+      "brand": "Havells",
+      "body": "This is the workhorse breaker every board needs several of. A 16A single-pole C-curve MCB is the standard protection for lighting and general socket circuits in Indian homes, and the Crabtree-built C Series backs it with a 10-year warranty, exceptional in this category. At around Rs 317 on Elume, protecting every circuit in a 2BHK costs less than one decorative light fitting. The same series is stocked in 20A, 25A and 32A, so one range covers the whole board.",
+      "bestFor": "Standard lighting and socket circuits",
+      "productId": "hav-dcvncspa016"
+    },
+    {
+      "rank": 6,
+      "name": "MCB SPN C Curve (32A)",
+      "brand": "Havells",
+      "body": "SPN breakers switch the phase and carry the neutral through one compact module, a format many Indian electricians prefer for major single-phase loads. This 32A C-curve unit is the right size for heavy circuits like a 2-ton AC or an instant geyser, mounts on standard 35mm DIN rail, and comes from Havells' mainline circuit-breaker range. At around Rs 705 on Elume against a Rs 1,436 MRP, it is the sensible step up from plain SP breakers on your heaviest circuits.",
+      "bestFor": "Heavy single-phase appliance circuits",
+      "productId": "hav-dhmzcsnf032"
+    },
+    {
+      "rank": 7,
+      "name": "MCB DP C Curve (16A)",
+      "brand": "Havells",
+      "body": "A double-pole MCB breaks both phase and neutral together, which is exactly what you want ahead of wet-area and outdoor circuits, washing machines, bathrooms, terrace points, where full isolation during a fault or servicing matters. This Havells DP C-curve unit gives that protection in the mainline breaker range at around Rs 657 on Elume against a Rs 1,115 MRP. Electricians also fit DP units as sub-incomers for individual floors in duplex homes, keeping fault isolation local.",
+      "bestFor": "Wet areas and floor sub-incomers",
+      "productId": "hav-dhmgcdpf016"
+    },
+    {
+      "rank": 8,
+      "name": "Norisys Cube 32A Single Pole Tiny MCB (Grey)",
+      "brand": "Norisys",
+      "body": "Norisys' Cube series answers a practical problem: retrofitting protection where board space is tight. The Tiny MCB format takes up less room than conventional breakers, letting you add a 32A single-pole unit to a crowded older board without rebuilding it. The grey finish blends with modern switch plates, and a white double-pole version is also stocked on Elume. At around Rs 362, close to half its Rs 648 MRP, it is a neat, affordable fix for cramped retrofits.",
+      "bestFor": "Space-tight retrofits in old boards",
+      "productId": "boe6498"
+    },
+    {
+      "rank": 9,
+      "name": "MCB TPN C Curve (20A)",
+      "brand": "Havells",
+      "body": "Homes and small commercial spaces with three-phase connections need TPN breakers, which protect all three phases plus neutral in one unit. This 20A C-curve TPN from Havells' mainline range suits sub-distribution in three-phase homes, small offices and workshops, mounting on standard DIN rail alongside the rest of the board. At around Rs 1,605 on Elume against a Rs 3,276 MRP, it brings proper three-phase protection down to a price that small installations can justify without compromise.",
+      "bestFor": "Three-phase homes and small offices",
+      "productId": "hav-dhmzctnf020"
+    },
+    {
+      "rank": 10,
+      "name": "Type 3 SPD (Surge Protection Device)",
+      "brand": "Havells",
+      "body": "MCBs and RCCBs do nothing against voltage surges from lightning or grid switching, which quietly kill electronics, inverter ACs and Wi-Fi gear. A surge protection device clamps those spikes at the board. This Havells unit is a Class II + III socket-module type in a thermoplastic enclosure, sized for residential use downstream of the main protection. At around Rs 1,055 on Elume against a Rs 1,795 MRP, it is cheap insurance for homes full of electronics, especially in lightning-prone regions.",
+      "bestFor": "Protecting electronics from voltage surges",
+      "productId": "hav-dhaa3nma10230"
+    }
+  ],
+  "buyingTips": [
+    "Never run a home without an RCCB. MCBs protect wires, not people; only a residual current device trips on earth leakage. For human protection at the incomer, 30mA sensitivity is the number to insist on, as fitted on the Schneider Acti9 and Havells rotary RCCBs here.",
+    "Size MCBs to the circuit, not the fuse that was there before: roughly 6-16A for lighting, 20-25A for socket circuits, 32A for ACs and geysers. Oversizing an MCB defeats its purpose because it will not trip before the wiring overheats.",
+    "C-curve is the right tripping characteristic for almost all household circuits in India: it tolerates the brief inrush of motors, compressors and pumps without nuisance tripping, while still clearing genuine faults fast.",
+    "Give heavy appliances their own protected circuits. A 32A SPN MCB or, better, a Type A RCBO on each AC and geyser means a fault trips only that circuit, and Type A devices also catch the DC-component leakage modern inverter appliances can produce.",
+    "Buy the whole board in one order and check warranties: breaker ranges like the Havells C Series carry a 10-year warranty, and ordering incomer RCCB, circuit MCBs, an SPD and the enclosure together on Elume keeps everything compatible, consistent and cheaper per unit."
+  ],
+  "faq": [
+    {
+      "q": "What is the difference between an MCB and an RCCB?",
+      "a": "An MCB trips on overload and short circuit, protecting the wiring and preventing fires. An RCCB trips when current leaks to earth, for example through a faulty appliance body or a person, protecting against electric shock. They do different jobs and a safe board needs both: an RCCB at the incomer and MCBs on each circuit."
+    },
+    {
+      "q": "What does 30mA sensitivity mean on an RCCB?",
+      "a": "It is the leakage current at which the RCCB trips. A 30mA device disconnects fast enough to protect against fatal electric shock, which is why 30mA is the standard recommendation for the residential incomer. Higher sensitivities like 100mA or 300mA are used for fire protection or as upstream devices in larger installations, not for primary human protection."
+    },
+    {
+      "q": "What is a C-curve MCB and do I need a different curve?",
+      "a": "The curve describes how the MCB responds to brief surges of current. C-curve breakers tolerate the short inrush that motors, ACs, pumps and compressors draw at startup, then trip promptly on genuine faults. For Indian homes, C-curve is the correct default across the board; other curves are mainly for specialised industrial loads."
+    },
+    {
+      "q": "What is an RCBO and when should I use one instead of an RCCB?",
+      "a": "An RCBO combines MCB and RCCB functions in one module, giving a single circuit both overload and earth-leakage protection. Use RCBOs on critical or high-risk circuits like ACs, geysers and EV charging points, so a leakage fault trips only that circuit instead of the whole house. A Type A RCBO also detects the pulsating DC leakage modern inverter appliances can produce."
+    },
+    {
+      "q": "Do I really need a surge protection device at home?",
+      "a": "If your home has inverter ACs, a router, TVs, computers or solar equipment, an SPD is worth fitting. MCBs and RCCBs do not stop voltage spikes from lightning or grid switching, and those spikes shorten the life of electronics even when nothing visibly fails. A residential Type 2+3 SPD like the Havells unit here is a one-time cost that protects everything downstream."
+    }
+  ]
+}

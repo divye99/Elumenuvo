@@ -1,0 +1,125 @@
+{
+  "slug": "top-10-led-bulbs-india",
+  "title": "Top 10 LED Bulbs in India (2026): Brightness per Rupee",
+  "description": "Top 10 LED bulbs and everyday LED lights in India for 2026: Philips and Syska bulbs, plus battens and panels, ranked on brightness per rupee with prices.",
+  "category": "Lighting",
+  "date": "2026-07-22",
+  "author": "Elume Editorial",
+  "readMins": 7,
+  "intro": [
+    "The humble LED bulb is the highest-volume purchase in Indian lighting, and the maths is simple: a 9W LED gives roughly the light of an old 60W incandescent for 15 percent of the running cost. But brightness per rupee varies widely between brands and pack sizes, and for anyone lighting a full flat, a floor of offices or a rental portfolio, those differences multiply across dozens of sockets.",
+    "This guide ranks the everyday light sources in the Elume catalogue on value. The catalogue carries two dedicated bulb SKUs, Philips and Syska 9W B22 packs, which take the top ranks. The remaining slots go to the fittings that have replaced bulbs in most 2026 interiors, clearly labelled by type: 4-foot LED battens that took over from tube lights, and slim panels and downlighters that took over from bulb-in-holder ceiling points. Comparing them together is deliberate, because a buyer fitting out a room today chooses between exactly these options.",
+    "Two specs to check on anything in this list: colour temperature, where 6500 K is India's default cool daylight and 3000 K is warm white, and the wattage-to-output relationship, since a good 20W batten replaces a 40W tube and a 10W panel replaces a 9W bulb point with tidier light."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "9W LED Bulb B22 (Pack of 2)",
+      "brand": "Philips",
+      "body": "The benchmark bulb. Philips' 9W B22 in 6500 K cool daylight gives the light of an old 60W filament lamp, and the brand's driver quality is why these survive Indian voltage swings that kill cheaper bulbs early. At ₹315 for a pack of two, roughly ₹158 per bulb against a ₹499 MRP, the premium over unbranded bulbs is small once lifespan is counted. For homes, use these in the sockets that run longest each day, living rooms, kitchens and entrances, where reliability pays back fastest.",
+      "bestFor": "Long-running sockets needing proven reliability",
+      "productId": "phi-led-9x2"
+    },
+    {
+      "rank": 2,
+      "name": "LED Bulb 9W (Pack of 4)",
+      "brand": "Syska",
+      "body": "The volume value pick. Syska's 9W B22 four-pack works out to ₹135 per bulb at ₹540 a pack, the lowest per-bulb price for a branded 9W lamp in the catalogue, in the same 6500 K cool daylight most Indian homes prefer. That per-unit economy is exactly what landlords, hostels, offices and builders fitting dozens of holders should be optimising for. Specify Syska packs for bedrooms, passages, bathrooms and store rooms, and let the savings across twenty or fifty sockets fund better fittings elsewhere.",
+      "bestFor": "Bulk socket fit-outs at lowest per-bulb cost",
+      "productId": "sysled"
+    },
+    {
+      "rank": 3,
+      "name": "20W LED Batten 4ft",
+      "brand": "Syska",
+      "body": "Labelled clearly: a batten, not a bulb, and the direct successor to the 40W tube light that lit every Indian home for decades. Syska's 4-foot 20W batten in 6500 K with a polycarbonate body spreads light along its full length, which no bulb can match for kitchens, study walls and shop counters. At ₹355 against a ₹550 MRP, it delivers more total light per rupee than any bulb on this list, which is why it carries Elume's recommended tag. One batten typically replaces two bulb points.",
+      "bestFor": "Kitchens and studies, maximum light per rupee",
+      "productId": "sys-bat-20"
+    },
+    {
+      "rank": 4,
+      "name": "Garnet 20W LED Batten 4ft",
+      "brand": "Wipro",
+      "body": "Wipro's Garnet is the slim-profile alternative in the 4-foot 20W batten class, at ₹385 against a ₹599 MRP. The slimmer housing sits tighter to the ceiling or wall, which reads cleaner in bedrooms and offices where the chunky tube-light silhouette feels dated. Output class and 6500 K colour match the Syska, so the choice between them is largely aesthetic and availability-driven. Wipro's lighting pedigree is solid, and mixing the two brands across a project is safe as long as each room stays consistent.",
+      "bestFor": "Bedrooms and offices wanting a slim batten",
+      "productId": "wip-bat-20"
+    },
+    {
+      "rank": 5,
+      "name": "Trim LED Panel Round 10W",
+      "brand": "Havells",
+      "body": "A recessed panel, not a bulb, and the reason false-ceiling homes barely use bulb holders any more. The Havells Trim round panel gives 10W of 3000 K warm white from a flush ring in the ceiling, replacing the bulb-in-holder point with something that looks built-in rather than bolted on. At ₹319 against a ₹729 MRP, it costs about the same as two branded bulbs, which makes panelling an entire false-ceiling room surprisingly affordable. Warm white suits bedrooms and living rooms best.",
+      "bestFor": "False-ceiling rooms replacing bulb points",
+      "productId": "hav-lhebldp5in1w010"
+    },
+    {
+      "rank": 6,
+      "name": "Trim NXT LED Panel RD V2 15W",
+      "brand": "Havells",
+      "body": "The step-up panel for rooms that need more punch per point: the Trim NXT V2 delivers 15W in 6500 K cool daylight, suited to kitchens, bathrooms and work corners where task visibility beats ambience. Fewer, brighter points can also simplify a ceiling grid, four 15W panels covering what six 10W units would. At ₹402 against an ₹865 MRP, the per-lumen price stays competitive with bulbs while the light quality and spread are better. Keep 6500 K zones separate from 3000 K zones for a coherent scheme.",
+      "bestFor": "Kitchens and bathrooms needing brighter points",
+      "productId": "hav-lhebldpjpvnw015"
+    },
+    {
+      "rank": 7,
+      "name": "Octane LED Panel Round 18W",
+      "brand": "Havells",
+      "body": "The Octane 18W round panel is the large-room workhorse, rated for residential, shop and showroom duty. Its 6500 K output from a single wide panel lights a hall, reception or retail floor segment that would otherwise need three or four bulbs in scattered holders, cutting both wiring points and visual clutter. At ₹911 against a ₹1,559 MRP, the cost per point is higher but the coverage per point is far greater, which is the correct trade in commercial interiors where ceilings should look ordered.",
+      "bestFor": "Halls, receptions and shop floors",
+      "productId": "hav-lhebhdp7iz1w018"
+    },
+    {
+      "rank": 8,
+      "name": "Austra Arc 20W LED Batten",
+      "brand": "Havells",
+      "body": "Havells' entry in the 20W batten class, and the one to pick where the electrical supply itself is the problem. The Austra Arc is rated for 140-270V input, a wide band that keeps output steady through the voltage sags and surges common on weaker grids and in peri-urban areas. At ₹931 against a ₹1,315 MRP, it costs more than the Syska and Wipro battens; you are paying for the driver's tolerance and the Havells service network. In stable-supply city flats, the cheaper battens remain better value.",
+      "bestFor": "Battens for weak or fluctuating supply areas",
+      "productId": "hav-lhebfopnia7w020"
+    },
+    {
+      "rank": 9,
+      "name": "Innova Neo LED Spotlight Round 6W",
+      "brand": "Havells",
+      "body": "A compact 6W spotlight rather than a bulb, included as the low-wattage accent option for the points a scheme still needs after the main lighting is done: wardrobe fronts, art walls, pooja niches and passage runs. The 6500 K round unit is rated for residential duty and carries a 2-year warranty. At ₹309 against a ₹510 MRP, it is priced at bulb level while giving directed light a bare bulb cannot. A row of three along a corridor draws under 20W in total.",
+      "bestFor": "Accent points, niches and passages",
+      "productId": "hav-lheegbpfih1w006"
+    },
+    {
+      "rank": 10,
+      "name": "Fazer Neo 3-in-1 LED Panel Round 6W",
+      "brand": "Havells",
+      "body": "The flexible finisher: a 6W round panel whose 3-in-1 colour switching moves between white tones from the wall switch, so one fitting serves as cool daylight for cleaning, neutral for daily use and warm for evenings. That flexibility solves the commonest lighting regret, choosing one colour temperature and tiring of it. At ₹343 against a ₹480 MRP, it costs barely more than a fixed-colour panel. Use it in bedrooms and dining areas where the mood of the room genuinely changes through the day.",
+      "bestFor": "Bedrooms wanting switchable colour temperature",
+      "productId": "hav-lhebmepnuz1w006"
+    }
+  ],
+  "buyingTips": [
+    "Buy bulbs in multi-packs: the Syska four-pack takes the per-bulb price to about ₹135 versus ₹158 in the Philips two-pack, and across a whole flat or floor those margins compound into real money.",
+    "Pick colour temperature by room, not habit: 6500 K cool daylight for kitchens, bathrooms and work areas, 3000 K warm white for bedrooms and living spaces. Mixing both in one room is the most common scheme error.",
+    "Count light per rupee, not bulbs per rupee. A ₹355 batten out-delivers two bulbs at similar cost, and a ₹319 panel replaces a bulb point with better-looking light, so compare fittings on the total light they give a room.",
+    "In areas with unstable supply, spend on the driver: wide-voltage fittings like the Havells Austra Arc (140-270V) and established brands like Philips hold output and survive where budget electronics fail early.",
+    "Standardise a shortlist per project, one bulb, one batten, one panel, and order together. Elume's wholesale discount applies at 15+ units and mixed lighting carts qualify, keeping spares interchangeable across the site."
+  ],
+  "faq": [
+    {
+      "q": "How bright is a 9W LED bulb compared to old bulbs?",
+      "a": "A quality 9W LED gives roughly the light of a 60W incandescent bulb or a 12-14W CFL. Both packs in this list are 9W B22 lamps in 6500 K cool daylight, so they drop straight into standard Indian bayonet holders as one-for-one replacements while cutting that socket's power draw by around 85 percent."
+    },
+    {
+      "q": "What does 6500 K actually mean on a bulb or batten?",
+      "a": "It is the colour temperature. 6500 K is cool daylight, the bright white-blue tone most Indian homes and shops default to, best for kitchens, bathrooms and work. 3000 K is warm white, a softer yellowish tone suited to bedrooms and living rooms. 4000 K sits between. Lower numbers mean warmer light, not less brightness."
+    },
+    {
+      "q": "Should I buy bulbs, battens or panels for a new home?",
+      "a": "Usually a mix. Battens give the most light per rupee for kitchens, studies and utility walls. Panels suit false ceilings and give the cleanest look for general room light. Bulbs remain right for existing holders, lamps and low-use spaces. Ranking them together here reflects how buyers actually choose between the three."
+    },
+    {
+      "q": "Why do some LED bulbs fail early in Indian homes?",
+      "a": "Most early failures are driver failures caused by voltage fluctuation and heat, not the LEDs themselves. Established brands like Philips, Syska, Wipro and Havells use better-protected drivers, and wide-voltage designs such as the 140-270V Havells battens are built specifically for unstable supply areas."
+    },
+    {
+      "q": "Does Elume offer bulk pricing on LED bulbs and lights?",
+      "a": "Yes. All prices shown are Elume prices below MRP, and orders of 15 or more units attract an additional wholesale discount. Bulbs, battens, panels and spotlights can be combined in one order, which is the economical route for fitting out a full flat, office floor or rental portfolio."
+    }
+  ]
+}

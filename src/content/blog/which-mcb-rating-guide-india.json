@@ -1,0 +1,106 @@
+{
+  "slug": "which-mcb-rating-guide-india",
+  "title": "Which MCB Rating for AC, Geyser & Kitchen? The Complete Amp Guide",
+  "description": "A practical amp guide to MCB ratings in Indian homes: which of 6A to 32A suits lights, geysers, ACs and kitchen circuits, plus B curve vs C curve explained.",
+  "category": "Switchgear",
+  "date": "2026-07-22",
+  "author": "Elume Editorial",
+  "readMins": 8,
+  "intro": [
+    "An MCB has one job: to disconnect a circuit before its wiring overheats. That means the rating on the breaker is chosen to protect the wire, not the appliance. Get this pairing right and faults trip cleanly and safely; get it wrong, with an oversized MCB on thin wire, and the wire becomes the fuse, which is exactly the failure mode behind many house fires.",
+    "Indian domestic boards use a small set of ratings, 6A to 32A, and each maps to a familiar circuit type. This guide walks through each rating, the circuits and appliances it typically serves, and the wire size it must be paired with. We finish with the other letter on the breaker face, B or C, which decides how the MCB reacts to the momentary surge of a starting motor.",
+    "As always with protection, the numbers here reflect standard practice for typical homes. Actual appliance wattages, run lengths and diversity vary, so have a licensed electrician confirm the final board schedule before energising."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "6A: lighting circuits",
+      "brand": "",
+      "body": "A 6A MCB protects roughly 1.3 kW at 230 V, generous for a modern lighting circuit where a whole room of LEDs draws under 100 W. Pair it with 1 or 1.5 sq mm wire. The discipline that matters is separation: keep lighting on its own 6A breakers, separate from sockets, so an appliance fault never plunges the room into darkness while you hunt for the problem. One 6A circuit per room or pair of rooms is common practice. Havells' MCB SPN C Curve 6A is around Rs 635 on Elume.",
+      "bestFor": "Room lighting circuits on 1 to 1.5 sq mm wire",
+      "productId": "hav-dhmgcsnf006"
+    },
+    {
+      "rank": 2,
+      "name": "10A: fan and mixed light circuits",
+      "brand": "",
+      "body": "10A suits circuits that combine lighting with ceiling fans, exhaust fans and 6A plug points for chargers and routers, up to roughly 2.3 kW of protected capacity on 1.5 sq mm wire. It is the sensible step up when one breaker covers a larger zone, say a living-dining area with several fans. Resist the temptation to use 10A as a fix for a 6A breaker that trips: first find out why it trips. If the load genuinely grew, check the wire size still matches before upgrading the MCB.",
+      "bestFor": "Light plus fan zones and 6A plug points on 1.5 sq mm wire",
+      "productId": null
+    },
+    {
+      "rank": 3,
+      "name": "16A: power sockets and most geysers",
+      "brand": "",
+      "body": "16A is the workhorse for power socket circuits wired in 2.5 sq mm: refrigerator, washing machine, microwave, mixer and room heater points. It also suits a dedicated circuit for most storage geysers, since a common 2 kW element draws about 9 A and even a 3 kW element about 13 A. The geyser deserves its own 16A breaker and run rather than sharing a socket circuit, so heavy morning use never competes with the kitchen. Havells' 16A SP Mini MCB C Series is around Rs 317 on Elume.",
+      "bestFor": "16A socket circuits and dedicated geyser runs on 2.5 sq mm",
+      "productId": "hav-dcvncspa016"
+    },
+    {
+      "rank": 4,
+      "name": "20A: kitchen power and 1 to 1.5 ton ACs",
+      "brand": "",
+      "body": "Kitchens concentrate heavy loads: OTG, induction hob, dishwasher, kettle, sometimes two running together. A dedicated 20A circuit in 2.5 or 4 sq mm keeps that headroom honest. 20A is also the common choice for a 1 to 1.5 ton split AC circuit: the running current is only 6 to 10 A, but the rating covers starting surge and hot-weather load with margin, wired in 4 sq mm as a dedicated run. One AC, one breaker, clearly labelled. Havells' 20A SP Mini MCB C Series is around Rs 317 on Elume.",
+      "bestFor": "Dedicated kitchen power and 1 to 1.5 ton AC circuits",
+      "productId": "hav-dcvncspa020"
+    },
+    {
+      "rank": 5,
+      "name": "25A: 2 ton ACs and heavy dedicated loads",
+      "brand": "",
+      "body": "Step up to 25A for 2 ton air conditioners, high-capacity instant geysers and other single appliances drawing in the mid-teens of amps, wired in 4 or 6 sq mm depending on run length. At this level the pairing rule really bites: a 25A breaker on 2.5 sq mm wire is a mismatch, because the wire can be stressed below the breaker's trip point. If an electrician proposes 25A anywhere, ask what wire feeds it. Havells' 25A SP Mini MCB C Series is around Rs 317 on Elume.",
+      "bestFor": "2 ton ACs and heavy appliances on 4 to 6 sq mm wire",
+      "productId": "hav-dcvncspa025"
+    },
+    {
+      "rank": 6,
+      "name": "32A: sub-mains and incomer duty",
+      "brand": "",
+      "body": "32A breakers rarely feed a single appliance in a home. Their role is upstream: the incomer or sub-main protection for a floor's distribution board, or the feed to a kitchen sub-board, carried on 6 sq mm or heavier conductors. A double-pole 32A device as incomer lets you isolate a whole board with one switch, which every electrician servicing your home will thank you for. Match the incomer to your sanctioned load and let the downstream MCBs do circuit-level protection. Havells' MCB SPN C Curve 32A is around Rs 705 on Elume.",
+      "bestFor": "DB incomers and sub-mains on 6 sq mm and above",
+      "productId": "hav-dhmzcsnf032"
+    },
+    {
+      "rank": 7,
+      "name": "B curve vs C curve: the other letter on the breaker",
+      "brand": "",
+      "body": "The curve letter sets how the MCB responds to short, high surges. A B-curve device trips magnetically at roughly 3 to 5 times its rating, suited to resistive loads like lighting and heaters. A C-curve waits until about 5 to 10 times, tolerating the inrush of motors and compressors in fans, ACs, refrigerators and pumps without nuisance tripping. Indian homes overwhelmingly use C curve throughout, and that is a sound default since it still trips instantly on a true short circuit. D curve, tolerating even larger inrush, belongs to motor-heavy and industrial duty, not flats.",
+      "bestFor": "C curve is the safe default for Indian homes; B for purely resistive circuits",
+      "productId": null
+    }
+  ],
+  "buyingTips": [
+    "Pair the breaker to the wire first, the appliance second: 6 to 10A on 1.5 sq mm, 16 to 20A on 2.5 sq mm, 20 to 25A on 4 sq mm, 32A on 6 sq mm. Never raise an MCB rating without confirming the wire can take it.",
+    "Give every heavy appliance its own circuit and breaker: each AC, the geyser, the kitchen. Label the board honestly; future-you at 11 pm with a torch will be grateful.",
+    "A tripping MCB is information, not an inconvenience. Find the overload or fault before touching the board; swapping in a bigger breaker to silence trips removes the very protection you paid for.",
+    "Buy ISI-marked breakers from established brands and check the breaking capacity printed on the face, commonly 10 kA for quality domestic MCBs. A breaker that cannot interrupt a heavy fault is theatre, not protection.",
+    "Remember MCBs do not protect people from shock. Pair the board with a 30 mA RCCB or RCBOs for earth-leakage protection; the MCB guards the wiring, the RCCB guards you.",
+    "Have a licensed electrician finalise the board schedule against your actual load list and sanctioned supply; the mappings here are standard practice, not a substitute for a site-specific design."
+  ],
+  "faq": [
+    {
+      "q": "Which MCB rating do I need for a 1.5 ton AC?",
+      "a": "A 1.5 ton split AC typically runs at 6 to 10 A, and standard practice is a dedicated 20A C-curve MCB on a 4 sq mm circuit. The margin covers starting surge and peak-summer load. A 2 ton AC steps up to 25A, usually on 4 to 6 sq mm depending on run length."
+    },
+    {
+      "q": "What MCB rating is right for a geyser?",
+      "a": "Most storage geysers use 2 to 3 kW elements, drawing roughly 9 to 13 A, so a dedicated 16A MCB on a 2.5 sq mm run is the common standard. High-capacity instant geysers can draw more; check the nameplate wattage and let your electrician size accordingly."
+    },
+    {
+      "q": "What is the difference between B curve and C curve MCBs?",
+      "a": "The curve describes the instantaneous trip threshold. B curve trips at about 3 to 5 times rated current, ideal for resistive loads like lighting. C curve trips at about 5 to 10 times, so it rides through the starting inrush of motors and compressors without nuisance trips. Indian homes generally use C curve throughout."
+    },
+    {
+      "q": "Can I replace a 16A MCB with a 32A to stop it tripping?",
+      "a": "No. The MCB rating is chosen to protect the wire behind it, and a 32A breaker on a 2.5 sq mm circuit lets the wire overheat before it trips. Frequent tripping means an overload or fault that needs finding. If the circuit genuinely needs more capacity, both the wire and the breaker must be upgraded together by an electrician."
+    },
+    {
+      "q": "Does an MCB protect against electric shock?",
+      "a": "No. An MCB protects wiring from overload and short circuit; it does not sense the small earth-leakage currents involved in electric shock. For shock protection you need a 30 mA RCCB or RCBO in the board alongside the MCBs. A well-designed home board has both."
+    },
+    {
+      "q": "Single pole or double pole: which MCB should I buy?",
+      "a": "Single-pole MCBs protecting the phase are standard for individual circuits in a single-phase home, while the board's incomer is usually a double-pole device so both phase and neutral disconnect together for safe isolation. Three-phase homes use TP or TPN devices upstream. Your electrician will match poles to your supply."
+    }
+  ]
+}

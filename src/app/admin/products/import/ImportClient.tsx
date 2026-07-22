@@ -2,7 +2,18 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { previewImport, applyImport } from "@/lib/admin/actions";
+
+/* Admin mutations go through the fixed /api/admin/rpc URL (server-action ids
+ * rotate per deploy). Wrappers keep the original signatures so call sites
+ * are unchanged. */
+async function rpc<T = { ok: boolean; error?: string }>(payload: Record<string, unknown>): Promise<T> {
+  const r = await fetch("/api/admin/rpc", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+  try { return await r.json(); } catch { return { ok: false, error: `Request failed (${r.status}). Try again.` } as T; }
+}
+
+const previewImport = (csvText: string) => rpc<any>({ op: "preview-import", csvText });
+const applyImport = (diffs: any[], filename: string) => rpc<any>({ op: "apply-import", diffs, filename });
+
 
 type Diff = {
   action: "add" | "update" | "remove";

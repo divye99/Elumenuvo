@@ -1,0 +1,106 @@
+{
+  "slug": "electrical-material-checklist-2bhk-3bhk",
+  "title": "Complete Electrical Material Checklist for a 2BHK & 3BHK (India, 2026)",
+  "description": "A group-by-group electrical material checklist for 2BHK and 3BHK homes in India: wires, MCBs and DB, switches, fans, lights and accessories with quantities.",
+  "category": "Wires & Cables",
+  "date": "2026-07-22",
+  "author": "Elume Editorial",
+  "readMins": 9,
+  "intro": [
+    "An electrical fit-out fails in the gaps: the job that stalls because nobody ordered the earth wire, the board with no spare ways, the ceiling closed before anyone counted fan hooks. A complete material list, agreed with your electrician before work starts, is the cheapest project insurance you can buy.",
+    "This checklist walks through the six material groups of a typical Indian home fit-out, wires, protection and distribution, switches and sockets, fans, lighting, and the unglamorous accessories, with realistic quantity ranges for a 2BHK (roughly 900 to 1,100 sq ft) and a 3BHK (roughly 1,300 to 1,600 sq ft).",
+    "Every quantity here is an estimate for a typical layout. Room counts, balconies, duplex staircases and how far the distribution board sits from the living areas all move the numbers, so use this list to structure the conversation with your licensed electrician, not to replace their measured take-off."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "Wires: the volume item",
+      "brand": "",
+      "body": "Wire is the biggest single line on the bill. For a 2BHK, plan roughly 6 to 9 coils of 90 m across sizes: 1 to 2 coils of 1 sq mm (light points), 2 to 3 of 1.5 sq mm (lighting and fans), 2 to 3 of 2.5 sq mm (sockets and kitchen), 1 of 4 sq mm (geyser, AC), plus 6 sq mm for mains as needed. A 3BHK runs about 10 to 13 coils. Buy one brand and grade throughout, in phase, neutral and earth colours; FRLS or better is the sensible minimum. A 90 m coil of Polycab GreenWire FRLS 2.5 sq mm is around Rs 5,299 on Elume.",
+      "bestFor": "2BHK: about 6 to 9 coils; 3BHK: about 10 to 13 coils, FRLS minimum",
+      "productId": "wire-polycab-frls-2p5-red"
+    },
+    {
+      "rank": 2,
+      "name": "Distribution board and MCBs: the nerve centre",
+      "brand": "",
+      "body": "Plan the board with spare capacity: an 8-way SPN DB typically serves a 2BHK and a 12-way a 3BHK, with two to four ways left empty for the future. Populate with C-curve MCBs matched to each circuit: 6A for lighting, 10A for fan zones, 16A for socket circuits and geysers, 20A for kitchen and 1 to 1.5 ton ACs, 25A for 2 ton ACs, and a 32A double-pole incomer. A 2BHK lands around 6 to 10 breakers, a 3BHK 10 to 14. Havells' 16A SP Mini MCB C Series is around Rs 317 on Elume.",
+      "bestFor": "8-way DB with 6 to 10 MCBs (2BHK); 12-way with 10 to 14 (3BHK)",
+      "productId": "hav-dcvncspa016"
+    },
+    {
+      "rank": 3,
+      "name": "Earth-leakage protection: one RCCB, non-negotiable",
+      "brand": "",
+      "body": "Alongside the MCBs, every home board needs a 30 mA RCCB sized to the incomer, commonly 40 A for a 2BHK and 40 to 63 A for a 3BHK, to disconnect the supply when current leaks to earth through a fault or a person. This is the device that protects people rather than wiring, and it costs less than a ceiling fan. Schneider's Acti9 RCCB 40A 30mA is around Rs 2,180 on Elume; larger homes and three-phase supplies step up to 63 A units like Legrand's 63A 30mA. Test the button monthly once installed.",
+      "bestFor": "One 30 mA RCCB per board: 40 A for 2BHK, 40 to 63 A for 3BHK",
+      "productId": "schrccb"
+    },
+    {
+      "rank": 4,
+      "name": "Switches, sockets and plates: count every point",
+      "brand": "",
+      "body": "Walk the plan room by room and count: every light, fan and appliance needs a switch module, and modern life needs more sockets than you think, two to three 6 A points per room for chargers plus 16 A points for every heavy appliance. A 2BHK typically totals 50 to 70 modules across 15 to 20 switch plates; a 3BHK, 80 to 110 modules across 22 to 30 plates. Choose one modular range across the house so plates, modules and boxes interchange, and insist on shuttered sockets where small children live.",
+      "bestFor": "2BHK: about 50 to 70 modules; 3BHK: about 80 to 110",
+      "productId": null
+    },
+    {
+      "rank": 5,
+      "name": "Fans: ceiling, exhaust and the BLDC question",
+      "brand": "",
+      "body": "A 2BHK typically takes 3 to 4 ceiling fans plus 2 exhaust fans (kitchen and bathroom); a 3BHK, 5 to 6 ceiling fans plus 2 to 3 exhausts. Order fan hooks or boxes with the ceiling work, long before the fans themselves arrive. For rooms with heavy daily use, 28 W BLDC fans repay their premium within a year or two against 75 W induction models; Atomberg's Renesa 1200 mm, around Rs 3,798 on Elume, is a dependable mainstream pick, and BLDC exhaust fans like Atomberg's 150 mm Efficio extend the logic to bathrooms.",
+      "bestFor": "2BHK: 3 to 4 ceiling plus 2 exhaust; 3BHK: 5 to 6 plus 2 to 3",
+      "productId": "atm-ren-1200-brn"
+    },
+    {
+      "rank": 6,
+      "name": "Lighting: layers, not just tube lights",
+      "brand": "",
+      "body": "Plan lighting in layers: recessed or surface LED panels for general light, battens for kitchens and utility, spots or COBs for accents, and a bulb holder or two for flexibility. A 2BHK typically carries 15 to 22 light points, a 3BHK 25 to 35, with wattages of 6 to 15 W per panel now standard. Decide colour temperature per room before ordering, warm 3000 K for bedrooms and living, cooler 4000 to 6500 K for kitchens and work areas. Havells' Trim LED Panel Round 10 W 3000 K is around Rs 319 on Elume; a Syska 20 W 4 ft batten around Rs 355.",
+      "bestFor": "2BHK: about 15 to 22 light points; 3BHK: about 25 to 35",
+      "productId": "hav-lhebldp5in1w010"
+    },
+    {
+      "rank": 7,
+      "name": "Accessories: the small items that stop big jobs",
+      "brand": "",
+      "body": "The unglamorous list that stalls projects when forgotten: PVC conduit and bends (typically 20 to 25 mm), concealed metal or PVC boxes for every switch plate, fan boxes with hooks, ceiling roses, batten and angle holders, insulation tape, wire-pulling spring, screws and rawl plugs, earthing rod and strip if the building's earth is poor, and cable ties. Budget a modest lump sum, roughly 5 to 10 percent of the material bill, and buy alongside the wires so conduiting never waits. Your electrician's list is definitive here; ask for it in writing.",
+      "bestFor": "Roughly 5 to 10 percent of budget; order with the wire, not after",
+      "productId": null
+    }
+  ],
+  "buyingTips": [
+    "Fix the complete point count with your electrician before buying anything: every light, fan, socket and appliance point on paper, room by room. Every later change ripples through wire, modules and board capacity.",
+    "Order in two sensible waves: conduit, boxes and wire first for the civil stage; switches, fans, lights and DB dressing closer to finishing. Everything in this list except accessories benefits from single-brand consistency within its group.",
+    "Leave 20 to 30 percent spare capacity everywhere: empty DB ways, an extra conduit run to the AC wall, a couple of unused modules per plate. Spare capacity is cheap during construction and expensive after painting.",
+    "Do not economise on the safety spine: BIS-marked wire, branded MCBs, one 30 mA RCCB and proper earthing. Save money on decorative plates and fancy fixtures instead if the budget pinches.",
+    "Photograph every wall and ceiling after wiring but before plastering. That photo set is the cheapest as-built drawing you will ever own.",
+    "Reconcile deliveries against the list on arrival: coil counts, metre markings, module counts. Shortfalls found on day one are replaceable; shortfalls found mid-job stall the site."
+  ],
+  "faq": [
+    {
+      "q": "What is the total electrical material cost for a 2BHK in India?",
+      "a": "It varies widely with brands and finishes, but the structure is consistent: wire is the largest line (roughly 6 to 9 coils), followed by switches and plates, then fans and lighting, with the DB, MCBs and RCCB a smaller but non-negotiable slice, and 5 to 10 percent for accessories. Price the list in this guide against current Elume rates for a realistic total for your choices."
+    },
+    {
+      "q": "How many MCBs does a 2BHK or 3BHK need?",
+      "a": "A typical 2BHK uses 6 to 10 MCBs in an 8-way board: lighting circuits on 6A, fan zones on 10A, socket circuits and geyser on 16A, kitchen and ACs on 20 to 25A, plus a 32A incomer. A 3BHK runs 10 to 14 in a 12-way board. Always leave spare ways for future circuits."
+    },
+    {
+      "q": "Is an RCCB really necessary if I have good MCBs?",
+      "a": "Yes. MCBs protect wiring from overload and short circuit but cannot detect the small earth-leakage currents that electrocute people. A 30 mA RCCB (or RCBOs per circuit) is the device that provides shock protection, and no modern home board should be built without one."
+    },
+    {
+      "q": "How many switches and sockets does a typical flat need?",
+      "a": "Counted as modules, a 2BHK typically needs 50 to 70 and a 3BHK 80 to 110, spread across roughly 15 to 30 plates. The perennial mistake is too few sockets: plan two to three 6 A points per room for electronics plus a 16 A point for every heavy appliance, then add a couple more."
+    },
+    {
+      "q": "Should I buy all materials at once or in stages?",
+      "a": "Two waves work best: conduit, boxes and wire before the civil stage, then switches, fans, lights and board components near finishing. This keeps fragile finished goods off a dusty site while ensuring the materials that get built into walls never hold up masons and electricians."
+    },
+    {
+      "q": "Can I use this checklist instead of an electrician's estimate?",
+      "a": "No, use it alongside one. These quantities are realistic for typical layouts, but your room count, duplex stairs, balconies and DB location all shift the numbers. The checklist's job is to make the electrician's quote easy to interrogate line by line, and to make sure nothing is forgotten before work begins."
+    }
+  ]
+}

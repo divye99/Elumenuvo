@@ -1,0 +1,98 @@
+{
+  "slug": "fr-frls-hrfr-hffr-wire-guide",
+  "title": "FR vs FRLS vs HR FR-LSH vs HFFR: Wire Insulation Grades Explained",
+  "description": "FR, FRLS, HR FR-LSH and HFFR wire grades explained in plain language: what each insulation actually does in a fire, and which grade your home really needs.",
+  "category": "Wires & Cables",
+  "date": "2026-07-22",
+  "author": "Elume Editorial",
+  "readMins": 7,
+  "intro": [
+    "Walk into any electrical shop and the same 2.5 sq mm copper wire comes with a confusing alphabet attached: FR, FRLS, HR FR-LSH, HFFR, sometimes EBXL. The copper inside is broadly the same; what you are actually choosing is the insulation, and the insulation is what decides how the wire behaves on the worst day of its life, when there is a fault or a fire.",
+    "The grades form a ladder. Each step up changes one thing: how readily the insulation burns, how much smoke and gas it releases, or how much heat it tolerates in daily service. Understanding those three properties, flame behaviour, emissions and temperature rating, is all you need to decode any brand's naming.",
+    "This guide climbs the ladder step by step using wires actually stocked on Elume, so you can see what each grade costs in practice. The pleasant surprise: on Elume the premium grades often land within a few percent of plain FR, which changes the value equation completely."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "FR: flame retardant, the baseline",
+      "brand": "",
+      "body": "FR insulation is PVC compounded to resist ignition and slow flame spread, typically with a limiting oxygen index above 29 percent, meaning it needs more oxygen than normal air provides to keep burning. When the heat source is removed, it self-extinguishes. What FR does not control is smoke: burning PVC releases dense, dark smoke and corrosive gases. FR remains a legitimate choice for budget projects and well-ventilated spaces. RR Kabel Superex and KEI Homecab are dependable FR lines; a 90 m coil of Polycab GreenWire FR 2.5 sq mm runs around Rs 5,299 on Elume.",
+      "bestFor": "Budget-conscious wiring where smoke behaviour is not critical",
+      "productId": "wire-polycab-fr-2p5-red"
+    },
+    {
+      "rank": 2,
+      "name": "FRLS and FR-LSH: adding low smoke and low halogen",
+      "brand": "",
+      "body": "FRLS (Flame Retardant Low Smoke) and FR-LSH (the LSH stands for Low Smoke and Halogen) keep the flame-retardant base but reformulate the PVC to emit far less smoke and less halogen acid gas when it burns. In a real fire, most casualties come from smoke, not flame: it blinds escape routes and its corrosive gases damage lungs and electronics. For enclosed flats and any space where people sleep, this grade is the sensible modern default. KEI's Conflame FR-LSH 2.5 sq mm, around Rs 5,299 for a 90 m coil on Elume, prices almost identically to plain FR here.",
+      "bestFor": "The sensible default for enclosed homes and apartments",
+      "productId": "wire-kei-frlsh-2p5-green"
+    },
+    {
+      "rank": 3,
+      "name": "HR FR-LSH: heat resistance joins the party",
+      "brand": "",
+      "body": "The HR prefix adds heat resistance: insulation rated for continuous service at 85 C instead of the conventional 70 C. That matters in Indian conditions, where conduits in sun-facing walls and ceilings run hot, and on heavily loaded circuits feeding ACs, geysers and kitchens. Higher temperature tolerance means slower insulation ageing and extra current headroom; KEI rates its Conflame Green+ line for about 20 percent more current. Polycab's Maxima+ Green Wire is the same idea. On Elume, HR FR-LSH sizes price level with standard grades, making this the best-value tier for most new wiring.",
+      "bestFor": "Hot climates, AC and geyser circuits, long-life wiring",
+      "productId": "poly-frls-10-red"
+    },
+    {
+      "rank": 4,
+      "name": "HFFR: halogen-free for the strictest fire safety",
+      "brand": "",
+      "body": "All the grades above still use PVC, which contains chlorine, a halogen. HFFR (Halogen-Free Flame Retardant) switches to a different polymer entirely, so a burning wire releases no halogen acid gas and very little smoke. KEI's Banfire HFFR line specifies smoke density of at most 20 percent and acid gas generation of at most 0.5 percent. This is the specification hospitals, hotels, metro stations and high-rises increasingly demand. Note the trade-off: standard HFFR is rated 70 C, so it is about clean burning, not heat headroom. A 90 m coil of Banfire 2.5 sq mm is around Rs 5,299 on Elume.",
+      "bestFor": "Hospitals, hotels, high-rises and strict fire codes",
+      "productId": "wire-kei-hffr-2p5-red"
+    },
+    {
+      "rank": 5,
+      "name": "EBXL: electron-beam cross-linked, the endurance grade",
+      "brand": "",
+      "body": "E-beam cross-linking bombards the insulation with electrons to link its polymer chains, producing a tougher material rated for 105 C continuous service, the highest on this ladder. APAR's Anushakti EBXL HR FR-PVC claims substantially higher current capacity and a service life of decades beyond conventional PVC. Cross-linked insulation also resists deformation where wires press against conduit edges. If you are wiring a home you intend to hold for thirty years, this is the buy-once grade. The 2.5 sq mm Anushakti coil is around Rs 5,299 on Elume, remarkable for the top tier.",
+      "bestFor": "Once-in-a-lifetime wiring with maximum heat and life headroom",
+      "productId": "wire-apar-hrfr-2p5-red"
+    },
+    {
+      "rank": 6,
+      "name": "How to choose: match the grade to the building, not the brochure",
+      "brand": "",
+      "body": "A simple decision path covers most cases. Well-ventilated, budget-driven project: FR is acceptable. Family flat or any enclosed sleeping space: FRLS or FR-LSH minimum. Hot climate, heavy AC and geyser loads, or you want maximum life: HR FR-LSH or EBXL. Building governed by strict fire norms, or shared escape routes as in high-rises: HFFR. Whatever you pick, keep one grade consistent across the house rather than mixing coil by coil, and remember the grade changes fire behaviour, not current rating rules: size conductors the same way regardless.",
+      "bestFor": "One consistent grade per home, chosen for the building type",
+      "productId": null
+    }
+  ],
+  "buyingTips": [
+    "Check the price gap before assuming premium grades are unaffordable. On Elume, FR, FRLS, HR FR-LSH and even EBXL coils of the same size often sit within a few percent of each other, so the upgrade to low-smoke or heat-resistant insulation can be nearly free.",
+    "Read the printing on the wire, not just the carton. Genuine wire states the grade, size, 1100 V rating and IS 694 mark on the insulation itself, with sequential metre marking to verify the 90 m length.",
+    "Do not mix grades within one house. Pick one grade for the whole job so fire behaviour is predictable everywhere; upgrade the whole home, not just the AC circuit.",
+    "Remember that grade does not change sizing. An HR wire's extra current headroom is a safety margin, not licence to run a smaller size; follow the normal size ladder and let your electrician confirm.",
+    "For rentals and resale flats, FRLS is the smart minimum: the incremental cost is small and buyers' inspectors increasingly ask about it.",
+    "If your society, insurer or local fire NOC mentions low-smoke or halogen-free cabling, settle the grade before buying anything; swapping wire after conduiting is expensive."
+  ],
+  "faq": [
+    {
+      "q": "What is the difference between FR and FRLS wire?",
+      "a": "Both are flame retardant, meaning the insulation resists ignition and self-extinguishes. FRLS additionally emits far less smoke and less corrosive halogen gas when it does burn. Since smoke is the main killer in building fires, FRLS is the safer choice for enclosed homes, and on Elume it typically costs about the same as FR."
+    },
+    {
+      "q": "Is HFFR better than FRLS?",
+      "a": "For fire emissions, yes: HFFR contains no halogens at all, so it releases minimal smoke and no acid gas, against FRLS which reduces but does not eliminate them. However, standard HFFR is rated 70 C while HR FR-LSH grades are rated 85 C. Choose HFFR where fire codes demand it; choose HR FR-LSH where heat and longevity matter more."
+    },
+    {
+      "q": "What does HR mean in HR FR-LSH wire?",
+      "a": "HR stands for heat resistant. The insulation is rated for continuous operation at 85 C rather than the conventional 70 C, which slows insulation ageing in hot Indian conduits and gives extra current headroom on heavily loaded circuits like ACs, geysers and kitchens."
+    },
+    {
+      "q": "What is EBXL or e-beam wire?",
+      "a": "EBXL wire has insulation cross-linked using an electron beam, which toughens the polymer and raises its continuous temperature rating to 105 C. Makers like APAR claim significantly longer service life and higher current capacity than conventional PVC. It is the premium tier for buyers wiring a home for the very long term."
+    },
+    {
+      "q": "Do FRLS or HFFR wires carry more current than FR wires?",
+      "a": "Not by grade alone. Current capacity is set mainly by conductor size and installation conditions. Heat-resistant grades (HR, EBXL) do earn extra headroom from their higher temperature ratings, but you should still size conductors by the standard ladder and treat the headroom as safety margin, not as a reason to downsize."
+    },
+    {
+      "q": "Which wire grade is mandatory in India?",
+      "a": "For ordinary homes, BIS certification to IS 694 is the baseline requirement; no specific grade above FR is universally mandated. However, many high-rise approvals, institutional projects and fire NOCs specify low-smoke or halogen-free cabling. Check your society or project requirements, and when in doubt, FRLS is a safe, affordable default."
+    }
+  ]
+}

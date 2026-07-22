@@ -348,7 +348,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     </div>
   );
 }
-function Row({ children }: { children: React.ReactNode }) { return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>{children}</div>; }
+function Row({ children }: { children: React.ReactNode }) { return <div className="co-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>{children}</div>; }
 
 /** Structured Indian address: 3 lines, city/district, state dropdown, PIN, country (India). */
 function AddressFields({ a, onChange }: { a: Address; onChange: (k: keyof Address, v: string) => void }) {

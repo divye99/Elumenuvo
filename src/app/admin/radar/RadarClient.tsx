@@ -4,16 +4,23 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { fmt } from "@/lib/format";
 import { gstBreakdown } from "@/lib/pricing";
-import {
-  searchCompetitorAction,
-  saveCompetitorMap,
-  removeCompetitorMap,
-  setMapApproval,
-  syncCompetitorNow,
-  syncAllCompetitors,
-  saveRepricingRule,
-  deleteRepricingRule,
-} from "@/lib/admin/actions";
+
+/* Admin mutations go through the fixed /api/admin/rpc URL (server-action ids
+ * rotate per deploy). Wrappers keep the original signatures so call sites
+ * are unchanged. */
+async function rpc<T = { ok: boolean; error?: string }>(payload: Record<string, unknown>): Promise<T> {
+  const r = await fetch("/api/admin/rpc", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+  try { return await r.json(); } catch { return { ok: false, error: `Request failed (${r.status}). Try again.` } as T; }
+}
+
+const searchCompetitorAction = (source: string, query: string) => rpc<any>({ op: "search-competitor", source, query });
+const saveCompetitorMap = (input: Record<string, unknown>) => rpc({ op: "save-map", input });
+const removeCompetitorMap = (productId: string, source: string) => rpc({ op: "remove-map", productId, source });
+const setMapApproval = (productId: string, source: string, approve: boolean) => rpc({ op: "map-approval", productId, source, approve });
+const syncCompetitorNow = (source: string) => rpc<any>({ op: "sync-source", source });
+const syncAllCompetitors = () => rpc<any>({ op: "sync-all" });
+const saveRepricingRule = (input: Record<string, unknown>) => rpc({ op: "save-rule", input });
+const deleteRepricingRule = (scope: string) => rpc({ op: "delete-rule", scope });
 
 /* Pricing ops go through a fixed API route: server-action ids rotate on every
  * deploy, which made Save/Accept throw from any radar tab opened before a

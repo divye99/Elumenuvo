@@ -7,17 +7,27 @@ import { wholesalePrice, offMrpPct, gstBreakdown } from "@/lib/pricing";
 import { catalogueToCsv } from "@/lib/admin/import";
 import type { ProductRow } from "@/lib/admin/data";
 import ImportClient from "@/app/admin/products/import/ImportClient";
-import {
-  updateProductDetails,
-  deleteProduct,
-  searchCompetitorAction,
-  saveCompetitorMap,
-  removeCompetitorMap,
-  updateMapCondition,
-  setMapApproval,
-  acceptSuggestion,
-  applyRecommendedPrices,
-} from "@/lib/admin/actions";
+
+/* Admin mutations go through the fixed /api/admin/rpc URL (server-action ids
+ * rotate per deploy). Wrappers keep the original signatures so call sites
+ * are unchanged. */
+async function rpc<T = { ok: boolean; error?: string }>(payload: Record<string, unknown>): Promise<T> {
+  const r = await fetch("/api/admin/rpc", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+  try { return await r.json(); } catch { return { ok: false, error: `Request failed (${r.status}). Try again.` } as T; }
+}
+
+const updateProductDetails = (input: Record<string, unknown>) => rpc({ op: "update-product", input });
+const deleteProduct = async (fd: FormData) => { await rpc({ op: "delete-product", id: String(fd.get("id") ?? "") }); };
+const searchCompetitorAction = (source: string, query: string) => rpc<any>({ op: "search-competitor", source, query });
+const saveCompetitorMap = (input: Record<string, unknown>) => rpc({ op: "save-map", input });
+const removeCompetitorMap = (productId: string, source: string) => rpc({ op: "remove-map", productId, source });
+const updateMapCondition = (productId: string, source: string, condition: string) => rpc({ op: "map-condition", productId, source, condition });
+const setMapApproval = (productId: string, source: string, approve: boolean) => rpc({ op: "map-approval", productId, source, approve });
+const acceptSuggestion = (productId: string, source: string) => rpc({ op: "accept-suggestion", productId, source });
+async function applyRecommendedPrices(items: { id: string; target: number }[]) {
+  const r = await fetch("/api/admin/radar/action", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ op: "apply-all", items }) });
+  try { return await r.json(); } catch { return { ok: false, error: "Request failed. Try again." }; }
+}
 
 export type SourceInfo = { id: string; name: string; siteUrl: string | null; enabled: boolean };
 
@@ -389,7 +399,7 @@ function DetailsTab({ row, onClose }: { row: ManagerRow; onClose: () => void }) 
       if (res.ok) router.refresh();
     });
 
-  const del = () => start(async () => { const fd = new FormData(); fd.set("id", row.id); await deleteProduct(fd); });
+  const del = () => start(async () => { const fd = new FormData(); fd.set("id", row.id); await deleteProduct(fd); router.refresh(); });
 
   return (
     <div>

@@ -407,3 +407,8 @@ input[type="range"].elume-range::-moz-range-thumb {
   .ws-cartrow > div:nth-child(2) { flex: 1 1 calc(100% - 70px) !important; } /* name block beside image, controls drop below */
   .ws-spec { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 }
+
+/* Very narrow phones: checkout field pairs stack instead of squeezing */
+@media (max-width: 420px) {
+  .co-row { grid-template-columns: 1fr !important; }
+}
