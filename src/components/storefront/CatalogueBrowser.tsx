@@ -42,6 +42,7 @@ export default function CatalogueBrowser({
   initialSort = "featured",
   editorial = {},
   searchBoost = {},
+  personalShelf,
 }: {
   products: Product[];
   initialQ?: string;
@@ -50,6 +51,7 @@ export default function CatalogueBrowser({
   editorial?: Record<string, { bestFor: string; rank: number; slug: string; postTitle: string }>;
   /** productId -> times chosen from search; learned signal reshaping Featured. */
   searchBoost?: Record<string, number>;
+  personalShelf?: React.ReactNode;
 }) {
   // URL params are read client-side (the page itself is static/cached).
   const sp = useSearchParams();
@@ -224,6 +226,8 @@ export default function CatalogueBrowser({
           The FMEG catalogue
         </h1>
       </div>
+
+      {personalShelf}
 
       {/* ── Command bar ── */}
       <div

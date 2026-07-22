@@ -84,7 +84,7 @@ export default function AppShell({ products, content, user, live }: { products: 
     : isBusiness ? NAV_META : NAV_META.filter((n) => !["smartbom", "project"].includes(n.key));
   const router = useRouter();
   const params = useSearchParams();
-  const initial: Screen = params.get("screen") === "catalogue" ? "catalogue" : "portfolio";
+  const initial: Screen = !live && params.get("screen") === "catalogue" ? "catalogue" : "portfolio";
 
   const [screen, setScreen] = useState<Screen>(initial);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -96,6 +96,18 @@ export default function AppShell({ products, content, user, live }: { products: 
   const [pd, setPd] = useState<Product | null>(null);
   const [pdQty, setPdQty] = useState(1);
   const [topQ, setTopQ] = useState("");
+  const [storeCartCount, setStoreCartCount] = useState(0);
+  useEffect(() => {
+    if (!live) return;
+    const read = () => {
+      try { setStoreCartCount((JSON.parse(localStorage.getItem("elume.cart") || "[]") as { qty?: number }[]).reduce((a, i) => a + (i.qty ?? 1), 0)); } catch { /* fresh */ }
+    };
+    read();
+    window.addEventListener("storage", read);
+    window.addEventListener("focus", read);
+    return () => { window.removeEventListener("storage", read); window.removeEventListener("focus", read); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [menuOpen, setMenuOpen] = useState(false);
   const [acctSection, setAcctSection] = useState<"personal" | "business">("personal");
 
@@ -106,6 +118,11 @@ export default function AppShell({ products, content, user, live }: { products: 
     if (contentRef.current) contentRef.current.scrollTop = 0;
   };
   const nav = (s: Screen) => {
+    // ONE catalogue, one cart: live accounts shop the real storefront (every
+    // improvement, review, badge and the learning loop lives there once).
+    // The workspace keeps what is genuinely account-scoped.
+    if (live && s === "catalogue") { router.push("/catalogue"); return; }
+    if (live && s === "cart") { router.push("/cart"); return; }
     setScreen(s);
     scrollTop();
   };
@@ -214,7 +231,7 @@ export default function AppShell({ products, content, user, live }: { products: 
   };
   const [pageTitle, pageSub] = titles[screen];
   const showBack = ["project", "catalogue", "cart", "smartbom", "confirm", "product", "account"].includes(screen);
-  const cartCount = cart.reduce((a, i) => a + i.qty, 0);
+  const cartCount = live ? storeCartCount : cart.reduce((a, i) => a + i.qty, 0);
   const credit = pay === "credit";
 
   const searchTokensMemo = useMemo(() => searchTokens(topQ), [topQ]);
@@ -293,8 +310,9 @@ export default function AppShell({ products, content, user, live }: { products: 
               <span style={{ width: 13, height: 13, flex: "none", border: "2px solid #b6bdcb", borderRadius: "50%", display: "inline-block" }} />
               <input
                 value={topQ}
-                onChange={(e) => { setTopQ(e.target.value); if (screen !== "catalogue" && e.target.value.trim()) nav("catalogue"); }}
-                onFocus={() => { if (screen !== "catalogue" && topQ.trim()) nav("catalogue"); }}
+                onChange={(e) => { setTopQ(e.target.value); if (!live && screen !== "catalogue" && e.target.value.trim()) nav("catalogue"); }}
+                onFocus={() => { if (!live && screen !== "catalogue" && topQ.trim()) nav("catalogue"); }}
+                onKeyDown={(e) => { if (live && e.key === "Enter" && topQ.trim()) router.push(`/catalogue?q=${encodeURIComponent(topQ.trim())}`); }}
                 placeholder="Search the catalogue…"
                 style={{ border: "none", outline: "none", background: "transparent", fontSize: 12.5, color: "#19202E", width: "100%" }}
               />

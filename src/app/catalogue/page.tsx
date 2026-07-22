@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import CatalogueBrowser from "@/components/storefront/CatalogueBrowser";
+import BuyAgainShelf from "@/components/storefront/BuyAgainShelf";
 import { fetchProducts } from "@/lib/products";
 import { getEditorialPicks } from "@/lib/blog";
 import { loadSearchSignals } from "@/lib/search-signals";
@@ -20,5 +21,5 @@ export const metadata: Metadata = {
 
 export default async function CataloguePage() {
   const [products, signals] = await Promise.all([fetchProducts(), loadSearchSignals()]);
-  return <CatalogueBrowser products={products} editorial={getEditorialPicks()} searchBoost={signals.pickTotals} />;
+  return <CatalogueBrowser products={products} editorial={getEditorialPicks()} searchBoost={signals.pickTotals} personalShelf={<BuyAgainShelf />} />;
 }
