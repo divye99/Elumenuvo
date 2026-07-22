@@ -34,7 +34,8 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
     if (src) {
       const ref = (v.landingReferrer ?? "").toLowerCase();
       if (src === "google" && !ref.includes("google")) return false;
-      if (src === "campaign" && !v.utm) return false;
+      if (src === "email" && !(v.utm ?? "").startsWith("email")) return false;
+      if (src === "campaign" && (!v.utm || (v.utm ?? "").startsWith("email"))) return false;
       if (src === "referral" && (!ref || ref.includes("google") || v.utm)) return false;
       if (src === "direct" && (ref || v.utm)) return false;
     }

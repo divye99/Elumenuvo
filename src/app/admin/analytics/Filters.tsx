@@ -38,6 +38,7 @@ export default function Filters({ countries, states, devices }: { countries: str
       <select style={sel} value={sp.get("src") ?? ""} onChange={(e) => set("src", e.target.value)}>
         <option value="">All sources</option>
         <option value="google">From Google</option>
+        <option value="email">From an email</option>
         <option value="campaign">Campaign / UTM</option>
         <option value="referral">Other referral</option>
         <option value="direct">Direct</option>

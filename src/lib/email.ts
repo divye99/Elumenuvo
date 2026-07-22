@@ -59,8 +59,16 @@ async function send(to: string, subject: string, html: string, opts?: { bcc?: st
   }
 }
 
-export function trackUrl(order: OrderLike): string {
-  return `${SITE}/track?order=${encodeURIComponent(order.id)}&email=${encodeURIComponent(order.email)}`;
+/** Tag an email link so the visit attributes to the email that drove it
+ *  (analytics reads utm_source/campaign on landing). Hash-fragment safe. */
+function withUtm(url: string, campaign: string): string {
+  const [base, hash] = url.split("#");
+  const sep = base.includes("?") ? "&" : "?";
+  return `${base}${sep}utm_source=email&utm_medium=email&utm_campaign=${encodeURIComponent(campaign)}${hash ? `#${hash}` : ""}`;
+}
+
+export function trackUrl(order: OrderLike, campaign = "order-email"): string {
+  return withUtm(`${SITE}/track?order=${encodeURIComponent(order.id)}&email=${encodeURIComponent(order.email)}`, campaign);
 }
 
 /* ── Shared HTML shell ── */
@@ -114,7 +122,7 @@ export async function sendCustomerOrderConfirmation(order: OrderLike): Promise<E
     `<p style="font-size:14px;color:#56627A;margin:0 0 10px">Hi ${escapeHtml(order.name || "there")}, we've received order <b>${order.id}</b> and will begin processing it. Pan-India delivery in 3–7 working days.</p>
      ${itemsTable(order)}
      <p style="font-size:13px;color:#56627A;margin:12px 0 4px">Track your order anytime:</p>
-     ${btn(trackUrl(order), "Track my order →")}`
+     ${btn(trackUrl(order, "order-confirmed"), "Track my order →")}`
   );
   return send(order.email, `Order ${order.id} confirmed`, html, { bcc: BCC_SELF });
 }
@@ -135,7 +143,7 @@ export async function sendCustomerStatusUpdate(
      ${extra?.note ? `<p style="font-size:13px;color:#56627A;margin:0 0 8px">${escapeHtml(extra.note)}</p>` : ""}
      ${itemsTable(order)}
      ${tracking}
-     ${btn(trackUrl(order), "View order →")}
+     ${btn(trackUrl(order, `order-${status}`), "View order →")}
      ${status === "delivered" ? reviewAsk(order) : ""}`
   );
   return send(order.email, `Order ${order.id} — ${label.title}`, html, { bcc: BCC_SELF });
@@ -147,7 +155,7 @@ export async function sendCustomerStatusUpdate(
 function reviewAsk(order: OrderLike): string {
   const items = (order.items ?? []).slice(0, 3);
   const links = items
-    .map((i: any) => i.id ? `<a href="${SITE}/catalogue/${encodeURIComponent(i.id)}#reviews" style="color:#4E5BDC;font-weight:600">${escapeHtml(String(i.name ?? i.id))}</a>` : escapeHtml(String(i.name ?? "")))
+    .map((i: any) => i.id ? `<a href="${withUtm(`${SITE}/catalogue/${encodeURIComponent(i.id)}#reviews`, "review-request")}" style="color:#4E5BDC;font-weight:600">${escapeHtml(String(i.name ?? i.id))}</a>` : escapeHtml(String(i.name ?? "")))
     .filter(Boolean)
     .join("<br>");
   return `
@@ -180,7 +188,7 @@ export async function sendConfirmReminder(email: string, name?: string | null): 
     "One tap left on your Elume account",
     `<p style="font-size:14px;color:#56627A;margin:0 0 10px">Hi ${escapeHtml(name || "there")}, you created an Elume account a little while ago but the email isn't confirmed yet.</p>
      <p style="font-size:13.5px;color:#56627A;margin:0 0 10px">Find the email from <b>info@elumenuvo.com</b> titled "Confirm your email" (check spam too) and tap the button inside. That's it — you can then sign in and see your orders.</p>
-     ${btn(`${SITE}/signin`, "Go to sign in →")}
+     ${btn(withUtm(`${SITE}/signin`, "confirm-reminder"), "Go to sign in →")}
      <p style="font-size:12px;color:#8A93A6;margin:14px 0 0">Already confirmed? You're all set — ignore this.</p>`
   );
   return send(email, "Reminder: confirm your Elume email", html, { bcc: BCC_SELF, scheduledAt: when });
@@ -189,7 +197,7 @@ export async function sendConfirmReminder(email: string, name?: string | null): 
 /** Invite a guest-checkout customer to create an account so they can track
  *  their order from a dashboard (signup link arrives pre-filled). */
 export async function sendAccountInvite(order: OrderLike): Promise<EmailResult> {
-  const signupUrl = `${SITE}/signin?mode=signup&email=${encodeURIComponent(order.email)}`;
+  const signupUrl = withUtm(`${SITE}/signin?mode=signup&email=${encodeURIComponent(order.email)}`, "account-invite");
   const html = shell(
     "Track your order from your own dashboard",
     `<p style="font-size:14px;color:#56627A;margin:0 0 10px">Hi ${escapeHtml(order.name || "there")}, thanks for your order <b>${order.id}</b>!</p>
@@ -203,14 +211,14 @@ export async function sendAccountInvite(order: OrderLike): Promise<EmailResult> 
 /** Order confirmation restated + account nudge + a personal one-time
  *  discount code for the next purchase. Sent manually from admin. */
 export async function sendWelcomeOffer(order: OrderLike, code: string, percent: number, expiresAt: Date): Promise<EmailResult> {
-  const signupUrl = `${SITE}/signin?mode=signup&email=${encodeURIComponent(order.email)}`;
+  const signupUrl = withUtm(`${SITE}/signin?mode=signup&email=${encodeURIComponent(order.email)}`, "welcome-offer");
   const until = expiresAt.toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "long" });
   const html = shell(
     "Your order is confirmed — and a welcome gift 🎁",
     `<p style="font-size:14px;color:#56627A;margin:0 0 10px">Hi ${escapeHtml(order.name || "there")}, your order <b>${order.id}</b> is confirmed and being prepared.</p>
      ${itemsTable(order)}
      <p style="font-size:13px;color:#56627A;margin:12px 0 4px">Track it anytime:</p>
-     ${btn(trackUrl(order), "Track my order →")}
+     ${btn(trackUrl(order, "welcome-offer"), "Track my order →")}
 
      <div style="margin-top:24px;padding:18px 20px;background:linear-gradient(120deg,#F2FBF6,#EEF0FD);border:1px solid #DCEDE3;border-radius:12px">
        <p style="font-size:13.5px;font-weight:700;color:#19202E;margin:0 0 6px">As a new Elume customer, here's ${percent}% off your next order:</p>
