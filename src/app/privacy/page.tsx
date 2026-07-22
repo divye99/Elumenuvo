@@ -22,7 +22,10 @@ export default function PrivacyPage() {
               <b>Order details</b> — name, delivery address, phone number, email and GSTIN (if provided) when you place
               an order. <b>Account details</b> — email and profile information when you create an account.{" "}
               <b>Form submissions</b> — details you send through our waitlist, seller and product-request forms.{" "}
-              <b>Usage data</b> — standard server logs (IP address, pages visited) used to keep the site secure and fast.
+              <b>Usage data</b> — first-party analytics we run ourselves: IP address and approximate location, device
+              and browser type, pages visited and time spent, searches, taps, and text entered into forms on this site
+              (never passwords, one-time codes or card details — those are excluded and payment details go directly to
+              Razorpay). We use this to understand how the store is used, fix problems and improve it.
             </>
           ),
         },
