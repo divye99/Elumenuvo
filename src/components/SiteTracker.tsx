@@ -52,6 +52,12 @@ export default function SiteTracker() {
     const capture = (el: Element | null) => {
       if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return;
       if (window.location.pathname.startsWith("/admin")) return;
+      if (el instanceof HTMLInputElement) {
+        if (el.type === "hidden" || el.type === "submit" || el.type === "button") return;
+        if ((el.type === "radio" || el.type === "checkbox") && !el.checked) return;
+      }
+      // Framework plumbing (Next server-action fields like $ACTION_KEY) is not user input.
+      if ((el.name ?? "").startsWith("$")) return;
       if (isSensitiveField(el)) return;
       const value = el.value.trim().slice(0, 300);
       if (!value) return;
@@ -114,12 +120,17 @@ export default function SiteTracker() {
     };
     const onHide = () => {
       if (lastPath.current && !lastPath.current.startsWith("/admin")) {
-        track("leave", { path: lastPath.current, duration_ms: Math.min(Date.now() - pageStart.current, 30 * 60_000) });
+        const ms = Date.now() - pageStart.current;
+        // Reset the stopwatch so a laptop sleeping/waking overnight doesn't
+        // report the same idle stretch as multiple capped 30-minute blocks.
+        pageStart.current = Date.now();
+        if (ms >= 1000) track("leave", { path: lastPath.current, duration_ms: Math.min(ms, 30 * 60_000) });
       }
       flushNow();
     };
+    const onShow = () => { pageStart.current = Date.now(); }; // resume: time only counts while visible
     document.addEventListener("click", onClick, { capture: true });
-    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") onHide(); });
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") onHide(); else onShow(); });
     window.addEventListener("pagehide", onHide);
     return () => {
       document.removeEventListener("click", onClick, { capture: true } as any);
