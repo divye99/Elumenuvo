@@ -99,6 +99,7 @@ export default function RadarClient({
   const [cat, setCat] = useState("");
   const [view, setView] = useState<"priced" | "unmapped" | "all">("priced");
   const [sellersN, setSellersN] = useState<"any" | number>("any"); // exact number of sellers mapped
+  const [pos, setPos] = useState<"any" | "below" | "above" | "at">("any"); // our price vs the lowest competitor
   const [sort, setSort] = useState<"action" | "priceAsc" | "priceDesc" | "pct" | "name">("action");
 
   const brands = useMemo(() => Array.from(new Set(rows.map((r) => r.brand))).sort(), [rows]);
@@ -121,7 +122,12 @@ export default function RadarClient({
         (!needle || `${r.name} ${r.brand} ${r.category} ${r.id}`.toLowerCase().includes(needle)) &&
         (!brand || r.brand === brand) &&
         (!cat || r.category === cat) &&
-        (sellersN === "any" || r.mappedCount === sellersN)
+        (sellersN === "any" || r.mappedCount === sellersN) &&
+        (pos === "any" || (r.market?.pctVsLowest != null && (
+          pos === "below" ? r.market.pctVsLowest < 0 :
+          pos === "above" ? r.market.pctVsLowest > 0 :
+          r.market.pctVsLowest === 0
+        )))
     );
     return [...list].sort((a, b) => {
       if (sort === "priceAsc") return a.ourPrice - b.ourPrice;
@@ -133,7 +139,7 @@ export default function RadarClient({
       if (aa !== bb) return bb - aa;
       return Math.abs(b.market?.pctVsLowest ?? 0) - Math.abs(a.market?.pctVsLowest ?? 0);
     });
-  }, [rows, view, q, brand, cat, sellersN, sort]);
+  }, [rows, view, q, brand, cat, sellersN, pos, sort]);
 
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>, okMsg: string) =>
     startTransition(async () => {
@@ -211,6 +217,12 @@ export default function RadarClient({
           {sellerBuckets.map(([n, count]) => (
             <option key={n} value={n}>{n} seller{n === 1 ? "" : "s"} ({count})</option>
           ))}
+        </select>
+        <select value={pos} onChange={(e) => setPos(e.target.value as any)} style={sel}>
+          <option value="any">Vs lowest seller: any</option>
+          <option value="below">We are CHEAPER than the lowest</option>
+          <option value="above">We are COSTLIER than the lowest</option>
+          <option value="at">Exactly at the lowest</option>
         </select>
         <select value={sort} onChange={(e) => setSort(e.target.value as any)} style={sel}>
           <option value="action">Sort: needs repricing first</option>
