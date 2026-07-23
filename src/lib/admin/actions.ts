@@ -428,7 +428,7 @@ export async function applyRecommendedPrices(items: { id: string; target: number
 }
 
 /** Run the sync for one source now (same core the monthly GitHub Action uses). */
-export async function syncCompetitorNow(source: string): Promise<ActionResult & { result?: { mapped: number; fetched: number; failed: number; suggestions: number } }> {
+export async function syncCompetitorNow(source: string): Promise<ActionResult & { result?: { mapped: number; fetched: number; failed: number; suggestions: number; autoApplied?: number } }> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
   const db = adminClient();
   if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
@@ -445,7 +445,7 @@ export async function syncCompetitorNow(source: string): Promise<ActionResult & 
 /** Refresh live prices for every ENABLED source in one click (all mapped SKUs).
  *  Large sources may exceed the serverless budget — the GitHub Action does the
  *  full unbounded run. Returns combined totals + any sources that timed out. */
-export async function syncAllCompetitors(): Promise<ActionResult & { result?: { sources: number; mapped: number; fetched: number; failed: number; suggestions: number; incomplete: string[] } }> {
+export async function syncAllCompetitors(): Promise<ActionResult & { result?: { sources: number; mapped: number; fetched: number; failed: number; suggestions: number; autoApplied?: number; incomplete: string[] } }> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
   const db = adminClient();
   if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
@@ -455,12 +455,12 @@ export async function syncAllCompetitors(): Promise<ActionResult & { result?: { 
   // Stay well under the serverless budget (maxDuration 60s) so the request
   // returns cleanly; anything not finished is left for the GitHub Action.
   const deadline = Date.now() + 50_000;
-  const totals = { sources: 0, mapped: 0, fetched: 0, failed: 0, suggestions: 0, incomplete: [] as string[] };
+  const totals = { sources: 0, mapped: 0, fetched: 0, failed: 0, suggestions: 0, autoApplied: 0, incomplete: [] as string[] };
   for (const s of sources) {
     if (Date.now() > deadline) { totals.incomplete.push(s.name); continue; }
     try {
       const r = await runCompetitorSync(db, s.id, "manual", deadline);
-      totals.sources++; totals.mapped += r.mapped; totals.fetched += r.fetched; totals.failed += r.failed; totals.suggestions += r.suggestions;
+      totals.sources++; totals.mapped += r.mapped; totals.fetched += r.fetched; totals.failed += r.failed; totals.suggestions += r.suggestions; totals.autoApplied += r.autoApplied ?? 0;
       if (r.incomplete) totals.incomplete.push(s.name);
     } catch {
       totals.incomplete.push(s.name);

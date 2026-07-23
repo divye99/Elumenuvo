@@ -104,6 +104,28 @@ export default function RadarClient({
   const [groupColours, setGroupColours] = useState(true); // one row per cable spec (colours share a price)
   const [sort, setSort] = useState<"action" | "priceAsc" | "priceDesc" | "pct" | "pctAsc" | "avgAsc" | "avgDesc" | "lowAsc" | "lowDesc" | "name">("action");
 
+  // ── Accept queue: taps are instant; one floating "Save all" commits the
+  //    whole batch in a single request (per-row saves felt slow). ──
+  const [queue, setQueueState] = useState<Map<string, { target: number; ids: string[]; label: string }>>(new Map());
+  const toggleQueue = (repId: string, target: number, ids: string[], label: string) => {
+    setQueueState((prev) => {
+      const next = new Map(prev);
+      if (next.has(repId) && next.get(repId)!.target === target) next.delete(repId);
+      else next.set(repId, { target, ids, label });
+      return next;
+    });
+  };
+  const saveQueue = () =>
+    startTransition(async () => {
+      const items = [...queue.values()].flatMap((e) => e.ids.map((id) => ({ id, target: e.target })));
+      const res = await applyRecommendedPrices(items);
+      if (res.ok) {
+        setFlash({ ok: true, msg: `Saved ${res.applied ?? items.length} price${(res.applied ?? items.length) === 1 ? "" : "s"}${res.skipped ? ` · ${res.skipped} skipped` : ""}.` });
+        setQueueState(new Map());
+        router.refresh();
+      } else setFlash({ ok: false, msg: res.error ?? "Save failed." });
+    });
+
   const brands = useMemo(() => Array.from(new Set(rows.map((r) => r.brand))).sort(), [rows]);
   // Distinct seller-counts present, each with how many products have exactly that many.
   const sellerBuckets = useMemo(() => {
@@ -185,7 +207,7 @@ export default function RadarClient({
       const res = await syncAllCompetitors();
       if (res.ok && res.result) {
         const r = res.result;
-        setFlash({ ok: true, msg: `Synced ${r.sources} source${r.sources === 1 ? "" : "s"} · ${r.fetched} prices · ${r.suggestions} to review${r.incomplete.length ? ` · timed out: ${r.incomplete.join(", ")} (use the GitHub Action)` : ""}.` });
+        setFlash({ ok: true, msg: `Synced ${r.sources} source${r.sources === 1 ? "" : "s"} · ${r.fetched} prices${r.autoApplied ? ` · ${r.autoApplied} auto-applied from Havells` : ""} · ${r.suggestions} to review${r.incomplete.length ? ` · timed out: ${r.incomplete.join(", ")} (use the GitHub Action)` : ""}.` });
         router.refresh();
       } else setFlash({ ok: false, msg: !res.ok && res.error ? res.error : "Sync failed." });
     });
@@ -209,6 +231,24 @@ export default function RadarClient({
 
   return (
     <div>
+      {/* Floating batch-save bar */}
+      {queue.size > 0 && (
+        <div style={{ position: "fixed", top: 78, right: 26, zIndex: 80, background: "#161D2B", color: "#fff", borderRadius: 14, boxShadow: "0 18px 50px rgba(20,24,45,.35)", padding: "14px 18px", display: "flex", alignItems: "center", gap: 14, animation: "elumeFade .2s ease" }}>
+          <div>
+            <div style={{ fontSize: 13.5, fontWeight: 700 }}>{queue.size} price change{queue.size === 1 ? "" : "s"} queued</div>
+            <div style={{ fontSize: 11, color: "#9aa3b8", marginTop: 2 }}>
+              {[...queue.values()].reduce((s, e) => s + e.ids.length, 0)} products incl. colour variants
+            </div>
+          </div>
+          <button onClick={saveQueue} disabled={pending} style={{ background: "#4fd591", color: "#0d2b1c", fontWeight: 800, fontSize: 13, border: "none", padding: "10px 18px", borderRadius: 10, cursor: "pointer", opacity: pending ? 0.6 : 1 }}>
+            {pending ? "Saving…" : "Save all"}
+          </button>
+          <button onClick={() => setQueueState(new Map())} disabled={pending} style={{ background: "none", border: "none", color: "#9aa3b8", fontSize: 12.5, fontWeight: 600, cursor: "pointer" }}>
+            Discard
+          </button>
+        </div>
+      )}
+
       {/* Action bar */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
         <button onClick={syncAll} disabled={pending} title="Refreshes live prices for mapped products. Mapping is done via the GitHub Action." style={{ background: "#161D2B", color: "#fff", fontWeight: 600, fontSize: 13.5, border: "none", padding: "10px 18px", borderRadius: 10, cursor: pending ? "wait" : "pointer", opacity: pending ? 0.7 : 1 }}>
@@ -279,7 +319,7 @@ export default function RadarClient({
         </div>
       ) : (
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflow: "hidden" }}>
-          {grouped.map((r, i) => <MappedRow key={r.id} r={r} first={i === 0} pending={pending} run={run} colourCount={colourCounts.get(r.familyKey ?? r.id) ?? 1} siblingIds={familyIds.get(r.familyKey ?? r.id) ?? [r.id]} />)}
+          {grouped.map((r, i) => <MappedRow key={r.id} r={r} first={i === 0} pending={pending} run={run} colourCount={colourCounts.get(r.familyKey ?? r.id) ?? 1} siblingIds={familyIds.get(r.familyKey ?? r.id) ?? [r.id]} queuedTarget={queue.get(r.id)?.target ?? null} onQueue={toggleQueue} />)}
         </div>
       )}
 
@@ -296,17 +336,8 @@ export default function RadarClient({
 
 /* ── One product row: detail + Elume / Avg / Lowest / %diff + accept + manual edit.
  *    Click the row to expand the per-seller mapping detail (price + link). ── */
-function MappedRow({ r, first, pending, run, colourCount = 1, siblingIds = [] }: { r: RadarRow; first: boolean; pending: boolean; run: (fn: () => Promise<{ ok: boolean; error?: string }>, okMsg: string) => void; colourCount?: number; siblingIds?: string[] }) {
-  // Price changes apply to the WHOLE colour family — colour variants of a
-  // cable are the same product at the same price.
-  const familySetPrice = (target: number) => async () => {
-    const ids = siblingIds.length ? siblingIds : [r.id];
-    for (const id of ids) {
-      const res = await setElumePrice(id, target);
-      if (!res.ok) return res;
-    }
-    return { ok: true as const };
-  };
+function MappedRow({ r, first, pending, run, colourCount = 1, siblingIds = [], queuedTarget = null, onQueue }: { r: RadarRow; first: boolean; pending: boolean; run: (fn: () => Promise<{ ok: boolean; error?: string }>, okMsg: string) => void; colourCount?: number; siblingIds?: string[]; queuedTarget?: number | null; onQueue?: (repId: string, target: number, ids: string[], label: string) => void }) {
+
   const m = r.market;
   const [editing, setEditing] = useState(false);
   const [open, setOpen] = useState(false);
@@ -357,12 +388,12 @@ function MappedRow({ r, first, pending, run, colourCount = 1, siblingIds = [] }:
             <div style={{ display: "flex", gap: 8, marginLeft: "auto", alignItems: "center" }}>
               {editing ? (
                 <>
-                  <button onClick={() => run(familySetPrice(Number(val)), `${r.name}${colourCount > 1 ? ` (+${colourCount - 1} colours)` : ""} set to ${fmt(Number(val))}.`)} disabled={pending || !(Number(val) > 0)} style={btnAccept}>Save</button>
+                  <button onClick={() => { if (Number(val) > 0) { onQueue?.(r.id, Number(val), siblingIds.length ? siblingIds : [r.id], r.name); setEditing(false); } }} disabled={!(Number(val) > 0)} style={btnAccept}>Queue ₹{val}</button>
                   <button onClick={() => { setEditing(false); setVal(String(r.ourPrice)); }} style={linkBtn}>Cancel</button>
                 </>
               ) : (
                 <>
-                  <button onClick={() => canAccept && run(familySetPrice(m.target!), `${r.name}${colourCount > 1 ? ` (+${colourCount - 1} colours)` : ""} set to ${fmt(m.target!)}.`)} disabled={pending || !canAccept} title={m.target == null ? "No buyable competitor price" : canAccept ? "" : "Already at lowest − ₹1"} style={{ ...btnAccept, opacity: pending || !canAccept ? 0.5 : 1 }}>{m.target != null ? `Accept ${fmt(m.target)}` : "No price"}</button>
+                  <button onClick={() => canAccept && onQueue?.(r.id, m.target!, siblingIds.length ? siblingIds : [r.id], r.name)} disabled={!canAccept && queuedTarget == null} title={m.target == null ? "No buyable competitor price" : canAccept ? "Queues instantly — commit with Save all" : "Already at lowest − ₹1"} style={{ ...btnAccept, background: queuedTarget != null ? "#1F9D63" : (btnAccept as any).background, opacity: !canAccept && queuedTarget == null ? 0.5 : 1 }}>{queuedTarget != null ? `✓ Queued ${fmt(queuedTarget)}` : m.target != null ? `Accept ${fmt(m.target)}` : "No price"}</button>
                   <button onClick={() => { setEditing(true); setVal(String(r.ourPrice)); }} style={btnGhost}>Edit</button>
                 </>
               )}
@@ -378,7 +409,7 @@ function MappedRow({ r, first, pending, run, colourCount = 1, siblingIds = [] }:
             </span>
             {editing ? (
               <>
-                <button onClick={() => run(familySetPrice(Number(val)), `${r.name}${colourCount > 1 ? ` (+${colourCount - 1} colours)` : ""} set to ${fmt(Number(val))}.`)} disabled={pending || !(Number(val) > 0)} style={btnAccept}>Save</button>
+                <button onClick={() => { if (Number(val) > 0) { onQueue?.(r.id, Number(val), siblingIds.length ? siblingIds : [r.id], r.name); setEditing(false); } }} disabled={!(Number(val) > 0)} style={btnAccept}>Queue ₹{val}</button>
                 <button onClick={() => { setEditing(false); setVal(String(r.ourPrice)); }} style={linkBtn}>Cancel</button>
               </>
             ) : (
