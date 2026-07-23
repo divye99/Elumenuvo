@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import React, { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { fmt } from "@/lib/format";
@@ -26,6 +26,10 @@ const saveAdminNote = (orderId: string, note: string) => callAdmin({ op: "note",
 const addShipment = (input: { order_id: string; courier: string; awb: string; tracking_url?: string; items: { id: string; name: string; qty: number }[] }) => callAdmin({ op: "shipment", ...input });
 const markShipmentDelivered = (shipmentId: string, orderId: string, proofUrl?: string) => callAdmin({ op: "deliver", shipmentId, orderId, proofUrl });
 const inviteAccount = (orderId: string) => callAdmin({ op: "invite", orderId });
+const fetchSimilar = (orderId: string, itemId: string): Promise<any> => callAdmin({ op: "similar", orderId, itemId });
+const replaceItemAbsorb = (orderId: string, oldItemId: string, newProductId: string) => callAdmin({ op: "replace-item", orderId, oldItemId, newProductId });
+const replaceViaNewOrder = (orderId: string, oldItemId: string, newProductId: string) => callAdmin({ op: "replace-order", orderId, oldItemId, newProductId });
+const refundItem = (orderId: string, itemId: string) => callAdmin({ op: "refund-item", orderId, itemId });
 const resendStatusEmail = (orderId: string) => callAdmin({ op: "notify", orderId });
 const sendWelcomeOfferEmail = (orderId: string) => callAdmin({ op: "welcome-offer", orderId });
 async function uploadDeliveryProof(fd: FormData): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
@@ -37,6 +41,7 @@ export default function OrderDetailClient({ order, shipments, events }: { order:
   const [pending, start] = useTransition();
   const [err, setErr] = useState<string | null>(null);
   const [inviteMsg, setInviteMsg] = useState<string | null>(null);
+  const [swapItem, setSwapItem] = useState<string | null>(null);
   const items = order.items ?? [];
 
   // Remaining-to-ship per line = ordered − already in a shipment.
@@ -83,7 +88,8 @@ export default function OrderDetailClient({ order, shipments, events }: { order:
             {items.map((it, i) => {
               const rem = remaining.find((r) => r.id === it.id)?.remaining ?? 0;
               return (
-                <div key={it.id} style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "8px 0", borderTop: i ? "1px solid #F4F5F8" : undefined, fontSize: 13.5 }}>
+                <React.Fragment key={it.id}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "8px 0", borderTop: i ? "1px solid #F4F5F8" : undefined, fontSize: 13.5 }}>
                   <span>
                     <b>{it.qty}×</b>{" "}
                     {it.id ? (
@@ -92,9 +98,24 @@ export default function OrderDetailClient({ order, shipments, events }: { order:
                       </a>
                     ) : it.name}{" "}
                     {rem > 0 && rem < it.qty && <span style={{ color: "#B4690E", fontSize: 11.5 }}>({rem} to ship)</span>}{rem === 0 && <span style={{ color: "#1F9D63", fontSize: 11.5 }}>✓ shipped</span>}
+                    {!isClosed && (
+                      <button onClick={() => setSwapItem(swapItem === it.id ? null : it.id)} style={{ marginLeft: 8, background: "none", border: "1px solid #E0E4ED", borderRadius: 7, color: "#4E5BDC", fontSize: 11, fontWeight: 700, padding: "2px 8px", cursor: "pointer" }}>
+                        {swapItem === it.id ? "Close" : "Unavailable?"}
+                      </button>
+                    )}
                   </span>
                   {it.price != null && <span style={{ fontFamily: "var(--space-grotesk)", fontWeight: 600 }}>{fmt(it.price * it.qty)}</span>}
                 </div>
+                {swapItem === it.id && (
+                  <SwapPanel
+                    orderId={order.id}
+                    item={it}
+                    pending={pending}
+                    run={run}
+                    onDone={() => setSwapItem(null)}
+                  />
+                )}
+                </React.Fragment>
               );
             })}
             {(order as any).discount_amount > 0 && (
@@ -348,3 +369,68 @@ const lbl: React.CSSProperties = { fontSize: 11, fontWeight: 700, color: "#8A93A
 const inp: React.CSSProperties = { width: "100%", boxSizing: "border-box", border: "1px solid #E0E4ED", borderRadius: 9, padding: "8px 10px", fontSize: 13, outline: "none", marginBottom: 4, background: "#fff" };
 const primaryBtn = (busy: boolean): React.CSSProperties => ({ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 12.5, border: "none", padding: "8px 13px", borderRadius: 9, cursor: busy ? "wait" : "pointer" });
 const miniBtn: React.CSSProperties = { background: "#fff", color: "#56627A", fontWeight: 600, fontSize: 12, border: "1px solid #E0E4ED", padding: "6px 11px", borderRadius: 8, cursor: "pointer" };
+
+/** Unavailable-item resolution: similar-product suggestions, manual SKU
+ *  override, replace (absorb difference) / replace via new PO / refund with
+ *  a 10% apology voucher. */
+function SwapPanel({ orderId, item, pending, run, onDone }: { orderId: string; item: { id: string; name: string; qty: number; price?: number }; pending: boolean; run: (fn: () => Promise<{ ok: boolean; error?: string }>, okMsg?: string) => void; onDone: () => void }) {
+  const [sugs, setSugs] = useState<{ id: string; name: string; brand: string; price: number }[] | null>(null);
+  const [chosen, setChosen] = useState<string>("");
+  const [manual, setManual] = useState("");
+  const [confirmRefund, setConfirmRefund] = useState(false);
+
+  React.useEffect(() => {
+    fetchSimilar(orderId, item.id).then((r: any) => setSugs(r.ok ? r.suggestions : []));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.id]);
+
+  const target = manual.trim() || chosen;
+  const btn: React.CSSProperties = { fontSize: 12, fontWeight: 700, border: "none", borderRadius: 8, padding: "8px 13px", cursor: "pointer" };
+
+  return (
+    <div style={{ margin: "4px 0 12px", background: "#F8F9FC", border: "1px solid #E8EBF1", borderRadius: 12, padding: "13px 15px" }}>
+      <div style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.4px", color: "#8A93A6", marginBottom: 8 }}>
+        Replace “{item.name}”
+      </div>
+
+      {sugs === null && <div style={{ fontSize: 12.5, color: "#8A93A6" }}>Finding similar products…</div>}
+      {sugs && sugs.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 10 }}>
+          {sugs.map((sp) => (
+            <label key={sp.id} style={{ display: "flex", alignItems: "baseline", gap: 8, fontSize: 12.5, cursor: "pointer", padding: "5px 8px", borderRadius: 8, background: chosen === sp.id ? "#EEF0FE" : "transparent" }}>
+              <input type="radio" name={`swap-${item.id}`} checked={chosen === sp.id} onChange={() => { setChosen(sp.id); setManual(""); }} />
+              <span style={{ flex: 1 }}>{sp.name} <span style={{ color: "#8A93A6" }}>· {sp.brand}</span></span>
+              <b style={{ fontFamily: "var(--space-grotesk)" }}>{fmt(sp.price)}</b>
+            </label>
+          ))}
+        </div>
+      )}
+
+      <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12 }}>
+        <input value={manual} onChange={(e) => { setManual(e.target.value); setChosen(""); }} placeholder="…or type a product id / SKU (e.g. hav-lhextip7cn1m010)" style={{ flex: 1, border: "1px solid #E0E4ED", borderRadius: 8, padding: "8px 11px", fontSize: 12.5 }} />
+      </div>
+
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <button disabled={pending || !target} onClick={() => run(() => replaceItemAbsorb(orderId, item.id, target), "Item replaced — difference absorbed, customer emailed.")} style={{ ...btn, background: "#4E5BDC", color: "#fff", opacity: pending || !target ? 0.5 : 1 }}>
+          Replace · we absorb the difference
+        </button>
+        <button disabled={pending || !target} onClick={() => run(() => replaceViaNewOrder(orderId, item.id, target), "Replacement order created at current price, original cancelled, customer emailed.")} style={{ ...btn, background: "#fff", color: "#4E5BDC", border: "1.5px solid #4E5BDC", opacity: pending || !target ? 0.5 : 1 }}>
+          Replace via new PO · current price
+        </button>
+        {!confirmRefund ? (
+          <button disabled={pending} onClick={() => setConfirmRefund(true)} style={{ ...btn, background: "#fff", color: "#B43A16", border: "1.5px solid #E8C4B8" }}>
+            Refund this item + 10% voucher
+          </button>
+        ) : (
+          <button disabled={pending} onClick={() => { setConfirmRefund(false); run(() => refundItem(orderId, item.id), `Refunded ${fmt((item.price ?? 0) * item.qty)} + voucher sent.`); }} style={{ ...btn, background: "#B43A16", color: "#fff" }}>
+            Confirm refund {fmt((item.price ?? 0) * item.qty)} to customer
+          </button>
+        )}
+        <button onClick={onDone} style={{ ...btn, background: "none", color: "#8A93A6" }}>Cancel</button>
+      </div>
+      <div style={{ fontSize: 11, color: "#A0A7B5", marginTop: 8 }}>
+        Absorb: item swaps at the price already paid, total unchanged. New PO: original order cancels, a fresh order bills current price (settle any difference manually). Refund: money back via Razorpay + a one-time 10% code emailed.
+      </div>
+    </div>
+  );
+}

@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin/auth";
 import { adminClient } from "@/lib/supabase/admin";
-import { sendAccountInvite, sendWelcomeOffer, sendCustomerStatusUpdate } from "@/lib/email";
+import { sendAccountInvite, sendWelcomeOffer, sendCustomerStatusUpdate, sendReplacementEmail, sendRefundVoucherEmail } from "@/lib/email";
+import { similarProducts } from "@/lib/admin/similar-products";
+import { refundPayment } from "@/lib/razorpay";
 import {
   updateOrderStatus,
   cancelOrder,
@@ -101,6 +103,97 @@ export async function POST(request: Request) {
       if (!order?.email) return NextResponse.json({ ok: false, error: "Order or email not found." }, { status: 400 });
       const sent = await sendAccountInvite(order);
       res = sent.ok ? { ok: true } : { ok: false, error: "Email failed to send — check RESEND_API_KEY / logs." };
+      break;
+    }
+    case "similar": {
+      // Suggest live replacements for an order item (works even when the
+      // original product has been deleted from the catalogue).
+      const db = adminClient();
+      if (!db) return NextResponse.json({ ok: false, error: "Server not configured." }, { status: 500 });
+      const { data: order } = await db.from("orders").select("items").eq("id", String(body.orderId)).maybeSingle();
+      const it = (order?.items ?? []).find((x: any) => x.id === body.itemId || x.name === body.itemName);
+      if (!it) return NextResponse.json({ ok: false, error: "Item not found on this order." }, { status: 400 });
+      const suggestions = await similarProducts({ name: it.name, cat: it.cat ?? null, price: it.price ?? null }, 6);
+      return NextResponse.json({ ok: true, item: { id: it.id, name: it.name, qty: it.qty, price: it.price }, suggestions });
+    }
+    case "replace-item": {
+      // Swap in place, WE absorb any price difference — the customer's total
+      // and payment stay untouched.
+      const db = adminClient();
+      if (!db) return NextResponse.json({ ok: false, error: "Server not configured." }, { status: 500 });
+      const { data: order } = await db.from("orders").select("*").eq("id", String(body.orderId)).maybeSingle();
+      if (!order) return NextResponse.json({ ok: false, error: "Order not found." }, { status: 400 });
+      const items: any[] = order.items ?? [];
+      const idx = items.findIndex((x: any) => x.id === body.oldItemId);
+      if (idx === -1) return NextResponse.json({ ok: false, error: "Item not found on this order." }, { status: 400 });
+      const { data: np } = await db.from("products").select("id, name, elume_price, category").eq("id", String(body.newProductId)).eq("is_active", true).maybeSingle();
+      if (!np) return NextResponse.json({ ok: false, error: "Replacement product not found or inactive (check the SKU/id)." }, { status: 400 });
+      const old = items[idx];
+      const next = [...items];
+      next[idx] = { id: np.id, name: np.name, qty: old.qty, price: old.price, cat: np.category }; // old price kept — burden ours
+      const { error: upErr } = await db.from("orders").update({ items: next, product_ids: next.map((x: any) => x.id) }).eq("id", order.id);
+      if (upErr) return NextResponse.json({ ok: false, error: upErr.message }, { status: 400 });
+      try { await db.from("order_events").insert({ order_id: order.id, status: order.status, note: `Replaced "${old.name}" with "${np.name}" (price difference absorbed by Elume)` }); } catch { /* optional */ }
+      const sent = await sendReplacementEmail(order, old.name, { name: np.name, qty: old.qty, price: old.price }, "absorbed");
+      res = { ok: true, ...(sent.ok ? {} : { error: "Swapped, but the email failed — check Resend logs." }) };
+      break;
+    }
+    case "replace-order": {
+      // Full replacement PO: new order at CURRENT pricing, original cancelled.
+      const db = adminClient();
+      if (!db) return NextResponse.json({ ok: false, error: "Server not configured." }, { status: 500 });
+      const { data: order } = await db.from("orders").select("*").eq("id", String(body.orderId)).maybeSingle();
+      if (!order) return NextResponse.json({ ok: false, error: "Order not found." }, { status: 400 });
+      const items: any[] = order.items ?? [];
+      const idx = items.findIndex((x: any) => x.id === body.oldItemId);
+      if (idx === -1) return NextResponse.json({ ok: false, error: "Item not found on this order." }, { status: 400 });
+      const { data: np } = await db.from("products").select("id, name, elume_price, category").eq("id", String(body.newProductId)).eq("is_active", true).maybeSingle();
+      if (!np) return NextResponse.json({ ok: false, error: "Replacement product not found or inactive (check the SKU/id)." }, { status: 400 });
+      const old = items[idx];
+      const next = [...items];
+      next[idx] = { id: np.id, name: np.name, qty: old.qty, price: Number(np.elume_price), cat: np.category };
+      const newTotal = Math.round(next.reduce((t: number, x: any) => t + Number(x.price) * Number(x.qty), 0) * 100) / 100;
+      const d = new Date();
+      const newId = `ELM-${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, "0")}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const { error: insErr } = await db.from("orders").insert({
+        id: newId, email: order.email, name: order.name, phone: order.phone, gstin: order.gstin,
+        billing_address: order.billing_address, shipping_address: order.shipping_address,
+        payment_method: order.payment_method, items: next, product_ids: next.map((x: any) => x.id),
+        subtotal: order.subtotal, total: newTotal, is_guest: order.is_guest, user_id: order.user_id,
+        status: "placed", admin_note: `Replacement for ${order.id} ("${old.name}" discontinued). Payment carried from the original order — settle any difference manually.`,
+      });
+      if (insErr) return NextResponse.json({ ok: false, error: insErr.message }, { status: 400 });
+      await db.from("orders").update({ status: "cancelled", admin_note: `Replaced in full by ${newId}` }).eq("id", order.id);
+      try { await db.from("order_events").insert({ order_id: newId, status: "placed", note: `Created as replacement for ${order.id}` }); } catch { /* optional */ }
+      const diff = Math.round((newTotal - Number(order.total ?? newTotal)) * 100) / 100;
+      const sent = await sendReplacementEmail({ ...order, id: newId }, old.name, { name: np.name, qty: old.qty, price: Number(np.elume_price) }, "new-order", { newOrderId: newId, diff });
+      res = { ok: true, ...(sent.ok ? {} : { error: `Order ${newId} created, but the email failed — check Resend logs.` }) };
+      break;
+    }
+    case "refund-item": {
+      // Item refund to the original payment method + a 10% apology voucher.
+      const db = adminClient();
+      if (!db) return NextResponse.json({ ok: false, error: "Server not configured." }, { status: 500 });
+      const { data: order } = await db.from("orders").select("*").eq("id", String(body.orderId)).maybeSingle();
+      if (!order?.email) return NextResponse.json({ ok: false, error: "Order not found." }, { status: 400 });
+      const it = (order.items ?? []).find((x: any) => x.id === body.itemId);
+      if (!it) return NextResponse.json({ ok: false, error: "Item not found on this order." }, { status: 400 });
+      if (!order.razorpay_payment_id) return NextResponse.json({ ok: false, error: "No captured payment on file for this order — refund manually in Razorpay first." }, { status: 400 });
+      const amount = Math.round(Number(it.price) * Number(it.qty) * 100) / 100;
+      const refund = await refundPayment(order.razorpay_payment_id, Math.round(amount * 100));
+      if (!refund.ok) return NextResponse.json({ ok: false, error: `Razorpay refund failed: ${refund.error}` }, { status: 400 });
+      const expires = new Date(Date.now() + 30 * 86_400_000);
+      const code = `SORRY10-${String(order.id).slice(-4)}${Math.floor(10 + Math.random() * 90)}`;
+      await db.from("discount_codes").insert({ code, percent: 10, email_lock: order.email.toLowerCase(), expires_at: expires.toISOString(), max_uses: 1, note: `Unavailable-item apology · order ${order.id}` });
+      const remaining = (order.items ?? []).filter((x: any) => x.id !== it.id);
+      await db.from("orders").update({
+        items: remaining, product_ids: remaining.map((x: any) => x.id),
+        total: Math.round((Number(order.total ?? 0) - amount) * 100) / 100,
+        ...(remaining.length === 0 ? { status: "cancelled" } : {}),
+      }).eq("id", order.id);
+      try { await db.from("order_events").insert({ order_id: order.id, status: remaining.length ? order.status : "cancelled", note: `Refunded ${it.name} (₹${amount}, refund ${refund.refundId}) + voucher ${code}` }); } catch { /* optional */ }
+      const sent = await sendRefundVoucherEmail(order, it.name, amount, code, expires);
+      res = { ok: true, ...(sent.ok ? {} : { error: `Refund done (${refund.refundId}), but the email failed — check Resend logs.` }) };
       break;
     }
     case "deliver":

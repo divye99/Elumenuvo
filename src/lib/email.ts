@@ -234,3 +234,52 @@ export async function sendWelcomeOffer(order: OrderLike, code: string, percent: 
   );
   return send(order.email, `Order ${order.id} confirmed — plus ${percent}% off your next order`, html, { bcc: BCC_SELF });
 }
+
+/** Item swapped on an order — either at no extra cost (we absorb the
+ *  difference) or via a fresh replacement order at current pricing. */
+export async function sendReplacementEmail(
+  order: OrderLike,
+  oldName: string,
+  newItem: { name: string; qty: number; price: number },
+  mode: "absorbed" | "new-order",
+  extra?: { newOrderId?: string; diff?: number }
+): Promise<EmailResult> {
+  const diffLine =
+    mode === "absorbed"
+      ? `<p style="font-size:13px;color:#1F9D63;font-weight:600;margin:10px 0 0">No extra charge — we've absorbed any price difference. Your order total stays exactly the same.</p>`
+      : `<p style="font-size:13px;color:#56627A;margin:10px 0 0">A replacement order <b>${escapeHtml(extra?.newOrderId ?? "")}</b> has been created at the current price${extra?.diff ? ` (difference of ${fmt(Math.abs(extra.diff))} ${extra.diff > 0 ? "payable — we'll contact you to settle it" : "refundable to you — we'll process it right away"})` : ""}. Your original order stands cancelled.</p>`;
+  const html = shell(
+    "A small change to your order",
+    `<p style="font-size:14px;color:#56627A;margin:0 0 10px">Hi ${escapeHtml(order.name || "there")}, as discussed — <b>${escapeHtml(oldName)}</b> is discontinued by the manufacturer and no longer available anywhere. On order <b>${order.id}</b> we've replaced it with:</p>
+     <div style="background:#F7F8FB;border:1px solid #E8EBF1;border-radius:12px;padding:14px 16px">
+       <b style="font-size:14px">${escapeHtml(newItem.name)}</b>
+       <div style="font-size:13px;color:#56627A;margin-top:4px">Qty ${newItem.qty} · ${fmt(newItem.price)} each</div>
+     </div>
+     ${diffLine}
+     ${btn(trackUrl(order, "order-replacement"), "View my order →")}
+     <p style="font-size:12px;color:#8A93A6;margin:16px 0 0">Not happy with the replacement? Reply to this email within 48 hours and we'll refund you in full instead.</p>`
+  );
+  return send(order.email, `Order ${order.id} — item replaced as discussed`, html, { bcc: BCC_SELF });
+}
+
+/** Item refunded (product unavailable, nothing comparable) + a 10% code. */
+export async function sendRefundVoucherEmail(
+  order: OrderLike,
+  itemName: string,
+  amount: number,
+  code: string,
+  expires: Date
+): Promise<EmailResult> {
+  const until = expires.toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "long" });
+  const html = shell(
+    "Refund on its way — and 10% off, on us",
+    `<p style="font-size:14px;color:#56627A;margin:0 0 10px">Hi ${escapeHtml(order.name || "there")}, <b>${escapeHtml(itemName)}</b> from order <b>${order.id}</b> is discontinued by the manufacturer and we couldn't find a fair substitute. We've refunded <b>${fmt(amount)}</b> to your original payment method — it typically lands in 5–7 working days.</p>
+     <div style="margin-top:18px;padding:18px 20px;background:linear-gradient(120deg,#F2FBF6,#EEF0FD);border:1px solid #DCEDE3;border-radius:12px">
+       <p style="font-size:13.5px;font-weight:700;color:#19202E;margin:0 0 6px">For the trouble — 10% off your next order:</p>
+       <p style="font-family:monospace;font-size:22px;font-weight:700;letter-spacing:1px;color:#1F9D63;margin:0 0 6px">${escapeHtml(code)}</p>
+       <p style="font-size:12px;color:#56627A;margin:0">One-time use, tied to this email, valid until <b>${until}</b>.</p>
+     </div>
+     ${btn(withUtm(`${SITE}/catalogue`, "refund-voucher"), "Browse the catalogue →")}`
+  );
+  return send(order.email, `Order ${order.id} — refund of ${fmt(amount)} + 10% off your next order`, html, { bcc: BCC_SELF });
+}

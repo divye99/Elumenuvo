@@ -72,3 +72,25 @@ export function verifyPaymentSignature(razorpayOrderId: string, razorpayPaymentI
   const b = Buffer.from(signature);
   return a.length === b.length && timingSafeEqual(a, b);
 }
+
+/** Refund a captured payment (fully or partially, amount in paise). Standard
+ *  Razorpay refund API; funds return to the customer's original method in
+ *  5-7 working days. */
+export async function refundPayment(paymentId: string, amountPaise?: number): Promise<{ ok: true; refundId: string } | { ok: false; error: string }> {
+  if (!razorpayConfigured()) return { ok: false, error: "Razorpay isn't configured." };
+  try {
+    const res = await fetch(`https://api.razorpay.com/v1/payments/${encodeURIComponent(paymentId)}/refund`, {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${Buffer.from(`${KEY_ID}:${KEY_SECRET}`).toString("base64")}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(amountPaise ? { amount: Math.round(amountPaise) } : {}),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) return { ok: false, error: body?.error?.description ?? `Refund failed (${res.status}).` };
+    return { ok: true, refundId: body.id ?? "" };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Refund request failed." };
+  }
+}
