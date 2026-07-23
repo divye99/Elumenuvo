@@ -84,7 +84,15 @@ export default function OrderDetailClient({ order, shipments, events }: { order:
               const rem = remaining.find((r) => r.id === it.id)?.remaining ?? 0;
               return (
                 <div key={it.id} style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "8px 0", borderTop: i ? "1px solid #F4F5F8" : undefined, fontSize: 13.5 }}>
-                  <span><b>{it.qty}×</b> {it.name} {rem > 0 && rem < it.qty && <span style={{ color: "#B4690E", fontSize: 11.5 }}>({rem} to ship)</span>}{rem === 0 && <span style={{ color: "#1F9D63", fontSize: 11.5 }}>✓ shipped</span>}</span>
+                  <span>
+                    <b>{it.qty}×</b>{" "}
+                    {it.id ? (
+                      <a href={`/catalogue/${it.id}`} target="_blank" rel="noreferrer" title="Open the live product page" style={{ color: "#19202E", textDecoration: "underline", textDecorationColor: "#C9CFF6", textUnderlineOffset: 3 }}>
+                        {it.name}
+                      </a>
+                    ) : it.name}{" "}
+                    {rem > 0 && rem < it.qty && <span style={{ color: "#B4690E", fontSize: 11.5 }}>({rem} to ship)</span>}{rem === 0 && <span style={{ color: "#1F9D63", fontSize: 11.5 }}>✓ shipped</span>}
+                  </span>
                   {it.price != null && <span style={{ fontFamily: "var(--space-grotesk)", fontWeight: 600 }}>{fmt(it.price * it.qty)}</span>}
                 </div>
               );
