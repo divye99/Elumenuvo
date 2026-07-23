@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Mark, Wordmark } from "@/components/Brand";
 import { createClient } from "@/lib/supabase/client";
+import { identify } from "@/lib/analytics";
 
 export default function SignIn() {
   const router = useRouter();
@@ -65,6 +66,7 @@ export default function SignIn() {
         }
         // Keep the button in its busy state through the redirect: the /app
         // render takes a moment, and a re-enabled button reads as "broken".
+        identify(email, null); // stamp the session with the confirmed identity
         setMsg({ kind: "ok", text: "Signed in. Opening your workspace…" });
         navigating = true;
         router.push(dest()); router.refresh();
@@ -96,6 +98,7 @@ export default function SignIn() {
             first_name: first, last_name: last, full_name: `${first} ${last}`,
             ...(phone ? { phone: e164(phone) } : {}),
           }).eq("id", data.user!.id);
+          identify(email, `${first} ${last}`);
           navigating = true;
           router.push("/onboarding"); router.refresh();
         } else {
