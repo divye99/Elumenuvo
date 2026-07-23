@@ -66,6 +66,7 @@ export type RadarRow = {
   image: string | null;
   ourPrice: number;
   mrp: number;
+  familyKey?: string;
   suggestedFactor: number;
   mappedCount: number;
   pendingCount: number;
@@ -100,6 +101,7 @@ export default function RadarClient({
   const [view, setView] = useState<"priced" | "unmapped" | "all">("priced");
   const [sellersN, setSellersN] = useState<"any" | number>("any"); // exact number of sellers mapped
   const [pos, setPos] = useState<"any" | "below" | "above" | "at">("any"); // our price vs the lowest competitor
+  const [groupColours, setGroupColours] = useState(true); // one row per cable spec (colours share a price)
   const [sort, setSort] = useState<"action" | "priceAsc" | "priceDesc" | "pct" | "pctAsc" | "avgAsc" | "avgDesc" | "lowAsc" | "lowDesc" | "name">("action");
 
   const brands = useMemo(() => Array.from(new Set(rows.map((r) => r.brand))).sort(), [rows]);
@@ -145,6 +147,26 @@ export default function RadarClient({
       return Math.abs(b.market?.pctVsLowest ?? 0) - Math.abs(a.market?.pctVsLowest ?? 0);
     });
   }, [rows, view, q, brand, cat, sellersN, pos, sort]);
+
+  // One pricing row per colour family: keep the best representative (mapped
+  // with market data wins) and count siblings. Sort order is preserved.
+  const { grouped, colourCounts, familyIds } = useMemo(() => {
+    if (!groupColours) return { grouped: filtered, colourCounts: new Map<string, number>(), familyIds: new Map<string, string[]>() };
+    const rep = new Map<string, RadarRow>();
+    const counts = new Map<string, number>();
+    const ids = new Map<string, string[]>();
+    const order: RadarRow[] = [];
+    for (const r of filtered) {
+      const key = r.familyKey ?? r.id;
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+      ids.set(key, [...(ids.get(key) ?? []), r.id]);
+      const cur = rep.get(key);
+      const better = !cur || (!cur.market && r.market) || ((cur.mappedCount === 0) && r.mappedCount > 0);
+      if (!cur) { rep.set(key, r); order.push(r); }
+      else if (better) { rep.set(key, r); order[order.indexOf(cur)] = r; }
+    }
+    return { grouped: order, colourCounts: counts, familyIds: ids };
+  }, [filtered, groupColours]);
 
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>, okMsg: string) =>
     startTransition(async () => {
@@ -223,6 +245,10 @@ export default function RadarClient({
             <option key={n} value={n}>{n} seller{n === 1 ? "" : "s"} ({count})</option>
           ))}
         </select>
+        <label style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12.5, color: "#56627A", fontWeight: 600, cursor: "pointer" }}>
+          <input type="checkbox" checked={groupColours} onChange={(e) => setGroupColours(e.target.checked)} />
+          Group colours
+        </label>
         <select value={pos} onChange={(e) => setPos(e.target.value as any)} style={sel}>
           <option value="any">Vs lowest seller: any</option>
           <option value="below">We are CHEAPER than the lowest</option>
@@ -245,7 +271,7 @@ export default function RadarClient({
 
       {flash && <div style={{ background: flash.ok ? "#E6F5EE" : "#FBE9E4", color: flash.ok ? "#137a4b" : "#9a3b16", borderRadius: 10, padding: "10px 14px", fontSize: 13, marginBottom: 14 }}>{flash.msg}</div>}
 
-      <div style={{ fontSize: 12.5, color: "#8A93A6", marginBottom: 8 }}>{filtered.length} shown</div>
+      <div style={{ fontSize: 12.5, color: "#8A93A6", marginBottom: 8 }}>{grouped.length} shown{groupColours && filtered.length !== grouped.length ? ` (${filtered.length} incl. colour variants)` : ""}</div>
 
       {filtered.length === 0 ? (
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "40px 20px", textAlign: "center", color: "#8A93A6", fontSize: 14 }}>
@@ -253,7 +279,7 @@ export default function RadarClient({
         </div>
       ) : (
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflow: "hidden" }}>
-          {filtered.map((r, i) => <MappedRow key={r.id} r={r} first={i === 0} pending={pending} run={run} />)}
+          {grouped.map((r, i) => <MappedRow key={r.id} r={r} first={i === 0} pending={pending} run={run} colourCount={colourCounts.get(r.familyKey ?? r.id) ?? 1} siblingIds={familyIds.get(r.familyKey ?? r.id) ?? [r.id]} />)}
         </div>
       )}
 
@@ -270,7 +296,17 @@ export default function RadarClient({
 
 /* ── One product row: detail + Elume / Avg / Lowest / %diff + accept + manual edit.
  *    Click the row to expand the per-seller mapping detail (price + link). ── */
-function MappedRow({ r, first, pending, run }: { r: RadarRow; first: boolean; pending: boolean; run: (fn: () => Promise<{ ok: boolean; error?: string }>, okMsg: string) => void }) {
+function MappedRow({ r, first, pending, run, colourCount = 1, siblingIds = [] }: { r: RadarRow; first: boolean; pending: boolean; run: (fn: () => Promise<{ ok: boolean; error?: string }>, okMsg: string) => void; colourCount?: number; siblingIds?: string[] }) {
+  // Price changes apply to the WHOLE colour family — colour variants of a
+  // cable are the same product at the same price.
+  const familySetPrice = (target: number) => async () => {
+    const ids = siblingIds.length ? siblingIds : [r.id];
+    for (const id of ids) {
+      const res = await setElumePrice(id, target);
+      if (!res.ok) return res;
+    }
+    return { ok: true as const };
+  };
   const m = r.market;
   const [editing, setEditing] = useState(false);
   const [open, setOpen] = useState(false);
@@ -298,6 +334,7 @@ function MappedRow({ r, first, pending, run }: { r: RadarRow; first: boolean; pe
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 600, fontSize: 13.5, color: "#19202E", overflow: "hidden", textOverflow: "ellipsis" }}>
               {canExpand && <span style={{ color: "#8A93A6", marginRight: 5, fontSize: 11 }}>{open ? "▾" : "▸"}</span>}{r.name}
+              {colourCount > 1 && <span title="Price changes apply to every colour variant" style={{ marginLeft: 7, fontSize: 10.5, fontWeight: 700, color: "#4E5BDC", background: "#EEF0FE", padding: "2px 8px", borderRadius: 8 }}>{colourCount} colours</span>}
               <a href={`/catalogue/${r.id}`} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} title="Open the live product page" style={{ marginLeft: 7, color: "#4E5BDC", fontSize: 11.5, fontWeight: 700 }}>↗</a>
             </div>
             {/* Coil length is shown for wires: it is part of the SKU's identity
@@ -320,12 +357,12 @@ function MappedRow({ r, first, pending, run }: { r: RadarRow; first: boolean; pe
             <div style={{ display: "flex", gap: 8, marginLeft: "auto", alignItems: "center" }}>
               {editing ? (
                 <>
-                  <button onClick={() => run(() => setElumePrice(r.id, Number(val)), `${r.name} set to ${fmt(Number(val))}.`)} disabled={pending || !(Number(val) > 0)} style={btnAccept}>Save</button>
+                  <button onClick={() => run(familySetPrice(Number(val)), `${r.name}${colourCount > 1 ? ` (+${colourCount - 1} colours)` : ""} set to ${fmt(Number(val))}.`)} disabled={pending || !(Number(val) > 0)} style={btnAccept}>Save</button>
                   <button onClick={() => { setEditing(false); setVal(String(r.ourPrice)); }} style={linkBtn}>Cancel</button>
                 </>
               ) : (
                 <>
-                  <button onClick={() => canAccept && run(() => applyRecommendedPrice(r.id, m.target!), `${r.name} set to ${fmt(m.target!)}.`)} disabled={pending || !canAccept} title={m.target == null ? "No buyable competitor price" : canAccept ? "" : "Already at lowest − ₹1"} style={{ ...btnAccept, opacity: pending || !canAccept ? 0.5 : 1 }}>{m.target != null ? `Accept ${fmt(m.target)}` : "No price"}</button>
+                  <button onClick={() => canAccept && run(familySetPrice(m.target!), `${r.name}${colourCount > 1 ? ` (+${colourCount - 1} colours)` : ""} set to ${fmt(m.target!)}.`)} disabled={pending || !canAccept} title={m.target == null ? "No buyable competitor price" : canAccept ? "" : "Already at lowest − ₹1"} style={{ ...btnAccept, opacity: pending || !canAccept ? 0.5 : 1 }}>{m.target != null ? `Accept ${fmt(m.target)}` : "No price"}</button>
                   <button onClick={() => { setEditing(true); setVal(String(r.ourPrice)); }} style={btnGhost}>Edit</button>
                 </>
               )}
@@ -341,7 +378,7 @@ function MappedRow({ r, first, pending, run }: { r: RadarRow; first: boolean; pe
             </span>
             {editing ? (
               <>
-                <button onClick={() => run(() => setElumePrice(r.id, Number(val)), `${r.name} set to ${fmt(Number(val))}.`)} disabled={pending || !(Number(val) > 0)} style={btnAccept}>Save</button>
+                <button onClick={() => run(familySetPrice(Number(val)), `${r.name}${colourCount > 1 ? ` (+${colourCount - 1} colours)` : ""} set to ${fmt(Number(val))}.`)} disabled={pending || !(Number(val) > 0)} style={btnAccept}>Save</button>
                 <button onClick={() => { setEditing(false); setVal(String(r.ourPrice)); }} style={linkBtn}>Cancel</button>
               </>
             ) : (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { fmt } from "@/lib/format";
 import { wholesalePrice, offMrpPct, gstBreakdown } from "@/lib/pricing";
@@ -142,6 +142,13 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
   }, [rows, sources]);
 
   const [sortBy, setSortBy] = useState<"default" | "priceAsc" | "priceDesc" | "mrpAsc" | "mrpDesc" | "name">("default");
+  const [groupColours, setGroupColours] = useState(true); // one row per cable spec; colours share a price
+  const colourCountRef = useRef(new Map<string, number>());
+  const familyKeyOf = (r: { id: string; parent_id?: string | null; attrs?: Record<string, string> | null }) => {
+    if (!r.attrs || !("Colour" in r.attrs)) return r.id;
+    const rest = Object.entries(r.attrs).filter(([k]) => k !== "Colour").sort(([a], [b]) => a.localeCompare(b));
+    return `${r.parent_id ?? r.id}|${rest.map(([k, v]) => `${k}=${v}`).join("|")}`;
+  };
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     const list = rows.filter((r) => {
@@ -156,16 +163,27 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
       if (priceView === "winning" && !isWinning(r)) return false;
       return true;
     });
+    let sorted = list;
     switch (sortBy) {
-      case "priceAsc": return [...list].sort((a, b) => Number(a.elume_price) - Number(b.elume_price));
-      case "priceDesc": return [...list].sort((a, b) => Number(b.elume_price) - Number(a.elume_price));
-      case "mrpAsc": return [...list].sort((a, b) => Number(a.mrp) - Number(b.mrp));
-      case "mrpDesc": return [...list].sort((a, b) => Number(b.mrp) - Number(a.mrp));
-      case "name": return [...list].sort((a, b) => a.name.localeCompare(b.name));
-      default: return list;
+      case "priceAsc": sorted = [...list].sort((a, b) => Number(a.elume_price) - Number(b.elume_price)); break;
+      case "priceDesc": sorted = [...list].sort((a, b) => Number(b.elume_price) - Number(a.elume_price)); break;
+      case "mrpAsc": sorted = [...list].sort((a, b) => Number(a.mrp) - Number(b.mrp)); break;
+      case "mrpDesc": sorted = [...list].sort((a, b) => Number(b.mrp) - Number(a.mrp)); break;
+      case "name": sorted = [...list].sort((a, b) => a.name.localeCompare(b.name)); break;
     }
+    if (!groupColours) return sorted;
+    // One row per colour family (same parent + same non-colour attributes).
+    const seen = new Map<string, number>();
+    const out: typeof sorted = [];
+    for (const r of sorted) {
+      const key = familyKeyOf(r);
+      if (!seen.has(key)) { seen.set(key, 1); out.push(r); }
+      else seen.set(key, (seen.get(key) ?? 1) + 1);
+    }
+    colourCountRef.current = seen;
+    return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows, q, cat, view, sellersN, priceView, sortBy, sources]);
+  }, [rows, q, cat, view, sellersN, priceView, sortBy, groupColours, sources]);
 
   const suggestionCount = useMemo(() => rows.filter(needsReprice).length, [rows, sources]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -260,6 +278,10 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
           <option value="mrpDesc">MRP: high → low</option>
           <option value="name">Name A → Z</option>
         </select>
+        <label style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12.5, color: "#56627A", fontWeight: 600, cursor: "pointer" }}>
+          <input type="checkbox" checked={groupColours} onChange={(e) => setGroupColours(e.target.checked)} />
+          Group colours
+        </label>
         <span style={{ fontSize: 12.5, color: "#8A93A6" }}>{filtered.length} shown</span>
       </div>
 
@@ -341,6 +363,7 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
                   <div style={{ fontWeight: 600, fontSize: 13.5, display: "flex", alignItems: "center", gap: 7 }}>
                     {r.name}
                     <a href={`/catalogue/${r.id}`} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} title="Open the live product page" style={{ color: "#4E5BDC", fontSize: 11.5, fontWeight: 700 }}>↗</a>
+                    {groupColours && (colourCountRef.current.get(familyKeyOf(r)) ?? 1) > 1 && <Tag color="#4E5BDC">{colourCountRef.current.get(familyKeyOf(r))} colours</Tag>}
                     {!r.is_active && <Tag color="#E0612A">hidden</Tag>}
                     {r.parent_id && <Tag color="#8A93A6">variant</Tag>}
                     {r.is_recommended && <Tag color="#4E5BDC">rec</Tag>}

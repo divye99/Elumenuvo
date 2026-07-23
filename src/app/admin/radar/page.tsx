@@ -39,6 +39,15 @@ export default async function RadarPage() {
   const mapByKey = new Map(maps.map((m) => [mapKey(m.product_id, m.source), m]));
   const priceByKey = new Map(prices.map((p) => [mapKey(p.product_id, p.source), p]));
 
+  // Colour-agnostic family key: variants that differ ONLY by colour share a
+  // key (same parent + same non-colour attributes), so the client can show
+  // one pricing row per cable spec. Products without attrs stand alone.
+  const familyKeyOf = (p: { id: string; parent_id?: string | null; attrs?: Record<string, string> | null }) => {
+    if (!p.attrs || !("Colour" in p.attrs)) return p.id;
+    const rest = Object.entries(p.attrs).filter(([k]) => k !== "Colour").sort(([a], [b]) => a.localeCompare(b));
+    return `${p.parent_id ?? p.id}|${rest.map(([k, v]) => `${k}=${v}`).join("|")}`;
+  };
+
   const rows: RadarRow[] = products.map((p) => {
     const perSource = Object.fromEntries(
       srcList.map((s) => [s.id, { map: mapByKey.get(mapKey(p.id, s.id)) ?? null, price: priceByKey.get(mapKey(p.id, s.id)) ?? null }])
@@ -83,6 +92,7 @@ export default async function RadarPage() {
     return {
       id: p.id, name: p.name, brand: p.brand, category: p.category, unit: p.unit, image: p.image_url,
       ourPrice: p.elume_price, mrp: p.mrp, suggestedFactor: guessFactor(p.attrs), mappedCount, pendingCount,
+      familyKey: familyKeyOf(p),
       perSource,
       // market present whenever there's any seller to show; lowest/target null when none are buyable.
       market: sellers.length ? { sellers, avgMarket, lowest, target, pctVsLowest, cheapestSource: cheapest?.source ?? null, usableCount: usable.length } : null,
