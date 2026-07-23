@@ -100,7 +100,7 @@ export default function RadarClient({
   const [view, setView] = useState<"priced" | "unmapped" | "all">("priced");
   const [sellersN, setSellersN] = useState<"any" | number>("any"); // exact number of sellers mapped
   const [pos, setPos] = useState<"any" | "below" | "above" | "at">("any"); // our price vs the lowest competitor
-  const [sort, setSort] = useState<"action" | "priceAsc" | "priceDesc" | "pct" | "name">("action");
+  const [sort, setSort] = useState<"action" | "priceAsc" | "priceDesc" | "pct" | "pctAsc" | "avgAsc" | "avgDesc" | "lowAsc" | "lowDesc" | "name">("action");
 
   const brands = useMemo(() => Array.from(new Set(rows.map((r) => r.brand))).sort(), [rows]);
   // Distinct seller-counts present, each with how many products have exactly that many.
@@ -133,6 +133,11 @@ export default function RadarClient({
       if (sort === "priceAsc") return a.ourPrice - b.ourPrice;
       if (sort === "priceDesc") return b.ourPrice - a.ourPrice;
       if (sort === "pct") return (b.market?.pctVsLowest ?? -999) - (a.market?.pctVsLowest ?? -999);
+      if (sort === "pctAsc") return (a.market?.pctVsLowest ?? 999) - (b.market?.pctVsLowest ?? 999);
+      if (sort === "avgDesc") return (b.market?.avgMarket ?? -1) - (a.market?.avgMarket ?? -1);
+      if (sort === "avgAsc") return (a.market?.avgMarket ?? 1e12) - (b.market?.avgMarket ?? 1e12);
+      if (sort === "lowDesc") return (b.market?.lowest ?? -1) - (a.market?.lowest ?? -1);
+      if (sort === "lowAsc") return (a.market?.lowest ?? 1e12) - (b.market?.lowest ?? 1e12);
       if (sort === "name") return a.name.localeCompare(b.name);
       // "action" (default): products that need repricing first, biggest gap on top.
       const aa = needsAction(a) ? 1 : 0, bb = needsAction(b) ? 1 : 0;
@@ -226,9 +231,14 @@ export default function RadarClient({
         </select>
         <select value={sort} onChange={(e) => setSort(e.target.value as any)} style={sel}>
           <option value="action">Sort: needs repricing first</option>
-          <option value="priceAsc">Price: low → high</option>
-          <option value="priceDesc">Price: high → low</option>
+          <option value="priceAsc">Elume price: low → high</option>
+          <option value="priceDesc">Elume price: high → low</option>
           <option value="pct">% vs lowest: high → low</option>
+          <option value="pctAsc">Vs lowest: most below first</option>
+          <option value="avgDesc">Avg market: high → low</option>
+          <option value="avgAsc">Avg market: low → high</option>
+          <option value="lowDesc">Lowest seller: high → low</option>
+          <option value="lowAsc">Lowest seller: low → high</option>
           <option value="name">Name: A → Z</option>
         </select>
       </div>
@@ -288,6 +298,7 @@ function MappedRow({ r, first, pending, run }: { r: RadarRow; first: boolean; pe
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 600, fontSize: 13.5, color: "#19202E", overflow: "hidden", textOverflow: "ellipsis" }}>
               {canExpand && <span style={{ color: "#8A93A6", marginRight: 5, fontSize: 11 }}>{open ? "▾" : "▸"}</span>}{r.name}
+              <a href={`/catalogue/${r.id}`} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} title="Open the live product page" style={{ marginLeft: 7, color: "#4E5BDC", fontSize: 11.5, fontWeight: 700 }}>↗</a>
             </div>
             {/* Coil length is shown for wires: it is part of the SKU's identity
                 (a 90 m coil and a 180 m coil are different products at ~2x the

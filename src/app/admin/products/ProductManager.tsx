@@ -141,9 +141,10 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rows, sources]);
 
+  const [sortBy, setSortBy] = useState<"default" | "priceAsc" | "priceDesc" | "mrpAsc" | "mrpDesc" | "name">("default");
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    return rows.filter((r) => {
+    const list = rows.filter((r) => {
       if (cat !== "All" && r.category !== cat) return false;
       if (needle && !`${r.name} ${r.sku} ${r.brand}`.toLowerCase().includes(needle)) return false;
       const n = mappedCount(r);
@@ -155,8 +156,16 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
       if (priceView === "winning" && !isWinning(r)) return false;
       return true;
     });
+    switch (sortBy) {
+      case "priceAsc": return [...list].sort((a, b) => Number(a.elume_price) - Number(b.elume_price));
+      case "priceDesc": return [...list].sort((a, b) => Number(b.elume_price) - Number(a.elume_price));
+      case "mrpAsc": return [...list].sort((a, b) => Number(a.mrp) - Number(b.mrp));
+      case "mrpDesc": return [...list].sort((a, b) => Number(b.mrp) - Number(a.mrp));
+      case "name": return [...list].sort((a, b) => a.name.localeCompare(b.name));
+      default: return list;
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows, q, cat, view, sellersN, priceView, sources]);
+  }, [rows, q, cat, view, sellersN, priceView, sortBy, sources]);
 
   const suggestionCount = useMemo(() => rows.filter(needsReprice).length, [rows, sources]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -243,6 +252,14 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
           <option value="cheaper">⚠ Competitor cheaper — needs repricing ({suggestionCount})</option>
           <option value="winning">✓ We&apos;re at or under every competitor</option>
         </select>
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value as typeof sortBy)} style={{ border: "1px solid #E0E4ED", borderRadius: 10, padding: "9px 12px", fontSize: 13.5, background: "#fff" }}>
+          <option value="default">Sort: default</option>
+          <option value="priceAsc">Elume price: low → high</option>
+          <option value="priceDesc">Elume price: high → low</option>
+          <option value="mrpAsc">MRP: low → high</option>
+          <option value="mrpDesc">MRP: high → low</option>
+          <option value="name">Name A → Z</option>
+        </select>
         <span style={{ fontSize: 12.5, color: "#8A93A6" }}>{filtered.length} shown</span>
       </div>
 
@@ -323,6 +340,7 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
                 <div style={{ flex: "1 1 260px", minWidth: 0 }}>
                   <div style={{ fontWeight: 600, fontSize: 13.5, display: "flex", alignItems: "center", gap: 7 }}>
                     {r.name}
+                    <a href={`/catalogue/${r.id}`} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} title="Open the live product page" style={{ color: "#4E5BDC", fontSize: 11.5, fontWeight: 700 }}>↗</a>
                     {!r.is_active && <Tag color="#E0612A">hidden</Tag>}
                     {r.parent_id && <Tag color="#8A93A6">variant</Tag>}
                     {r.is_recommended && <Tag color="#4E5BDC">rec</Tag>}
