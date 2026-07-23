@@ -9,6 +9,7 @@ import { useCart } from "@/lib/cart";
 import { startOnlinePayment, confirmOnlinePayment } from "@/lib/order-actions";
 import { identify } from "@/lib/analytics";
 import { openRazorpay } from "@/lib/razorpay-checkout";
+import GoogleReviewOptIn from "@/components/GoogleReviewOptIn";
 
 type Prefill = { name: string; email: string; phone: string; gstin: string; company: string; isBusiness: boolean; signedIn: boolean };
 
@@ -144,6 +145,8 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
   if (done) {
     return (
       <main style={{ maxWidth: 640, margin: "0 auto", padding: "48px 28px" }}>
+        {/* Google Customer Reviews: Google's own opt-in dialog for a post-delivery review survey */}
+        <GoogleReviewOptIn orderId={done.orderId} email={f.email} />
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "40px 28px", textAlign: "center" }}>
           <div style={{ fontSize: 40, marginBottom: 8 }}>🎉</div>
           <h1 style={{ fontFamily: GROTESK, fontSize: 24, fontWeight: 600, margin: "0 0 6px" }}>Order confirmed</h1>
