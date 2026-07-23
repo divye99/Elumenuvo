@@ -211,10 +211,10 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
           {/* Contact */}
           <Section title="Contact">
             <Row>
-              <Field label="Full name *"><input value={f.name} onChange={(e) => set("name", e.target.value)} style={inp} /></Field>
-              <Field label="Phone *"><input value={f.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+91 98765 43210" required style={inp} /></Field>
+              <Field label="Full name *"><input name="full_name" autoComplete="name" value={f.name} onChange={(e) => set("name", e.target.value)} style={inp} /></Field>
+              <Field label="Phone *"><input name="phone" autoComplete="tel" value={f.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+91 98765 43210" required style={inp} /></Field>
             </Row>
-            <Field label="Email *"><input type="email" value={f.email} onChange={(e) => set("email", e.target.value)} style={inp} /></Field>
+            <Field label="Email *"><input name="email" type="email" autoComplete="email" value={f.email} onChange={(e) => set("email", e.target.value)} style={inp} /></Field>
           </Section>
 
           {/* Addresses */}
@@ -354,12 +354,12 @@ function Row({ children }: { children: React.ReactNode }) { return <div classNam
 function AddressFields({ a, onChange }: { a: Address; onChange: (k: keyof Address, v: string) => void }) {
   return (
     <>
-      <Field label="Address line 1 *"><input value={a.line1} onChange={(e) => onChange("line1", e.target.value)} placeholder="Flat / house no., building" style={inp} /></Field>
-      <Field label="Address line 2"><input value={a.line2} onChange={(e) => onChange("line2", e.target.value)} placeholder="Street, area, locality" style={inp} /></Field>
-      <Field label="Address line 3 (optional)"><input value={a.line3} onChange={(e) => onChange("line3", e.target.value)} placeholder="Landmark (optional)" style={inp} /></Field>
+      <Field label="Address line 1 *"><input name="address_line1" autoComplete="address-line1" value={a.line1} onChange={(e) => onChange("line1", e.target.value)} placeholder="Flat / house no., building" style={inp} /></Field>
+      <Field label="Address line 2"><input name="address_line2" autoComplete="address-line2" value={a.line2} onChange={(e) => onChange("line2", e.target.value)} placeholder="Street, area, locality" style={inp} /></Field>
+      <Field label="Address line 3 (optional)"><input name="landmark" value={a.line3} onChange={(e) => onChange("line3", e.target.value)} placeholder="Landmark (optional)" style={inp} /></Field>
       <Row>
-        <Field label="City *"><input value={a.city} onChange={(e) => onChange("city", e.target.value)} style={inp} /></Field>
-        <Field label="District *"><input value={a.district} onChange={(e) => onChange("district", e.target.value)} style={inp} /></Field>
+        <Field label="City *"><input name="city" autoComplete="address-level2" value={a.city} onChange={(e) => onChange("city", e.target.value)} style={inp} /></Field>
+        <Field label="District *"><input name="district" value={a.district} onChange={(e) => onChange("district", e.target.value)} style={inp} /></Field>
       </Row>
       <Row>
         <Field label="State / Union territory *">
@@ -368,7 +368,7 @@ function AddressFields({ a, onChange }: { a: Address; onChange: (k: keyof Addres
             {INDIA_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
         </Field>
-        <Field label="PIN code *"><input value={a.pin} onChange={(e) => onChange("pin", e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" placeholder="110001" style={inp} /></Field>
+        <Field label="PIN code *"><input name="pincode" autoComplete="postal-code" value={a.pin} onChange={(e) => onChange("pin", e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" placeholder="110001" style={inp} /></Field>
       </Row>
       <Field label="Country"><input value={a.country} readOnly style={{ ...inp, background: "#F7F8FB", color: "#56627A" }} /></Field>
     </>

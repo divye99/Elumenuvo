@@ -76,6 +76,22 @@ export type JourneyItem = { at: string; icon: string; title: string; sub?: strin
 const ICON: Record<string, string> = { pageview: "📄", leave: "⏱", click: "👆", product_click: "🛍", add_to_cart: "🛒", identify: "🪪", search: "🔎", legacy: "🗂", input: "⌨️" };
 const durTxt = (ms: number) => (ms < 60000 ? `${Math.round(ms / 1000)}s` : `${Math.floor(ms / 60000)}m ${Math.round((ms % 60000) / 1000)}s`);
 
+/** Rows recorded before fields had names show placeholder examples; map the
+ *  known ones to what they actually are. */
+const LEGACY_FIELD_LABELS: Record<string, string> = {
+  "+91 98765 43210": "phone",
+  "110001": "PIN code",
+  "text": "field",
+  "Flat / house no., building": "address line 1",
+  "Street, area, locality": "address line 2",
+  "Landmark (optional)": "landmark",
+  "you@email.com": "email",
+};
+function prettyFieldLabel(label: unknown): string {
+  const l = String(label ?? "field");
+  return LEGACY_FIELD_LABELS[l] ?? l;
+}
+
 /** One visitor's ordered timeline from their events + searches. */
 export function buildJourney(events: SiteEvent[], searches: SearchRow[]): JourneyItem[] {
   const items: JourneyItem[] = [];
@@ -87,7 +103,7 @@ export function buildJourney(events: SiteEvent[], searches: SearchRow[]): Journe
     else if (e.type === "add_to_cart") items.push({ at: e.created_at, icon: ICON.add_to_cart, title: `added to cart (${d.label ?? ""})` });
     else if (e.type === "identify") items.push({ at: e.created_at, icon: ICON.identify, title: `identified as ${e.name || e.email}`, sub: e.email ?? undefined });
     else if (e.type === "legacy") items.push({ at: e.created_at, icon: ICON.legacy, title: d.label ?? "recorded action", sub: "from records predating analytics" });
-    else if (e.type === "input") items.push({ at: e.created_at, icon: ICON.input, title: `typed “${d.value}”`, sub: `${d.label} · ${e.path ?? d.path ?? ""}` });
+    else if (e.type === "input") items.push({ at: e.created_at, icon: ICON.input, title: `typed “${d.value}”`, sub: `${prettyFieldLabel(d.label)} · ${e.path ?? d.path ?? ""}` });
     else items.push({ at: e.created_at, icon: ICON.click, title: `tapped "${d.label ?? "?"}"`, sub: d.href });
   }
   for (const s of searches) {

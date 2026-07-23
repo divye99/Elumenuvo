@@ -25,7 +25,9 @@ function isSensitiveField(el: HTMLInputElement | HTMLTextAreaElement): boolean {
 
 /** A stable, readable label for the field ("Email", "phone", "gstin"…). */
 function fieldLabel(el: HTMLInputElement | HTMLTextAreaElement): string {
-  return (el.getAttribute("placeholder") || el.name || el.id || el.getAttribute("aria-label") || (el instanceof HTMLInputElement ? el.type : "text")).slice(0, 60);
+  // A field's NAME describes it; a placeholder often only shows an example
+  // value ("+91 98765 43210"), which reads as noise in journeys.
+  return (el.name || el.getAttribute("aria-label") || el.id || el.getAttribute("placeholder") || (el instanceof HTMLInputElement ? el.type : "text")).slice(0, 60);
 }
 export default function SiteTracker() {
   const pathname = usePathname();
