@@ -189,6 +189,7 @@ export type OrderRow = {
   total: number | null;
   status: string;
   is_guest: boolean | null;
+  user_id: string | null;
   admin_note: string | null;
   cancel_reason: string | null;
   delivered_at: string | null;
@@ -234,4 +235,32 @@ export async function getOrderDetail(id: string): Promise<{ order: OrderRow; shi
     db.from("order_events").select("*").eq("order_id", id).order("created_at", { ascending: true }),
   ]);
   return { order: order as OrderRow, shipments: (shipments ?? []) as Shipment[], events: (events ?? []) as OrderEvent[] };
+}
+
+/** Whether the order's customer already has a login, plus how many real
+ *  (paid) orders share their email. Guest orders placed BEFORE the account
+ *  was created carry no user_id, so fall back to scanning auth users by
+ *  email; fine at current signup counts, capped at 5,000 users. */
+export async function customerAccountInfo(email: string, userId?: string | null): Promise<{ hasAccount: boolean; orderCount: number }> {
+  const db = adminClient();
+  if (!db) return { hasAccount: !!userId, orderCount: 1 };
+  const target = (email ?? "").trim().toLowerCase();
+  const countPromise = db
+    .from("orders")
+    .select("id", { count: "exact", head: true })
+    .ilike("email", target) // no wildcards, so this is case-insensitive equality
+    .not("status", "in", "(awaiting_payment,payment_abandoned)");
+  let hasAccount = !!userId;
+  if (!hasAccount && target) {
+    try {
+      for (let page = 1; page <= 25 && !hasAccount; page++) {
+        const { data, error } = await db.auth.admin.listUsers({ page, perPage: 200 });
+        if (error || !data?.users?.length) break;
+        hasAccount = data.users.some((u) => (u.email ?? "").toLowerCase() === target);
+        if (data.users.length < 200) break;
+      }
+    } catch { /* treat as no account */ }
+  }
+  const { count } = await countPromise;
+  return { hasAccount, orderCount: count ?? 1 };
 }

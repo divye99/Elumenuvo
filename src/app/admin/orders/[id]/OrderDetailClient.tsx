@@ -37,7 +37,7 @@ async function uploadDeliveryProof(fd: FormData): Promise<{ ok: true; url: strin
   try { return await r.json(); } catch { return { ok: false, error: `Upload failed (${r.status}).` }; }
 }
 
-export default function OrderDetailClient({ order, shipments, events }: { order: OrderRow; shipments: Shipment[]; events: OrderEvent[] }) {
+export default function OrderDetailClient({ order, shipments, events, customer }: { order: OrderRow; shipments: Shipment[]; events: OrderEvent[]; customer: { hasAccount: boolean; orderCount: number } }) {
   const [pending, start] = useTransition();
   const [err, setErr] = useState<string | null>(null);
   const [inviteMsg, setInviteMsg] = useState<string | null>(null);
@@ -189,8 +189,17 @@ export default function OrderDetailClient({ order, shipments, events }: { order:
               <p style={{ fontSize: 11.5, color: "#A0A7B5", margin: "10px 0 0" }}>Each change emails the customer an update.</p>
               <div style={{ borderTop: "1px solid #F0F2F6", marginTop: 12, paddingTop: 12 }}>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {/* Account holders don't need an invite; show their order history instead */}
+                  {customer.hasAccount && (
+                    <Link
+                      href={`/admin/orders?email=${encodeURIComponent(order.email)}`}
+                      style={{ background: "#EFFAF4", border: "1.5px solid #1F9D63", color: "#1F9D63", fontWeight: 700, fontSize: 12.5, padding: "9px 14px", borderRadius: 9 }}
+                    >
+                      👤 Has an account · all their orders ({customer.orderCount})
+                    </Link>
+                  )}
                   {([
-                    ["✉️ Invite to create an account", () => inviteAccount(order.id), "Invite sent"],
+                    ...(customer.hasAccount ? [] : [["✉️ Invite to create an account", () => inviteAccount(order.id), "Invite sent"] as const]),
                     ["🔁 Resend status email", () => resendStatusEmail(order.id), "Status email re-sent"],
                     ["🎁 Send 10% welcome offer", () => sendWelcomeOfferEmail(order.id), "Welcome offer sent"],
                   ] as [string, () => Promise<{ ok: boolean; error?: string }>, string][]).map(([label, fn, okMsg]) => (
@@ -209,7 +218,9 @@ export default function OrderDetailClient({ order, shipments, events }: { order:
                   ))}
                 </div>
                 <p style={{ fontSize: 11.5, color: inviteMsg && !inviteMsg.includes("ailed") && !inviteMsg.includes("hiccup") ? "#1F9D63" : "#A0A7B5", margin: "8px 0 0" }}>
-                  {inviteMsg ?? "Customer emails: signup invite · resend the current status email · one-time 10% next-order code (30 days, tied to their email)."}
+                  {inviteMsg ?? (customer.hasAccount
+                    ? "This customer has an Elume account, so orders appear in their dashboard automatically. Emails: resend current status · one-time 10% next-order code (30 days, tied to their email)."
+                    : "Customer emails: signup invite · resend the current status email · one-time 10% next-order code (30 days, tied to their email).")}
                 </p>
               </div>
             </Card>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
-import { getOrderDetail } from "@/lib/admin/data";
+import { getOrderDetail, customerAccountInfo } from "@/lib/admin/data";
 import OrderDetailClient from "./OrderDetailClient";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +20,8 @@ export default async function AdminOrderDetail({ params }: { params: Promise<{ i
       </div>
     );
   }
-  return <OrderDetailClient order={detail.order} shipments={detail.shipments} events={detail.events} />;
+  const customer = await customerAccountInfo(detail.order.email, detail.order.user_id);
+  return <OrderDetailClient order={detail.order} shipments={detail.shipments} events={detail.events} customer={customer} />;
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {

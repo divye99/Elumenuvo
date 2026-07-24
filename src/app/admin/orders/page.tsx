@@ -12,10 +12,13 @@ const OPEN = ["placed", "confirmed", "packed", "shipped", "partially_shipped", "
 // the hottest recovery lead a store has (name, phone, items, address).
 const UNPAID = ["awaiting_payment", "payment_abandoned"];
 
-export default async function AdminOrders({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
+export default async function AdminOrders({ searchParams }: { searchParams: Promise<{ filter?: string; email?: string }> }) {
   await requireAdmin();
-  const { filter } = await searchParams;
-  const everything = await listOrders();
+  const { filter, email } = await searchParams;
+  // Optional per-customer view (linked from the order detail page).
+  const emailFilter = (email ?? "").trim().toLowerCase();
+  const unfiltered = await listOrders();
+  const everything = emailFilter ? unfiltered.filter((o) => (o.email ?? "").toLowerCase() === emailFilter) : unfiltered;
   const all = everything.filter((o) => !UNPAID.includes(o.status));
   const abandoned = everything.filter((o) => UNPAID.includes(o.status));
   const view =
@@ -28,8 +31,12 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
 
   const tab = (key: string, label: string, count: number) => {
     const active = (filter ?? "all") === key;
+    const q = new URLSearchParams();
+    if (key !== "all") q.set("filter", key);
+    if (emailFilter) q.set("email", emailFilter);
+    const qs = q.toString();
     return (
-      <Link href={`/admin/orders${key === "all" ? "" : `?filter=${key}`}`} style={{ fontSize: 13, fontWeight: 600, padding: "6px 13px", borderRadius: 8, background: active ? "#161D2B" : "#fff", color: active ? "#fff" : "#56627A", border: "1px solid #E8EBF1" }}>
+      <Link href={`/admin/orders${qs ? `?${qs}` : ""}`} style={{ fontSize: 13, fontWeight: 600, padding: "6px 13px", borderRadius: 8, background: active ? "#161D2B" : "#fff", color: active ? "#fff" : "#56627A", border: "1px solid #E8EBF1" }}>
         {label} <span style={{ opacity: 0.7 }}>{count}</span>
       </Link>
     );
@@ -46,6 +53,13 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
       {!hasServiceRole() && (
         <div style={{ background: "#FBE9E4", border: "1px solid #f0c9bd", color: "#9a3b16", borderRadius: 10, padding: "12px 14px", fontSize: 13, marginBottom: 18 }}>
           <b>Read-only.</b> Set <code>SUPABASE_SERVICE_ROLE_KEY</code> to load and fulfil orders.
+        </div>
+      )}
+
+      {emailFilter && (
+        <div style={{ background: "#EFFAF4", border: "1px solid #BFE8D2", color: "#166B44", borderRadius: 10, padding: "10px 14px", fontSize: 13, marginBottom: 14, display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+          <span>Showing every order from <b>{emailFilter}</b></span>
+          <Link href={`/admin/orders${filter && filter !== "all" ? `?filter=${filter}` : ""}`} style={{ color: "#166B44", fontWeight: 700 }}>Show all customers</Link>
         </div>
       )}
 
