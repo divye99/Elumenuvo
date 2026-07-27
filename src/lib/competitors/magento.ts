@@ -27,6 +27,26 @@ function num(v: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+/** Find a named child inside a configurable parent's variant tree. */
+function childOf(par: Record<string, any> | undefined, childSku: string) {
+  return (par?.variants ?? []).find((v: any) => v?.product?.sku === childSku);
+}
+
+/** Build a CompetitorItem from a configurable parent + one of its variants:
+ *  the child carries the price, the parent carries the name and the URL. */
+function itemFromVariant(base: string, par: Record<string, any>, hit: Record<string, any>, code: string): CompetitorItem {
+  const cp = hit.product.price_range?.minimum_price;
+  return {
+    code,
+    name: `${par.name} — ${(hit.attributes ?? []).map((a: any) => a.label).join(" / ")}`,
+    brand: null,
+    listPrice: num(cp?.regular_price?.value),
+    netPrice: num(cp?.final_price?.value),
+    url: productUrl(base, par),
+    inStock: hit.product.stock_status ? hit.product.stock_status === "IN_STOCK" : null,
+  };
+}
+
 export function makeMagentoAdapter(cfg: { key: string; name: string; siteUrl: string }): CompetitorAdapter {
   const base = cfg.siteUrl.replace(/\/+$/, "");
   const endpoint = `${base}/graphql`;
@@ -85,22 +105,28 @@ export function makeMagentoAdapter(cfg: { key: string; name: string; siteUrl: st
           const [parent, child] = sku.split("::").map((x) => x.trim());
           const data = await gql(`query{products(filter:{sku:{eq:${JSON.stringify(parent)}}}){items{sku name url_key canonical_url stock_status ... on ConfigurableProduct{variants{product{sku name stock_status price_range{minimum_price{regular_price{value} final_price{value}}}} attributes{label}}}}}}`);
           const par = data?.data?.products?.items?.[0];
-          const hit = (par?.variants ?? []).find((v: any) => v?.product?.sku === child);
+          const hit = childOf(par, child);
           if (!par || !hit) return null;
-          const cp = hit.product.price_range?.minimum_price;
-          return {
-            code: sku,
-            name: `${par.name} — ${(hit.attributes ?? []).map((a: any) => a.label).join(" / ")}`,
-            brand: null,
-            listPrice: num(cp?.regular_price?.value),
-            netPrice: num(cp?.final_price?.value),
-            url: productUrl(base, par),
-            inStock: hit.product.stock_status ? hit.product.stock_status === "IN_STOCK" : null,
-          };
+          return itemFromVariant(base, par, hit, sku);
         }
+
         const data = await gql(`query{products(filter:{sku:{eq:${JSON.stringify(sku)}}}){${FIELDS}}}`);
         const it = data?.data?.products?.items?.[0];
-        return it ? toItem(it) : null;
+        if (it) return toItem(it);
+
+        // Not directly queryable. On Magento a configurable CHILD is invisible
+        // to a sku filter — its price only exists inside the parent's variant
+        // tree — but full-text search does match the child sku and returns the
+        // parent. Roughly half of Havells' catalogue is shaped this way, so a
+        // plain child sku must not be treated as "no such product".
+        const found = await gql(`query{products(search:${JSON.stringify(sku)},pageSize:5){items{__typename sku name url_key canonical_url stock_status ... on ConfigurableProduct{variants{product{sku name stock_status price_range{minimum_price{regular_price{value} final_price{value}}}} attributes{label}}}}}}`);
+        for (const par of (found?.data?.products?.items ?? [])) {
+          const hit = childOf(par, sku);
+          // resolvedCode lets the caller rewrite the mapping to PARENT::CHILD,
+          // so the next sync is one exact query instead of a search.
+          if (hit) return { ...itemFromVariant(base, par, hit, sku), resolvedCode: `${par.sku}::${sku}` };
+        }
+        return null;
       } catch {
         return null;
       }

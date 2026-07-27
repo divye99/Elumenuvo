@@ -74,6 +74,17 @@ export async function runCompetitorSync(db: SupaLike, source: string, runSource:
     const item = await ad.fetchByCode(m.competitor_code, token);
     if (!item) { failed++; return; }
 
+    // The adapter had to resolve the code (e.g. a Magento configurable child
+    // that only exists inside its parent's variant tree). Store the resolved
+    // form so the next run is a single exact query instead of a search.
+    if (item.resolvedCode && item.resolvedCode !== m.competitor_code) {
+      try {
+        await db.from("competitor_map")
+          .update({ competitor_code: item.resolvedCode, updated_at: new Date().toISOString() })
+          .eq("product_id", m.product_id).eq("source", source);
+      } catch { /* price still syncs even if the rewrite fails */ }
+    }
+
     const factor = Number(m.unit_factor) || 1;
     const effective = item.netPrice ?? item.listPrice;
     const ourPrice = priceById.get(m.product_id) ?? null;

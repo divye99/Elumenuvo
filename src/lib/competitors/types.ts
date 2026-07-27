@@ -9,6 +9,10 @@ export type CompetitorItem = {
   netPrice: number | null; // logged-in B2B selling price (null when anonymous)
   url: string | null;
   inStock: boolean | null;
+  /** Set when the adapter had to resolve the code to reach the product (a
+   *  Magento configurable child becomes "PARENT::CHILD"). The sync rewrites the
+   *  stored mapping to this, so later runs hit the product directly. */
+  resolvedCode?: string;
 };
 
 export type CompetitorAdapter = {
