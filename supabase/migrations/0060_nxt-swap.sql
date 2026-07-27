@@ -18,7 +18,7 @@ values (
   'Lighting',
   'Portable Lighting · Solar lantern + torch · 10 W · Solar panel + USB Type-C charging · 3.7 V 4000 mAh Li-ion · Torch up to 10 h, back light up to 8 h · Warranty 6 months',
   1685,
-  921,
+  950,
   'pc',
   'https://havells.com/media/catalog/product/cache/74c1057f7991b4edb2bc7bdaa94de933/s/o/solar_main.jpg',
   true,

@@ -6,7 +6,7 @@
 --    price-tracked - it simply cannot be added to the cart (enforced on the
 --    server in the order path, not just hidden in the UI).
 --
--- 2. 112 variants that Havells sells in families we already stock
+-- 2. 111 variants that Havells sells in families we already stock
 --    (motor-run capacitors, low-amperage MCBs and the like). They were absent
 --    only because of the Rs300 import floor, so they are added here at our
 --    usual Havells-minus-2% and flagged out of stock, plus their exact
@@ -93,7 +93,6 @@ insert into public.products (id, sku, brand_sku, name, brand, category, mrp, elu
   ('hav-lhexazp7pn1w005','LHEXAZP7PN1W005','LHEXAZP7PN1W005','Havells Pride Ultra NXT LED Batten — 5 W / 6500 K','Havells','Lighting',230,175,'pc','https://havells.com/media/catalog/product/cache/74c1057f7991b4edb2bc7bdaa94de933/l/e/led_pride_ultra_nxt_batten_5_1.jpg','9405',0.18,true,false,'{"Variant":"5 W / 6500 K"}'::jsonb),
   ('hav-lhexazp7pn1w010','LHEXAZP7PN1W010','LHEXAZP7PN1W010','Havells Pride Ultra NXT LED Batten — 10 W / 6500 K','Havells','Lighting',240,186,'pc','https://havells.com/media/catalog/product/cache/74c1057f7991b4edb2bc7bdaa94de933/l/e/led_pride_ultra_nxt_batten_5_4.jpg','9405',0.18,true,false,'{"Variant":"10 W / 6500 K"}'::jsonb),
   ('hav-lhexazp7pn1w020','LHEXAZP7PN1W020','LHEXAZP7PN1W020','Havells Pride Ultra NXT LED Batten — 20 W / 6500 K','Havells','Lighting',250,176,'pc','https://havells.com/media/catalog/product/cache/74c1057f7991b4edb2bc7bdaa94de933/l/e/led_pride_ultra_nxt_batten_1__1.jpg','9405',0.18,true,false,'{"Variant":"20 W / 6500 K"}'::jsonb),
-  ('hav-lhexazp7pn1w022','LHEXAZP7PN1W022','LHEXAZP7PN1W022','Havells Pride Ultra NXT LED Batten — 22 W / 6500 K','Havells','Lighting',350,195,'pc','https://havells.com/media/catalog/product/cache/74c1057f7991b4edb2bc7bdaa94de933/l/e/led_pride_ultra_nxt_batten_5.jpg','9405',0.18,true,false,'{"Variant":"22 W / 6500 K"}'::jsonb),
   ('hav-lhexazp7pn1w025','LHEXAZP7PN1W025','LHEXAZP7PN1W025','Havells Pride Ultra NXT LED Batten — 25 W / 6500 K','Havells','Lighting',460,255,'pc','https://havells.com/media/catalog/product/cache/74c1057f7991b4edb2bc7bdaa94de933/l/e/led_pride_ultra_nxt_batten_5_5.jpg','9405',0.18,true,false,'{"Variant":"25 W / 6500 K"}'::jsonb),
   ('hav-fhtsxhscbl16','FHTSXHSCBL16','FHTSXHSCBL16','Havells Swing LX HS Table Fan — Cool Blue','Havells','Fans',5290,3184,'pc','https://havells.com/media/catalog/product/cache/74c1057f7991b4edb2bc7bdaa94de933/f/h/fhtsxhscbl16_main.jpg','8414',0.18,true,false,'{"Variant":"Cool Blue"}'::jsonb),
   ('hav-dhmycspm006','DHMYCSPM006','DHMYCSPM006','Havells X7 MCB SP — 6 A','Havells','Switchgear',229,135,'pc','https://havells.com/media/catalog/product/cache/74c1057f7991b4edb2bc7bdaa94de933/x/7/x7_mcb_sp_6.jpg','8536',0.18,true,false,'{"Variant":"6 A"}'::jsonb),
@@ -211,7 +210,6 @@ insert into public.competitor_map (product_id, source, competitor_code, unit_fac
   ('hav-lhexazp7pn1w005','havells','LHEXAZP7PN1W020-c::LHEXAZP7PN1W005',1,'approved','brand-sku'),
   ('hav-lhexazp7pn1w010','havells','LHEXAZP7PN1W020-c::LHEXAZP7PN1W010',1,'approved','brand-sku'),
   ('hav-lhexazp7pn1w020','havells','LHEXAZP7PN1W020-c::LHEXAZP7PN1W020',1,'approved','brand-sku'),
-  ('hav-lhexazp7pn1w022','havells','LHEXAZP7PN1W020-c::LHEXAZP7PN1W022',1,'approved','brand-sku'),
   ('hav-lhexazp7pn1w025','havells','LHEXAZP7PN1W020-c::LHEXAZP7PN1W025',1,'approved','brand-sku'),
   ('hav-fhtsxhscbl16','havells','FHTSXHSPPL16-c::FHTSXHSCBL16',1,'approved','brand-sku'),
   ('hav-dhmycspm006','havells','DHMYCSPM063-c::DHMYCSPM006',1,'approved','brand-sku'),
