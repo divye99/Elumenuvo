@@ -162,6 +162,15 @@ export default function ProductDetail({
               </div>
             </div>
 
+            {p.inStock === false ? (
+              <div style={{ background: "#F7F8FB", border: "1px solid #E8EBF1", borderRadius: 12, padding: "16px 18px" }}>
+                <div style={{ fontFamily: GROTESK, fontSize: 15, fontWeight: 600, color: "#19202E" }}>Out of stock</div>
+                <p style={{ fontSize: 13, color: "#56627A", margin: "6px 0 0", lineHeight: 1.55 }}>
+                  We list this so you can see the spec and our price, but it cannot be ordered right now.
+                  Email <a href="mailto:info@elumenuvo.com" style={{ color: "#4E5BDC", fontWeight: 600 }}>info@elumenuvo.com</a> and we will source it for you.
+                </p>
+              </div>
+            ) : (
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
               <div style={{ display: "flex", alignItems: "center", border: "1px solid #E8EBF1", borderRadius: 11, overflow: "hidden" }}>
                 <div onClick={() => setQty(Math.max(1, qty - 1))} style={{ width: 42, height: 46, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#56627A", fontSize: 20 }}>−</div>
@@ -180,6 +189,7 @@ export default function ProductDetail({
                 </>
               )}
             </div>
+            )}
             {isWholesale && (
               <div style={{ fontSize: 12.5, color: "#1F9D63", fontWeight: 600, marginTop: 10 }}>
                 ✓ Wholesale price applied — {fmt(ws)}/{p.unit} on {qty} units ({WHOLESALE_MIN_QTY}+)

@@ -20,6 +20,8 @@ export type Product = {
   /** Lowest buyable competitor price across APPROVED mappings (maintained by
    *  refresh_market_low in the DB). Undefined = no trusted competitor price. */
   marketLow?: number;
+  /** false = browsable and price-tracked, but not orderable (migration 0067). */
+  inStock?: boolean;
   /** Variant family — variations point at their parent product via parentId
    *  (null/undefined = parent or standalone). Family = parent + children. */
   parentId?: string;

@@ -75,7 +75,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       url: `${SITE}/catalogue/${product.id}`,
       priceCurrency: "INR",
       price: product.price,
-      availability: "https://schema.org/InStock",
+      availability: product.inStock === false ? "https://schema.org/OutOfStock" : "https://schema.org/InStock",
       itemCondition: NEW_CONDITION,
       areaServed: { "@type": "Country", name: "India" },
       seller: { "@type": "Organization", name: "Elume Nuvotech Private Limited" },

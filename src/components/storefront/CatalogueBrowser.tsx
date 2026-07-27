@@ -117,21 +117,24 @@ export default function CatalogueBrowser({
       const inSearch = tokens.length === 0 || matchesAll(`${p.brand} ${p.name} ${p.spec} ${p.sku} ${p.cat}`, tokens);
       return inCat && inBrand && inSearch;
     });
+    // Out-of-stock products stay browsable and searchable, but never lead a
+    // list: sink them to the bottom of whatever ordering is chosen.
+    const stockRank = (a: Product, b: Product) => Number(a.inStock === false) - Number(b.inStock === false);
     switch (sort) {
       case "recommended":
-        return [...list].sort((a, b) => Number(b.recommended ?? false) - Number(a.recommended ?? false));
+        return [...list].sort((a, b) => stockRank(a, b) || Number(b.recommended ?? false) - Number(a.recommended ?? false));
       case "top-sellers":
-        return [...list].sort((a, b) => (b.unitsSold ?? 0) - (a.unitsSold ?? 0));
+        return [...list].sort((a, b) => stockRank(a, b) || (b.unitsSold ?? 0) - (a.unitsSold ?? 0));
       case "top-rated":
         return [...list].sort(
-          (a, b) => (b.rating ?? 0) - (a.rating ?? 0) || (b.ratingCount ?? 0) - (a.ratingCount ?? 0)
+          (a, b) => stockRank(a, b) || (b.rating ?? 0) - (a.rating ?? 0) || (b.ratingCount ?? 0) - (a.ratingCount ?? 0)
         );
       case "price-asc":
-        return [...list].sort((a, b) => a.price - b.price);
+        return [...list].sort((a, b) => stockRank(a, b) || a.price - b.price);
       case "price-desc":
-        return [...list].sort((a, b) => b.price - a.price);
+        return [...list].sort((a, b) => stockRank(a, b) || b.price - a.price);
       case "save-desc":
-        return [...list].sort((a, b) => (1 - b.price / b.market) - (1 - a.price / a.market));
+        return [...list].sort((a, b) => stockRank(a, b) || (1 - b.price / b.market) - (1 - a.price / a.market));
       case "new":
         // Catalogue rows are appended over time, so reverse featured order ≈ newest first.
         return [...list].reverse();
@@ -142,7 +145,7 @@ export default function CatalogueBrowser({
         // brand (like our own) walls off the top of the catalogue.
         const trend = (p: Product) =>
           Math.min(searchBoost[p.id] ?? 0, 20) * 3 + Math.min(p.unitsSold ?? 0, 200) + (p.recommended ? 8 : 0);
-        const ranked = [...list].sort((a, b) => trend(b) - trend(a));
+        const ranked = [...list].sort((a, b) => stockRank(a, b) || trend(b) - trend(a));
         const filtersActive = cat !== "All" || picked.size > 0 || tokens.length > 0;
         if (filtersActive) return ranked;
 

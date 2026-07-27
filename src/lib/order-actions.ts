@@ -46,7 +46,7 @@ async function validate(
   if (!input.shipping_address.trim()) return { ok: false, error: "Please enter a shipping address." };
 
   const ids = [...new Set(raw.map((i) => i.id))];
-  const { data, error } = await db.from("products").select("id,name,category,elume_price,is_active,gst_rate,hsn").in("id", ids);
+  const { data, error } = await db.from("products").select("id,name,category,elume_price,is_active,gst_rate,hsn,in_stock").in("id", ids);
   if (error) return { ok: false, error: "We could not verify prices just now. Please try again." };
   const byId = new Map((data ?? []).map((p) => [p.id, p]));
 
@@ -55,6 +55,11 @@ async function validate(
     const p = byId.get(i.id);
     if (!p || p.is_active === false) {
       return { ok: false, error: `"${i.name || i.id}" is no longer available. Please remove it from your cart and try again.` };
+    }
+    // Out of stock is enforced HERE, not just in the UI: a cart can be days
+    // old, or restored from localStorage after the item went out of stock.
+    if ((p as { in_stock?: boolean | null }).in_stock === false) {
+      return { ok: false, error: `"${p.name}" is out of stock right now. Please remove it from your cart to continue.` };
     }
     const qty = Math.min(Math.floor(i.qty), 9999);
     // The GST rate comes from the product row, never the browser — a per-product

@@ -228,20 +228,26 @@ export default function ProductCard({
               <>{fmt(shown.price)} incl. GST</>
             )}
           </div>
-          <span className="pc-deliv" suppressHydrationWarning>Delivery by {deliveryBy()}</span>
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              add({ id: shown.id, name: shown.name, brand: shown.brand, price: shown.price, mrp: shown.market, unit: shown.unit, cat: shown.cat, gstRate: shown.gstRate, image: shown.image });
-              setAdded(true);
-              setTimeout(() => setAdded(false), 1200);
-            }}
-            className="pc-cta"
-            style={{ width: "100%", marginTop: 10, background: added ? "#1F9D63" : "#EEF0FE", color: added ? "#fff" : "#4E5BDC", fontWeight: 700, fontSize: 12.5, border: "none", padding: "8px 10px", borderRadius: 9, cursor: "pointer" }}
-          >
-            {added ? "✓ Added" : "Add to cart"}
-          </button>
+          <span className="pc-deliv" suppressHydrationWarning>{shown.inStock === false ? "Currently unavailable" : `Delivery by ${deliveryBy()}`}</span>
+          {shown.inStock === false ? (
+            <div style={{ width: "100%", marginTop: 10, background: "#F4F5F8", color: "#8A93A6", fontWeight: 700, fontSize: 12.5, padding: "8px 10px", borderRadius: 9, textAlign: "center" }}>
+              Out of stock
+            </div>
+          ) : (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                add({ id: shown.id, name: shown.name, brand: shown.brand, price: shown.price, mrp: shown.market, unit: shown.unit, cat: shown.cat, gstRate: shown.gstRate, image: shown.image });
+                setAdded(true);
+                setTimeout(() => setAdded(false), 1200);
+              }}
+              className="pc-cta"
+              style={{ width: "100%", marginTop: 10, background: added ? "#1F9D63" : "#EEF0FE", color: added ? "#fff" : "#4E5BDC", fontWeight: 700, fontSize: 12.5, border: "none", padding: "8px 10px", borderRadius: 9, cursor: "pointer" }}
+            >
+              {added ? "✓ Added" : "Add to cart"}
+            </button>
+          )}
         </div>
       </div>
     </Link>
