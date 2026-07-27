@@ -36,7 +36,14 @@ export function offMrpPct(elumePrice: number, mrp: number): number {
  * with the GST and the inclusive total shown alongside.
  *
  * FMEG GST rates vary by category, so we key the rate off the product category
- * rather than a single flat rate. VERIFY these against current rates.
+ * rather than a single flat rate. These are the rates in force from 22 Sept
+ * 2025, when the 56th GST Council removed the 12% and 28% slabs.
+ *
+ * The category rate is only a FALLBACK. Every product carries its own
+ * products.gst_rate (migrations 0062/0064), set from its HSN — which is what
+ * actually decides the rate. Lighting is the clearest case: LED lamps and
+ * luminaires moved 12% -> 5%, but non-LED fittings that take a separate
+ * B22/E27/CFL lamp, and torches, remain at 18%.
  */
 export const GST_RATES: Record<string, number> = {
   "Wires & Cables": 0.18,
@@ -44,13 +51,10 @@ export const GST_RATES: Record<string, number> = {
   "Modular": 0.18,
   "Fans": 0.18,
   "DB & Panels": 0.18,
-  "Lighting": 0.12, // LED lighting has historically been 12% — confirm current rate
-  // Added with the Havells catalogue import (Jul 2026). CONFIRM WITH CA: the
-  // Sept 2025 GST rationalisation moved many 12% goods to 5%, which likely
-  // covers pumps (HSN 8413) and may also affect the Lighting row above.
-  "Pumps": 0.05,
+  "Lighting": 0.05, // LED lamps & luminaires, 12% -> 5% (Sept 2025); non-LED overridden per product
+  "Pumps": 0.05,    // power-driven water pumps, 12% -> 5%
   "Electrical Accessories": 0.18,
-  "EV Charging": 0.05, // EV chargers/charging infra at concessional 5%
+  "EV Charging": 0.05, // EV chargers, 18% -> 5% (36th GST Council)
 };
 export const DEFAULT_GST_RATE = 0.18; // standard FMEG rate for anything unmapped
 /** Back-compat alias — prefer gstRateFor(category). */
