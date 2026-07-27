@@ -69,9 +69,20 @@ export async function runCompetitorSync(db: SupaLike, source: string, runSource:
     }
   }
 
+  // Bulk pre-fetch where the source supports it (Magento: sku:{in:[...]}).
+  // Turns ~2,000 HTTP calls into a few dozen; anything the batch misses still
+  // falls through to the per-code path below.
+  const prefetched = new Map<string, any>();
+  if (typeof ad.fetchBatch === "function") {
+    try {
+      const got = await ad.fetchBatch(rows.map((m: any) => m.competitor_code), token);
+      for (const [k, v] of got) prefetched.set(k, v);
+    } catch { /* per-code path covers everything */ }
+  }
+
   // Process one mapping: fetch the live price, write the snapshot + history row.
   async function processOne(m: any) {
-    const item = await ad.fetchByCode(m.competitor_code, token);
+    const item = prefetched.get(m.competitor_code) ?? await ad.fetchByCode(m.competitor_code, token);
     if (!item) { failed++; return; }
 
     // The adapter had to resolve the code (e.g. a Magento configurable child

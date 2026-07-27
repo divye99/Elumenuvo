@@ -93,6 +93,51 @@ export function makeMagentoAdapter(cfg: { key: string; name: string; siteUrl: st
       }
     },
 
+    /** Bulk price fetch. Magento accepts sku:{in:[...]}, so a whole sync is a
+     *  few dozen calls instead of one per product. Composite PARENT::CHILD
+     *  codes are grouped by parent, and one parent fetch serves all of its
+     *  mapped children at once. */
+    async fetchBatch(codes) {
+      const out = new Map<string, CompetitorItem>();
+      const plain: string[] = [];
+      const byParent = new Map<string, string[]>(); // parent sku -> child skus
+      for (const raw of codes) {
+        const code = raw.trim();
+        if (!code) continue;
+        if (code.includes("::")) {
+          const [parent, child] = code.split("::").map((x) => x.trim());
+          byParent.set(parent, [...(byParent.get(parent) ?? []), child]);
+        } else plain.push(code);
+      }
+
+      const CHUNK = 40;
+      // Simple / parent-level products: one query per 40 SKUs.
+      for (let i = 0; i < plain.length; i += CHUNK) {
+        const skus = plain.slice(i, i + CHUNK);
+        try {
+          const data = await gql(`query{products(filter:{sku:{in:${JSON.stringify(skus)}}},pageSize:${CHUNK}){${FIELDS}}}`);
+          for (const it of (data?.data?.products?.items ?? [])) out.set(it.sku, toItem(it));
+        } catch { /* the per-code path can still retry these */ }
+      }
+
+      // Configurable parents: fetch the parent, then read each mapped child out
+      // of its variant tree.
+      const parents = [...byParent.keys()];
+      for (let i = 0; i < parents.length; i += CHUNK) {
+        const skus = parents.slice(i, i + CHUNK);
+        try {
+          const data = await gql(`query{products(filter:{sku:{in:${JSON.stringify(skus)}}},pageSize:${CHUNK}){items{sku name url_key canonical_url stock_status ... on ConfigurableProduct{variants{product{sku name stock_status price_range{minimum_price{regular_price{value} final_price{value}}}} attributes{label}}}}}}`);
+          for (const par of (data?.data?.products?.items ?? [])) {
+            for (const child of (byParent.get(par.sku) ?? [])) {
+              const hit = childOf(par, child);
+              if (hit) out.set(`${par.sku}::${child}`, itemFromVariant(base, par, hit, `${par.sku}::${child}`));
+            }
+          }
+        } catch { /* fall through to per-code */ }
+      }
+      return out;
+    },
+
     async fetchByCode(code) {
       const sku = code.trim();
       if (!sku) return null;

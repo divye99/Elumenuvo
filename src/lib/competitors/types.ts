@@ -25,6 +25,10 @@ export type CompetitorAdapter = {
   /** One product's live price by its competitor code. Pass an auth token to get
    *  the net (logged-in) price where the site gates it. */
   fetchByCode(code: string, auth?: string | null): Promise<CompetitorItem | null>;
+  /** Optional bulk fetch. Sources whose API accepts many codes per request
+   *  implement this so a sync is a handful of calls instead of one per product.
+   *  Returns a map keyed by the code passed in; a missing key means not found. */
+  fetchBatch?(codes: string[], auth?: string | null): Promise<Map<string, CompetitorItem>>;
   /** Obtain an auth token from credentials (only for needsLogin sources). */
   login?(username: string, password: string): Promise<string | null>;
 };
