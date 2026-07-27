@@ -218,12 +218,12 @@ export default function ProductCard({
         </div>
         <div style={{ marginTop: "auto" }}>
           <div className="pc-price" style={{ fontFamily: GROTESK, fontSize: 19, fontWeight: 600, color: "#19202E", display: "flex", alignItems: "baseline", gap: 5 }}>
-            {fmt(baseExGst(shown.price, shown.cat))}
+            {fmt(baseExGst(shown.price, shown.cat, shown.gstRate))}
             <span style={{ fontSize: 10, fontWeight: 600, color: "#8A93A6" }}>+GST</span>
           </div>
           <div className="pc-mrp" style={{ fontSize: 11.5, color: "#A0A7B5" }}>
             {hasDiscount ? (
-              <>MRP <span style={{ textDecoration: "line-through" }}>{fmt(baseExGst(shown.market, shown.cat))}</span> · {fmt(shown.price)} incl.</>
+              <>MRP <span style={{ textDecoration: "line-through" }}>{fmt(baseExGst(shown.market, shown.cat, shown.gstRate))}</span> · {fmt(shown.price)} incl.</>
             ) : (
               <>{fmt(shown.price)} incl. GST</>
             )}
@@ -233,7 +233,7 @@ export default function ProductCard({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              add({ id: shown.id, name: shown.name, brand: shown.brand, price: shown.price, mrp: shown.market, unit: shown.unit, cat: shown.cat, image: shown.image });
+              add({ id: shown.id, name: shown.name, brand: shown.brand, price: shown.price, mrp: shown.market, unit: shown.unit, cat: shown.cat, gstRate: shown.gstRate, image: shown.image });
               setAdded(true);
               setTimeout(() => setAdded(false), 1200);
             }}

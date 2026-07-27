@@ -6,7 +6,7 @@ import { exGst, gstPart, baseExGst, unitPriceFor } from "@/lib/pricing";
 import { sendAdminNewOrder, sendCustomerOrderConfirmation } from "@/lib/email";
 import { createRazorpayOrder, verifyPaymentSignature, razorpayConfigured, razorpayKeyId } from "@/lib/razorpay";
 
-export type CheckoutItem = { id: string; name: string; qty: number; price: number; cat?: string };
+export type CheckoutItem = { id: string; name: string; qty: number; price: number; cat?: string; gstRate?: number };
 export type PlaceOrderInput = {
   name: string;
   phone: string;
@@ -46,7 +46,7 @@ async function validate(
   if (!input.shipping_address.trim()) return { ok: false, error: "Please enter a shipping address." };
 
   const ids = [...new Set(raw.map((i) => i.id))];
-  const { data, error } = await db.from("products").select("id,name,category,elume_price,is_active").in("id", ids);
+  const { data, error } = await db.from("products").select("id,name,category,elume_price,is_active,gst_rate").in("id", ids);
   if (error) return { ok: false, error: "We could not verify prices just now. Please try again." };
   const byId = new Map((data ?? []).map((p) => [p.id, p]));
 
@@ -57,7 +57,15 @@ async function validate(
       return { ok: false, error: `"${i.name || i.id}" is no longer available. Please remove it from your cart and try again.` };
     }
     const qty = Math.min(Math.floor(i.qty), 9999);
-    items.push({ id: i.id, name: p.name, qty, price: unitPriceFor(Number(p.elume_price), qty), cat: p.category });
+    // The GST rate comes from the product row, never the browser — a per-product
+    // rate (solar etc.) overrides the category rate at invoicing time.
+    const gstRate = (p as { gst_rate?: number | string | null }).gst_rate;
+    items.push({
+      id: i.id, name: p.name, qty,
+      price: unitPriceFor(Number(p.elume_price), qty),
+      cat: p.category,
+      ...(gstRate != null ? { gstRate: Number(gstRate) } : {}),
+    });
   }
   const total = Math.round(items.reduce((s, i) => s + i.price * i.qty, 0) * 100) / 100;
   return { ok: true, items, total };
@@ -113,12 +121,12 @@ async function insertPendingOrder(
     payment_method: "online",
     items,
     product_ids: items.map((i) => i.id),
-    // Taxable value = sum of each item's ex-GST base at its category rate,
+    // Taxable value = sum of each item's ex-GST base at its own GST rate,
     // scaled down proportionally when a discount applies — GST is charged on
     // what the customer actually pays, so subtotal + GST always equals total.
     subtotal: (() => {
       const gross = items.some((i) => i.cat)
-        ? items.reduce((s, i) => s + baseExGst(i.price, i.cat) * i.qty, 0)
+        ? items.reduce((s, i) => s + baseExGst(i.price, i.cat, i.gstRate) * i.qty, 0)
         : Math.round(exGst(total + discountAmount) * 100) / 100;
       const preDiscount = total + discountAmount;
       const scale = preDiscount > 0 ? total / preDiscount : 1;

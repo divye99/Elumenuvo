@@ -2,6 +2,8 @@ import { createClient } from "@supabase/supabase-js";
 import { adminClient } from "@/lib/supabase/admin";
 
 export type ProductRow = {
+  gst_rate?: number | string | null;
+  hsn?: string | null;
   id: string;
   sku: string;
   brand_sku: string | null;

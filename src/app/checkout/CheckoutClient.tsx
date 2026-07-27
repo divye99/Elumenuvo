@@ -308,7 +308,7 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
           {items.map((it) => (
             <div key={it.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12.5, marginBottom: 7 }}>
               <span style={{ color: "#56627A", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{it.qty}× {it.name}</span>
-              <span style={{ fontFamily: GROTESK, fontWeight: 600 }}>{fmt(baseExGst(unitPriceFor(it.price, it.qty), it.cat) * it.qty)}</span>
+              <span style={{ fontFamily: GROTESK, fontWeight: 600 }}>{fmt(baseExGst(unitPriceFor(it.price, it.qty), it.cat, it.gstRate) * it.qty)}</span>
             </div>
           ))}
           <div style={{ borderTop: "1px solid #F0F2F6", marginTop: 8, paddingTop: 10 }}>

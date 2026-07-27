@@ -56,6 +56,8 @@ export default async function AdminProducts({
     is_recommended: r.is_recommended,
     parent_id: r.parent_id,
     attrs: r.attrs,
+    gst_rate: r.gst_rate != null ? Number(r.gst_rate) : null,
+    hsn: r.hsn ?? null,
     sort_order: r.sort_order,
     image_url: r.image_url,
     suggestedFactor: guessFactor(r.attrs),

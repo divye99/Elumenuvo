@@ -16,6 +16,7 @@ export type CartItem = {
   mrp: number;
   unit: string;
   cat?: string; // product category → GST rate (optional: pre-existing carts won't have it)
+  gstRate?: number; // per-product GST override (solar etc.); falls back to the category rate
   image?: string;
   qty: number;
 };
@@ -78,7 +79,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     // from the database with the same rule at checkout, so what the cart shows
     // is what the customer is charged.
     const total = items.reduce((s, i) => s + unitPriceFor(i.price, i.qty) * i.qty, 0);
-    const baseTotal = items.reduce((s, i) => s + baseExGst(unitPriceFor(i.price, i.qty), i.cat) * i.qty, 0);
+    const baseTotal = items.reduce((s, i) => s + baseExGst(unitPriceFor(i.price, i.qty), i.cat, i.gstRate) * i.qty, 0);
     return {
       items,
       count: items.reduce((s, i) => s + i.qty, 0),

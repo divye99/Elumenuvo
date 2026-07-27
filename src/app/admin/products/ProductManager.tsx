@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { fmt } from "@/lib/format";
-import { wholesalePrice, offMrpPct, gstBreakdown } from "@/lib/pricing";
+import { wholesalePrice, offMrpPct, gstBreakdown, gstRateFor } from "@/lib/pricing";
 import { catalogueToCsv } from "@/lib/admin/import";
 import type { ProductRow } from "@/lib/admin/data";
 import ImportClient from "@/app/admin/products/import/ImportClient";
@@ -61,6 +61,8 @@ export type ManagerRow = {
   is_recommended: boolean;
   parent_id: string | null;
   attrs: Record<string, string> | null;
+  gst_rate: number | null;
+  hsn: string | null;
   sort_order: number;
   image_url: string | null;
   suggestedFactor: number;
@@ -420,6 +422,8 @@ function DetailsTab({ row, onClose }: { row: ManagerRow; onClose: () => void }) 
     name: row.name, brand_sku: row.brand_sku ?? "", spec: row.spec ?? "", unit: row.unit,
     mrp: String(row.mrp), elume_price: String(row.elume_price),
     is_active: row.is_active, is_recommended: row.is_recommended,
+    gst_pct: row.gst_rate != null ? String(Math.round(row.gst_rate * 10000) / 100) : "",
+    hsn: row.hsn ?? "",
     Size: row.attrs?.Size ?? "", Length: row.attrs?.Length ?? "", Colour: row.attrs?.Colour ?? "", Quality: row.attrs?.Quality ?? "", Pack: row.attrs?.Pack ?? "",
   });
   const [busy, start] = useTransition();
@@ -434,6 +438,8 @@ function DetailsTab({ row, onClose }: { row: ManagerRow; onClose: () => void }) 
       const res = await updateProductDetails({
         id: row.id, name: f.name, brand_sku: f.brand_sku, spec: f.spec, unit: f.unit, mrp, elume_price: elume,
         is_active: f.is_active, is_recommended: f.is_recommended,
+        gst_rate: f.gst_pct.trim() === "" ? null : Number(f.gst_pct) / 100,
+        hsn: f.hsn,
         attrs: { Size: f.Size, Length: f.Length, Colour: f.Colour, Quality: f.Quality, Pack: f.Pack },
       });
       setMsg(res.ok ? { ok: true, t: "Saved." } : { ok: false, t: res.error ?? "Failed." });
@@ -456,7 +462,14 @@ function DetailsTab({ row, onClose }: { row: ManagerRow; onClose: () => void }) 
         <Field label="MRP (₹ incl. GST)"><input type="number" step="any" value={f.mrp} onChange={set("mrp")} style={inp} /></Field>
         <Field label="Elume price (₹ incl. GST)"><input type="number" step="any" value={f.elume_price} onChange={set("elume_price")} style={{ ...inp, fontWeight: 700, borderColor: "#C9CFF6" }} /></Field>
         <div style={{ alignSelf: "end", fontSize: 12, color: "#56627A", paddingBottom: 8 }}>
-          {valid ? (() => { const gb = gstBreakdown(elume, row.category); return <>{offMrpPct(elume, mrp)}% off · wholesale {fmt(wholesalePrice(elume))} · storefront shows <b>{fmt(gb.base)}</b> + {Math.round(gb.rate * 100)}% GST</>; })() : "—"}
+          {valid ? (() => { const gb = gstBreakdown(elume, row.category, f.gst_pct.trim() === "" ? null : Number(f.gst_pct) / 100); return <>{offMrpPct(elume, mrp)}% off · wholesale {fmt(wholesalePrice(elume))} · storefront shows <b>{fmt(gb.base)}</b> + {Math.round(gb.rate * 100)}% GST</>; })() : "—"}
+        </div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2fr", gap: 12, marginBottom: 12 }}>
+        <Field label="HSN code"><input value={f.hsn} onChange={set("hsn")} style={inp} placeholder="e.g. 8544" /></Field>
+        <Field label="GST % (blank = category)"><input type="number" step="any" value={f.gst_pct} onChange={set("gst_pct")} style={inp} placeholder={`${Math.round(gstRateFor(row.category) * 100)}`} /></Field>
+        <div style={{ alignSelf: "end", fontSize: 11.5, color: "#8A93A6", paddingBottom: 8 }}>
+          Leave GST blank to use the {row.category} rate ({Math.round(gstRateFor(row.category) * 100)}%). Set it only when the product&apos;s HSN is taxed differently, e.g. solar lanterns at 5%.
         </div>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10, marginBottom: 12 }}>

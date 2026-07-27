@@ -63,7 +63,7 @@ export default function ProductDetail({
   const ws = wholesalePrice(p.price);
   const isWholesale = qty >= WHOLESALE_MIN_QTY;
   const lineTotal = unitPriceFor(p.price, qty) * qty;
-  const gb = gstBreakdown(p.price, p.cat); // ex-GST base / GST / inclusive, at the category rate
+  const gb = gstBreakdown(p.price, p.cat, p.gstRate); // ex-GST base / GST / inclusive, at the category rate
   const specs = [
     { k: "Brand", v: p.brand },
     { k: "Category", v: p.cat },
@@ -127,7 +127,7 @@ export default function ProductDetail({
               {offPct >= 1 && (
                 <>
                   {" "}· MRP{" "}
-                  <span style={{ textDecoration: "line-through", color: "#A0A7B5" }}>{fmt(baseExGst(p.market, p.cat))}</span>
+                  <span style={{ textDecoration: "line-through", color: "#A0A7B5" }}>{fmt(baseExGst(p.market, p.cat, p.gstRate))}</span>
                   <span style={{ color: "#1F9D63", fontWeight: 700, marginLeft: 8 }}>{off} off</span>
                 </>
               )}
@@ -146,7 +146,7 @@ export default function ProductDetail({
               <div>
                 <div style={{ fontSize: 11.5, color: "#8A93A6" }}>Wholesale · {WHOLESALE_MIN_QTY}+ units</div>
                 <div style={{ fontFamily: GROTESK, fontSize: 17, fontWeight: 600, color: "#19202E" }}>
-                  {fmt(baseExGst(ws, p.cat))} <span style={{ fontSize: 12, color: "#8A93A6", fontWeight: 400 }}>+GST /{p.unit}</span>
+                  {fmt(baseExGst(ws, p.cat, p.gstRate))} <span style={{ fontSize: 12, color: "#8A93A6", fontWeight: 400 }}>+GST /{p.unit}</span>
                 </div>
               </div>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 7 }}>

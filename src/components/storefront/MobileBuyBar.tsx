@@ -13,11 +13,13 @@ export default function MobileBuyBar({
   price,
   unit,
   cat,
+  gstRate,
   onAdd,
 }: {
   price: number;
   unit: string;
   cat?: string;
+  gstRate?: number;
   onAdd: () => void;
 }) {
   const hidden = useScrollDown(140);
@@ -27,7 +29,7 @@ export default function MobileBuyBar({
     <div className={`pd-buybar${hidden ? " hidden" : ""}`}>
       <div style={{ minWidth: 0 }}>
         <div style={{ fontFamily: GROTESK, fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1.1 }}>
-          {fmt(baseExGst(price, cat))} <span style={{ fontSize: 9.5, fontWeight: 500, color: "#9AA3B8" }}>/{unit} + GST</span>
+          {fmt(baseExGst(price, cat, gstRate))} <span style={{ fontSize: 9.5, fontWeight: 500, color: "#9AA3B8" }}>/{unit} + GST</span>
         </div>
         <div style={{ fontSize: 8.5, color: "#8EE2B8", fontWeight: 600, marginTop: 1 }}>Free pan-India delivery</div>
       </div>

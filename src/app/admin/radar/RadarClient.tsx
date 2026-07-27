@@ -62,6 +62,8 @@ export type RadarRow = {
   name: string;
   brand: string;
   category: string;
+  /** Per-product GST override (migration 0062); null = category rate. */
+  gstRate: number | null;
   unit: string;
   image: string | null;
   ourPrice: number;
@@ -352,7 +354,7 @@ function MappedRow({ r, first, pending, run, colourCount = 1, siblingIds = [], q
   // Everything on this screen is GST-INCLUSIVE: that is how competitors list
   // their prices, so it is the only apples-to-apples basis for comparison. The
   // storefront shows the ex-GST base, so each figure carries it underneath.
-  const exGst = (n: number | null) => (n != null ? `${fmt(gstBreakdown(n, r.category).base)} ex-GST` : undefined);
+  const exGst = (n: number | null) => (n != null ? `${fmt(gstBreakdown(n, r.category, r.gstRate).base)} ex-GST` : undefined);
 
   return (
     <div style={{ borderTop: first ? undefined : "1px solid #F0F2F6" }}>

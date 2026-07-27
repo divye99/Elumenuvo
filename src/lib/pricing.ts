@@ -56,8 +56,15 @@ export const DEFAULT_GST_RATE = 0.18; // standard FMEG rate for anything unmappe
 /** Back-compat alias — prefer gstRateFor(category). */
 export const GST_RATE = DEFAULT_GST_RATE;
 
-/** GST rate for a product's category (falls back to the standard rate). */
-export function gstRateFor(category?: string | null): number {
+/**
+ * GST rate for a product. A per-product `rate` (products.gst_rate, migration
+ * 0062) always wins: a product can sit in a category taxed at one rate while
+ * its own HSN carries another. Solar lanterns are the live example — Lighting
+ * is 12%, but renewable-energy devices are 5%. Falls back to the category
+ * rate, then the standard 18%.
+ */
+export function gstRateFor(category?: string | null, rate?: number | null): number {
+  if (rate != null && rate > 0) return rate;
   return (category != null && GST_RATES[category]) || DEFAULT_GST_RATE;
 }
 
@@ -73,13 +80,13 @@ export function gstPart(inclusive: number, rate: number = DEFAULT_GST_RATE): num
 
 /** Split a GST-inclusive amount into { base, gst, incl, rate } for a category.
  *  Base is rounded to whole rupees; gst is the exact remainder so base+gst=incl. */
-export function gstBreakdown(inclusive: number, category?: string | null): { base: number; gst: number; incl: number; rate: number } {
-  const rate = gstRateFor(category);
-  const base = Math.round(inclusive / (1 + rate));
-  return { base, gst: inclusive - base, incl: inclusive, rate };
+export function gstBreakdown(inclusive: number, category?: string | null, rate?: number | null): { base: number; gst: number; incl: number; rate: number } {
+  const r = gstRateFor(category, rate);
+  const base = Math.round(inclusive / (1 + r));
+  return { base, gst: inclusive - base, incl: inclusive, rate: r };
 }
 
 /** The ex-GST base price (whole rupees) — the storefront's headline number. */
-export function baseExGst(inclusive: number, category?: string | null): number {
-  return gstBreakdown(inclusive, category).base;
+export function baseExGst(inclusive: number, category?: string | null, rate?: number | null): number {
+  return gstBreakdown(inclusive, category, rate).base;
 }

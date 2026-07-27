@@ -80,9 +80,9 @@ export default function ProductDeepDive({
           </div>
           {metres && (
             <div style={{ display: "flex", gap: 26, flexWrap: "wrap", background: "#F5F6F9", border: "1px solid #E8EBF1", borderRadius: 11, padding: "13px 16px", marginTop: 16 }}>
-              <PriceStat label="Effective price" value={`${fmt(Math.round((baseExGst(p.price, p.cat) / metres) * 100) / 100)}/m +GST`} />
-              <PriceStat label={`Wholesale (${WHOLESALE_MIN_QTY}+ coils)`} value={`${fmt(Math.round((baseExGst(wholesalePrice(p.price), p.cat) / metres) * 100) / 100)}/m +GST`} />
-              <PriceStat label="MRP equivalent" value={`${fmt(Math.round((baseExGst(p.market, p.cat) / metres) * 100) / 100)}/m`} muted />
+              <PriceStat label="Effective price" value={`${fmt(Math.round((baseExGst(p.price, p.cat, p.gstRate) / metres) * 100) / 100)}/m +GST`} />
+              <PriceStat label={`Wholesale (${WHOLESALE_MIN_QTY}+ coils)`} value={`${fmt(Math.round((baseExGst(wholesalePrice(p.price), p.cat, p.gstRate) / metres) * 100) / 100)}/m +GST`} />
+              <PriceStat label="MRP equivalent" value={`${fmt(Math.round((baseExGst(p.market, p.cat, p.gstRate) / metres) * 100) / 100)}/m`} muted />
             </div>
           )}
         </div>
@@ -132,15 +132,15 @@ export default function ProductDeepDive({
                         </td>
                       ))}
                       <td style={{ padding: "10px", textAlign: "right", fontFamily: GROTESK, fontWeight: 600, color: "#19202E", borderBottom: "1px solid #F5F6F9", whiteSpace: "nowrap" }}>
-                        {fmt(baseExGst(s.price, s.cat))}
+                        {fmt(baseExGst(s.price, s.cat, s.gstRate))}
                       </td>
                       {anyMetres && (
                         <td style={{ padding: "10px", textAlign: "right", fontFamily: MONO, fontSize: 11.5, color: "#56627A", borderBottom: "1px solid #F5F6F9", whiteSpace: "nowrap" }}>
-                          {m ? `${fmt(Math.round((baseExGst(s.price, s.cat) / m) * 100) / 100)}` : "—"}
+                          {m ? `${fmt(Math.round((baseExGst(s.price, s.cat, s.gstRate) / m) * 100) / 100)}` : "—"}
                         </td>
                       )}
                       <td style={{ padding: "10px", textAlign: "right", color: "#A0A7B5", textDecoration: "line-through", borderBottom: "1px solid #F5F6F9", whiteSpace: "nowrap" }}>
-                        {fmt(baseExGst(s.market, s.cat))}
+                        {fmt(baseExGst(s.market, s.cat, s.gstRate))}
                       </td>
                       <td style={{ padding: "10px", textAlign: "right", fontWeight: 700, color: "#1F9D63", borderBottom: "1px solid #F5F6F9", whiteSpace: "nowrap" }}>
                         {offMrpPct(s.price, s.market)}%

@@ -111,6 +111,9 @@ export async function updateProductDetails(input: {
   elume_price: number;
   is_active: boolean;
   is_recommended: boolean;
+  /** Per-product GST rate (0.05 = 5%); null clears it back to the category rate. */
+  gst_rate?: number | null;
+  hsn?: string;
   attrs: Record<string, string>;
 }): Promise<ActionResult> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
@@ -119,6 +122,10 @@ export async function updateProductDetails(input: {
   if (!input.id) return { ok: false, error: "Missing product id." };
   if (!(input.mrp > 0) || !(input.elume_price > 0)) return { ok: false, error: "MRP and Elume price must be positive." };
   const attrs = Object.fromEntries(Object.entries(input.attrs).filter(([, v]) => v && v.trim()));
+  const gstRate = input.gst_rate;
+  if (gstRate != null && (!Number.isFinite(gstRate) || gstRate < 0 || gstRate > 0.5)) {
+    return { ok: false, error: "GST % must be between 0 and 50 (or blank to use the category rate)." };
+  }
   const { error } = await db.from("products").update({
     name: input.name.trim(),
     brand_sku: input.brand_sku?.trim() || null,
@@ -128,6 +135,8 @@ export async function updateProductDetails(input: {
     elume_price: input.elume_price,
     is_active: input.is_active,
     is_recommended: input.is_recommended,
+    gst_rate: gstRate ?? null,
+    hsn: input.hsn?.trim() || null,
     attrs: Object.keys(attrs).length ? attrs : null,
   }).eq("id", input.id);
   if (error) return { ok: false, error: error.message };

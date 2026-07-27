@@ -25,7 +25,7 @@ export default function WholesaleAddButton({ p }: { p: Product }) {
   return (
     <button
       onClick={() => {
-        add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.market, unit: p.unit, cat: p.cat, image: p.image }, WHOLESALE_MIN_QTY);
+        add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.market, unit: p.unit, cat: p.cat, gstRate: p.gstRate, image: p.image }, WHOLESALE_MIN_QTY);
         setAdded(true);
       }}
       style={{ marginTop: 10, background: "#EEF0FE", color: "#4E5BDC", border: "none", fontWeight: 700, fontSize: 11.5, padding: "7px 12px", borderRadius: 8, cursor: "pointer" }}

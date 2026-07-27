@@ -24,6 +24,11 @@ export type Product = {
    *  (null/undefined = parent or standalone). Family = parent + children. */
   parentId?: string;
   attrs?: Record<string, string>;
+  /** Per-product GST rate (0.05 = 5%), overriding the category rate when the
+   *  product's HSN is taxed differently (e.g. solar lanterns in Lighting). */
+  gstRate?: number;
+  /** HSN code for GST invoicing. */
+  hsn?: string;
   /** Structured technical data from the manufacturer catalogue (wires today). */
   techSpecs?: TechSpecs;
 };

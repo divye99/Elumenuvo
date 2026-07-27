@@ -17,11 +17,11 @@ export default function PublicProductView({ p, siblings = [], business = false, 
   const cart = useCart();
   const [qty, setQty] = useState(1);
 
-  const toCart = () => cart.add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.market, unit: p.unit, cat: p.cat, image: p.image }, qty);
+  const toCart = () => cart.add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.market, unit: p.unit, cat: p.cat, gstRate: p.gstRate, image: p.image }, qty);
   // Adds the qualifying wholesale quantity directly; must NOT read the qty
   // state (a stale closure would add the stepper's count instead of 15).
   const wholesaleToCart = () =>
-    cart.add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.market, unit: p.unit, cat: p.cat, image: p.image }, WHOLESALE_MIN_QTY);
+    cart.add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.market, unit: p.unit, cat: p.cat, gstRate: p.gstRate, image: p.image }, WHOLESALE_MIN_QTY);
 
   return (
     <>
@@ -40,7 +40,7 @@ export default function PublicProductView({ p, siblings = [], business = false, 
         showGst={business}
       />
       {/* Mobile-only sticky add-to-basket bar (hides on scroll down) */}
-      <MobileBuyBar price={p.price} unit={p.unit} cat={p.cat} onAdd={toCart} />
+      <MobileBuyBar price={p.price} unit={p.unit} cat={p.cat} gstRate={p.gstRate} onAdd={toCart} />
     </>
   );
 }

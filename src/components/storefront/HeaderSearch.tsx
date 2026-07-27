@@ -14,7 +14,7 @@ import { logSearch } from "@/lib/search-log";
  */
 
 type Term = { label: string; q: string; cat?: string };
-type Hit = { id: string; name: string; brand: string; cat: string; price: number; image: string | null };
+type Hit = { id: string; name: string; brand: string; cat: string; price: number; gstRate?: number; image: string | null };
 type Suggest = { terms: Term[]; products: Hit[] };
 
 const RECENT_KEY = "elume.recentSearches";
@@ -179,7 +179,7 @@ export default function HeaderSearch({ compact = false }: { compact?: boolean })
                       <span style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#19202E", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.name}</span>
                       <span style={{ fontSize: 11, color: "#8A93A6" }}>{o.brand} · {o.cat}</span>
                     </span>
-                    <span style={{ fontSize: 12.5, fontWeight: 700, color: "#19202E", whiteSpace: "nowrap" }}>{fmt(baseExGst(o.price, o.cat))} <span style={{ fontSize: 9.5, color: "#8A93A6", fontWeight: 600 }}>+GST</span></span>
+                    <span style={{ fontSize: 12.5, fontWeight: 700, color: "#19202E", whiteSpace: "nowrap" }}>{fmt(baseExGst(o.price, o.cat, o.gstRate))} <span style={{ fontSize: 9.5, color: "#8A93A6", fontWeight: 600 }}>+GST</span></span>
                   </div>
                 </div>
               );

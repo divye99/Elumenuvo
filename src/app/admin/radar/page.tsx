@@ -90,7 +90,7 @@ export default async function RadarPage() {
       ? recommend({ ourPrice: p.elume_price, mrp: p.mrp, category: p.category, comparables }, rules)
       : null;
     return {
-      id: p.id, name: p.name, brand: p.brand, category: p.category, unit: p.unit, image: p.image_url,
+      id: p.id, name: p.name, brand: p.brand, category: p.category, gstRate: p.gst_rate != null ? Number(p.gst_rate) : null, unit: p.unit, image: p.image_url,
       ourPrice: p.elume_price, mrp: p.mrp, suggestedFactor: guessFactor(p.attrs), mappedCount, pendingCount,
       familyKey: familyKeyOf(p),
       perSource,

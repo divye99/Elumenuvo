@@ -23,7 +23,8 @@ export const runtime = "nodejs";
 const URL_ = (process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
 const KEY = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim();
 
-type Row = { id: string; name: string; brand: string; category: string; elume_price: number; image_url: string | null; units_sold: number | null; is_recommended: boolean | null };
+type Row = {
+  gst_rate?: number | string | null; id: string; name: string; brand: string; category: string; elume_price: number; image_url: string | null; units_sold: number | null; is_recommended: boolean | null };
 
 // PostgREST filter values: strip anything that could break the and/or syntax.
 const safe = (w: string) => w.replace(/[^\p{L}\p{N}.+-]/gu, "");
@@ -51,7 +52,7 @@ export async function GET(request: Request) {
   const dbWords = words.filter((w) => /[a-z]{3,}/i.test(w) && !/^(sqmm|mm2?|mtr|metre|meter)s?$/i.test(w)).slice(0, 3);
   const per = (dbWords.length ? dbWords : words.slice(0, 2)).map((w) => `or(name.ilike.*${w}*,brand.ilike.*${w}*,category.ilike.*${w}*)`);
   const filter = per.length === 1 ? per[0].replace(/^or/, "or=") : `and=(${per.join(",")})`;
-  const url = `${URL_}/rest/v1/products?select=id,name,brand,category,elume_price,image_url,units_sold,is_recommended&${filter}&order=units_sold.desc.nullslast,id&limit=120`;
+  const url = `${URL_}/rest/v1/products?select=id,name,brand,category,elume_price,image_url,units_sold,is_recommended,gst_rate&${filter}&order=units_sold.desc.nullslast,id&limit=120`;
 
   let rows: Row[] = [];
   try {
@@ -81,7 +82,7 @@ export async function GET(request: Request) {
   const products = [...rows]
     .sort((a, b) => score(b) - score(a) || a.id.localeCompare(b.id))
     .slice(0, 5)
-    .map((r) => ({ id: r.id, name: r.name, brand: r.brand, cat: r.category, price: Number(r.elume_price), image: r.image_url }));
+    .map((r) => ({ id: r.id, name: r.name, brand: r.brand, cat: r.category, price: Number(r.elume_price), gstRate: r.gst_rate != null ? Number(r.gst_rate) : undefined, image: r.image_url }));
 
   /* ── text suggestions ── */
   const terms: { label: string; q: string; cat?: string }[] = [];
