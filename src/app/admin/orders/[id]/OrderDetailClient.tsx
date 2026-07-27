@@ -429,11 +429,11 @@ function SwapPanel({ orderId, item, pending, run, onDone }: { orderId: string; i
       </div>
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <button disabled={pending || !target} onClick={() => run(() => replaceItemAbsorb(orderId, item.id, target), "Item replaced — difference absorbed, customer emailed.")} style={{ ...btn, background: "#4E5BDC", color: "#fff", opacity: pending || !target ? 0.5 : 1 }}>
-          Replace · we absorb the difference
+        <button disabled={pending || !target} onClick={() => run(() => replaceItemAbsorb(orderId, item.id, target), "Item replaced at the same billed amount, customer emailed.")} style={{ ...btn, background: "#4E5BDC", color: "#fff", opacity: pending || !target ? 0.5 : 1 }}>
+          Replace · keep the bill exactly as paid
         </button>
         <button disabled={pending || !target} onClick={() => run(() => replaceViaNewOrder(orderId, item.id, target), "Replacement order created at current price, original cancelled, customer emailed.")} style={{ ...btn, background: "#fff", color: "#4E5BDC", border: "1.5px solid #4E5BDC", opacity: pending || !target ? 0.5 : 1 }}>
-          Replace via new PO · current price
+          Replace via new PO · re-bill at current price
         </button>
         {!confirmRefund ? (
           <button disabled={pending} onClick={() => setConfirmRefund(true)} style={{ ...btn, background: "#fff", color: "#B43A16", border: "1.5px solid #E8C4B8" }}>
@@ -447,7 +447,7 @@ function SwapPanel({ orderId, item, pending, run, onDone }: { orderId: string; i
         <button onClick={onDone} style={{ ...btn, background: "none", color: "#8A93A6" }}>Cancel</button>
       </div>
       <div style={{ fontSize: 11, color: "#A0A7B5", marginTop: 8 }}>
-        Absorb: item swaps at the price already paid, total unchanged. New PO: original order cancels, a fresh order bills current price (settle any difference manually). Refund: money back via Razorpay + a one-time 10% code emailed.
+        Keep the bill: the item swaps at the price already paid, so the total, the payment and the invoice amount never move (the GST split is recalculated if the replacement sits at a different rate). New PO: the original cancels and a fresh order bills the current price, so any difference is settled. Refund: money back via Razorpay plus a one-time 10% code emailed.
       </div>
     </div>
   );

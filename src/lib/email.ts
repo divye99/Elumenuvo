@@ -242,11 +242,17 @@ export async function sendReplacementEmail(
   oldName: string,
   newItem: { name: string; qty: number; price: number },
   mode: "absorbed" | "new-order",
-  extra?: { newOrderId?: string; diff?: number }
+  extra?: { newOrderId?: string; diff?: number; listPrice?: number }
 ): Promise<EmailResult> {
+  // Only claim to have absorbed a difference when the replacement genuinely
+  // costs MORE. When it lists for less and the bill is being kept as paid,
+  // say plainly that the total is unchanged - never dress it up as a saving.
+  const absorbed = extra?.listPrice != null && extra.listPrice > newItem.price;
   const diffLine =
     mode === "absorbed"
-      ? `<p style="font-size:13px;color:#1F9D63;font-weight:600;margin:10px 0 0">No extra charge — we've absorbed any price difference. Your order total stays exactly the same.</p>`
+      ? absorbed
+        ? `<p style="font-size:13px;color:#1F9D63;font-weight:600;margin:10px 0 0">No extra charge — the replacement lists higher and we've absorbed the difference. Your order total stays exactly the same.</p>`
+        : `<p style="font-size:13px;color:#56627A;margin:10px 0 0">Your order total is unchanged at <b>${fmt(Number(order.total ?? 0))}</b>, as agreed. Nothing more to pay.</p>`
       : `<p style="font-size:13px;color:#56627A;margin:10px 0 0">A replacement order <b>${escapeHtml(extra?.newOrderId ?? "")}</b> has been created at the current price${extra?.diff ? ` (difference of ${fmt(Math.abs(extra.diff))} ${extra.diff > 0 ? "payable — we'll contact you to settle it" : "refundable to you — we'll process it right away"})` : ""}. Your original order stands cancelled.</p>`;
   const html = shell(
     "A small change to your order",

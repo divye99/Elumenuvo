@@ -4,6 +4,17 @@ import { adminClient } from "@/lib/supabase/admin";
 import { sendAccountInvite, sendWelcomeOffer, sendCustomerStatusUpdate, sendReplacementEmail, sendRefundVoucherEmail } from "@/lib/email";
 import { similarProducts } from "@/lib/admin/similar-products";
 import { refundPayment } from "@/lib/razorpay";
+import { baseExGst } from "@/lib/pricing";
+
+/** Taxable value for an order's items at each item's own GST rate, scaled so
+ *  subtotal + GST still equals the amount actually charged (this keeps any
+ *  order-level discount correctly apportioned). */
+function recomputeSubtotal(items: any[], total: number): number {
+  const gross = items.reduce((s, i) => s + baseExGst(Number(i.price), i.cat, i.gstRate) * Number(i.qty), 0);
+  const lines = items.reduce((s, i) => s + Number(i.price) * Number(i.qty), 0);
+  const scale = lines > 0 && total > 0 ? total / lines : 1;
+  return Math.round(gross * scale * 100) / 100;
+}
 import {
   updateOrderStatus,
   cancelOrder,
@@ -117,8 +128,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true, item: { id: it.id, name: it.name, qty: it.qty, price: it.price }, suggestions });
     }
     case "replace-item": {
-      // Swap in place, WE absorb any price difference — the customer's total
-      // and payment stay untouched.
+      // Swap in place and KEEP THE BILL EXACTLY AS PAID: same line price, same
+      // order total, same payment. Only the taxable split can move, because
+      // the replacement may sit at a different GST rate (a solar lantern is
+      // 5% where a torch is 18%), so the subtotal is recomputed below.
       const db = adminClient();
       if (!db) return NextResponse.json({ ok: false, error: "Server not configured." }, { status: 500 });
       const { data: order } = await db.from("orders").select("*").eq("id", String(body.orderId)).maybeSingle();
@@ -126,15 +139,29 @@ export async function POST(request: Request) {
       const items: any[] = order.items ?? [];
       const idx = items.findIndex((x: any) => x.id === body.oldItemId);
       if (idx === -1) return NextResponse.json({ ok: false, error: "Item not found on this order." }, { status: 400 });
-      const { data: np } = await db.from("products").select("id, name, elume_price, category").eq("id", String(body.newProductId)).eq("is_active", true).maybeSingle();
+      const { data: np } = await db.from("products").select("id, name, elume_price, category, gst_rate, hsn").eq("id", String(body.newProductId)).eq("is_active", true).maybeSingle();
       if (!np) return NextResponse.json({ ok: false, error: "Replacement product not found or inactive (check the SKU/id)." }, { status: 400 });
       const old = items[idx];
       const next = [...items];
-      next[idx] = { id: np.id, name: np.name, qty: old.qty, price: old.price, cat: np.category }; // old price kept — burden ours
-      const { error: upErr } = await db.from("orders").update({ items: next, product_ids: next.map((x: any) => x.id) }).eq("id", order.id);
+      next[idx] = {
+        id: np.id, name: np.name, qty: old.qty,
+        price: old.price, // the price the customer already paid — the bill does not move
+        cat: np.category,
+        ...(np.gst_rate != null ? { gstRate: Number(np.gst_rate) } : {}),
+        ...(np.hsn ? { hsn: np.hsn } : {}),
+      };
+      const { error: upErr } = await db.from("orders").update({
+        items: next,
+        product_ids: next.map((x: any) => x.id),
+        subtotal: recomputeSubtotal(next, Number(order.total ?? 0)),
+      }).eq("id", order.id);
       if (upErr) return NextResponse.json({ ok: false, error: upErr.message }, { status: 400 });
-      try { await db.from("order_events").insert({ order_id: order.id, status: order.status, note: `Replaced "${old.name}" with "${np.name}" (price difference absorbed by Elume)` }); } catch { /* optional */ }
-      const sent = await sendReplacementEmail(order, old.name, { name: np.name, qty: old.qty, price: old.price }, "absorbed");
+      const listPrice = Number(np.elume_price);
+      const note = listPrice > Number(old.price)
+        ? `Replaced "${old.name}" with "${np.name}" (list ${listPrice}; price difference absorbed by Elume, bill unchanged)`
+        : `Replaced "${old.name}" with "${np.name}" (list ${listPrice}; billed at the original ${old.price} as agreed, bill unchanged)`;
+      try { await db.from("order_events").insert({ order_id: order.id, status: order.status, note }); } catch { /* optional */ }
+      const sent = await sendReplacementEmail(order, old.name, { name: np.name, qty: old.qty, price: old.price }, "absorbed", { listPrice });
       res = { ok: true, ...(sent.ok ? {} : { error: "Swapped, but the email failed — check Resend logs." }) };
       break;
     }
@@ -147,11 +174,16 @@ export async function POST(request: Request) {
       const items: any[] = order.items ?? [];
       const idx = items.findIndex((x: any) => x.id === body.oldItemId);
       if (idx === -1) return NextResponse.json({ ok: false, error: "Item not found on this order." }, { status: 400 });
-      const { data: np } = await db.from("products").select("id, name, elume_price, category").eq("id", String(body.newProductId)).eq("is_active", true).maybeSingle();
+      const { data: np } = await db.from("products").select("id, name, elume_price, category, gst_rate, hsn").eq("id", String(body.newProductId)).eq("is_active", true).maybeSingle();
       if (!np) return NextResponse.json({ ok: false, error: "Replacement product not found or inactive (check the SKU/id)." }, { status: 400 });
       const old = items[idx];
       const next = [...items];
-      next[idx] = { id: np.id, name: np.name, qty: old.qty, price: Number(np.elume_price), cat: np.category };
+      next[idx] = {
+        id: np.id, name: np.name, qty: old.qty,
+        price: Number(np.elume_price), cat: np.category,
+        ...(np.gst_rate != null ? { gstRate: Number(np.gst_rate) } : {}),
+        ...(np.hsn ? { hsn: np.hsn } : {}),
+      };
       const newTotal = Math.round(next.reduce((t: number, x: any) => t + Number(x.price) * Number(x.qty), 0) * 100) / 100;
       const d = new Date();
       const newId = `ELM-${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, "0")}-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -159,7 +191,7 @@ export async function POST(request: Request) {
         id: newId, email: order.email, name: order.name, phone: order.phone, gstin: order.gstin,
         billing_address: order.billing_address, shipping_address: order.shipping_address,
         payment_method: order.payment_method, items: next, product_ids: next.map((x: any) => x.id),
-        subtotal: order.subtotal, total: newTotal, is_guest: order.is_guest, user_id: order.user_id,
+        subtotal: recomputeSubtotal(next, newTotal), total: newTotal, is_guest: order.is_guest, user_id: order.user_id,
         status: "placed", admin_note: `Replacement for ${order.id} ("${old.name}" discontinued). Payment carried from the original order — settle any difference manually.`,
       });
       if (insErr) return NextResponse.json({ ok: false, error: insErr.message }, { status: 400 });
