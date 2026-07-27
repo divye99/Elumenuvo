@@ -175,7 +175,7 @@ export async function listContentRows(): Promise<{ key: string; data: unknown }[
 
 /* ── Orders / fulfilment ── */
 
-export type OrderItem = { id: string; name: string; qty: number; price?: number };
+export type OrderItem = { id: string; name: string; qty: number; price?: number; cat?: string; gstRate?: number; hsn?: string };
 export type OrderRow = {
   id: string;
   created_at: string;

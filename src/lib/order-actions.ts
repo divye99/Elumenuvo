@@ -6,7 +6,7 @@ import { exGst, gstPart, baseExGst, unitPriceFor } from "@/lib/pricing";
 import { sendAdminNewOrder, sendCustomerOrderConfirmation } from "@/lib/email";
 import { createRazorpayOrder, verifyPaymentSignature, razorpayConfigured, razorpayKeyId } from "@/lib/razorpay";
 
-export type CheckoutItem = { id: string; name: string; qty: number; price: number; cat?: string; gstRate?: number };
+export type CheckoutItem = { id: string; name: string; qty: number; price: number; cat?: string; gstRate?: number; hsn?: string };
 export type PlaceOrderInput = {
   name: string;
   phone: string;
@@ -46,7 +46,7 @@ async function validate(
   if (!input.shipping_address.trim()) return { ok: false, error: "Please enter a shipping address." };
 
   const ids = [...new Set(raw.map((i) => i.id))];
-  const { data, error } = await db.from("products").select("id,name,category,elume_price,is_active,gst_rate").in("id", ids);
+  const { data, error } = await db.from("products").select("id,name,category,elume_price,is_active,gst_rate,hsn").in("id", ids);
   if (error) return { ok: false, error: "We could not verify prices just now. Please try again." };
   const byId = new Map((data ?? []).map((p) => [p.id, p]));
 
@@ -59,12 +59,14 @@ async function validate(
     const qty = Math.min(Math.floor(i.qty), 9999);
     // The GST rate comes from the product row, never the browser — a per-product
     // rate (solar etc.) overrides the category rate at invoicing time.
-    const gstRate = (p as { gst_rate?: number | string | null }).gst_rate;
+    const meta = p as { gst_rate?: number | string | null; hsn?: string | null };
+    const gstRate = meta.gst_rate;
     items.push({
       id: i.id, name: p.name, qty,
       price: unitPriceFor(Number(p.elume_price), qty),
       cat: p.category,
       ...(gstRate != null ? { gstRate: Number(gstRate) } : {}),
+      ...(meta.hsn ? { hsn: meta.hsn } : {}),
     });
   }
   const total = Math.round(items.reduce((s, i) => s + i.price * i.qty, 0) * 100) / 100;

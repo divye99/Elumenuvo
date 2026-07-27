@@ -104,7 +104,14 @@ export default function OrderDetailClient({ order, shipments, events, customer }
                       </button>
                     )}
                   </span>
-                  {it.price != null && <span style={{ fontFamily: "var(--space-grotesk)", fontWeight: 600 }}>{fmt(it.price * it.qty)}</span>}
+                  <span style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                    {it.price != null && <span style={{ fontFamily: "var(--space-grotesk)", fontWeight: 600 }}>{fmt(it.price * it.qty)}</span>}
+                    {(it.hsn || it.gstRate != null) && (
+                      <span style={{ display: "block", fontSize: 10.5, color: "#A0A7B5", fontWeight: 600 }}>
+                        {it.hsn ? `HSN ${it.hsn}` : ""}{it.hsn && it.gstRate != null ? " · " : ""}{it.gstRate != null ? `${Math.round(it.gstRate * 100)}% GST` : ""}
+                      </span>
+                    )}
+                  </span>
                 </div>
                 {swapItem === it.id && (
                   <SwapPanel
