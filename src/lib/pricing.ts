@@ -35,15 +35,16 @@ export function offMrpPct(elumePrice: number, mrp: number): number {
  * number (B2B convention: base is what varies, GST is a statutory add-on),
  * with the GST and the inclusive total shown alongside.
  *
- * FMEG GST rates vary by category, so we key the rate off the product category
- * rather than a single flat rate. These are the rates in force from 22 Sept
- * 2025, when the 56th GST Council removed the 12% and 28% slabs.
+ * Rates are those in force from 22 Sept 2025 under Notification 9/2025-Central
+ * Tax (Rate). Under that schedule essentially every FMEG good sits in
+ * Schedule II at 18%: wire & cable, switchgear, boards, parts, fans, water
+ * pumps, lamps (8539) and luminaires (9405) alike. There is no LED
+ * concession - the old 12% LED entry did not survive the rationalisation.
  *
- * The category rate is only a FALLBACK. Every product carries its own
- * products.gst_rate (migrations 0062/0064), set from its HSN — which is what
- * actually decides the rate. Lighting is the clearest case: LED lamps and
- * luminaires moved 12% -> 5%, but non-LED fittings that take a separate
- * B22/E27/CFL lamp, and torches, remain at 18%.
+ * The only 5% goods in this catalogue are named individually in Schedule I:
+ * solar lanterns / solar lamps (entry 437(f), renewable energy devices) and
+ * EV chargers (entry 438). Those are set per product in products.gst_rate
+ * (migration 0065), which always wins over the category fallback below.
  */
 export const GST_RATES: Record<string, number> = {
   "Wires & Cables": 0.18,
@@ -51,10 +52,10 @@ export const GST_RATES: Record<string, number> = {
   "Modular": 0.18,
   "Fans": 0.18,
   "DB & Panels": 0.18,
-  "Lighting": 0.05, // LED lamps & luminaires, 12% -> 5% (Sept 2025); non-LED overridden per product
-  "Pumps": 0.05,    // power-driven water pumps, 12% -> 5%
+  "Lighting": 0.18,  // Sch II 614 (luminaires) / 511 (lamps); solar overridden per product
+  "Pumps": 0.18,     // Sch II 400(c): power driven pumps for handling water
   "Electrical Accessories": 0.18,
-  "EV Charging": 0.05, // EV chargers, 18% -> 5% (36th GST Council)
+  "EV Charging": 0.05, // Sch I entry 438: chargers for electrically operated vehicles
 };
 export const DEFAULT_GST_RATE = 0.18; // standard FMEG rate for anything unmapped
 /** Back-compat alias — prefer gstRateFor(category). */
@@ -62,10 +63,10 @@ export const GST_RATE = DEFAULT_GST_RATE;
 
 /**
  * GST rate for a product. A per-product `rate` (products.gst_rate, migration
- * 0062) always wins: a product can sit in a category taxed at one rate while
- * its own HSN carries another. Solar lanterns are the live example — Lighting
- * is 12%, but renewable-energy devices are 5%. Falls back to the category
- * rate, then the standard 18%.
+ * 0062/0065) always wins: a product can sit in a category taxed at one rate
+ * while its own HSN carries another. Solar lanterns are the live example —
+ * Lighting is 18%, but a solar lantern is a renewable-energy device at 5%
+ * (Sch I entry 437(f)). Falls back to the category rate, then 18%.
  */
 export function gstRateFor(category?: string | null, rate?: number | null): number {
   if (rate != null && rate > 0) return rate;
