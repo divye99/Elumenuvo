@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
 import { listOrders, hasServiceRole } from "@/lib/admin/data";
 import { fmt } from "@/lib/format";
+import { whatsappDigits } from "@/lib/phone";
 import OrderStatusBadge from "@/components/admin/OrderStatusBadge";
 
 export const dynamic = "force-dynamic";
@@ -90,7 +91,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
               <span style={{ fontSize: 12, color: "#56627A" }}>{new Date(o.created_at).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short" })}</span>
               {o.phone ? (
                 <a
-                  href={`https://wa.me/91${String(o.phone).replace(/\D/g, "").slice(-10)}?text=${encodeURIComponent(`Hi ${o.name || "there"}, this is Elume (elumenuvo.com). We noticed your order didn't complete — happy to help you finish it, or answer any questions!`)}`}
+                  href={`https://wa.me/${whatsappDigits(String(o.phone))}?text=${encodeURIComponent(`Hi ${o.name || "there"}, this is Elume (elumenuvo.com). We noticed your order didn't complete — happy to help you finish it, or answer any questions!`)}`}
                   target="_blank"
                   style={{ fontSize: 12, fontWeight: 700, color: "#1F9D63", background: "#E6F5EE", padding: "5px 10px", borderRadius: 8, textAlign: "center" }}
                 >

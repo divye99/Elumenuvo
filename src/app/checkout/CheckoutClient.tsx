@@ -5,7 +5,7 @@ import Link from "next/link";
 import { GROTESK } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import { unitPriceFor, baseExGst } from "@/lib/pricing";
-import { mobileError } from "@/lib/phone";
+import { COUNTRIES, DEFAULT_COUNTRY, countryByIso, maxDigits, nationalDigits, phoneError, toE164 } from "@/lib/phone";
 import { useCart } from "@/lib/cart";
 import { startOnlinePayment, confirmOnlinePayment } from "@/lib/order-actions";
 import { identify } from "@/lib/analytics";
@@ -60,6 +60,12 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
     if (err) errRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [err]);
 
+  // Country is chosen explicitly rather than parsed out of free text: it is
+  // what decides how many digits are valid, and India is the only place we
+  // deliver to, so it leads.
+  const [iso, setIso] = useState(DEFAULT_COUNTRY.iso);
+  const country = countryByIso(iso);
+
   const [f, setF] = useState({
     name: prefill.name, email: prefill.email, phone: prefill.phone,
     billing: emptyAddress(), shipping: emptyAddress(), sameAsBilling: true,
@@ -76,7 +82,7 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
   const gstOnFile = prefill.isBusiness && !!prefill.gstin;
 
   const orderInput = () => ({
-    name: f.name, email: f.email, phone: f.phone,
+    name: f.name, email: f.email, phone: toE164(f.phone, country) ?? f.phone,
     billing_address: composeAddress(f.billing),
     shipping_address: composeAddress(f.sameAsBilling ? f.billing : f.shipping),
     gstin: gstOnFile ? prefill.gstin : f.wantGst ? f.gstin : undefined,
@@ -103,7 +109,7 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
       setErr(null);
 
       // Client-side address checks before any server round-trip.
-      const phoneErr = mobileError(f.phone);
+      const phoneErr = phoneError(f.phone, country);
       if (phoneErr) { setErr(phoneErr); return; }
       const billErr = addressError(f.billing, "billing address");
       if (billErr) { setErr(billErr); return; }
@@ -217,7 +223,35 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
           <Section title="Contact">
             <Row>
               <Field label="Full name *"><input name="full_name" autoComplete="name" value={f.name} onChange={(e) => set("name", e.target.value)} style={inp} /></Field>
-              <Field label="Phone *"><input name="phone" type="tel" inputMode="numeric" autoComplete="tel" maxLength={17} value={f.phone} onChange={(e) => set("phone", e.target.value)} placeholder="98765 43210" required style={inp} /></Field>
+              <Field label="Phone *">
+                <div style={{ display: "flex", gap: 6 }}>
+                  <select
+                    aria-label="Country dialling code"
+                    value={iso}
+                    onChange={(e) => { setIso(e.target.value); set("phone", nationalDigits(f.phone, countryByIso(e.target.value))); }}
+                    style={{ ...inp, width: 104, flex: "0 0 auto", paddingRight: 4, cursor: "pointer" }}
+                  >
+                    {COUNTRIES.map((c) => (
+                      <option key={c.iso} value={c.iso}>{c.iso} +{c.dial}</option>
+                    ))}
+                  </select>
+                  <input
+                    name="phone"
+                    type="tel"
+                    inputMode="numeric"
+                    autoComplete="tel-national"
+                    /* Digits only, and never more than this country allows —
+                       the field itself makes a wrong-length number impossible
+                       to type, rather than only complaining at submit. */
+                    maxLength={maxDigits(country)}
+                    value={f.phone}
+                    onChange={(e) => set("phone", e.target.value.replace(/\D/g, "").slice(0, maxDigits(country)))}
+                    placeholder={country.example}
+                    required
+                    style={inp}
+                  />
+                </div>
+              </Field>
             </Row>
             <Field label="Email *"><input name="email" type="email" autoComplete="email" value={f.email} onChange={(e) => set("email", e.target.value)} style={inp} /></Field>
           </Section>

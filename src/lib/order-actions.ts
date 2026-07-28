@@ -3,9 +3,23 @@
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { exGst, gstPart, baseExGst, unitPriceFor } from "@/lib/pricing";
-import { mobileError, normalizeIndianMobile } from "@/lib/phone";
+import { COUNTRIES, DEFAULT_COUNTRY, phoneError, toE164 } from "@/lib/phone";
 import { sendAdminNewOrder, sendCustomerOrderConfirmation } from "@/lib/email";
 import { createRazorpayOrder, verifyPaymentSignature, razorpayConfigured, razorpayKeyId } from "@/lib/razorpay";
+
+/** Validate a submitted phone against the country its dial code names.
+ *  Longest dial code first, so "+971…" is not mistaken for "+9…". */
+function normalisePhone(raw: string): string | null {
+  const digits = (raw ?? "").replace(/\D/g, "");
+  const byLongestDial = [...COUNTRIES].sort((a, b) => b.dial.length - a.dial.length);
+  for (const c of byLongestDial) {
+    if (digits.startsWith(c.dial)) {
+      const hit = toE164(digits.slice(c.dial.length), c);
+      if (hit) return hit;
+    }
+  }
+  return toE164(digits, DEFAULT_COUNTRY); // bare national number, assume India
+}
 
 export type CheckoutItem = { id: string; name: string; qty: number; price: number; cat?: string; gstRate?: number; hsn?: string };
 export type PlaceOrderInput = {
@@ -41,8 +55,10 @@ async function validate(
   const raw = (input.items ?? []).filter((i) => i.id && Number.isFinite(i.qty) && i.qty > 0);
   if (raw.length === 0) return { ok: false, error: "Your cart is empty." };
   if (!input.name.trim()) return { ok: false, error: "Please enter your name." };
-  const phoneErr = mobileError(input.phone);
-  if (phoneErr) return { ok: false, error: phoneErr };
+  // The browser sends E.164 ("+919876543210"); pick the country back out of it
+  // and re-check the length here, because a form can be bypassed.
+  const e164 = normalisePhone(input.phone);
+  if (!e164) return { ok: false, error: phoneError(input.phone, DEFAULT_COUNTRY) ?? "Please enter a valid mobile number." };
   if (!/^\S+@\S+\.\S+$/.test(input.email.trim())) return { ok: false, error: "Please enter a valid email." };
   if (!input.billing_address.trim()) return { ok: false, error: "Please enter a billing address." };
   if (!input.shipping_address.trim()) return { ok: false, error: "Please enter a shipping address." };
@@ -123,7 +139,7 @@ async function insertPendingOrder(
     id,
     email: input.email.trim().toLowerCase(),
     name: input.name.trim(),
-    phone: normalizeIndianMobile(input.phone) ?? input.phone.trim(),
+    phone: normalisePhone(input.phone) ?? input.phone.trim(),
     gstin: input.gstin?.trim() || null,
     billing_address: input.billing_address.trim(),
     shipping_address: input.shipping_address.trim(),
@@ -258,7 +274,7 @@ export async function startOnlinePayment(input: PlaceOrderInput): Promise<StartP
 
   return {
     ok: true, orderId: id, razorpayOrderId: rp.id, keyId: razorpayKeyId(), amount: Math.round(payable * 100),
-    name: input.name.trim(), email: input.email.trim().toLowerCase(), phone: normalizeIndianMobile(input.phone) ?? input.phone.trim(),
+    name: input.name.trim(), email: input.email.trim().toLowerCase(), phone: normalisePhone(input.phone) ?? input.phone.trim(),
   };
 }
 
