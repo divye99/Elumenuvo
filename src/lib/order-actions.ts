@@ -3,6 +3,7 @@
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { exGst, gstPart, baseExGst, unitPriceFor } from "@/lib/pricing";
+import { mobileError, normalizeIndianMobile } from "@/lib/phone";
 import { sendAdminNewOrder, sendCustomerOrderConfirmation } from "@/lib/email";
 import { createRazorpayOrder, verifyPaymentSignature, razorpayConfigured, razorpayKeyId } from "@/lib/razorpay";
 
@@ -40,7 +41,8 @@ async function validate(
   const raw = (input.items ?? []).filter((i) => i.id && Number.isFinite(i.qty) && i.qty > 0);
   if (raw.length === 0) return { ok: false, error: "Your cart is empty." };
   if (!input.name.trim()) return { ok: false, error: "Please enter your name." };
-  if (!/^[0-9+\-\s]{8,15}$/.test(input.phone.trim())) return { ok: false, error: "Please enter a valid phone number." };
+  const phoneErr = mobileError(input.phone);
+  if (phoneErr) return { ok: false, error: phoneErr };
   if (!/^\S+@\S+\.\S+$/.test(input.email.trim())) return { ok: false, error: "Please enter a valid email." };
   if (!input.billing_address.trim()) return { ok: false, error: "Please enter a billing address." };
   if (!input.shipping_address.trim()) return { ok: false, error: "Please enter a shipping address." };
@@ -121,7 +123,7 @@ async function insertPendingOrder(
     id,
     email: input.email.trim().toLowerCase(),
     name: input.name.trim(),
-    phone: input.phone.trim(),
+    phone: normalizeIndianMobile(input.phone) ?? input.phone.trim(),
     gstin: input.gstin?.trim() || null,
     billing_address: input.billing_address.trim(),
     shipping_address: input.shipping_address.trim(),
@@ -256,7 +258,7 @@ export async function startOnlinePayment(input: PlaceOrderInput): Promise<StartP
 
   return {
     ok: true, orderId: id, razorpayOrderId: rp.id, keyId: razorpayKeyId(), amount: Math.round(payable * 100),
-    name: input.name.trim(), email: input.email.trim().toLowerCase(), phone: input.phone.trim(),
+    name: input.name.trim(), email: input.email.trim().toLowerCase(), phone: normalizeIndianMobile(input.phone) ?? input.phone.trim(),
   };
 }
 

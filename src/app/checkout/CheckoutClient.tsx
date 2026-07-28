@@ -5,6 +5,7 @@ import Link from "next/link";
 import { GROTESK } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import { unitPriceFor, baseExGst } from "@/lib/pricing";
+import { mobileError } from "@/lib/phone";
 import { useCart } from "@/lib/cart";
 import { startOnlinePayment, confirmOnlinePayment } from "@/lib/order-actions";
 import { identify } from "@/lib/analytics";
@@ -102,7 +103,8 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
       setErr(null);
 
       // Client-side address checks before any server round-trip.
-      if (!/^[0-9+\-\s]{8,15}$/.test(f.phone.trim())) { setErr("Please enter a valid phone number - it's required for delivery."); return; }
+      const phoneErr = mobileError(f.phone);
+      if (phoneErr) { setErr(phoneErr); return; }
       const billErr = addressError(f.billing, "billing address");
       if (billErr) { setErr(billErr); return; }
       if (!f.sameAsBilling) {
@@ -215,7 +217,7 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
           <Section title="Contact">
             <Row>
               <Field label="Full name *"><input name="full_name" autoComplete="name" value={f.name} onChange={(e) => set("name", e.target.value)} style={inp} /></Field>
-              <Field label="Phone *"><input name="phone" autoComplete="tel" value={f.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+91 98765 43210" required style={inp} /></Field>
+              <Field label="Phone *"><input name="phone" type="tel" inputMode="numeric" autoComplete="tel" maxLength={17} value={f.phone} onChange={(e) => set("phone", e.target.value)} placeholder="98765 43210" required style={inp} /></Field>
             </Row>
             <Field label="Email *"><input name="email" type="email" autoComplete="email" value={f.email} onChange={(e) => set("email", e.target.value)} style={inp} /></Field>
           </Section>
