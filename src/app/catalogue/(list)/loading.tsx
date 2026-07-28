@@ -1,5 +1,12 @@
 /** Skeleton grid shown while the catalogue payload loads (first visit or
- *  ISR revalidation); search navigations land instantly instead of hanging. */
+ *  ISR revalidation); search navigations land instantly instead of hanging.
+ *
+ *  Lives inside the (list) route group ON PURPOSE. A loading.tsx at
+ *  /catalogue would also wrap /catalogue/[id], and that streaming boundary
+ *  flushes the response - committing HTTP 200 - before the product page can
+ *  call notFound(). Deleted products then answered "This page could not be
+ *  found" with a 200 status: a soft 404 that Google keeps crawling and never
+ *  drops. The group scopes this skeleton to the listing page only. */
 export default function CatalogueLoading() {
   return (
     <main style={{ maxWidth: 1280, margin: "0 auto", padding: "22px 24px 60px" }}>
