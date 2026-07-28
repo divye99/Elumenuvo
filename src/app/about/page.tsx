@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import InfoPage from "@/components/storefront/InfoPage";
-import { COMPANY, addressLine } from "@/lib/company";
+import { COMPANY, addressLine, officeLine } from "@/lib/company";
 
 export const metadata: Metadata = {
   title: "About Elume — who we are",
@@ -10,24 +10,29 @@ export const metadata: Metadata = {
 };
 
 export default function AboutPage() {
-  const addr = addressLine();
   return (
     <InfoPage
       kicker="About us"
       title="Who we are"
       intro="Elume is an online store for electrical goods — wires and cables, switchgear, fans, lighting and modular switches — serving homes, electricians, contractors and businesses across India."
-      updated="27 July 2026"
+      updated="28 July 2026"
       sections={[
         {
           h: "The company behind the store",
           body: (
             <>
-              This store is owned and operated by <b>{COMPANY.legalName}</b>, a company incorporated in India.
-              {COMPANY.cin ? <> Corporate Identity Number <b>{COMPANY.cin}</b>.</> : null}
-              {COMPANY.gstin ? <> GSTIN <b>{COMPANY.gstin}</b>.</> : null}
-              {addr ? <> Our registered office is at {addr}.</> : null}{" "}
-              Every order is invoiced by {COMPANY.legalName} with GST, so what you buy here is backed by a
-              registered Indian company, not an anonymous storefront.
+              This store is owned and operated by <b>{COMPANY.legalName}</b>, a company incorporated in India under
+              Corporate Identity Number <b>{COMPANY.cin}</b>.
+              {COMPANY.gstin ? <> Our GSTIN is <b>{COMPANY.gstin}</b>.</> : null}
+              <br />
+              <br />
+              <b>Registered office:</b> {addressLine()} — this is also where returns are sent.
+              <br />
+              <b>Additional office:</b> {officeLine(COMPANY.additionalOffice)}
+              <br />
+              <br />
+              Every order is invoiced by {COMPANY.legalName} with GST, so what you buy here is backed by a registered
+              Indian company with a verifiable address, not an anonymous storefront.
             </>
           ),
         },
@@ -50,7 +55,7 @@ export default function AboutPage() {
               We publish one transparent price list. Prices are shown excluding GST, with the GST amount and the
               inclusive total displayed before you pay, and a wholesale rate applies automatically on 15 units or more.
               We track brand and marketplace pricing daily and keep our price at or below it wherever we can. There are
-              no hidden charges added at checkout beyond GST and any delivery charge shown on the order summary.
+              no hidden charges: delivery is free anywhere in India, so the only thing added at checkout is GST.
             </>
           ),
         },

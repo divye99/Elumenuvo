@@ -5,7 +5,7 @@
  */
 export const SITE = "https://elumenuvo.com";
 
-import { COMPANY, postalAddress } from "./company";
+import { COMPANY, postalAddress, postalAddressOf } from "./company";
 
 /** Organization / publisher identity (add @context where embedded).
  *  A postal address and an identifier (CIN) are what turn this from a name
@@ -28,8 +28,13 @@ export const ORG = {
     areaServed: "IN",
     availableLanguage: ["en", "hi"],
   },
-  ...(postalAddress() ? { address: postalAddress() } : {}),
-  ...(COMPANY.cin ? { identifier: COMPANY.cin, iso6523Code: COMPANY.cin } : {}),
+  address: postalAddress(),
+  location: [
+    { "@type": "Place", name: COMPANY.registeredOffice.label, address: postalAddressOf(COMPANY.registeredOffice) },
+    { "@type": "Place", name: COMPANY.additionalOffice.label, address: postalAddressOf(COMPANY.additionalOffice) },
+  ],
+  openingHours: COMPANY.hoursSpec,
+  ...(COMPANY.cin ? { identifier: COMPANY.cin } : {}),
   ...(COMPANY.gstin ? { taxID: COMPANY.gstin } : {}),
   sameAs: [] as string[], // add social/profile URLs as they go live
 };

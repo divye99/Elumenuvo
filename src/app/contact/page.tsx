@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import InfoPage from "@/components/storefront/InfoPage";
-import { COMPANY, addressLine } from "@/lib/company";
+import { COMPANY, officeLine } from "@/lib/company";
 
 export const metadata: Metadata = {
   title: "Contact Elume — email, phone and address",
@@ -12,13 +12,12 @@ export const metadata: Metadata = {
 const link = { color: "#4E5BDC", fontWeight: 600 } as const;
 
 export default function ContactPage() {
-  const addr = addressLine();
   return (
     <InfoPage
       kicker="Contact us"
       title="Talk to us"
-      intro="Real people, same-day replies on working days. Email is fastest for anything involving an order number."
-      updated="27 July 2026"
+      intro="We answer our own phone and email, around the clock. Email is fastest for anything involving an order number."
+      updated="28 July 2026"
       sections={[
         {
           h: "Email",
@@ -34,25 +33,38 @@ export default function ContactPage() {
           h: "Phone",
           body: (
             <>
-              <a href={`tel:${COMPANY.phone}`} style={link}>{COMPANY.phoneDisplay}</a> — {COMPANY.hours}. Outside those
-              hours, email us and we will come back the next working day.
+              <a href={`tel:${COMPANY.phone}`} style={link}>{COMPANY.phoneDisplay}</a> — {COMPANY.hours}. If we are on
+              another call, leave a message or drop us an email and we will come straight back to you.
             </>
           ),
         },
         {
           h: "Registered office",
-          body: addr ? (
+          body: (
             <>
-              {COMPANY.legalName}
+              <b>{COMPANY.legalName}</b>
               <br />
-              {addr}
-              {COMPANY.cin ? <><br />CIN: {COMPANY.cin}</> : null}
+              {COMPANY.registeredOffice.line1}
+              <br />
+              {COMPANY.registeredOffice.city}, {COMPANY.registeredOffice.state} {COMPANY.registeredOffice.pin}, {COMPANY.country}
+              <br />
+              CIN: {COMPANY.cin}
               {COMPANY.gstin ? <><br />GSTIN: {COMPANY.gstin}</> : null}
+              <br />
+              <br />
+              This is also the address for <b>returns and all postal correspondence</b>. Please do not ship a return
+              anywhere else, and always email us first so we can raise a pickup and track it against your order.
             </>
-          ) : (
+          ),
+        },
+        {
+          h: "Additional office",
+          body: (
             <>
-              {COMPANY.legalName}, {COMPANY.country}. Our full postal address is available on request by email — write to{" "}
-              <a href={`mailto:${COMPANY.email}`} style={link}>{COMPANY.email}</a>.
+              {officeLine(COMPANY.additionalOffice)}
+              <br />
+              <br />
+              Our second working location. Returns should still go to the registered office above.
             </>
           ),
         },

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import InfoPage from "@/components/storefront/InfoPage";
+import { COMPANY } from "@/lib/company";
 
 export const metadata: Metadata = {
   title: "Returns & refunds policy",
@@ -37,6 +38,26 @@ export default function ReturnsPage() {
               Email <a href="mailto:info@elumenuvo.com" style={{ color: "#4E5BDC", fontWeight: 600 }}>info@elumenuvo.com</a> or
               call +91 98188 21175 with your order ID and the item you want to return. We&apos;ll confirm eligibility and
               arrange a free reverse pickup from your address — you don&apos;t pay for return shipping.
+            </>
+          ),
+        },
+        {
+          h: "Where returns are sent",
+          body: (
+            <>
+              Approved returns go to our registered office:
+              <br />
+              <br />
+              <b>{COMPANY.legalName}</b>
+              <br />
+              {COMPANY.registeredOffice.line1}
+              <br />
+              {COMPANY.registeredOffice.city}, {COMPANY.registeredOffice.state} {COMPANY.registeredOffice.pin}, {COMPANY.country}
+              <br />
+              <br />
+              Please <b>email us before sending anything back</b>. In almost every case we arrange a free reverse
+              pickup from your address, so you should not need to post it yourself, and an unannounced parcel is much
+              harder for us to match to your order and refund quickly.
             </>
           ),
         },

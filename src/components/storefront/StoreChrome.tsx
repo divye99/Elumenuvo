@@ -29,7 +29,7 @@ export default function StoreChrome({ children }: { children: React.ReactNode })
     <div style={{ fontFamily: "var(--hanken)", background: "#F7F8FB", minHeight: "100vh", color: "#19202e", overflowX: "clip" }}>
       {/* Announcement strip */}
       <div className="hdr-strip" style={{ background: "#19202E", color: "#C6CDE2", fontSize: 12.5, textAlign: "center", padding: "8px 16px" }}>
-        🚚 We deliver <strong style={{ color: "#fff" }}>pan-India</strong> · GST invoice on every order ·{" "}
+        🚚 <strong style={{ color: "#fff" }}>Free delivery</strong> pan-India · GST invoice on every order ·{" "}
         <Link href="/credit" style={{ color: "#9DB0FF", fontWeight: 700 }}>
           30-day NBFC credit coming soon — join the waitlist →
         </Link>
