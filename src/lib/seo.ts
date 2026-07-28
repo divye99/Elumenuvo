@@ -5,7 +5,12 @@
  */
 export const SITE = "https://elumenuvo.com";
 
-/** Organization / publisher identity (add @context where embedded). */
+import { COMPANY, postalAddress } from "./company";
+
+/** Organization / publisher identity (add @context where embedded).
+ *  A postal address and an identifier (CIN) are what turn this from a name
+ *  into a verifiable business — Merchant Center's misrepresentation check
+ *  looks for exactly that. Both appear as soon as they are set in company.ts. */
 export const ORG = {
   "@type": "Organization",
   name: "Elume Nuvotech Private Limited",
@@ -23,6 +28,9 @@ export const ORG = {
     areaServed: "IN",
     availableLanguage: ["en", "hi"],
   },
+  ...(postalAddress() ? { address: postalAddress() } : {}),
+  ...(COMPANY.cin ? { identifier: COMPANY.cin, iso6523Code: COMPANY.cin } : {}),
+  ...(COMPANY.gstin ? { taxID: COMPANY.gstin } : {}),
   sameAs: [] as string[], // add social/profile URLs as they go live
 };
 

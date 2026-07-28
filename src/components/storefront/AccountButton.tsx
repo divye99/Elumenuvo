@@ -24,7 +24,20 @@ function initials(u: AccountUser): string {
  * initials, or company initials for business accounts) — click opens the
  * dashboard, hover shows the account menu.
  */
-export default function AccountButton({ user }: { user: AccountUser | null }) {
+export default function AccountButton({ user: initial = null }: { user?: AccountUser | null }) {
+  // The storefront chrome is CACHED (identical HTML for everyone) so that
+  // Googlebot can crawl thousands of product pages cheaply. Who is signed in
+  // is therefore resolved here, after hydration, instead of on the server.
+  const [user, setUser] = useState<AccountUser | null>(initial);
+  useEffect(() => {
+    if (initial) return;
+    let live = true;
+    fetch("/api/me/account")
+      .then((r) => r.json())
+      .then((d) => { if (live && d?.user) setUser(d.user); })
+      .catch(() => {});
+    return () => { live = false; };
+  }, [initial]);
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);

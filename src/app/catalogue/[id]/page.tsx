@@ -8,7 +8,6 @@ import { fetchReviews } from "@/lib/reviews";
 import { fetchPriceHistory } from "@/lib/competitor-history";
 import CompetitorPriceChart from "@/components/storefront/CompetitorPriceChart";
 import ElumeFlagship from "@/components/storefront/ElumeFlagship";
-import { getProfile, isBusiness } from "@/lib/profile";
 import { wholesalePrice } from "@/lib/pricing";
 import { getAllPosts, CATEGORY_TO_CATALOGUE } from "@/lib/blog";
 import PublicProductView from "@/components/storefront/PublicProductView";
@@ -17,7 +16,22 @@ import ReviewsSection from "@/components/storefront/ReviewsSection";
 import ProductFaq from "@/components/storefront/ProductFaq";
 import { NEW_CONDITION, RETURN_POLICY, SHIPPING_DETAILS, productFaqs } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+// ISR, not dynamic. Product pages are the same for every visitor, so they are
+// generated once and served from cache: Googlebot gets bytes instead of a
+// database round-trip, which is what lets it work through 3,400+ URLs. Price
+// and stock edits call revalidatePath on the exact product, so a cached page
+// is replaced the moment it stops being true rather than waiting out the
+// window below.
+export const revalidate = 300;
+
+/** Empty on purpose. A dynamic segment with no generateStaticParams renders on
+ *  demand EVERY time; declaring it (with dynamicParams left on) makes the route
+ *  statically generated instead - each product is rendered the first time it is
+ *  requested and then served from cache. Returning [] keeps builds fast: we do
+ *  not prerender 3,400+ pages up front, we let them fill in on first visit. */
+export async function generateStaticParams() {
+  return [];
+}
 
 const SITE = "https://elumenuvo.com";
 
@@ -48,13 +62,11 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   if (!product) notFound();
 
   // Family = parent + all variations, whichever member this page is.
-  const [siblings, reviews, priceHistory, profile] = await Promise.all([
+  const [siblings, reviews, priceHistory] = await Promise.all([
     fetchFamily(product),
     fetchReviews(product.id),
     fetchPriceHistory(product.id, product.price),
-    getProfile(),
   ]);
-  const business = isBusiness(profile);
   const guide = getAllPosts().find((post) => CATEGORY_TO_CATALOGUE[post.category] === product.cat) ?? null;
 
   const jsonLd = {
@@ -91,7 +103,6 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       <PublicProductView
         p={product}
         siblings={siblings}
-        business={business}
         abovePrice={pick ? (
           <a href={`/blog/${pick.slug}`} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12.5, fontWeight: 700, color: "#137a4b", margin: "0 0 10px", borderBottom: "1px dashed #9ECBB1", paddingBottom: 2, width: "fit-content", maxWidth: "100%" }}>
             ⚡ Ranked #{pick.rank} in {pick.postTitle.replace(/ \(2026\).*$/, "")} · {pick.bestFor.replace(/^Best for:?\s*/i, "")} →

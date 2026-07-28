@@ -3,6 +3,14 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+
+/** Drop the cached listing AND the cached page of each product touched.
+ *  Product pages are ISR (see catalogue/[id]); without this a price edit would
+ *  keep serving the old number until the revalidate window expired. */
+function revalidateProducts(ids: Array<string | null | undefined>) {
+  revalidatePath("/catalogue");
+  for (const id of new Set(ids.filter(Boolean) as string[])) revalidatePath(`/catalogue/${id}`);
+}
 import {
   ADMIN_COOKIE,
   ADMIN_TTL_MS,
@@ -96,7 +104,7 @@ export async function upsertProduct(formData: FormData): Promise<void> {
   if (error) redirect(`/admin/products?error=${encodeURIComponent(error.message)}`);
   await logPrice(db, id, row.elume_price, row.mrp);
   revalidatePath("/admin/products");
-  revalidatePath("/catalogue");
+  revalidateProducts([id]);
   redirect("/admin/products?ok=1");
 }
 
@@ -142,7 +150,7 @@ export async function updateProductDetails(input: {
   if (error) return { ok: false, error: error.message };
   await logPrice(db, input.id, input.elume_price, input.mrp);
   revalidatePath("/admin/products");
-  revalidatePath("/catalogue");
+  revalidateProducts([input.id]);
   return { ok: true };
 }
 
@@ -334,7 +342,7 @@ export async function acceptSuggestion(productId: string, source: string): Promi
   await db.from("competitor_prices").update({ status: "accepted", our_price: suggested }).eq("product_id", productId).eq("source", source);
   revalidatePath("/admin/radar");
   revalidatePath("/admin/products");
-  revalidatePath("/catalogue");
+  revalidateProducts([productId]);
   return { ok: true };
 }
 
@@ -432,7 +440,7 @@ export async function applyRecommendedPrices(items: { id: string; target: number
   }
   revalidatePath("/admin/radar");
   revalidatePath("/admin/products");
-  revalidatePath("/catalogue");
+  revalidateProducts(clean.map((i) => i.id));
   return { ok: true, applied, skipped };
 }
 

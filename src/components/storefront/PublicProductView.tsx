@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ProductDetail from "@/components/app/ProductDetail";
 import VariantPicker from "@/components/storefront/VariantPicker";
@@ -13,6 +13,18 @@ import type { Product } from "@/lib/data";
 /** Public wrapper around the shared dashboard ProductDetail (browse-only),
  *  with storefront extras: star summary, variant picker, cart / buy-now. */
 export default function PublicProductView({ p, siblings = [], business = false, abovePrice }: { p: Product; siblings?: Product[]; business?: boolean; abovePrice?: React.ReactNode }) {
+  // The page HTML is cached and identical for everyone (so Googlebot can crawl
+  // thousands of them cheaply), so the business-account GST view is resolved
+  // here, after hydration, rather than on the server.
+  const [isBiz, setIsBiz] = useState(business);
+  useEffect(() => {
+    let live = true;
+    fetch("/api/me/account")
+      .then((r) => r.json())
+      .then((d) => { if (live && d?.business) setIsBiz(true); })
+      .catch(() => {});
+    return () => { live = false; };
+  }, []);
   const router = useRouter();
   const cart = useCart();
   const [qty, setQty] = useState(1);
@@ -37,7 +49,7 @@ export default function PublicProductView({ p, siblings = [], business = false, 
         ratingSummary={p.rating && p.ratingCount ? <Rating rating={p.rating} count={p.ratingCount} /> : undefined}
         abovePrice={abovePrice}
         variantSlot={<VariantPicker p={p} siblings={siblings} />}
-        showGst={business}
+        showGst={isBiz}
       />
       {/* Mobile-only sticky add-to-basket bar (hides on scroll down) */}
       <MobileBuyBar price={p.price} unit={p.unit} cat={p.cat} gstRate={p.gstRate} onAdd={toCart} />

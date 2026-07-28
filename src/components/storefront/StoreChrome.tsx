@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { COMPANY, addressLine } from "@/lib/company";
 import { Mark, Wordmark } from "@/components/Brand";
 import HeaderSearch from "@/components/storefront/HeaderSearch";
 import CatalogueMegaMenu from "@/components/storefront/CatalogueMegaMenu";
@@ -7,7 +8,6 @@ import CartButton from "@/components/storefront/CartButton";
 import AccountButton from "@/components/storefront/AccountButton";
 import MobileMenu from "@/components/storefront/MobileMenu";
 import HeaderScrollFx from "@/components/storefront/HeaderScrollFx";
-import { getProfile, isBusiness } from "@/lib/profile";
 import { CartProvider } from "@/lib/cart";
 
 /**
@@ -15,11 +15,11 @@ import { CartProvider } from "@/lib/cart";
  * footer, wrapped in the storefront CartProvider. Used by the home page and the
  * catalogue/product pages so the whole public shopping surface feels like one store.
  */
-export default async function StoreChrome({ children }: { children: React.ReactNode }) {
-  const profile = await getProfile();
-  const user = profile
-    ? { name: profile.full_name, email: profile.email, business: isBusiness(profile), company: profile.company }
-    : null;
+export default function StoreChrome({ children }: { children: React.ReactNode }) {
+  // Deliberately does NOT read the session. Touching cookies here would make
+  // every page under this chrome dynamic, and the catalogue is 3,400+ URLs
+  // that Googlebot has to be able to crawl from cache. AccountButton fetches
+  // the signed-in user itself once the page is interactive.
   return (
     <CartProvider>
     {/* overflowX must be `clip`, not `hidden`: `hidden` creates a scroll
@@ -65,7 +65,7 @@ export default async function StoreChrome({ children }: { children: React.ReactN
               For business
             </Link>
             <CartButton />
-            <AccountButton user={user} />
+            <AccountButton />
           </nav>
         </div>
         <HeaderScrollFx />
@@ -89,7 +89,12 @@ export default async function StoreChrome({ children }: { children: React.ReactN
               <div className="ft-contact">
                 <a href="mailto:info@elumenuvo.com">✉ info@elumenuvo.com</a>
                 <a href="tel:+919818821175">✆ +91 98188 21175</a>
-                <span className="ft-loc">📍 Elume Nuvotech Private Limited · India</span>
+                <span className="ft-loc">📍 {COMPANY.legalName}{addressLine() ? ` · ${addressLine()}` : ` · ${COMPANY.country}`}</span>
+                {(COMPANY.cin || COMPANY.gstin) && (
+                  <span className="ft-loc">
+                    {COMPANY.cin ? `CIN ${COMPANY.cin}` : ""}{COMPANY.cin && COMPANY.gstin ? " · " : ""}{COMPANY.gstin ? `GSTIN ${COMPANY.gstin}` : ""}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -116,12 +121,15 @@ export default async function StoreChrome({ children }: { children: React.ReactN
             </div>
             <div className="ft-col">
               <div className="ft-h">Help</div>
+              <Link href="/contact">Contact us</Link>
               <Link href="/request-product">Can&apos;t find a product?</Link>
               <Link href="/faq">FAQ</Link>
+              <Link href="/shipping">Shipping &amp; delivery</Link>
               <Link href="/returns">Returns &amp; refunds</Link>
             </div>
             <div className="ft-col">
-              <div className="ft-h">Legal</div>
+              <div className="ft-h">Company</div>
+              <Link href="/about">About us</Link>
               <Link href="/privacy">Privacy policy</Link>
               <Link href="/terms">Terms &amp; conditions</Link>
             </div>

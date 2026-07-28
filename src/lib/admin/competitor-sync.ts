@@ -5,6 +5,7 @@
  * price chart). Used by the admin "Sync now" action and the monthly GitHub
  * Action (which reimplements the same loop for Vashi in plain JS).
  */
+import { revalidatePath } from "next/cache";
 import { getAdapter, credsFor } from "@/lib/competitors";
 
 type SupaLike = { from: (t: string) => any; rpc: (fn: string, args?: Record<string, unknown>) => PromiseLike<unknown> };
@@ -72,6 +73,10 @@ export async function runCompetitorSync(db: SupaLike, source: string, runSource:
   // Bulk pre-fetch where the source supports it (Magento: sku:{in:[...]}).
   // Turns ~2,000 HTTP calls into a few dozen; anything the batch misses still
   // falls through to the per-code path below.
+  // Products whose price the auto-apply moved: their cached (ISR) product
+  // pages must be regenerated, or the storefront keeps showing the old price.
+  const repriced: string[] = [];
+
   const prefetched = new Map<string, any>();
   if (typeof ad.fetchBatch === "function") {
     try {
@@ -131,7 +136,7 @@ export async function runCompetitorSync(db: SupaLike, source: string, runSource:
         && suggested > 0 && suggested >= ourPrice * 0.4) {
       const { error: applyErr } = await db.from("products").update({ elume_price: suggested }).eq("id", m.product_id);
       if (!applyErr) {
-        appliedNow = true; autoApplied++;
+        appliedNow = true; autoApplied++; repriced.push(m.product_id);
         try {
           await db.from("price_history").insert({ product_id: m.product_id, elume_price: suggested });
         } catch { /* optional log table */ }
@@ -165,6 +170,11 @@ export async function runCompetitorSync(db: SupaLike, source: string, runSource:
   try {
     await db.rpc("refresh_market_low", { ids: rows.map((m: any) => m.product_id) });
   } catch { /* pre-0046 database — the storefront just falls back to MRP ranking */ }
+
+  if (repriced.length) {
+    revalidatePath("/catalogue");
+    for (const id of new Set(repriced)) revalidatePath(`/catalogue/${id}`);
+  }
 
   await db.from("competitor_sync_log").insert({ source, mapped: rows.length, fetched, failed, suggestions, run_source: runSource });
   return { mapped: rows.length, fetched, failed, suggestions, autoApplied, incomplete };
