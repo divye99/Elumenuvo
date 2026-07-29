@@ -17,6 +17,18 @@
  *     price, the struck-through second one is the MRP.
  */
 import type { CompetitorAdapter, CompetitorItem } from "./types";
+import indexJson from "./legrand-index.json";
+
+/** SKU -> page slug, from the full catalogue crawl (refresh with
+ *  scripts/refresh-legrand-index.mjs when their catalogue shifts). */
+const SKU_TO_SLUG: Record<string, string> = indexJson as Record<string, string>;
+
+/** The mapping code for a bare Legrand SKU, or null when the crawl index
+ *  does not know it. "slug#SKU" - the fetch verifies the SKU on the page. */
+export function legrandCodeFor(sku: string): string | null {
+  const slug = SKU_TO_SLUG[sku.trim()];
+  return slug ? `${slug}#${sku.trim()}` : null;
+}
 
 const BASE = "https://shop.legrand.co.in";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36";
@@ -68,9 +80,17 @@ export const legrandShopAdapter: CompetitorAdapter = {
   },
 
   async fetchByCode(code) {
+    // A bare SKU (no slash, no fragment) resolves through the crawl index
+    // first, so auto-mapped rows can store just the brand SKU.
+    let full = code.trim();
+    if (!full.includes("#") && !full.includes("/")) {
+      const resolved = legrandCodeFor(full);
+      if (!resolved) return null;
+      full = resolved;
+    }
     // "slug#EXPECTEDSKU" — the fragment pins the mapping to a SKU so a
     // repurposed slug can never feed us another product's price.
-    const [slug, expectSku] = code.trim().split("#");
+    const [slug, expectSku] = full.split("#");
     if (!slug) return null;
     try {
       const res = await fetch(`${BASE}/${slug}`, { headers: { "User-Agent": UA }, cache: "no-store" });

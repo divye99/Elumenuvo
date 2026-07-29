@@ -7,6 +7,7 @@
  */
 import { revalidatePath } from "next/cache";
 import { getAdapter, credsFor } from "@/lib/competitors";
+import { legrandCodeFor } from "@/lib/competitors/legrandshop";
 
 type SupaLike = { from: (t: string) => any; rpc: (fn: string, args?: Record<string, unknown>) => PromiseLike<unknown> };
 export type SyncResult = { mapped: number; fetched: number; failed: number; suggestions: number; autoApplied: number; incomplete: boolean };
@@ -60,19 +61,23 @@ export async function runCompetitorSync(db: SupaLike, source: string, runSource:
   // Legrand follows the same rules. Auto-MAPPING by exact brand_sku remains
   // Havells-only — Legrand codes are page slugs, seeded at import time.
   const AUTO = source === "havells" || source === "legrand";
-  // Auto-mapping by exact brand SKU only works where the SKU is the fetch key.
-  // Legrand's fetch key is a page slug, so its mappings are seeded at import.
-  if (source === "havells") {
+  // Auto-mapping by exact brand SKU. Havells: the SKU IS the fetch key.
+  // Legrand: the fetch key is a page URL, so the SKU resolves through the
+  // bundled crawl index (sku -> slug) and the mapping stores "slug#SKU".
+  if (AUTO) {
+    const brandName = source === "havells" ? "Havells" : "Legrand";
     const mappedIds = new Set(rows.map((m: any) => m.product_id));
     const candidates = (products ?? []).filter(
-      (p: any) => p.brand === "Havells" && p.brand_sku && !mappedIds.has(p.id)
+      (p: any) => p.brand === brandName && p.brand_sku && !mappedIds.has(p.id)
     );
     for (const p of candidates) {
+      const code = source === "havells" ? p.brand_sku : legrandCodeFor(String(p.brand_sku));
+      if (!code) continue; // Legrand SKU not in the crawl index - leave unmapped
       const { error } = await db.from("competitor_map").upsert({
-        product_id: p.id, source, competitor_code: p.brand_sku, unit_factor: 1,
-        note: "auto: exact Havells brand SKU",
+        product_id: p.id, source, competitor_code: code, unit_factor: 1,
+        note: source === "havells" ? "auto: exact Havells brand SKU" : "auto: Legrand SKU via crawl index",
       });
-      if (!error) { rows.push({ product_id: p.id, competitor_code: p.brand_sku, unit_factor: 1 }); autoMapped++; }
+      if (!error) { rows.push({ product_id: p.id, competitor_code: code, unit_factor: 1 }); autoMapped++; }
     }
   }
 
