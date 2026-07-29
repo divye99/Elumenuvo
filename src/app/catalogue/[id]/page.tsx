@@ -8,7 +8,7 @@ import { fetchReviews } from "@/lib/reviews";
 import { fetchPriceHistory } from "@/lib/competitor-history";
 import CompetitorPriceChart from "@/components/storefront/CompetitorPriceChart";
 import ElumeFlagship from "@/components/storefront/ElumeFlagship";
-import { wholesalePrice } from "@/lib/pricing";
+import { productDescription } from "@/lib/seo-description";
 import { getAllPosts, CATEGORY_TO_CATALOGUE } from "@/lib/blog";
 import PublicProductView from "@/components/storefront/PublicProductView";
 import ProductDeepDive from "@/components/storefront/ProductDeepDive";
@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const p = await fetchProduct(id);
   if (!p) return {};
   const title = `${p.name} — ${p.brand}`;
-  const description = `${p.name} by ${p.brand}${p.spec ? ` (${p.spec})` : ""}. Elume price ₹${p.price} per ${p.unit} (MRP ₹${p.market}), wholesale ₹${wholesalePrice(p.price)} at 15+ units. Buy electrical goods online in India.`;
+  const description = productDescription(p);
   const url = `${SITE}/catalogue/${p.id}`;
   return {
     title,
@@ -76,7 +76,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     sku: product.sku,
     category: product.cat,
     brand: { "@type": "Brand", name: product.brand },
-    description: product.spec || product.name,
+    description: productDescription(product),
     image: product.image ? [absImage(product.image)!] : undefined,
     aggregateRating:
       product.rating && product.ratingCount
