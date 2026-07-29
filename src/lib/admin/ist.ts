@@ -19,3 +19,22 @@ export const istDate = (v?: string | Date | null): string =>
 /** "10:12:07 pm" */
 export const istTime = (v?: string | Date | null): string =>
   v ? new Date(v).toLocaleTimeString("en-IN", { timeZone: TZ, hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "–";
+
+/** "2026-07-28" — the IST calendar day, safe to use as a bucket key. */
+export const istDayKey = (v: string | Date): string => {
+  const d = new Date(v);
+  // en-CA gives ISO-ordered y-m-d, so no manual padding is needed.
+  return d.toLocaleDateString("en-CA", { timeZone: TZ });
+};
+
+/** "Tue" */
+export const istWeekday = (v: string | Date): string =>
+  new Date(v).toLocaleDateString("en-IN", { timeZone: TZ, weekday: "short" });
+
+/** The IST day key N days before the given day key. */
+export const shiftDayKey = (key: string, deltaDays: number): string => {
+  const [y, m, d] = key.split("-").map(Number);
+  const t = Date.UTC(y, m - 1, d) + deltaDays * 86_400_000;
+  const dt = new Date(t);
+  return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, "0")}-${String(dt.getUTCDate()).padStart(2, "0")}`;
+};
