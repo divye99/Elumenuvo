@@ -123,7 +123,6 @@ export default async function CollectionPage({ params }: { params: Promise<{ kin
     .sort((a, b) => b.items.reduce((s, p) => s + (p.unitsSold ?? 0), 0) - a.items.reduce((s, p) => s + (p.unitsSold ?? 0), 0));
 
   const brands = [...new Set(buyable.map((p) => p.brand))].sort();
-  const editorial = picks;
 
-  return <CollectionBrowser kind={k} title={META[k].title} blurb={META[k].blurb} rails={rails} brands={brands} editorial={editorial} />;
+  return <CollectionBrowser kind={k} title={META[k].title} blurb={META[k].blurb} rails={rails} brands={brands} />;
 }

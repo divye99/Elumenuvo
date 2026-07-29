@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { MENU_CATS, HOME_BRANDS } from "@/lib/data";
+import { slugify } from "@/lib/slug";
 
 /** Hamburger + LEFT slide-in drawer — a shopping-first menu (Amazon-style):
  *  top deals / trending, wholesale hook, categories and brands. Account links
@@ -61,7 +62,7 @@ export default function MobileMenu() {
         <div className="drw-section">Top categories for you</div>
         <div className="drw-grid">
           {MENU_CATS.map(([c, icon]) => (
-            <Link key={c} href={`/catalogue?cat=${encodeURIComponent(c)}`} onClick={close}>
+            <Link key={c} href={`/category/${slugify(c)}`} onClick={close}>
               <span style={{ fontSize: 13 }}>{icon}</span> {c}
             </Link>
           ))}
@@ -71,7 +72,7 @@ export default function MobileMenu() {
         <div className="drw-section">Shop by brand</div>
         <div className="drw-grid">
           {HOME_BRANDS.map((b) => (
-            <Link key={b} href={`/catalogue?q=${encodeURIComponent(b)}`} onClick={close}>
+            <Link key={b} href={`/brand/${slugify(b)}`} onClick={close}>
               {b}
             </Link>
           ))}

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { GROTESK } from "@/lib/fonts";
 import type { Product } from "@/lib/data";
 import ProductCard from "./ProductCard";
+import { slugify } from "@/lib/slug";
 
 /**
  * Collection layout: a frozen filter rail on the left, one horizontal top-10
@@ -14,15 +15,14 @@ import ProductCard from "./ProductCard";
  * narrows what is shown but never re-ranks, so order stays server-truth.
  */
 type Rail = { cat: string; items: Product[] };
-type Editorial = Record<string, { bestFor: string; rank: number; slug: string; postTitle: string }>;
 
 const CAT_ICON: Record<string, string> = {
   "Wires & Cables": "🔌", Switchgear: "⚡", Modular: "🎛️", Fans: "🌀",
   "DB & Panels": "🗄️", Lighting: "💡", Pumps: "🚰", "Electrical Accessories": "🔧", "EV Charging": "🔋",
 };
 
-export default function CollectionBrowser({ kind, title, blurb, rails, brands, editorial = {} }:
-  { kind: string; title: string; blurb: string; rails: Rail[]; brands: string[]; editorial?: Editorial }) {
+export default function CollectionBrowser({ kind, title, blurb, rails, brands }:
+  { kind: string; title: string; blurb: string; rails: Rail[]; brands: string[] }) {
   const [picked, setPicked] = useState<Set<string>>(new Set());
 
   const toggle = (b: string) =>
@@ -88,8 +88,8 @@ export default function CollectionBrowser({ kind, title, blurb, rails, brands, e
               <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 10 }}>
                 <h2 style={{ fontFamily: GROTESK, fontSize: 18.5, fontWeight: 700, margin: 0 }}>{CAT_ICON[r.cat] ?? ""} {r.cat}</h2>
                 <span style={{ fontSize: 12.5, color: "#8A93A6" }}>top {r.items.length}</span>
-                <Link href={`/catalogue?cat=${encodeURIComponent(r.cat)}`} style={{ marginLeft: "auto", fontSize: 12.5, fontWeight: 700, color: "#4E5BDC", whiteSpace: "nowrap" }}>
-                  Full {r.cat.toLowerCase()} catalogue →
+                <Link href={`/category/${slugify(r.cat)}`} style={{ marginLeft: "auto", fontSize: 12.5, fontWeight: 700, color: "#4E5BDC", whiteSpace: "nowrap" }}>
+                  All {r.cat.toLowerCase()} →
                 </Link>
               </div>
               {/* Horizontal rail: scrolls sideways inside its own box */}
@@ -99,7 +99,10 @@ export default function CollectionBrowser({ kind, title, blurb, rails, brands, e
                     <div style={{ position: "absolute", top: -1, left: 8, zIndex: 2, background: i === 0 ? "#B8860B" : "#161D2B", color: "#fff", fontFamily: "var(--space-mono)", fontSize: 11, fontWeight: 700, borderRadius: "0 0 7px 7px", padding: "3px 8px" }}>
                       #{i + 1}
                     </div>
-                    <ProductCard p={p} fixedWidth={216} editorial={editorial} />
+                    {/* No trophy badge here on purpose: the rail's #N position is the only
+                        rank a card shows, so two numbers never compete. Trophies stay on
+                        the homepage and the full catalogue. */}
+                    <ProductCard p={p} fixedWidth={216} />
                   </div>
                 ))}
               </div>

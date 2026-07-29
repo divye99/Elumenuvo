@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { slugify } from "@/lib/slug";
 import ProductCard from "@/components/storefront/ProductCard";
 import { GROTESK, MONO } from "@/lib/fonts";
 import { tileFor, type Product } from "@/lib/data";
@@ -120,7 +121,7 @@ export default function HomeStorefront({ products, posts }: { products: Product[
           {CATS.map((cat) => (
             <Link
               key={cat}
-              href={`/catalogue?cat=${encodeURIComponent(cat)}`}
+              href={`/category/${slugify(cat)}`}
               style={{
                 background: "#fff",
                 border: "1px solid #E8EBF1",
@@ -169,7 +170,7 @@ export default function HomeStorefront({ products, posts }: { products: Product[
             key={cat}
             title={cat}
             products={shelf}
-            seeAll={`/catalogue?cat=${encodeURIComponent(cat)}`}
+            seeAll={`/category/${slugify(cat)}`}
             groups={groups}
           />
         );

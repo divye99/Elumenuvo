@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { MENU_CATS, HOME_BRANDS } from "@/lib/data";
+import { slugify } from "@/lib/slug";
 
 /**
  * Desktop nav "Catalogue" item with a hover mega-menu: quick links,
@@ -37,7 +38,7 @@ export default function CatalogueMegaMenu() {
           <div>
             <div style={head}>Categories</div>
             {MENU_CATS.map(([c, icon]) => (
-              <Link key={c} href={`/catalogue?cat=${encodeURIComponent(c)}`} style={item} onClick={() => setOpen(false)}
+              <Link key={c} href={`/category/${slugify(c)}`} style={item} onClick={() => setOpen(false)}
                 onMouseEnter={(e) => (e.currentTarget.style.background = "#F5F6F9")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
               >
@@ -49,7 +50,7 @@ export default function CatalogueMegaMenu() {
           <div>
             <div style={head}>Brands</div>
             {HOME_BRANDS.slice(0, 9).map((b) => (
-              <Link key={b} href={`/catalogue?q=${encodeURIComponent(b)}`} style={item} onClick={() => setOpen(false)}
+              <Link key={b} href={`/brand/${slugify(b)}`} style={item} onClick={() => setOpen(false)}
                 onMouseEnter={(e) => (e.currentTarget.style.background = "#F5F6F9")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
               >
