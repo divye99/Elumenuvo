@@ -115,7 +115,7 @@ export default function CollectionBrowser({ kind, title, blurb, rails, brands }:
       <style>{`
         @media (max-width: 860px) {
           .col-shell { grid-template-columns: 1fr !important; }
-          .col-rail { position: static !important; max-height: none !important; }
+          .col-rail { display: none !important; } /* no filter rail on phones */
         }
       `}</style>
     </main>

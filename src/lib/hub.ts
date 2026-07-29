@@ -52,12 +52,19 @@ export async function buildHub(scope: (p: Product) => boolean, spreadBrands: boo
       return true;
     });
 
+  const newReleases = [...buyable].sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
+  const bestPrices = buyable
+    .filter((p) => p.market > p.price)
+    .sort((a, b) => (1 - b.price / b.market) - (1 - a.price / a.market));
+
   return {
     products: trendingAll,
     rails: [
       { key: "trending", label: "Trending", blurb: "what shoppers are looking at right now", items: spread(buyable).slice(0, 10) },
       { key: "top-rated", label: "Top rated", blurb: "ranked by our buying guides and reviews", items: spread(topRated).slice(0, 10) },
       { key: "best-sellers", label: "Best sellers", blurb: "ranked by real orders", items: spread(bestSellers).slice(0, 10) },
+      { key: "new-releases", label: "New releases", blurb: "latest additions to the range", items: spread(newReleases).slice(0, 10) },
+      { key: "best-prices", label: "Today's best prices", blurb: "deepest genuine discounts off MRP", items: spread(bestPrices).slice(0, 10) },
     ],
   };
 }

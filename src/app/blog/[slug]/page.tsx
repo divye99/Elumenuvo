@@ -12,6 +12,7 @@ const SITE = "https://elumenuvo.com";
 // Re-render hourly so the buy boxes show live prices, not build-time ones.
 export const revalidate = 3600;
 
+export const dynamicParams = false; // in-repo content: unknown slugs 404 at the router
 export function generateStaticParams() {
   return getSlugs().map((slug) => ({ slug }));
 }

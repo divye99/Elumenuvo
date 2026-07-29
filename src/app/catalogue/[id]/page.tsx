@@ -42,7 +42,11 @@ const absImage = (u?: string) => (u ? (u.startsWith("http") ? u : `${SITE}${u}`)
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const p = await fetchProduct(id);
-  if (!p) return {};
+  // notFound() HERE, not only in the page: metadata resolves before the
+  // response streams, so a missing product 404s even though the page body
+  // now streams behind a loading skeleton. (The skeleton is exactly the
+  // mechanism that caused the old soft-404 bug - this line is the guard.)
+  if (!p) notFound();
   const title = `${p.name} — ${p.brand}`;
   const description = productDescription(p);
   const url = `${SITE}/catalogue/${p.id}`;

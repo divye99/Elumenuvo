@@ -18,6 +18,7 @@ import type { Product } from "@/lib/data";
  * the glance-view signal is read once per revalidation, not per visitor.
  */
 export const revalidate = 300;
+export const dynamicParams = false; // unknown kinds 404 at the router, pre-streaming
 export async function generateStaticParams() {
   return KINDS.map((kind) => ({ kind }));
 }

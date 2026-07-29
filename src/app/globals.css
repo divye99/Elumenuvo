@@ -412,3 +412,9 @@ input[type="range"].elume-range::-moz-range-thumb {
 @media (max-width: 420px) {
   .co-row { grid-template-columns: 1fr !important; }
 }
+
+/* Skeleton pulse - shared by every loading.tsx (see components/storefront/Skeleton.tsx) */
+@keyframes elumePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { GROTESK } from "@/lib/fonts";
 import type { Product } from "@/lib/data";
@@ -21,11 +21,19 @@ import ProductCard from "./ProductCard";
  * the server computed for the chosen sort.
  */
 type Rail = { key: string; label: string; blurb: string; items: Product[] };
+export type StripItem = { label: string; href: string; img?: string | null; emoji?: string };
 type Sort = "featured" | "price-asc" | "price-desc" | "save-desc" | "top-sellers" | "new";
 
-export default function HubBrowser({ title, subtitle, rails, products, facetLabel, facets }:
-  { title: string; subtitle: string; rails: Rail[]; products: Product[]; facetLabel: string; facets: string[] }) {
+export default function HubBrowser({ title, subtitle, rails, products, facetLabel, facets, strip, stripTitle }:
+  { title: string; subtitle: string; rails: Rail[]; products: Product[]; facetLabel: string; facets: string[]; strip?: StripItem[]; stripTitle?: string }) {
   const [picked, setPicked] = useState<Set<string>>(new Set());
+
+  // "?facet=Fans" arriving from a Shop-by-brand / Shop-by-category circle
+  // preseeds the filter, so brand+category act as one combined filter.
+  useEffect(() => {
+    const f = new URLSearchParams(window.location.search).get("facet");
+    if (f && facets.includes(f)) setPicked(new Set([f]));
+  }, [facets]);
   const [sort, setSort] = useState<Sort>("featured");
 
   const toggle = (f: string) =>
@@ -65,6 +73,29 @@ export default function HubBrowser({ title, subtitle, rails, products, facetLabe
         <h1 style={{ fontFamily: GROTESK, fontSize: 27, fontWeight: 700, margin: "0 0 6px" }}>{title}</h1>
         <p style={{ fontSize: 14, color: "#56627A", margin: 0, maxWidth: 720 }}>{subtitle}</p>
       </header>
+
+      {strip && strip.length > 0 && (
+        <section style={{ marginBottom: 22 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#8A93A6", textTransform: "uppercase", letterSpacing: "0.6px", marginBottom: 10 }}>{stripTitle}</div>
+          <div style={{ display: "flex", gap: 18, overflowX: "auto", paddingBottom: 8 }}>
+            {strip.map((it) => (
+              <Link key={it.label} href={it.href} style={{ flex: "0 0 auto", display: "flex", flexDirection: "column", alignItems: "center", gap: 7, width: 74 }}>
+                <span style={{ width: 58, height: 58, borderRadius: "50%", background: "#fff", border: "1px solid #E4E7EF", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", boxShadow: "0 1px 4px rgba(22,29,43,0.06)" }}>
+                  {it.img ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={it.img} alt={it.label} width={34} height={34} style={{ objectFit: "contain" }} />
+                  ) : it.emoji ? (
+                    <span style={{ fontSize: 24 }}>{it.emoji}</span>
+                  ) : (
+                    <span style={{ fontFamily: GROTESK, fontSize: 19, fontWeight: 700, color: "#4E5BDC" }}>{it.label.slice(0, 1)}</span>
+                  )}
+                </span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: "#3A4358", textAlign: "center", lineHeight: 1.25, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 74 }}>{it.label}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="col-shell" style={{ display: "grid", gridTemplateColumns: "230px 1fr", gap: 26, alignItems: "start" }}>
         {/* ── Frozen filter rail ── */}
@@ -147,7 +178,9 @@ export default function HubBrowser({ title, subtitle, rails, products, facetLabe
       <style>{`
         @media (max-width: 860px) {
           .col-shell { grid-template-columns: 1fr !important; }
-          .col-rail { position: static !important; max-height: none !important; }
+          /* Phones get no filter rail at all - the brand/category strip and
+             the rails ARE the navigation there. */
+          .col-rail { display: none !important; }
         }
       `}</style>
     </main>
