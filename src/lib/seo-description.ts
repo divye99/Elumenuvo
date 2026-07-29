@@ -73,6 +73,94 @@ function fanDescription(p: Product): string {
   return `${head}${bits.length > 1 ? `, ${bits.slice(1).join(", ")}` : ""}.`;
 }
 
+
+/** Finish names that appear in our lighting/fan product names. Order matters:
+ *  longest first so "Matt Black" wins over "Black". */
+const FINISHES = ["Matt Gold","Matt GLD","Matt Black","Matt White","Matt Blue","Antique Brass","Rose Gold","Brushed Nickel","Antique Copper","Pearl White","Glossy Chrome","Matt Chrome","Champagne","Chrome","Gold","Black","White","Silver","Grey","Brown","Blue","Copper","Brass"];
+
+function finishFromName(name: string): string | null {
+  const hit = FINISHES.find((f) => new RegExp(`\\b${f}\\b`, "i").test(name.replace(/\bGLD\b/g, "Gold").replace(/\bABR\b/g, "Antique Brass")));
+  if (!hit) return null;
+  return hit.replace(/\bGLD\b/, "Gold");
+}
+
+/** Broad colour family Google groups shades into (gold tones -> Gold etc.). */
+function colourFamily(finish: string | null): string | null {
+  if (!finish) return null;
+  const f = finish.toLowerCase();
+  if (/gold|brass|champagne/.test(f)) return "Gold";
+  if (/black/.test(f)) return "Black";
+  if (/white|ivory/.test(f)) return "White";
+  if (/chrome|silver|nickel|grey/.test(f)) return "Silver";
+  if (/copper|brown/.test(f)) return "Brown";
+  if (/blue/.test(f)) return "Blue";
+  return null;
+}
+
+/** Lighting sentence carrying the attributes Merchant Center asks for:
+ *  max wattage, finish, colour family, shade/body material, colour temp. */
+function lightingDescription(p: Product): string {
+  const bits: string[] = [];
+  const kind = /torch|flashlight/i.test(p.name) ? "rechargeable torch"
+    : /lantern|lighthouse/i.test(p.name) ? "solar lantern"
+    : /pendant/i.test(p.name) ? "pendant light"
+    : /wall light|\bwl\b|gate ?light/i.test(p.name) ? "wall light"
+    : /downlight|down ?lighter|recess/i.test(p.name + " " + (spec(p, "Mounting Type") ?? "")) ? "recessed downlight"
+    : /panel/i.test(p.name) ? "LED panel light"
+    : /spot/i.test(p.name) ? "LED spotlight"
+    : /batten/i.test(p.name) ? "LED batten"
+    : /strip|rope/i.test(p.name) ? "LED strip light"
+    : /street/i.test(p.name) ? "street light"
+    : /bulb|lamp\b/i.test(p.name) ? "LED lamp"
+    : "ceiling light";
+
+  const watts = num(spec(p, "Wattage (W)") ?? spec(p, "Wattage") ?? spec(p, "Power Consumption") ?? p.name.match(/[\d.]+\s*W\b/)?.[0]);
+  if (watts) bits.push(`${watts} W max wattage`);
+
+  const kelvin = num(p.name.match(/\d{4}\s*K\b/)?.[0] ?? spec(p, "Colour Temperature"));
+  if (kelvin) bits.push(`${kelvin} K`);
+
+  const finish = finishFromName(p.name);
+  if (finish) bits.push(`${finish.toLowerCase()} finish`);
+  const fam = colourFamily(finish);
+  if (fam) bits.push(`${fam.toLowerCase()} colour family`);
+
+  // "Recess mounted pressure die-cast aluminium luminaire in WHT fixture"
+  // -> "pressure die-cast aluminium" as the shade/body material.
+  const matRaw = spec(p, "Material");
+  if (matRaw) {
+    const m = matRaw.match(/(pressure die-?cast aluminium|die-?cast aluminium|aluminium|polycarbonate|steel|metal|glass|abs)/i);
+    if (m) bits.push(`${m[1].toLowerCase()} shade material`);
+  }
+
+  const holder = p.name.match(/\b(B22|E27|E14|GU10)\b/i);
+  if (holder) bits.push(`${holder[1].toUpperCase()} holder`);
+
+  const lumen = num(spec(p, "Rated Lumens") ?? spec(p, "Lumen"));
+  if (lumen) bits.push(`${lumen} lumens`);
+
+  const warranty = num(spec(p, "Warranty") ?? spec(p, "Guarantee"));
+  if (warranty) bits.push(`${warranty} year warranty`);
+
+  return `${p.name} by ${p.brand}: ${kind} with ${bits.length ? bits.join(", ") : "genuine manufacturer warranty"}.`;
+}
+
+/** Accessories (spike guards, plug tops, adaptors): rating + voltage + length. */
+function accessoryDescription(p: Product): string {
+  const bits: string[] = [];
+  // The "Rating" spec can hold wattage ("1440 W"), so only accept a number
+  // that is explicitly followed by an A.
+  const amps = (`${spec(p, "Rating") ?? ""} ${p.name}`.match(/([\d.]+)\s*A\b/) || [])[1];
+  if (amps) bits.push(`${amps} A rating`);
+  const volts = num((p.attrs as Record<string, string> | undefined)?.["Max Voltage"] ?? spec(p, "Rated Voltage") ?? spec(p, "Voltage"));
+  if (volts) bits.push(`${volts} V max voltage`);
+  const len = num(spec(p, "Wire Length") ?? p.name.match(/\(([\d.]+)\s*m\)/)?.[1]);
+  if (len) bits.push(`${len} m cable`);
+  const warranty = num(spec(p, "Warranty"));
+  if (warranty) bits.push(`${warranty} year warranty`);
+  return `${p.name} by ${p.brand}${bits.length ? `: ${bits.join(", ")}` : ""}.`;
+}
+
 /**
  * The description used in the PDP meta tag and Product JSON-LD.
  * Category-aware where the attributes matter to Merchant Center (fans today);
@@ -81,5 +169,7 @@ function fanDescription(p: Product): string {
 export function productDescription(p: Product): string {
   const tail = ` Elume price ₹${p.price} per ${p.unit} (MRP ₹${p.market}). Free delivery across India.`;
   if (p.cat === "Fans") return fanDescription(p) + tail;
+  if (p.cat === "Lighting") return lightingDescription(p) + tail;
+  if (p.cat === "Electrical Accessories") return accessoryDescription(p) + tail;
   return `${p.name} by ${p.brand}${p.spec ? ` (${p.spec})` : ""}.${tail}`;
 }

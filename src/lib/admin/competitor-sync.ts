@@ -55,8 +55,14 @@ export async function runCompetitorSync(db: SupaLike, source: string, runSource:
   // EXACT brand SKU, so a match cannot be wrong. New Havells products with a
   // brand_sku get mapped automatically here; every other source stays 100%
   // manual (auto-matching burned us before — see the Atomberg remap).
-  const AUTO = source === "havells";
-  if (AUTO) {
+  // Brand-store sources whose prices auto-apply (suggested = comparable − 1,
+  // guardrails: > 0 and >= 40% of our current price). Havells set the pattern;
+  // Legrand follows the same rules. Auto-MAPPING by exact brand_sku remains
+  // Havells-only — Legrand codes are page slugs, seeded at import time.
+  const AUTO = source === "havells" || source === "legrand";
+  // Auto-mapping by exact brand SKU only works where the SKU is the fetch key.
+  // Legrand's fetch key is a page slug, so its mappings are seeded at import.
+  if (source === "havells") {
     const mappedIds = new Set(rows.map((m: any) => m.product_id));
     const candidates = (products ?? []).filter(
       (p: any) => p.brand === "Havells" && p.brand_sku && !mappedIds.has(p.id)
