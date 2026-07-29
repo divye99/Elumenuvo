@@ -15,16 +15,6 @@ const MERCHANT_ID = 5827864189;
 // AFTER the parcel does, so estimate at the generous end: 9 calendar days.
 const DELIVERY_DAYS = 9;
 
-declare global {
-  interface Window {
-    gapi?: {
-      load: (lib: string, cb: () => void) => void;
-      surveyoptin: { render: (opts: Record<string, unknown>) => void };
-    };
-    renderOptIn?: () => void;
-  }
-}
-
 export default function GoogleReviewOptIn({ orderId, email }: { orderId: string; email: string }) {
   useEffect(() => {
     if (!orderId || !email.trim()) return;
@@ -32,7 +22,7 @@ export default function GoogleReviewOptIn({ orderId, email }: { orderId: string;
     const estimated = new Date(Date.now() + DELIVERY_DAYS * 86_400_000).toISOString().slice(0, 10);
     const render = () => {
       window.gapi?.load("surveyoptin", () => {
-        window.gapi?.surveyoptin.render({
+        window.gapi?.surveyoptin?.render({
           merchant_id: MERCHANT_ID,
           order_id: orderId,
           email: email.trim(),

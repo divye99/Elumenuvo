@@ -85,6 +85,15 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
   // Every day in the selected window, newest first, even the empty ones - a
   // zero-traffic day is information, and skipping it would hide a gap.
   const todayKey = istDayKey(new Date());
+  // Tracking only began in July, so a 30- or 90-day window reaches back past
+  // the first event we ever recorded. Comparing against those days would read
+  // "down 12" when the truth is "we were not counting yet", so anything older
+  // than the first event we hold gets no comparison at all.
+  const earliestKey = events.length ? istDayKey(events[events.length - 1].created_at) : todayKey;
+  const firstDataKey = events.reduce((min, e) => {
+    const k = istDayKey(e.created_at);
+    return k < min ? k : min;
+  }, earliestKey);
   const trafficRows = Array.from({ length: days }, (_, i) => {
     const key = shiftDayKey(todayKey, -i);
     const prevKey = shiftDayKey(key, -7);
@@ -93,7 +102,7 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
     const visitorsToday = cur?.sids.size ?? 0;
     const visitorsPrev = prev?.sids.size ?? 0;
     // A comparison only exists if we actually hold data for that earlier day.
-    const hasPrev = dayAgg.has(prevKey) || fetchDays >= days + 7;
+    const hasPrev = prevKey >= firstDataKey;
     return {
       key, prevKey,
       weekday: istWeekday(`${key}T06:00:00Z`),
