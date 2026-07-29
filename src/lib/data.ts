@@ -156,7 +156,12 @@ export function tileFor(cat: string): string {
   return m[cat] || "linear-gradient(135deg,#F1F3F8,#E6E9F1)";
 }
 
-export const HOME_BRANDS = ["Havells", "Polycab", "Atomberg", "Norisys", "Crompton", "Schneider", "Legrand", "ABB", "Finolex", "Anchor"];
+export const HOME_BRANDS = [
+  "Havells", "Polycab", "KEI", "RR Kabel", "Finolex", "Anchor",
+  "Atomberg", "Crompton", "Orient", "Usha",
+  "Legrand", "Schneider", "ABB", "Norisys", "APAR",
+  "Philips", "Syska", "Wipro", "CMI", "Elume",
+];
 
 export const STEPS = [
   { n: "1", kicker: "Plan", title: "Build the BOM", body: "Upload your BOQ or build it from the catalogue. Smart BOM matches and flags every line." },

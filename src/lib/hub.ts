@@ -1,6 +1,6 @@
 import type { Product } from "@/lib/data";
 import { fetchProductsLite } from "@/lib/products";
-import { getEditorialPicks } from "@/lib/blog";
+import { getEditorialPicks, getCategoryRanks } from "@/lib/blog";
 import { glanceViews30d } from "@/lib/glance";
 import { loadSearchSignals } from "@/lib/search-signals";
 import { rankProducts, diversify, type RankSignals } from "@/lib/ranking";
@@ -35,10 +35,22 @@ export async function buildHub(scope: (p: Product) => boolean, spreadBrands: boo
     if (ua !== ub) return ub - ua;
     return (gv[b.id] ?? 0) - (gv[a.id] ?? 0);
   });
-  const er = signals.editorialRank!;
+  // Top rated follows the blogs strictly: a product appears only with a rank
+  // from ITS OWN category's guide (or a real customer rating), and colour /
+  // size variants collapse to one card per family, best rank kept.
+  const catRanks = getCategoryRanks();
+  const rankOf = (p: Product) => catRanks[p.cat]?.[p.id];
+  const famKey = (p: Product) => p.parentId ?? p.id;
+  const seenFam = new Set<string>();
   const topRated = buyable
-    .filter((p) => er[p.id] != null || (p.rating ?? 0) > 0)
-    .sort((a, b) => (er[a.id] ?? 99) - (er[b.id] ?? 99) || (b.rating ?? 0) - (a.rating ?? 0));
+    .filter((p) => rankOf(p) != null || (p.rating ?? 0) > 0)
+    .sort((a, b) => (rankOf(a) ?? 99) - (rankOf(b) ?? 99) || (b.rating ?? 0) - (a.rating ?? 0))
+    .filter((p) => {
+      const k = famKey(p);
+      if (seenFam.has(k)) return false;
+      seenFam.add(k);
+      return true;
+    });
 
   return {
     products: trendingAll,

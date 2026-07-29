@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { fetchProductsLite } from "@/lib/products";
-import { getEditorialPicks } from "@/lib/blog";
+import { getEditorialPicks, getCategoryRanks } from "@/lib/blog";
 import { glanceViews30d } from "@/lib/glance";
 import { loadSearchSignals } from "@/lib/search-signals";
 import { rankProducts, diversify, type RankSignals } from "@/lib/ranking";
@@ -72,15 +72,23 @@ function orderFor(kind: Kind, list: Product[], signals: RankSignals): Product[] 
         return 0; // keep rankProducts order
       });
     case "top-rated": {
-      // Follows the blogs: ONLY products that hold an editorial rank in a
-      // buying guide (or a real customer rating) appear here at all.
-      const er = signals.editorialRank ?? {};
+      // Follows the blogs strictly: only ranks from the category's OWN guide
+      // count, and variants collapse to one card per product family.
+      const catRanks = getCategoryRanks();
+      const rankOf = (p: Product) => catRanks[p.cat]?.[p.id];
+      const seenFam = new Set<string>();
       return rankProducts(list, signals)
-        .filter((p) => er[p.id] != null || (p.rating ?? 0) > 0)
+        .filter((p) => rankOf(p) != null || (p.rating ?? 0) > 0)
         .sort((a, b) => {
-          const ra = er[a.id] ?? 99, rb = er[b.id] ?? 99;
+          const ra = rankOf(a) ?? 99, rb = rankOf(b) ?? 99;
           if (ra !== rb) return ra - rb;
           return (b.rating ?? 0) * (b.ratingCount ?? 0) - (a.rating ?? 0) * (a.ratingCount ?? 0);
+        })
+        .filter((p) => {
+          const k = p.parentId ?? p.id;
+          if (seenFam.has(k)) return false;
+          seenFam.add(k);
+          return true;
         });
     }
     case "new-releases":

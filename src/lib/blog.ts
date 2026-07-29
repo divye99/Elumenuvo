@@ -66,6 +66,30 @@ export type EditorialPick = { bestFor: string; rank: number; slug: string; postT
 /** productId -> verdict, built from every ranked item mapped to a real SKU.
  *  Server-side only (keeps the post JSONs out of client bundles); pages pass
  *  the slim result down as props. */
+
+/** Editorial ranks scoped per CATALOGUE category. The category's own
+ *  "top-10-..." guide is authoritative; other posts in that category only
+ *  fill products the top-10 guide didn't rank. This is what keeps a
+ *  Top-rated rail from showing five different #1s pulled from five
+ *  unrelated guides. */
+export function getCategoryRanks(): Record<string, Record<string, number>> {
+  const out: Record<string, Record<string, number>> = {};
+  const posts = [...ALL].sort((a, b) => {
+    const ta = a.slug.startsWith("top-10-") ? 0 : 1;
+    const tb = b.slug.startsWith("top-10-") ? 0 : 1;
+    return ta - tb;
+  });
+  for (const post of posts) {
+    const cat = CATEGORY_TO_CATALOGUE[post.category];
+    if (!cat) continue;
+    const bucket = (out[cat] ??= {});
+    for (const it of post.items) {
+      if (it.productId && bucket[it.productId] == null) bucket[it.productId] = it.rank;
+    }
+  }
+  return out;
+}
+
 export function getEditorialPicks(): Record<string, EditorialPick> {
   const picks: Record<string, EditorialPick> = {};
   for (const post of ALL) {
