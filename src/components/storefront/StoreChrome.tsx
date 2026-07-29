@@ -101,8 +101,8 @@ export default function StoreChrome({ children }: { children: React.ReactNode })
             <div className="ft-col">
               <div className="ft-h">Shop</div>
               <Link href="/catalogue">Catalogue</Link>
-              <Link href="/catalogue?sort=save-desc">Top deals</Link>
-              <Link href="/catalogue?sort=top-sellers">Best sellers</Link>
+              <Link href="/collections/best-prices">Top deals</Link>
+              <Link href="/collections/best-sellers">Best sellers</Link>
               <Link href="/blog">Buying guides</Link>
             </div>
             <div className="ft-col">

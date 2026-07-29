@@ -143,8 +143,12 @@ export default function CatalogueBrowser({
         // landing view opens with a diverse shelf: the first 20 products are
         // all different brands, cycling through categories, so no single
         // brand (like our own) walls off the top of the catalogue.
+        // Photo rule from the visibility ranking system: a listing without an
+        // image runs at half trend, so it cannot occupy the landing shelf
+        // while imaged competitors exist.
         const trend = (p: Product) =>
-          Math.min(searchBoost[p.id] ?? 0, 20) * 3 + Math.min(p.unitsSold ?? 0, 200) + (p.recommended ? 8 : 0);
+          (p.image ? 1 : 0.5) *
+          (Math.min(searchBoost[p.id] ?? 0, 20) * 3 + Math.min(p.unitsSold ?? 0, 200) + (p.recommended ? 8 : 0));
         const ranked = [...list].sort((a, b) => stockRank(a, b) || trend(b) - trend(a));
         const filtersActive = cat !== "All" || picked.size > 0 || tokens.length > 0;
         if (filtersActive) return ranked;

@@ -40,20 +40,20 @@ export default function MobileMenu() {
 
         {/* Deals & trending */}
         <div className="drw-section">Top deals</div>
-        {row("/catalogue?sort=save-desc", "Today's best prices", "🔥")}
+        {row("/collections/best-prices", "Today's best prices", "🔥")}
         <div className="drw-section">Trending</div>
-        {row("/catalogue?sort=top-sellers", "Best sellers", "⭐")}
-        {row("/catalogue?sort=new", "New releases", "🆕")}
-        {row("/catalogue?sort=top-rated", "Top rated", "🏆")}
+        {row("/collections/best-sellers", "Best sellers", "⭐")}
+        {row("/collections/new-releases", "New releases", "🆕")}
+        {row("/collections/top-rated", "Top rated", "🏆")}
 
         {/* Wholesale hook */}
         <div style={{ margin: "10px 12px 4px", background: "linear-gradient(120deg,#EEF0FE,#F7F8FB)", border: "1px solid #DFE3FB", borderRadius: 12, padding: "10px 12px" }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: "#232B6E" }}>💰 Buy more, save more</div>
           <div style={{ fontSize: 10.5, color: "#56627A", lineHeight: 1.45, marginTop: 3 }}>
-            Order ₹30,000+ of stock and unlock wholesale rates — an extra <b>5% off</b> every unit.
+            Order <b>15+ units</b> of any product and the price drops <b>5%</b> automatically.
           </div>
-          <Link href="/catalogue" onClick={close} style={{ display: "inline-block", fontSize: 10.5, fontWeight: 700, color: "#4E5BDC", marginTop: 5 }}>
-            Start stocking up →
+          <Link href="/wholesale" onClick={close} style={{ display: "inline-block", fontSize: 10.5, fontWeight: 700, color: "#4E5BDC", marginTop: 5 }}>
+            See how it works →
           </Link>
         </div>
 

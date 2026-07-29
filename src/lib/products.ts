@@ -25,6 +25,7 @@ type Row = {
   parent_id?: string | null;
   market_low?: number | string | null;
   in_stock?: boolean | null;
+  created_at?: string | null;
   attrs?: Record<string, string> | null;
   gst_rate?: number | string | null;
   hsn?: string | null;
@@ -52,6 +53,7 @@ const toProduct = (r: Row): Product => {
     parentId: r.parent_id ?? undefined,
     marketLow: r.market_low != null ? Number(r.market_low) : undefined,
     inStock: r.in_stock ?? true,
+    createdAt: r.created_at ?? undefined,
     attrs: r.attrs ?? undefined,
     gstRate: r.gst_rate != null ? Number(r.gst_rate) : undefined,
     hsn: r.hsn ?? undefined,
@@ -101,7 +103,7 @@ export async function fetchProducts(): Promise<Product[]> {
  * magnitude. Use for grids (storefront catalogue, buyer workspace); detail
  * pages keep fetchProduct/fetchProducts for the full record.
  */
-const LITE_COLS = "id, sku, name, brand, category, spec, mrp, elume_price, unit, image_url, units_sold, is_recommended, parent_id, market_low, gst_rate, in_stock";
+const LITE_COLS = "id, sku, name, brand, category, spec, mrp, elume_price, unit, image_url, units_sold, is_recommended, parent_id, market_low, gst_rate, in_stock, created_at";
 
 export async function fetchProductsLite(): Promise<Product[]> {
   const c = client();

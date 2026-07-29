@@ -61,10 +61,10 @@ export default function CatalogueMegaMenu() {
           <div>
             <div style={head}>Quick picks</div>
             {([
-              ["/catalogue?sort=save-desc", "🔥 Today's best prices"],
-              ["/catalogue?sort=top-sellers", "⭐ Best sellers"],
-              ["/catalogue?sort=new", "🆕 New releases"],
-              ["/catalogue?sort=top-rated", "🏆 Top rated"],
+              ["/collections/best-prices", "🔥 Today's best prices"],
+              ["/collections/best-sellers", "⭐ Best sellers"],
+              ["/collections/new-releases", "🆕 New releases"],
+              ["/collections/top-rated", "🏆 Top rated"],
             ] as [string, string][]).map(([href, label]) => (
               <Link key={href} href={href} style={item} onClick={() => setOpen(false)}
                 onMouseEnter={(e) => (e.currentTarget.style.background = "#F5F6F9")}

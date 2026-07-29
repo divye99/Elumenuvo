@@ -66,7 +66,7 @@ export default function HomeStorefront({ products, posts }: { products: Product[
   const discount = (p: Product) => 1 - p.price / p.market;
   const bestByCat = new Map<string, Product>();
   for (const p of products) {
-    if (p.price <= 2000 || p.market <= p.price || p.inStock === false) continue; // never promote what can't be bought
+    if (p.price <= 2000 || p.market <= p.price || p.inStock === false || !p.image) continue; // hero slots need stock AND a photo
     const cur = bestByCat.get(p.cat);
     if (!cur || discount(p) > discount(cur) || (discount(p) === discount(cur) && p.id.localeCompare(cur.id) < 0)) bestByCat.set(p.cat, p);
   }

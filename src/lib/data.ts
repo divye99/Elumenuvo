@@ -22,6 +22,8 @@ export type Product = {
   marketLow?: number;
   /** false = browsable and price-tracked, but not orderable (migration 0067). */
   inStock?: boolean;
+  /** Row creation time; powers the New releases collection. */
+  createdAt?: string;
   /** Variant family — variations point at their parent product via parentId
    *  (null/undefined = parent or standalone). Family = parent + children. */
   parentId?: string;
