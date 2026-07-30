@@ -5,7 +5,14 @@ import { adminClient } from "@/lib/supabase/admin";
  *  projects and order-derived KPIs. Replaces the demo content for real
  *  accounts on the live site. */
 
-export type LiveProject = { id: string; name: string; site: string | null; stage: string; created_at: string };
+export type LiveProject = {
+  id: string; name: string; site: string | null; stage: string; created_at: string;
+  // Checkout-grade delivery details (migration 0076) - all optional so the
+  // workspace renders fine for projects created before they existed.
+  contact_name: string | null; contact_phone: string | null;
+  address_line1: string | null; address_line2: string | null; address_line3: string | null;
+  city: string | null; district: string | null; state: string | null; pin: string | null;
+};
 export type LiveOrder = { id: string; total: number; status: string; created_at: string; items: number; lines: { name: string; qty: number }[] };
 export type LiveWorkspace = {
   projects: LiveProject[];
@@ -25,12 +32,22 @@ export async function getLiveWorkspace(userId: string, email: string | null): Pr
   let projects: LiveProject[] = [];
   try {
     const supabase = await createClient();
+    // select * so the read works both before and after migration 0076 adds
+    // the contact/address columns.
     const { data } = await supabase
       .from("app_projects")
-      .select("id, name, site, stage, created_at")
+      .select("*")
       .order("created_at", { ascending: false })
       .limit(100);
-    projects = (data ?? []) as LiveProject[];
+    projects = (data ?? []).map((r: Record<string, unknown>) => ({
+      id: String(r.id), name: String(r.name ?? ""), site: (r.site as string) ?? null,
+      stage: String(r.stage ?? "Rough-in"), created_at: String(r.created_at ?? ""),
+      contact_name: (r.contact_name as string) ?? null, contact_phone: (r.contact_phone as string) ?? null,
+      address_line1: (r.address_line1 as string) ?? null, address_line2: (r.address_line2 as string) ?? null,
+      address_line3: (r.address_line3 as string) ?? null,
+      city: (r.city as string) ?? null, district: (r.district as string) ?? null,
+      state: (r.state as string) ?? null, pin: (r.pin as string) ?? null,
+    }));
   } catch { /* table not migrated yet: empty workspace still works */ }
 
   // Orders: matched by user id OR email (guest checkouts with the same email

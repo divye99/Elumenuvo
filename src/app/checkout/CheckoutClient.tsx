@@ -12,20 +12,35 @@ import { identify } from "@/lib/analytics";
 import { openRazorpay } from "@/lib/razorpay-checkout";
 import { useRouter } from "next/navigation";
 import { stashOrder } from "@/lib/gtag";
+import { INDIA_STATES } from "@/lib/india";
 
 type Prefill = { name: string; email: string; phone: string; gstin: string; company: string; isBusiness: boolean; signedIn: boolean };
 
-/** All Indian states + union territories, for the address dropdown. */
-const INDIA_STATES = [
-  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat",
-  "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh",
-  "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab",
-  "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh",
-  "Uttarakhand", "West Bengal",
-  // Union territories
-  "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu",
-  "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry",
-];
+/** A one-tap delivery choice: a workspace project (site) or an address saved
+ *  automatically from a past paid order. Selecting one fills contact + address. */
+export type SavedEntry = {
+  kind: "project" | "address";
+  id: string;
+  label: string; // project name, or the address's first line
+  sub: string;   // one-line address summary
+  contact_name: string;
+  phone: string; // E.164 or ""
+  line1: string; line2: string; line3: string;
+  city: string; district: string; state: string; pin: string; country: string;
+};
+
+/** Split an E.164 number back into (iso, national digits) for the phone field. */
+function splitE164(stored: string): { iso: string; national: string } | null {
+  const digits = (stored ?? "").replace(/\D/g, "");
+  if (!digits) return null;
+  const byLongestDial = [...COUNTRIES].sort((a, b) => b.dial.length - a.dial.length);
+  for (const c of byLongestDial) {
+    if (digits.startsWith(c.dial) && digits.length > c.dial.length) {
+      return { iso: c.iso, national: digits.slice(c.dial.length) };
+    }
+  }
+  return { iso: DEFAULT_COUNTRY.iso, national: digits };
+}
 
 type Address = { line1: string; line2: string; line3: string; city: string; district: string; state: string; pin: string; country: string };
 const emptyAddress = (): Address => ({ line1: "", line2: "", line3: "", city: "", district: "", state: "", pin: "", country: "India" });
@@ -46,7 +61,7 @@ function addressError(a: Address, label: string): string | null {
   return null;
 }
 
-export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Prefill; onlineEnabled: boolean }) {
+export default function CheckoutClient({ prefill, onlineEnabled, saved = [] }: { prefill: Prefill; onlineEnabled: boolean; saved?: SavedEntry[] }) {
   const { items, total, baseTotal, gstTotal, clear } = useCart();
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -76,6 +91,25 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
   const setAddr = (which: "billing" | "shipping", k: keyof Address, v: string) =>
     setF((p) => ({ ...p, [which]: { ...p[which], [k]: v } }));
 
+  // Saved sites & addresses: selecting one fills contact + billing address in
+  // one tap (everything stays editable - it is a starting point, not a lock).
+  const [savedSel, setSavedSel] = useState<string>("");
+  const applySaved = (e: SavedEntry) => {
+    setSavedSel(e.id);
+    const ph = splitE164(e.phone);
+    if (ph) setIso(ph.iso);
+    setF((p) => ({
+      ...p,
+      name: e.contact_name || p.name,
+      phone: ph?.national ?? p.phone,
+      billing: {
+        line1: e.line1, line2: e.line2, line3: e.line3,
+        city: e.city, district: e.district, state: e.state, pin: e.pin,
+        country: e.country || "India",
+      },
+    }));
+  };
+
   const gst = useMemo(() => ({ base: baseTotal, tax: gstTotal }), [baseTotal, gstTotal]);
 
   // Business account with a GSTIN already on file: invoice it automatically and
@@ -90,6 +124,9 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
     payment_method: "online", // pay-on-delivery is retired; Razorpay only
     items: items.map((i) => ({ id: i.id, name: i.name, qty: i.qty, price: i.price, cat: i.cat })),
     discount_code: codeState.status === "ok" ? code.trim().toUpperCase() : undefined,
+    // Structured delivery address rides along so it can be auto-saved for
+    // one-tap reuse once the order is PAID.
+    address_details: { shipping: { ...(f.sameAsBilling ? f.billing : f.shipping) } },
   });
 
   const applyCode = async () => {
@@ -182,6 +219,46 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
 
       <div className="co-grid" style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 22, alignItems: "start" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {/* Saved sites & addresses: repeat buyers pick instead of retyping.
+              Projects come from the workspace; addresses save themselves from
+              past paid orders. */}
+          {saved.length > 0 && (
+            <Section title="Deliver to a saved site or address">
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {saved.map((e) => {
+                  const on = savedSel === e.id;
+                  return (
+                    <div
+                      key={e.id}
+                      onClick={() => applySaved(e)}
+                      style={{ display: "flex", gap: 11, alignItems: "flex-start", border: `1.5px solid ${on ? "#4E5BDC" : "#E0E4ED"}`, background: on ? "#F7F8FF" : "#fff", borderRadius: 11, padding: "11px 13px", cursor: "pointer" }}
+                    >
+                      <span style={{ marginTop: 2, width: 15, height: 15, flex: "none", borderRadius: "50%", border: `1.5px solid ${on ? "#4E5BDC" : "#C7CCDA"}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        {on && <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#4E5BDC" }} />}
+                      </span>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "#19202E", display: "flex", gap: 7, alignItems: "baseline", flexWrap: "wrap" }}>
+                          {e.label}
+                          <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.4px", textTransform: "uppercase", color: e.kind === "project" ? "#4E5BDC" : "#1F9D63", background: e.kind === "project" ? "#EEF0FD" : "#E6F5EE", padding: "1.5px 7px", borderRadius: 7 }}>
+                            {e.kind === "project" ? "Project" : "Saved address"}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: 12, color: "#56627A", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {[e.contact_name, e.sub].filter(Boolean).join(" · ")}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                {savedSel && (
+                  <div onClick={() => setSavedSel("")} style={{ fontSize: 12.5, color: "#4E5BDC", fontWeight: 600, cursor: "pointer", padding: "2px 2px 0" }}>
+                    Use a different address instead (edit the fields below)
+                  </div>
+                )}
+              </div>
+            </Section>
+          )}
+
           {/* Contact */}
           <Section title="Contact">
             <Row>

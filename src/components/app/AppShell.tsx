@@ -6,7 +6,10 @@ import { Mark, Wordmark } from "@/components/Brand";
 import { GROTESK, MONO } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import { type LiveWorkspace } from "@/lib/workspace";
-import { createAppProject, deleteAppProject } from "@/lib/workspace-actions";
+import { createAppProject, deleteAppProject, saveAppProject, type ProjectDetailsInput } from "@/lib/workspace-actions";
+import { type LiveProject } from "@/lib/workspace";
+import { INDIA_STATES } from "@/lib/india";
+import { DEFAULT_COUNTRY, maxDigits, nationalDigits } from "@/lib/phone";
 import { updatePersonalDetails, upgradeToBusiness } from "@/lib/profile-actions";
 import { WHOLESALE_MIN_QTY } from "@/lib/pricing";
 
@@ -18,10 +21,11 @@ import { WHOLESALE_MIN_QTY } from "@/lib/pricing";
  * real session started passing `live`.
  */
 
-type Screen = "portfolio" | "confirm" | "account";
+type Screen = "portfolio" | "projects" | "confirm" | "account";
 
 const NAV: { key: Screen | "catalogue" | "cart" | "foryou"; label: string }[] = [
   { key: "portfolio", label: "Overview" },
+  { key: "projects", label: "Projects" },
   { key: "foryou", label: "For you" },
   { key: "catalogue", label: "Catalogue" },
   { key: "cart", label: "Cart" },
@@ -71,6 +75,7 @@ export default function AppShell({ user, live }: { user?: { email: string; name?
 
   const titles: Record<Screen, [string, string]> = {
     portfolio: ["Overview", `${userOrg} · ${live.projects.length} project${live.projects.length === 1 ? "" : "s"}`],
+    projects: ["Projects", "Your sites, each with its own delivery setup"],
     confirm: ["Orders", "Every order with live tracking"],
     account: ["Your account", userEmail],
   };
@@ -187,6 +192,7 @@ export default function AppShell({ user, live }: { user?: { email: string; name?
         {/* CONTENT */}
         <div ref={contentRef} style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
           {screen === "portfolio" && <LivePortfolio live={live} onCatalogue={() => nav("catalogue")} />}
+          {screen === "projects" && <ProjectsScreen live={live} />}
           {screen === "confirm" && <LiveOrders live={live} onCatalogue={() => nav("catalogue")} />}
           {screen === "account" && user && <AccountScreen user={user} section={acctSection} />}
         </div>
@@ -525,6 +531,165 @@ function AccountScreen({ user, section }: { user: { email: string; name?: string
 }
 
 /** Thin line icons for the mobile tab bar (currentColor, 22px). */
+/* ── PROJECTS: each site with its full delivery setup. A project created here
+ *    (contact person + address) becomes a one-tap choice at checkout, so
+ *    nobody types a site address twice. ── */
+
+const emptyProjectForm = (): ProjectDetailsInput => ({
+  name: "", stage: "Rough-in", contact_name: "", contact_phone: "",
+  line1: "", line2: "", line3: "", city: "", district: "", state: "", pin: "",
+});
+
+function projectToForm(p: LiveProject): ProjectDetailsInput {
+  return {
+    id: p.id, name: p.name, stage: p.stage,
+    contact_name: p.contact_name ?? "",
+    contact_phone: nationalDigits(p.contact_phone ?? "", DEFAULT_COUNTRY),
+    line1: p.address_line1 ?? "", line2: p.address_line2 ?? "", line3: p.address_line3 ?? "",
+    city: p.city ?? "", district: p.district ?? "", state: p.state ?? "", pin: p.pin ?? "",
+  };
+}
+
+function ProjectsScreen({ live }: { live: LiveWorkspace }) {
+  const router = useRouter();
+  const [form, setForm] = useState<ProjectDetailsInput | null>(null); // null = closed
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const set = (k: keyof ProjectDetailsInput, v: string) => setForm((p) => (p ? { ...p, [k]: v } : p));
+
+  const submit = async () => {
+    if (!form) return;
+    setBusy(true); setErr(null);
+    try {
+      const res = await saveAppProject(form);
+      if (!res.ok) setErr(res.error);
+      else { setForm(null); router.refresh(); }
+    } catch { setErr("Could not save just now - reload and try again."); }
+    finally { setBusy(false); }
+  };
+  const removeProject = async (id: string) => {
+    try { await deleteAppProject(id); router.refresh(); } catch { /* refresh shows truth */ }
+  };
+
+  const fi: React.CSSProperties = { border: "1px solid #E0E4ED", borderRadius: 9, padding: "9px 12px", fontSize: 13, background: "#fff", width: "100%" };
+  const lab: React.CSSProperties = { fontSize: 11.5, fontWeight: 600, color: "#56627A", marginBottom: 4, display: "block" };
+
+  return (
+    <div className="ws-pad" style={{ padding: "26px 30px", animation: "elumeFade .35s ease" }}>
+      {/* Why this exists, in one line */}
+      <div style={{ background: "#EEF0FD", border: "1px solid #DDE1FB", borderRadius: 12, padding: "12px 16px", fontSize: 12.5, color: "#3A4358", marginBottom: 16 }}>
+        <b style={{ color: "#4E5BDC" }}>Set a project up once, order to it forever.</b>{" "}
+        Give each site its contact person and delivery address; at checkout you just pick the project and every field fills itself.
+      </div>
+
+      <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflow: "hidden" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "15px 18px", borderBottom: "1px solid #F0F2F6" }}>
+          <span style={{ fontFamily: GROTESK, fontWeight: 600, fontSize: 14.5 }}>
+            Your projects <span style={{ color: "#8A93A6", fontWeight: 400 }}>· {live.projects.length}</span>
+          </span>
+          <span onClick={() => { setErr(null); setForm(form && !form.id ? null : emptyProjectForm()); }} style={{ fontSize: 12.5, color: "#4E5BDC", fontWeight: 600, cursor: "pointer" }}>
+            {form && !form.id ? "Close" : "+ New project"}
+          </span>
+        </div>
+
+        {form && (
+          <div style={{ padding: "16px 18px", borderBottom: "1px solid #F0F2F6", background: "#F8F9FC" }}>
+            <div style={{ fontFamily: GROTESK, fontWeight: 600, fontSize: 13.5, marginBottom: 12 }}>
+              {form.id ? "Edit project" : "New project"}
+            </div>
+            <div className="ws-projform" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div><span style={lab}>Project name *</span><input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="e.g. Sunrise Apartments · Tower B" style={fi} /></div>
+              <div><span style={lab}>Stage</span>
+                <select value={form.stage} onChange={(e) => set("stage", e.target.value)} style={{ ...fi, cursor: "pointer" }}>
+                  {["Rough-in", "Wiring", "Panel & DB", "Finishing"].map((st) => <option key={st}>{st}</option>)}
+                </select>
+              </div>
+              <div><span style={lab}>Site contact person</span><input value={form.contact_name} onChange={(e) => set("contact_name", e.target.value)} placeholder="Who receives deliveries" style={fi} /></div>
+              <div><span style={lab}>Contact phone</span>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <span style={{ ...fi, width: 64, flex: "0 0 auto", display: "flex", alignItems: "center", justifyContent: "center", color: "#56627A", background: "#F0F2F6" }}>+91</span>
+                  <input inputMode="numeric" maxLength={maxDigits(DEFAULT_COUNTRY)} value={form.contact_phone} onChange={(e) => set("contact_phone", e.target.value.replace(/\D/g, "").slice(0, maxDigits(DEFAULT_COUNTRY)))} placeholder={DEFAULT_COUNTRY.example} style={fi} />
+                </div>
+              </div>
+              <div style={{ gridColumn: "1 / -1" }}><span style={lab}>Address line 1</span><input value={form.line1} onChange={(e) => set("line1", e.target.value)} placeholder="Plot / building, street" style={fi} /></div>
+              <div><span style={lab}>Address line 2</span><input value={form.line2} onChange={(e) => set("line2", e.target.value)} placeholder="Area, locality (optional)" style={fi} /></div>
+              <div><span style={lab}>Address line 3</span><input value={form.line3} onChange={(e) => set("line3", e.target.value)} placeholder="Landmark (optional)" style={fi} /></div>
+              <div><span style={lab}>City</span><input value={form.city} onChange={(e) => set("city", e.target.value)} style={fi} /></div>
+              <div><span style={lab}>District</span><input value={form.district} onChange={(e) => set("district", e.target.value)} style={fi} /></div>
+              <div><span style={lab}>State / UT</span>
+                <select value={form.state} onChange={(e) => set("state", e.target.value)} style={{ ...fi, cursor: "pointer" }}>
+                  <option value="">Select…</option>
+                  {INDIA_STATES.map((st) => <option key={st}>{st}</option>)}
+                </select>
+              </div>
+              <div><span style={lab}>PIN code</span><input inputMode="numeric" maxLength={6} value={form.pin} onChange={(e) => set("pin", e.target.value.replace(/\D/g, "").slice(0, 6))} style={fi} /></div>
+            </div>
+            <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 14, flexWrap: "wrap" }}>
+              <button onClick={submit} disabled={busy || !form.name.trim()} style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 12.5, border: "none", padding: "10px 18px", borderRadius: 9, cursor: "pointer", opacity: busy || !form.name.trim() ? 0.6 : 1 }}>
+                {busy ? "Saving…" : form.id ? "Save changes" : "Create project"}
+              </button>
+              <span onClick={() => setForm(null)} style={{ fontSize: 12.5, color: "#56627A", fontWeight: 600, cursor: "pointer" }}>Cancel</span>
+              {err && <span style={{ fontSize: 12.5, color: "#D14343", fontWeight: 600 }}>{err}</span>}
+            </div>
+            <div style={{ fontSize: 11.5, color: "#8A93A6", marginTop: 10 }}>
+              The address is optional, but a project with contact + address becomes a one-tap delivery choice at checkout.
+            </div>
+          </div>
+        )}
+
+        {live.projects.length === 0 && !form ? (
+          <div style={{ padding: "40px 20px", textAlign: "center" }}>
+            <div style={{ fontSize: 26, marginBottom: 8 }}>🏗️</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "#19202E" }}>No projects yet.</div>
+            <div style={{ fontSize: 12.5, color: "#8A93A6", marginTop: 4, lineHeight: 1.6 }}>
+              Create one per site - deliveries, contacts and purchases stay organised by project.
+            </div>
+            <div onClick={() => setForm(emptyProjectForm())} style={{ display: "inline-block", marginTop: 14, background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13, padding: "10px 18px", borderRadius: 9, cursor: "pointer" }}>
+              + Create your first project
+            </div>
+          </div>
+        ) : (
+          live.projects.map((pr) => {
+            const [stageBg, stageFg] = STAGE_COLORS[pr.stage] ?? ["#F5F6F9", "#56627A"];
+            const addr = [pr.address_line1, pr.address_line2, pr.address_line3, pr.city, pr.district, [pr.state, pr.pin && `- ${pr.pin}`].filter(Boolean).join(" ")]
+              .map((s) => (s ?? "").trim()).filter(Boolean).join(", ");
+            return (
+              <div key={pr.id} style={{ padding: "15px 18px", borderBottom: "1px solid #F5F6F9" }}>
+                <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+                  <span style={{ fontWeight: 700, fontSize: 14, color: "#19202E" }}>{pr.name}</span>
+                  <span style={{ display: "inline-block", fontSize: 11.5, fontWeight: 600, padding: "2.5px 9px", borderRadius: 6, background: stageBg, color: stageFg }}>{pr.stage}</span>
+                  <span style={{ fontSize: 11.5, color: "#A0A7B5", marginLeft: "auto", whiteSpace: "nowrap" }}>
+                    since {new Date(pr.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                  </span>
+                </div>
+                <div style={{ fontSize: 12.5, color: "#56627A", marginTop: 6, lineHeight: 1.55 }}>
+                  {pr.contact_name || pr.contact_phone ? (
+                    <div>👤 {[pr.contact_name, pr.contact_phone].filter(Boolean).join(" · ")}</div>
+                  ) : null}
+                  {addr ? (
+                    <div>📍 {addr}</div>
+                  ) : (
+                    <div style={{ color: "#B4690E", fontWeight: 600 }}>No delivery address yet - add one to use this project at checkout.</div>
+                  )}
+                </div>
+                <div style={{ display: "flex", gap: 14, marginTop: 10, alignItems: "center", flexWrap: "wrap" }}>
+                  <span onClick={() => router.push("/catalogue")} style={{ fontSize: 12.5, color: "#fff", background: "#4E5BDC", fontWeight: 700, cursor: "pointer", padding: "7px 14px", borderRadius: 8 }}>
+                    Order for this site →
+                  </span>
+                  <span onClick={() => { setErr(null); setForm(projectToForm(pr)); }} style={{ fontSize: 12.5, color: "#4E5BDC", fontWeight: 600, cursor: "pointer" }}>Edit details</span>
+                  <span onClick={() => removeProject(pr.id)} style={{ fontSize: 12.5, color: "#B43A16", fontWeight: 600, cursor: "pointer" }}>Delete</span>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      <style>{`@media (max-width: 700px){ .ws-projform { grid-template-columns: 1fr !important; } }`}</style>
+    </div>
+  );
+}
+
 function TabIcon({ name, active }: { name: string; active: boolean }) {
   const sw = active ? 2 : 1.7;
   const common = { width: 22, height: 22, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: sw, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
@@ -537,6 +702,10 @@ function TabIcon({ name, active }: { name: string; active: boolean }) {
       return <svg {...common}><path d="M3 4h2.2l2.1 11.2a1.6 1.6 0 0 0 1.6 1.3h7.9a1.6 1.6 0 0 0 1.6-1.2L20.5 8H6" /><circle cx="9.7" cy="20" r="1.3" /><circle cx="16.6" cy="20" r="1.3" /></svg>;
     case "confirm": // package
       return <svg {...common}><path d="M12 3 4 7v10l8 4 8-4V7l-8-4Z" /><path d="M4 7l8 4 8-4" /><path d="M12 11v9" /></svg>;
+    case "projects": // building site
+      return <svg {...common}><path d="M4 20h16" /><path d="M6 20V8.5L12 5l6 3.5V20" /><path d="M9.5 20v-4h5v4" /><path d="M9.5 10.5h.01M14.5 10.5h.01M9.5 13.5h.01M14.5 13.5h.01" /></svg>;
+    case "foryou": // sparkle
+      return <svg {...common}><path d="M12 4.5 13.8 10 19.5 12l-5.7 2-1.8 5.5L10.2 14 4.5 12l5.7-2L12 4.5Z" /></svg>;
     default:
       return <svg {...common}><circle cx="12" cy="12" r="8" /></svg>;
   }

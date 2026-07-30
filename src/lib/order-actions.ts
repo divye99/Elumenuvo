@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { exGst, gstPart, baseExGst, unitPriceFor } from "@/lib/pricing";
 import { COUNTRIES, DEFAULT_COUNTRY, phoneError, toE164 } from "@/lib/phone";
 import { sendAdminNewOrder, sendCustomerOrderConfirmation } from "@/lib/email";
+import { saveAddressFromOrder } from "@/lib/addresses";
 import { createRazorpayOrder, verifyPaymentSignature, razorpayConfigured, razorpayKeyId } from "@/lib/razorpay";
 
 /** Validate a submitted phone against the country its dial code names.
@@ -22,6 +23,7 @@ function normalisePhone(raw: string): string | null {
 }
 
 export type CheckoutItem = { id: string; name: string; qty: number; price: number; cat?: string; gstRate?: number; hsn?: string };
+export type StructuredOrderAddress = { line1: string; line2: string; line3: string; city: string; district: string; state: string; pin: string; country: string };
 export type PlaceOrderInput = {
   name: string;
   phone: string;
@@ -32,6 +34,9 @@ export type PlaceOrderInput = {
   payment_method: string; // 'cod' | 'online'
   items: CheckoutItem[];
   discount_code?: string;
+  // Structured delivery address: what saved_addresses is built from once the
+  // order is paid (the composed strings above cannot repopulate a form).
+  address_details?: { shipping: StructuredOrderAddress };
 };
 export type PlaceOrderResult =
   | { ok: true; orderId: string; total: number }
@@ -135,7 +140,7 @@ async function insertPendingOrder(
     userId = user?.id ?? null;
   } catch { /* guest */ }
 
-  const { error } = await db.from("orders").insert({
+  const row: Record<string, unknown> = {
     id,
     email: input.email.trim().toLowerCase(),
     name: input.name.trim(),
@@ -164,7 +169,16 @@ async function insertPendingOrder(
     user_id: userId,
     status: "awaiting_payment",
     razorpay_order_id: razorpayOrderId,
-  });
+    ...(input.address_details?.shipping?.line1 ? { address_details: input.address_details } : {}),
+  };
+
+  let { error } = await db.from("orders").insert(row);
+  // The address_details column ships in migration 0076; until it is run,
+  // retry without it so ordering never breaks on the schema gap.
+  if (error && "address_details" in row && /address_details/.test(error.message)) {
+    delete row.address_details;
+    ({ error } = await db.from("orders").insert(row));
+  }
   if (error) return { ok: false, error: error.message };
   return { ok: true };
 }
@@ -205,6 +219,9 @@ export async function markOrderPaid(
   }
 
   try { await db.from("order_events").insert({ order_id: orderId, status: "placed", note: "Order placed · paid online" }); } catch { /* table may not exist */ }
+  // Money landed: remember this delivery address + phone for one-tap reuse
+  // on the next checkout. Best-effort, never blocks the payment.
+  await saveAddressFromOrder(db, order);
   // Consume the discount code only now that money actually landed.
   if (order.discount_code) {
     try {
