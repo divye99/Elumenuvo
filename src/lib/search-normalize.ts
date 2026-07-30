@@ -35,3 +35,63 @@ export function matchesAll(haystack: string, tokens: string[]): boolean {
     return hay.includes(t);
   });
 }
+
+/* ── Relevance ranking ──
+ * Matching stays deliberately broad (recall: "wire" still substring-matches
+ * "wireless", so nothing ever vanishes), but ORDER is earned: whole-word
+ * name matches lead, spec-only and fuzzy matches sink to the bottom.
+ * "havells wire" therefore shows wires first and doorbells last. */
+
+/** Query words that unambiguously name a catalogue category. */
+export const CATEGORY_INTENT: Record<string, string> = {
+  wire: "Wires & Cables", wires: "Wires & Cables",
+  cable: "Wires & Cables", cables: "Wires & Cables",
+  mcb: "Switchgear", mcbs: "Switchgear", rccb: "Switchgear", rccbs: "Switchgear",
+  rcbo: "Switchgear", switchgear: "Switchgear", changeover: "Switchgear",
+  fan: "Fans", fans: "Fans",
+  light: "Lighting", lights: "Lighting", lighting: "Lighting",
+  bulb: "Lighting", bulbs: "Lighting", led: "Lighting", downlight: "Lighting",
+  downlighter: "Lighting", batten: "Lighting", lamp: "Lighting",
+  pump: "Pumps", pumps: "Pumps",
+};
+
+/** Does token t match a whole word (singular/plural tolerant)? */
+function wordHit(words: string[], t: string): boolean {
+  return words.some((w) => w === t || w === `${t}s` || t === `${w}s`);
+}
+function prefixHit(words: string[], t: string): boolean {
+  return t.length >= 3 && words.some((w) => w.startsWith(t));
+}
+
+/**
+ * Score how well a product matches the query tokens. 0 = substring-only
+ * (weak) matches; higher = whole words in the name, right category.
+ * Shared by the catalogue results page and the suggest API so both agree.
+ */
+export function relevanceScore(
+  p: { name: string; brand: string; cat: string; spec?: string },
+  tokens: string[]
+): number {
+  if (tokens.length === 0) return 0;
+  const nameWords = normalizeSearchText(`${p.brand} ${p.name}`).split(/[^\p{L}\p{N}.]+/u).filter(Boolean);
+  const specWords = normalizeSearchText(p.spec ?? "").split(/[^\p{L}\p{N}.]+/u).filter(Boolean);
+  const catNorm = normalizeSearchText(p.cat);
+
+  let s = 0;
+  let allWholeInName = true;
+  for (const t of tokens) {
+    if (wordHit(nameWords, t)) { s += 10; continue; }
+    allWholeInName = false;
+    if (prefixHit(nameWords, t)) { s += 5; continue; }   // "hav" → "havells"
+    if (wordHit(specWords, t)) { s += 2; continue; }     // spec-sheet mention only
+    s += 0;                                              // substring-only: recall, no rank
+  }
+  // Every token is a real word of the product's own name: strong signal.
+  if (allWholeInName) s += 30;
+  // Category intent: "wire" means the Wires & Cables aisle, hard.
+  for (const t of tokens) {
+    const wantCat = CATEGORY_INTENT[t];
+    if (wantCat && normalizeSearchText(wantCat) === catNorm) s += 40;
+  }
+  return s;
+}

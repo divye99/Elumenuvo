@@ -7,7 +7,7 @@ import { CATS, type Product } from "@/lib/data";
 import { groupVariants, familyKey } from "@/lib/variants";
 import { logSearch } from "@/lib/search-log";
 import { useSearchParams } from "next/navigation";
-import { searchTokens, matchesAll } from "@/lib/search-normalize";
+import { searchTokens, matchesAll, relevanceScore } from "@/lib/search-normalize";
 
 const CAT_ICONS: Record<string, string> = {
   All: "◈",
@@ -149,7 +149,15 @@ export default function CatalogueBrowser({
         const trend = (p: Product) =>
           (p.image ? 1 : 0.5) *
           (Math.min(searchBoost[p.id] ?? 0, 20) * 3 + Math.min(p.unitsSold ?? 0, 200) + (p.recommended ? 8 : 0));
-        const ranked = [...list].sort((a, b) => stockRank(a, b) || trend(b) - trend(a));
+        // With a query active, RELEVANCE leads and trend only breaks ties:
+        // "havells wire" must show wires before Wi-Fi sockets whose specs
+        // merely mention "wireless". Weak matches stay in (recall), but sink.
+        const rel = new Map<string, number>(
+          tokens.length ? list.map((p) => [p.id, relevanceScore({ name: p.name, brand: p.brand, cat: p.cat, spec: p.spec }, tokens)]) : []
+        );
+        const ranked = [...list].sort(
+          (a, b) => stockRank(a, b) || (rel.get(b.id) ?? 0) - (rel.get(a.id) ?? 0) || trend(b) - trend(a)
+        );
         const filtersActive = cat !== "All" || picked.size > 0 || tokens.length > 0;
         if (filtersActive) return ranked;
 

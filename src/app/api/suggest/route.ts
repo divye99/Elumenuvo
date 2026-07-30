@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { searchTokens, matchesAll, normalizeSearchText } from "@/lib/search-normalize";
+import { searchTokens, matchesAll, normalizeSearchText, CATEGORY_INTENT } from "@/lib/search-normalize";
 import { loadSearchSignals } from "@/lib/search-signals";
 import { rateLimited, requestIp } from "@/lib/rate-limit";
 
@@ -75,6 +75,9 @@ export async function GET(request: Request) {
     s += Math.min(signals.pickTotals[r.id] ?? 0, 25) * 2;
     if (n.startsWith(normQ)) s += 100;
     for (const w of words) if (new RegExp(`(^|[^\\p{L}\\p{N}])${w.replace(/[.+-]/g, "\\$&")}`, "iu").test(n)) s += 10;
+    // Category intent, same rule as the results page: "wire" means the
+    // Wires & Cables aisle, so the dropdown agrees with what search shows.
+    for (const t of tokens) if (CATEGORY_INTENT[t] === r.category) { s += 40; break; }
     if (r.is_recommended) s += 5;
     s += Math.min(Number(r.units_sold) || 0, 50) / 10;
     return s;
