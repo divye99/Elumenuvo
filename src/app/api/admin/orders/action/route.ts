@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin/auth";
 import { adminClient } from "@/lib/supabase/admin";
-import { sendAccountInvite, sendWelcomeOffer, sendCustomerStatusUpdate, sendReplacementEmail, sendRefundVoucherEmail } from "@/lib/email";
+import { sendAccountInvite, sendWelcomeOffer, sendCustomerStatusUpdate, sendReplacementEmail, sendRefundVoucherEmail, sendRefundReceiptEmail } from "@/lib/email";
 import { similarProducts } from "@/lib/admin/similar-products";
 import { refundPayment } from "@/lib/razorpay";
 import { baseExGst } from "@/lib/pricing";
@@ -200,6 +200,38 @@ export async function POST(request: Request) {
       const diff = Math.round((newTotal - Number(order.total ?? newTotal)) * 100) / 100;
       const sent = await sendReplacementEmail({ ...order, id: newId }, old.name, { name: np.name, qty: old.qty, price: Number(np.elume_price) }, "new-order", { newOrderId: newId, diff });
       res = { ok: true, ...(sent.ok ? {} : { error: `Order ${newId} created, but the email failed - check Resend logs.` }) };
+      break;
+    }
+    case "refund": {
+      // Order-level refund at an admin-chosen amount, with a branded receipt
+      // email carrying the Razorpay references. Full refunds cancel the order;
+      // partial refunds leave it in flight and just record the event.
+      const db = adminClient();
+      if (!db) return NextResponse.json({ ok: false, error: "Server not configured." }, { status: 500 });
+      const { data: order } = await db.from("orders").select("*").eq("id", String(body.orderId)).maybeSingle();
+      if (!order) return NextResponse.json({ ok: false, error: "Order not found." }, { status: 400 });
+      if (!order.razorpay_payment_id) return NextResponse.json({ ok: false, error: "No captured payment on file - refund manually in Razorpay first." }, { status: 400 });
+      const amount = Math.round(Number(body.amount) * 100) / 100;
+      const total = Number(order.total ?? 0);
+      if (!(amount > 0)) return NextResponse.json({ ok: false, error: "Enter a refund amount above zero." }, { status: 400 });
+      if (amount > total) return NextResponse.json({ ok: false, error: `Amount exceeds the order total (${total}).` }, { status: 400 });
+      const reason = String(body.reason ?? "").trim() || undefined;
+
+      const refund = await refundPayment(order.razorpay_payment_id, Math.round(amount * 100));
+      if (!refund.ok) return NextResponse.json({ ok: false, error: `Razorpay refused the refund: ${refund.error}` }, { status: 400 });
+
+      const partial = amount < total;
+      try {
+        await db.from("order_events").insert({
+          order_id: order.id, status: partial ? order.status : "cancelled",
+          note: `Refunded ${amount} via Razorpay (${refund.refundId})${reason ? ` - ${reason}` : ""}`,
+        });
+      } catch { /* optional */ }
+      if (!partial) {
+        await db.from("orders").update({ status: "cancelled", cancel_reason: reason ?? `Refunded in full (${refund.refundId})` }).eq("id", order.id);
+      }
+      const sent = await sendRefundReceiptEmail(order, { amount, refundId: refund.refundId ?? "", paymentId: order.razorpay_payment_id, reason, partial });
+      return NextResponse.json({ ok: true, refundId: refund.refundId, ...(sent.ok ? {} : { error: "Refunded, but the receipt email failed - check Resend logs." }) });
       break;
     }
     case "refund-item": {

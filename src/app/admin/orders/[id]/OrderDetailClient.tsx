@@ -22,6 +22,8 @@ async function callAdmin(payload: Record<string, unknown>): Promise<ActionResult
 }
 const updateOrderStatus = (orderId: string, status: OrderStatus, note?: string) => callAdmin({ op: "status", orderId, status, note });
 const cancelOrder = (orderId: string, reason: string) => callAdmin({ op: "cancel", orderId, reason });
+const issueRefund = (orderId: string, amount: number, reason: string): Promise<ActionResult & { refundId?: string }> =>
+  callAdmin({ op: "refund", orderId, amount, reason }) as Promise<ActionResult & { refundId?: string }>;
 const saveAdminNote = (orderId: string, note: string) => callAdmin({ op: "note", orderId, note });
 const addShipment = (input: { order_id: string; courier: string; awb: string; tracking_url?: string; items: { id: string; name: string; qty: number }[] }) => callAdmin({ op: "shipment", ...input });
 const markShipmentDelivered = (shipmentId: string, orderId: string, proofUrl?: string) => callAdmin({ op: "deliver", shipmentId, orderId, proofUrl });
@@ -231,6 +233,10 @@ export default function OrderDetailClient({ order, shipments, events, customer }
                 </p>
               </div>
             </Card>
+          )}
+
+          {order.status !== "cancelled" && (order as any).razorpay_payment_id && (
+            <RefundPanel order={order} run={run} pending={pending} />
           )}
 
           {!isClosed && anyRemaining && <ShipmentForm orderId={order.id} remaining={remaining} pending={pending} run={run} />}
@@ -450,5 +456,73 @@ function SwapPanel({ orderId, item, pending, run, onDone }: { orderId: string; i
         Keep the bill: the item swaps at the price already paid, so the total, the payment and the invoice amount never move (the GST split is recalculated if the replacement sits at a different rate). New PO: the original cancels and a fresh order bills the current price, so any difference is settled. Refund: money back via Razorpay plus a one-time 10% code emailed.
       </div>
     </div>
+  );
+}
+
+/** Order-level refund: admin picks the amount (prefilled with the full total)
+ *  and an optional reason; Razorpay processes it and the customer receives a
+ *  branded refund receipt carrying the rfnd_/pay_ references. Two-step
+ *  confirm because this moves real money. */
+function RefundPanel({ order, run, pending }: { order: OrderRow; run: (fn: () => Promise<{ ok: boolean; error?: string }>, okMsg?: string) => void; pending: boolean }) {
+  const total = Number(order.total ?? 0);
+  const [amount, setAmount] = useState(String(total));
+  const [reason, setReason] = useState("");
+  const [confirming, setConfirming] = useState(false);
+  const [doneMsg, setDoneMsg] = useState<string | null>(null);
+  const amt = Number(amount);
+  const valid = amt > 0 && amt <= total;
+  const partial = valid && amt < total;
+
+  return (
+    <Card title="Refund">
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+        <span style={{ fontSize: 12.5, color: "#56627A" }}>Amount</span>
+        <input
+          value={amount}
+          onChange={(e) => { setAmount(e.target.value.replace(/[^\d.]/g, "")); setConfirming(false); }}
+          inputMode="decimal"
+          style={{ width: 110, border: "1px solid #E0E4ED", borderRadius: 8, padding: "8px 10px", fontSize: 13, fontFamily: "var(--space-grotesk)", fontWeight: 700 }}
+        />
+        <span style={{ fontSize: 11.5, color: "#A0A7B5" }}>of {fmt(total)} paid</span>
+      </div>
+      <input
+        value={reason}
+        onChange={(e) => setReason(e.target.value)}
+        placeholder="Reason shown to the customer (optional)"
+        style={{ width: "100%", boxSizing: "border-box", marginTop: 8, border: "1px solid #E0E4ED", borderRadius: 8, padding: "8px 10px", fontSize: 12.5 }}
+      />
+      <div style={{ marginTop: 10 }}>
+        {!confirming ? (
+          <button
+            disabled={pending || !valid}
+            onClick={() => setConfirming(true)}
+            style={{ background: "#fff", border: "1.5px solid #E8C4B8", color: "#B43A16", fontWeight: 700, fontSize: 12.5, padding: "9px 14px", borderRadius: 9, cursor: "pointer", opacity: valid ? 1 : 0.5 }}
+          >
+            {valid ? (partial ? `Refund ${fmt(amt)} (partial)` : `Refund ${fmt(amt)} in full`) : "Enter a valid amount"}
+          </button>
+        ) : (
+          <span style={{ display: "inline-flex", gap: 8 }}>
+            <button
+              disabled={pending}
+              onClick={() => {
+                setConfirming(false);
+                run(async () => {
+                  const r = await issueRefund(order.id, amt, reason);
+                  if (r.ok) setDoneMsg(`Refunded ${fmt(amt)} - reference ${r.refundId ?? "created"}. Receipt emailed to ${order.email}.`);
+                  return r;
+                });
+              }}
+              style={{ background: "#B43A16", color: "#fff", fontWeight: 700, fontSize: 12.5, padding: "9px 14px", borderRadius: 9, border: "none", cursor: "pointer" }}
+            >
+              Confirm: send {fmt(amt)} back to the customer
+            </button>
+            <button onClick={() => setConfirming(false)} style={{ background: "none", border: "none", color: "#8A93A6", fontWeight: 700, fontSize: 12.5, cursor: "pointer" }}>Cancel</button>
+          </span>
+        )}
+      </div>
+      <p style={{ fontSize: 11.5, color: doneMsg ? "#1F9D63" : "#A0A7B5", margin: "10px 0 0" }}>
+        {doneMsg ?? "Money returns to the original payment method via Razorpay. The customer gets a receipt email with the refund reference. A full refund also cancels the order; a partial one leaves it in flight."}
+      </p>
+    </Card>
   );
 }

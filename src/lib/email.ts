@@ -268,6 +268,39 @@ export async function sendReplacementEmail(
   return send(order.email, `Order ${order.id} - item replaced as discussed`, html, { bcc: BCC_SELF });
 }
 
+/** Refund receipt: sent when the admin issues a Razorpay refund on an order.
+ *  Shows the money, the Razorpay reference the customer can quote to their
+ *  bank, and the honest timeline. */
+export async function sendRefundReceiptEmail(
+  order: OrderLike,
+  o: { amount: number; refundId: string; paymentId: string; reason?: string; partial: boolean }
+): Promise<EmailResult> {
+  const issued = new Date().toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "long", year: "numeric" });
+  const row = (k: string, v: string) =>
+    `<tr><td style="padding:7px 0;font-size:13px;color:#56627A">${k}</td><td style="padding:7px 0;font-size:13px;color:#19202E;font-weight:600;text-align:right">${v}</td></tr>`;
+  const html = shell(
+    o.partial ? "Refund issued on your order" : "Your order has been refunded",
+    `<p style="font-size:14px;color:#56627A;margin:0 0 14px">Hi ${escapeHtml(order.name || "there")}, we&apos;ve issued a refund on order <b>${order.id}</b>. It goes back to the payment method you paid with - no action needed from you.</p>
+     <div style="background:#F7F8FB;border:1px solid #E8EBF1;border-radius:12px;padding:6px 18px">
+       <table style="width:100%;border-collapse:collapse">
+         ${row("Order", String(order.id))}
+         ${row("Amount refunded", fmt(o.amount))}
+         ${row("Refund reference", `<span style=\"font-family:monospace\">${escapeHtml(o.refundId)}</span>`)}
+         ${row("Payment reference", `<span style=\"font-family:monospace\">${escapeHtml(o.paymentId)}</span>`)}
+         ${row("Issued on", issued)}
+       </table>
+     </div>
+     ${o.reason ? `<p style="font-size:13px;color:#56627A;margin:14px 0 0"><b>Why:</b> ${escapeHtml(o.reason)}</p>` : ""}
+     <p style="font-size:13px;color:#56627A;margin:14px 0 0">
+       Refunds typically reach your account in <b>5&#8211;7 working days</b> (UPI is often same-day; cards depend on your bank).
+       If it takes longer, quote the refund reference above to your bank - or just reply to this email and we&apos;ll chase it with Razorpay for you.
+     </p>
+     ${o.partial ? `<p style="font-size:12.5px;color:#8A93A6;margin:14px 0 0">This is a partial refund - the rest of your order is unaffected.</p>` : ""}
+     ${btn(trackUrl(order, "refund-receipt"), "View my order &#8594;")}`
+  );
+  return send(order.email, `Refund of ${fmt(o.amount)} issued &#183; order ${order.id}`, html, { bcc: BCC_SELF });
+}
+
 /** Item refunded (product unavailable, nothing comparable) + a 10% code. */
 export async function sendRefundVoucherEmail(
   order: OrderLike,
