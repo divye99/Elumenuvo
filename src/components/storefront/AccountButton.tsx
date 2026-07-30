@@ -79,7 +79,12 @@ export default function AccountButton({ user: initial = null }: { user?: Account
           style={{ display: "flex", alignItems: "center", gap: 9, background: "#4E5BDC", border: "none", borderRadius: 24, padding: "5px 16px 5px 5px", cursor: "pointer" }}
         >
           <Avatar text="👤" business={false} size={30} glyph />
-          <span style={{ fontSize: 13.5, fontWeight: 600, color: "#fff" }}>Sign in</span>
+          {/* Label hides on phones - the avatar circle IS the button there */}
+          <span className="acct-signin-label" style={{ fontSize: 13.5, fontWeight: 600, color: "#fff" }}>Sign in</span>
+          <style>{`@media (max-width: 640px) {
+            .acct-signin-label { display: none; }
+            .acct-btn { padding: 4px !important; gap: 0 !important; }
+          }`}</style>
         </button>
       )}
 
