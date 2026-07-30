@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { MENU_CATS, HOME_BRANDS } from "@/lib/data";
+import ForYouLink from "@/components/storefront/ForYouLink";
 import { slugify } from "@/lib/slug";
 
 /** Hamburger + LEFT slide-in drawer - a shopping-first menu (Amazon-style):
@@ -38,6 +39,9 @@ export default function MobileMenu() {
           <span style={{ fontFamily: "var(--space-grotesk)", fontWeight: 700, fontSize: 15 }}>Browse Elume</span>
           <button onClick={close} aria-label="Close" style={{ background: "none", border: "none", fontSize: 22, color: "#8A93A6", cursor: "pointer", lineHeight: 1 }}>×</button>
         </div>
+
+        {/* Signed-in customers get their personalized page first */}
+        <ForYouLink variant="drawer" onNavigate={close} />
 
         {/* Deals & trending */}
         <div className="drw-section">Top deals</div>

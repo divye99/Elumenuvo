@@ -13,7 +13,28 @@ export type LiveProject = {
   address_line1: string | null; address_line2: string | null; address_line3: string | null;
   city: string | null; district: string | null; state: string | null; pin: string | null;
 };
-export type LiveOrder = { id: string; total: number; status: string; created_at: string; items: number; lines: { name: string; qty: number }[] };
+export type LiveShipment = {
+  courier: string | null; awb: string | null; tracking_url: string | null;
+  status: string; items: { name: string; qty: number }[];
+  shipped_at: string | null; delivered_at: string | null; proof_url: string | null;
+};
+export type LiveEvent = { status: string; note: string | null; at: string };
+export type LiveOrder = {
+  id: string; total: number; status: string; created_at: string; items: number;
+  lines: { name: string; qty: number; price: number }[];
+  // Everything the customer needs to trust the order without calling us:
+  subtotal: number;               // taxable value (ex-GST)
+  discount: number;               // 0 when no code applied
+  discountCode: string | null;
+  gstin: string | null;
+  name: string | null; phone: string | null;
+  shipping_address: string | null;
+  payment_ref: string | null;     // Razorpay payment id
+  paid_at: string | null;
+  delivered_at: string | null;
+  events: LiveEvent[];            // full status timeline, oldest first
+  shipments: LiveShipment[];      // parcels with courier + AWB + proof
+};
 export type LiveWorkspace = {
   projects: LiveProject[];
   orders: LiveOrder[];
@@ -57,14 +78,54 @@ export async function getLiveWorkspace(userId: string, email: string | null): Pr
   const db = adminClient();
   if (db) {
     try {
-      let q = db.from("orders").select("id, total, status, created_at, items, user_id, email").in("status", REAL).order("created_at", { ascending: false }).limit(200);
+      let q = db.from("orders").select("*").in("status", REAL).order("created_at", { ascending: false }).limit(200);
       const { data } = await q;
       const mine = (data ?? []).filter((o: any) => o.user_id === userId || (email && o.email && o.email.toLowerCase() === email.toLowerCase()));
       orders = mine.map((o: any) => ({
         id: o.id, total: Number(o.total ?? 0), status: o.status, created_at: o.created_at,
         items: Array.isArray(o.items) ? o.items.length : 0,
-        lines: Array.isArray(o.items) ? o.items.slice(0, 12).map((i: any) => ({ name: String(i.name ?? i.id ?? "item"), qty: Number(i.qty ?? 1) })) : [],
+        lines: Array.isArray(o.items) ? o.items.slice(0, 20).map((i: any) => ({ name: String(i.name ?? i.id ?? "item"), qty: Number(i.qty ?? 1), price: Number(i.price ?? 0) })) : [],
+        subtotal: Number(o.subtotal ?? 0),
+        discount: Number(o.discount_amount ?? 0),
+        discountCode: o.discount_code ?? null,
+        gstin: o.gstin ?? null,
+        name: o.name ?? null, phone: o.phone ?? null,
+        shipping_address: o.shipping_address ?? null,
+        payment_ref: o.razorpay_payment_id ?? null,
+        paid_at: o.paid_at ?? null,
+        delivered_at: o.delivered_at ?? null,
+        events: [], shipments: [],
       }));
+
+      // Timeline + parcels for these orders, in two batched reads.
+      const ids = orders.map((o) => o.id);
+      if (ids.length) {
+        try {
+          const { data: evs } = await db.from("order_events").select("order_id, status, note, created_at").in("order_id", ids).order("created_at", { ascending: true }).limit(1000);
+          const byOrder = new Map<string, LiveEvent[]>();
+          for (const e of evs ?? []) {
+            const list = byOrder.get(e.order_id) ?? [];
+            list.push({ status: e.status, note: e.note ?? null, at: e.created_at });
+            byOrder.set(e.order_id, list);
+          }
+          for (const o of orders) o.events = byOrder.get(o.id) ?? [];
+        } catch { /* timeline table absent: dropdown still renders */ }
+        try {
+          const { data: shp } = await db.from("order_shipments").select("*").in("order_id", ids).order("created_at", { ascending: true }).limit(500);
+          const byOrder = new Map<string, LiveShipment[]>();
+          for (const s of shp ?? []) {
+            const list = byOrder.get(s.order_id) ?? [];
+            list.push({
+              courier: s.courier ?? null, awb: s.awb ?? null, tracking_url: s.tracking_url ?? null,
+              status: s.status ?? "packed",
+              items: Array.isArray(s.items) ? s.items.map((i: any) => ({ name: String(i.name ?? i.id ?? "item"), qty: Number(i.qty ?? 1) })) : [],
+              shipped_at: s.shipped_at ?? null, delivered_at: s.delivered_at ?? null, proof_url: s.proof_url ?? null,
+            });
+            byOrder.set(s.order_id, list);
+          }
+          for (const o of orders) o.shipments = byOrder.get(o.id) ?? [];
+        } catch { /* parcels table absent: dropdown still renders */ }
+      }
     } catch { /* keep zeros */ }
   }
 

@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { jsonLd as toJsonLd } from "@/lib/jsonld";
 import type { Metadata } from "next";
 import { getAllPosts } from "@/lib/blog";
-import { GROTESK, MONO } from "@/lib/fonts";
+import BlogBrowser from "./BlogBrowser";
+import { GROTESK } from "@/lib/fonts";
 
 const SITE = "https://elumenuvo.com";
 
@@ -44,18 +44,14 @@ export default function BlogIndex() {
         </p>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 18 }}>
-        {posts.map((p) => (
-          <Link key={p.slug} href={`/blog/${p.slug}`} style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: 22, display: "block" }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 11, fontWeight: 700, letterSpacing: "0.4px", textTransform: "uppercase", color: "#4E5BDC", background: "#EEF0FD", padding: "4px 10px", borderRadius: 20, marginBottom: 12 }}>{p.category}</div>
-            <h2 style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600, lineHeight: 1.25, margin: "0 0 8px" }}>{p.title}</h2>
-            <p style={{ fontSize: 14, color: "#56627A", lineHeight: 1.5, margin: 0 }}>{p.description}</p>
-            <div style={{ fontFamily: MONO, fontSize: 11.5, color: "#A0A7B5", marginTop: 14 }}>
-              {new Date(p.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} · {p.readMins} min read
-            </div>
-          </Link>
-        ))}
-      </div>
+      {/* Blog-only search + category filters + the card grid (client-side,
+          instant; full list ships in the HTML so SEO is unchanged) */}
+      <BlogBrowser
+        posts={posts.map((p) => ({
+          slug: p.slug, title: p.title, description: p.description,
+          category: p.category, date: p.date, readMins: p.readMins,
+        }))}
+      />
     </main>
   );
 }

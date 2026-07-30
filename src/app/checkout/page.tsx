@@ -28,6 +28,7 @@ async function savedEntries(email: string): Promise<SavedEntry[]> {
         contact_name: r.contact_name ?? "", phone: r.contact_phone ?? "",
         line1: r.address_line1 ?? "", line2: r.address_line2 ?? "", line3: r.address_line3 ?? "",
         city: r.city ?? "", district: r.district ?? "", state: r.state ?? "", pin: r.pin ?? "", country: "India",
+        usedShipping: true,
       });
     }
   } catch { /* pre-migration: no picker */ }
@@ -38,9 +39,10 @@ async function savedEntries(email: string): Promise<SavedEntry[]> {
       contact_name: a.contact_name, phone: a.phone,
       line1: a.line1, line2: a.line2, line3: a.line3,
       city: a.city, district: a.district, state: a.state, pin: a.pin, country: a.country,
+      usedBilling: a.usedBilling, usedShipping: a.usedShipping,
     });
   }
-  return entries.slice(0, 10);
+  return entries.slice(0, 14);
 }
 
 export default async function CheckoutPage() {

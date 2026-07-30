@@ -409,17 +409,7 @@ function LiveOrders({ live, onCatalogue }: { live: LiveWorkspace; onCatalogue: (
                   {o.status === "partially_shipped" && (
                     <div style={{ fontSize: 12, color: "#B4690E", fontWeight: 600, marginBottom: 10 }}>Part of this order has shipped; the rest is on its way.</div>
                   )}
-                  {o.lines.length > 0 && (
-                    <div style={{ background: "#fff", border: "1px solid #EEF0F4", borderRadius: 10, padding: "10px 14px", maxWidth: 640 }}>
-                      {o.lines.map((l, i) => (
-                        <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 12.5, color: "#2c3550", padding: "3px 0" }}>
-                          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.name}</span>
-                          <span style={{ color: "#8A93A6", flex: "none" }}>× {l.qty}</span>
-                        </div>
-                      ))}
-                      {o.items > o.lines.length && <div style={{ fontSize: 11.5, color: "#A0A7B5", paddingTop: 4 }}>+ {o.items - o.lines.length} more item{o.items - o.lines.length === 1 ? "" : "s"}</div>}
-                    </div>
-                  )}
+                  <OrderDetail o={o} labelOf={(s) => LABEL[s] ?? s.replace(/_/g, " ")} />
                 </div>
               </details>
             );
@@ -531,6 +521,133 @@ function AccountScreen({ user, section }: { user: { email: string; name?: string
 }
 
 /** Thin line icons for the mobile tab bar (currentColor, 22px). */
+/* ── ORDER DETAIL: the expanded view under each order - parcels with courier
+ *    and AWB, delivery address, full payment breakdown, item prices and the
+ *    real status timeline. The goal: a customer never has to email us to ask
+ *    "where is it / what did I pay / where is it going". ── */
+
+const dt = (x: string | null) =>
+  x ? new Date(x).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", hour12: true }) : "";
+
+function OrderDetail({ o, labelOf }: { o: LiveWorkspace["orders"][number]; labelOf: (s: string) => string }) {
+  const gstAmount = Math.max(0, Math.round((o.total - o.subtotal) * 100) / 100);
+  const card: React.CSSProperties = { background: "#fff", border: "1px solid #EEF0F4", borderRadius: 10, padding: "12px 14px" };
+  const h: React.CSSProperties = { fontSize: 11, fontWeight: 700, letterSpacing: "0.5px", textTransform: "uppercase", color: "#8A93A6", marginBottom: 8 };
+  const shipBadge: Record<string, [string, string]> = {
+    packed: ["#FFF3E0", "#C77700"], shipped: ["#E7F3EC", "#1F9D63"],
+    out_for_delivery: ["#E7F3EC", "#1F8F5B"], delivered: ["#E6F5EE", "#137a4b"],
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 760 }}>
+      {/* Parcels: courier + AWB + live link, per shipment */}
+      {o.shipments.length > 0 && (
+        <div style={card}>
+          <div style={h}>Shipment{o.shipments.length === 1 ? "" : "s"} · {o.shipments.length}</div>
+          {o.shipments.map((s, i) => {
+            const [bg, fg] = shipBadge[s.status] ?? ["#F5F6F9", "#56627A"];
+            return (
+              <div key={i} style={{ padding: "8px 0", borderTop: i > 0 ? "1px solid #F5F6F9" : "none" }}>
+                <div style={{ display: "flex", gap: 10, alignItems: "baseline", flexWrap: "wrap" }}>
+                  <b style={{ fontSize: 13 }}>{s.courier || `Parcel ${i + 1}`}</b>
+                  {s.awb && <span style={{ fontFamily: MONO, fontSize: 12, color: "#56627A" }}>AWB {s.awb}</span>}
+                  <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 6, background: bg, color: fg }}>{labelOf(s.status)}</span>
+                  {s.tracking_url && (
+                    <a href={s.tracking_url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#4E5BDC", fontWeight: 700 }}>Track with courier →</a>
+                  )}
+                </div>
+                <div style={{ fontSize: 11.5, color: "#8A93A6", marginTop: 3 }}>
+                  {[s.shipped_at && `shipped ${dt(s.shipped_at)}`, s.delivered_at && `delivered ${dt(s.delivered_at)}`].filter(Boolean).join(" · ")}
+                  {s.items.length > 0 && <> · {s.items.map((it) => `${it.name} × ${it.qty}`).join(", ")}</>}
+                </div>
+                {s.proof_url && (
+                  <a href={s.proof_url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#1F9D63", fontWeight: 600 }}>View delivery photo →</a>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Delivery + payment, side by side on desktop */}
+      <div className="ws-odgrid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, alignItems: "stretch" }}>
+        <div style={card}>
+          <div style={h}>Delivering to</div>
+          {(o.name || o.phone) && (
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#19202E", marginBottom: 3 }}>
+              {[o.name, o.phone].filter(Boolean).join(" · ")}
+            </div>
+          )}
+          <div style={{ fontSize: 12.5, color: "#56627A", lineHeight: 1.55 }}>{o.shipping_address || "Address on the order record."}</div>
+        </div>
+        <div style={card}>
+          <div style={h}>Payment</div>
+          <div style={{ fontSize: 12.5, color: "#2c3550" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0" }}><span style={{ color: "#8A93A6" }}>Subtotal (excl. GST)</span><span>{fmt(o.subtotal)}</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0" }}><span style={{ color: "#8A93A6" }}>GST</span><span>{fmt(gstAmount)}</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0" }}><span style={{ color: "#8A93A6" }}>Delivery</span><span style={{ color: "#1F9D63", fontWeight: 600 }}>Free</span></div>
+            {o.discount > 0 && (
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0" }}>
+                <span style={{ color: "#8A93A6" }}>Discount{o.discountCode ? ` (${o.discountCode})` : ""}</span>
+                <span style={{ color: "#1F9D63", fontWeight: 600 }}>− {fmt(o.discount)}</span>
+              </div>
+            )}
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0 2px", borderTop: "1px solid #F0F2F6", marginTop: 4 }}>
+              <span style={{ fontWeight: 700 }}>Paid</span><span style={{ fontFamily: GROTESK, fontWeight: 700 }}>{fmt(o.total)}</span>
+            </div>
+          </div>
+          <div style={{ fontSize: 11.5, color: "#8A93A6", marginTop: 7, lineHeight: 1.6 }}>
+            Paid online via Razorpay{o.paid_at ? ` · ${dt(o.paid_at)}` : ""}
+            {o.payment_ref && <><br />Ref <span style={{ fontFamily: MONO }}>{o.payment_ref}</span></>}
+            {o.gstin && <><br />GST invoice to <span style={{ fontFamily: MONO }}>{o.gstin}</span></>}
+          </div>
+        </div>
+      </div>
+
+      {/* Items with prices */}
+      {o.lines.length > 0 && (
+        <div style={card}>
+          <div style={h}>Items · {o.items}</div>
+          {o.lines.map((l, i) => (
+            <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 12.5, color: "#2c3550", padding: "3px 0" }}>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.name}</span>
+              <span style={{ color: "#8A93A6", flex: "none" }}>
+                {l.price > 0 ? <>{fmt(l.price)} × {l.qty} = <b style={{ color: "#2c3550" }}>{fmt(Math.round(l.price * l.qty * 100) / 100)}</b></> : <>× {l.qty}</>}
+              </span>
+            </div>
+          ))}
+          {o.items > o.lines.length && <div style={{ fontSize: 11.5, color: "#A0A7B5", paddingTop: 4 }}>+ {o.items - o.lines.length} more item{o.items - o.lines.length === 1 ? "" : "s"}</div>}
+        </div>
+      )}
+
+      {/* The real status history, stamped */}
+      {o.events.length > 0 && (
+        <div style={card}>
+          <div style={h}>History</div>
+          {[...o.events].reverse().map((e, i) => (
+            <div key={i} style={{ display: "flex", gap: 10, padding: "4px 0", alignItems: "flex-start" }}>
+              <span style={{ marginTop: 5, width: 8, height: 8, flex: "none", borderRadius: "50%", background: i === 0 ? "#1F9D63" : "#D6DBE6" }} />
+              <div style={{ minWidth: 0 }}>
+                <span style={{ fontSize: 12.5, fontWeight: i === 0 ? 700 : 600, color: i === 0 ? "#137a4b" : "#2c3550" }}>{labelOf(e.status)}</span>
+                {e.note && e.note !== labelOf(e.status) && <span style={{ fontSize: 12, color: "#8A93A6" }}> · {e.note}</span>}
+                <span style={{ fontSize: 11.5, color: "#A0A7B5" }}> · {dt(e.at)}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Help, right where the question arises */}
+      <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap", fontSize: 12 }}>
+        <a href={`/track?order=${encodeURIComponent(o.id)}`} style={{ color: "#4E5BDC", fontWeight: 700 }}>Open the tracking page →</a>
+        <a href="/contact" style={{ color: "#56627A", fontWeight: 600 }}>Need help with this order? Contact us</a>
+      </div>
+
+      <style>{`@media (max-width: 700px){ .ws-odgrid { grid-template-columns: 1fr !important; } }`}</style>
+    </div>
+  );
+}
+
 /* ── PROJECTS: each site with its full delivery setup. A project created here
  *    (contact person + address) becomes a one-tap choice at checkout, so
  *    nobody types a site address twice. ── */

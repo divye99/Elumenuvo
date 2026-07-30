@@ -27,6 +27,8 @@ export type SavedEntry = {
   phone: string; // E.164 or ""
   line1: string; line2: string; line3: string;
   city: string; district: string; state: string; pin: string; country: string;
+  usedBilling?: boolean;  // has been a billing address before
+  usedShipping?: boolean; // has received a delivery before (projects always count)
 };
 
 /** Split an E.164 number back into (iso, national digits) for the phone field. */
@@ -91,17 +93,39 @@ export default function CheckoutClient({ prefill, onlineEnabled, saved = [] }: {
   const setAddr = (which: "billing" | "shipping", k: keyof Address, v: string) =>
     setF((p) => ({ ...p, [which]: { ...p[which], [k]: v } }));
 
-  // Saved sites & addresses: selecting one fills contact + billing address in
-  // one tap (everything stays editable - it is a starting point, not a lock).
+  // Saved sites & addresses. The top picker drives the DELIVERY: with
+  // "shipping same as billing" ticked it fills billing (billing IS the
+  // delivery address then); unticked, it fills the shipping block and leaves
+  // billing alone - so a developer bills the office and ships to the site.
+  // Everything stays editable: a pick is a starting point, not a lock.
   const [savedSel, setSavedSel] = useState<string>("");
   const applySaved = (e: SavedEntry) => {
     setSavedSel(e.id);
     const ph = splitE164(e.phone);
     if (ph) setIso(ph.iso);
+    const addr: Address = {
+      line1: e.line1, line2: e.line2, line3: e.line3,
+      city: e.city, district: e.district, state: e.state, pin: e.pin,
+      country: e.country || "India",
+    };
     setF((p) => ({
       ...p,
       name: e.contact_name || p.name,
       phone: ph?.national ?? p.phone,
+      ...(p.sameAsBilling ? { billing: addr } : { shipping: addr }),
+    }));
+  };
+
+  // The delivery picker offers projects + addresses that have received a
+  // delivery; billing-only addresses (the office) live on the billing chips.
+  const deliverySaved = saved.filter((e) => e.kind === "project" || e.usedShipping !== false);
+  // Billing chips: addresses that have actually been billed to before.
+  const billingSaved = saved.filter((e) => e.kind === "address" && e.usedBilling);
+  const [billSel, setBillSel] = useState<string>("");
+  const applyBilling = (e: SavedEntry) => {
+    setBillSel(e.id);
+    setF((p) => ({
+      ...p,
       billing: {
         line1: e.line1, line2: e.line2, line3: e.line3,
         city: e.city, district: e.district, state: e.state, pin: e.pin,
@@ -124,9 +148,12 @@ export default function CheckoutClient({ prefill, onlineEnabled, saved = [] }: {
     payment_method: "online", // pay-on-delivery is retired; Razorpay only
     items: items.map((i) => ({ id: i.id, name: i.name, qty: i.qty, price: i.price, cat: i.cat })),
     discount_code: codeState.status === "ok" ? code.trim().toUpperCase() : undefined,
-    // Structured delivery address rides along so it can be auto-saved for
-    // one-tap reuse once the order is PAID.
-    address_details: { shipping: { ...(f.sameAsBilling ? f.billing : f.shipping) } },
+    // Structured billing + shipping ride along so each can be auto-saved
+    // separately (flagged by use) once the order is PAID.
+    address_details: {
+      billing: { ...f.billing },
+      shipping: { ...(f.sameAsBilling ? f.billing : f.shipping) },
+    },
   });
 
   const applyCode = async () => {
@@ -222,10 +249,10 @@ export default function CheckoutClient({ prefill, onlineEnabled, saved = [] }: {
           {/* Saved sites & addresses: repeat buyers pick instead of retyping.
               Projects come from the workspace; addresses save themselves from
               past paid orders. */}
-          {saved.length > 0 && (
+          {deliverySaved.length > 0 && (
             <Section title="Deliver to a saved site or address">
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {saved.map((e) => {
+                {deliverySaved.map((e) => {
                   const on = savedSel === e.id;
                   return (
                     <div
@@ -298,7 +325,22 @@ export default function CheckoutClient({ prefill, onlineEnabled, saved = [] }: {
 
           {/* Addresses */}
           <Section title="Billing address">
-            <AddressFields a={f.billing} onChange={(k, v) => setAddr("billing", k, v)} />
+            {/* Addresses this account has billed to before - one tap fills
+                just the billing block (delivery stays whatever was picked). */}
+            {billingSaved.length > 0 && (
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {billingSaved.map((e) => {
+                  const on = billSel === e.id;
+                  return (
+                    <span key={e.id} onClick={() => applyBilling(e)} title={e.sub}
+                      style={{ fontSize: 12, fontWeight: 600, color: on ? "#fff" : "#3A4358", background: on ? "#4E5BDC" : "#F0F2F6", border: `1px solid ${on ? "#4E5BDC" : "#E0E4ED"}`, borderRadius: 8, padding: "6px 11px", cursor: "pointer", maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      🧾 {e.label}{e.city ? `, ${e.city}` : ""}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+            <AddressFields a={f.billing} onChange={(k, v) => { setBillSel(""); setAddr("billing", k, v); }} />
             <label style={ck}><input type="checkbox" checked={f.sameAsBilling} onChange={(e) => set("sameAsBilling", e.target.checked)} /> Shipping address same as billing</label>
           </Section>
           {!f.sameAsBilling && (

@@ -34,9 +34,11 @@ export type PlaceOrderInput = {
   payment_method: string; // 'cod' | 'online'
   items: CheckoutItem[];
   discount_code?: string;
-  // Structured delivery address: what saved_addresses is built from once the
-  // order is paid (the composed strings above cannot repopulate a form).
-  address_details?: { shipping: StructuredOrderAddress };
+  // Structured addresses: what saved_addresses is built from once the order
+  // is paid (the composed strings above cannot repopulate a form). Billing
+  // and shipping are kept separate - developers bill to the office and ship
+  // to sites, and each list feeds its own checkout picker.
+  address_details?: { billing?: StructuredOrderAddress; shipping: StructuredOrderAddress };
 };
 export type PlaceOrderResult =
   | { ok: true; orderId: string; total: number }

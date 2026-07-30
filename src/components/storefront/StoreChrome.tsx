@@ -6,6 +6,7 @@ import CatalogueMegaMenu from "@/components/storefront/CatalogueMegaMenu";
 import ScrollTopButton from "@/components/storefront/ScrollTopButton";
 import CartButton from "@/components/storefront/CartButton";
 import AccountButton from "@/components/storefront/AccountButton";
+import ForYouLink from "@/components/storefront/ForYouLink";
 import MobileMenu from "@/components/storefront/MobileMenu";
 import HeaderScrollFx from "@/components/storefront/HeaderScrollFx";
 import { CartProvider } from "@/lib/cart";
@@ -58,6 +59,7 @@ export default function StoreChrome({ children }: { children: React.ReactNode })
 
           <nav className="hdr-actions">
             <CatalogueMegaMenu />
+            <ForYouLink variant="nav" />
             <Link href="/blog" className="hdr-navlink" style={{ fontSize: 14, fontWeight: 500, color: "#56627A" }}>
               Blog
             </Link>
