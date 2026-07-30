@@ -9,7 +9,7 @@ import { slugify } from "@/lib/slug";
 const HAVE = new Set([
   "havells", "kei", "rr-kabel", "finolex", "anchor", "atomberg", "crompton",
   "orient", "usha", "legrand", "schneider", "abb", "apar", "philips",
-  "syska", "wipro", "cmi", "elume",
+  "syska", "wipro", "cmi", "elume", "polycab", "norisys",
 ]);
 
 export function brandLogo(brand: string): string | null {
