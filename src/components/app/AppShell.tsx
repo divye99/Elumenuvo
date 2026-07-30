@@ -20,8 +20,9 @@ import { WHOLESALE_MIN_QTY } from "@/lib/pricing";
 
 type Screen = "portfolio" | "confirm" | "account";
 
-const NAV: { key: Screen | "catalogue" | "cart"; label: string }[] = [
+const NAV: { key: Screen | "catalogue" | "cart" | "foryou"; label: string }[] = [
   { key: "portfolio", label: "Overview" },
+  { key: "foryou", label: "For you" },
   { key: "catalogue", label: "Catalogue" },
   { key: "cart", label: "Cart" },
   { key: "confirm", label: "Orders" },
@@ -63,6 +64,7 @@ export default function AppShell({ user, live }: { user?: { email: string; name?
   const nav = (s: (typeof NAV)[number]["key"]) => {
     if (s === "catalogue") { router.push("/catalogue"); return; }
     if (s === "cart") { router.push("/cart"); return; }
+    if (s === "foryou") { router.push("/for-you"); return; }
     setScreen(s);
     if (contentRef.current) contentRef.current.scrollTop = 0;
   };
@@ -327,6 +329,7 @@ function LivePortfolio({ live, onCatalogue }: { live: LiveWorkspace; onCatalogue
 }
 
 function LiveOrders({ live, onCatalogue }: { live: LiveWorkspace; onCatalogue: () => void }) {
+  const router = useRouter();
   // The fulfilment journey; an order's status maps to a position on it.
   const JOURNEY = ["placed", "confirmed", "packed", "shipped", "out_for_delivery", "delivered"];
   const LABEL: Record<string, string> = {
@@ -416,6 +419,14 @@ function LiveOrders({ live, onCatalogue }: { live: LiveWorkspace; onCatalogue: (
             );
           })
         )}
+      </div>
+    
+      {/* Start a fresh order from the personalized catalogue */}
+      <div
+        onClick={() => router.push("/for-you")}
+        style={{ marginTop: 14, background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13.5, padding: "13px 18px", borderRadius: 11, cursor: "pointer", textAlign: "center" }}
+      >
+        + Create new order · your personalized catalogue
       </div>
     </div>
   );
