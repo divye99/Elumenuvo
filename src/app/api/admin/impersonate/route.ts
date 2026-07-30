@@ -33,15 +33,18 @@ export async function POST(request: Request) {
   const email = (body.email ?? "").trim().toLowerCase();
   if (!email) return NextResponse.json({ ok: false, error: "Email required." }, { status: 400 });
 
-  const { data, error } = await db.auth.admin.generateLink({
-    type: "magiclink",
-    email,
-    options: { redirectTo: `${SITE}/app` },
-  });
-  if (error || !data?.properties?.action_link) {
+  const { data, error } = await db.auth.admin.generateLink({ type: "magiclink", email });
+  if (error || !data?.properties?.hashed_token) {
     return NextResponse.json({ ok: false, error: error?.message ?? "Could not create a link (does this user exist?)." }, { status: 400 });
   }
 
+  // Build the link against OUR /auth/confirm endpoint rather than using
+  // Supabase's hosted action_link: the hosted verify redirect silently falls
+  // back to the Site URL when redirect_to is not allow-listed (which is
+  // exactly "it just showed me the homepage"), while /auth/confirm verifies
+  // the token server-side on our domain and writes the session cookies itself.
+  const link = `${SITE}/auth/confirm?token_hash=${encodeURIComponent(data.properties.hashed_token)}&type=magiclink&next=${encodeURIComponent("/app")}`;
+
   console.log(`[impersonate] admin opened a sign-in link for ${email} at ${new Date().toISOString()}`);
-  return NextResponse.json({ ok: true, link: data.properties.action_link });
+  return NextResponse.json({ ok: true, link });
 }
