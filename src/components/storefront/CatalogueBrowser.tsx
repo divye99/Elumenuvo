@@ -32,7 +32,7 @@ const SORTS: { key: Sort; label: string }[] = [
 ];
 const isSort = (s: string): s is Sort => SORTS.some((x) => x.key === s);
 
-/** Public catalogue browser — one sticky command bar (search · category pills ·
+/** Public catalogue browser - one sticky command bar (search · category pills ·
  *  brand + sort popovers) over the product grid. Initial search/category arrive
  *  via URL params so the home page can deep-link. */
 export default function CatalogueBrowser({
@@ -451,7 +451,7 @@ export default function CatalogueBrowser({
       {/* Click-away layer for popovers */}
       {open && <div onClick={() => setOpen(null)} style={{ position: "fixed", inset: 0, zIndex: 20 }} />}
 
-      {/* Mobile filter bottom sheet — one list with sort, category and brand */}
+      {/* Mobile filter bottom sheet - one list with sort, category and brand */}
       {sheet && (
         <>
           <div className="cat-sheet-overlay" onClick={() => setSheet(false)} />

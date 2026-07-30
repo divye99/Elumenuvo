@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   // now streams behind a loading skeleton. (The skeleton is exactly the
   // mechanism that caused the old soft-404 bug - this line is the guard.)
   if (!p) notFound();
-  const title = `${p.name} — ${p.brand}`;
+  const title = `${p.name} - ${p.brand}`;
   const description = productDescription(p);
   const url = `${SITE}/catalogue/${p.id}`;
   return {

@@ -33,7 +33,7 @@ export default function SignIn() {
       console.error("Magic-link request failed:", err);
       setStatus("idle");
       setError(
-        "Couldn't send the link — please try again, or email info@elumenuvo.com.",
+        "Couldn't send the link - please try again, or email info@elumenuvo.com.",
       );
     }
   }
@@ -46,7 +46,7 @@ export default function SignIn() {
         </div>
         <p className="text-lg font-semibold text-white">Check your email</p>
         <p className="mt-2 text-sm text-white/60">
-          We sent you a secure sign-in link. It expires shortly — open it on
+          We sent you a secure sign-in link. It expires shortly - open it on
           this device.
         </p>
       </div>

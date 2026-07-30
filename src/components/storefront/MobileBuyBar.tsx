@@ -6,7 +6,7 @@ import { fmt } from "@/lib/format";
 import { baseExGst } from "@/lib/pricing";
 import { useScrollDown } from "@/lib/useScrollDown";
 
-/** Mobile-only sticky bar pinned to the bottom of the product page — price +
+/** Mobile-only sticky bar pinned to the bottom of the product page - price +
  *  a sleek “Add to basket”. Hides while scrolling down, returns on scroll up.
  *  Hidden entirely on desktop via CSS (.pd-buybar). */
 export default function MobileBuyBar({

@@ -1,5 +1,5 @@
 /**
- * Business identity — one source of truth for the footer, the About / Contact /
+ * Business identity - one source of truth for the footer, the About / Contact /
  * Shipping / Returns pages and the Organization structured data.
  *
  * Google's Merchant Center "Misrepresentation" check looks for a real,
@@ -47,7 +47,7 @@ export const COMPANY = {
   } as Office,
   /** Corporate Identity Number from the certificate of incorporation. */
   cin: "U27320UP2026PTC243960",
-  /** GST registration number — add once available. */
+  /** GST registration number - add once available. */
   gstin: "",
   country: "India",
 } as const;
@@ -74,7 +74,7 @@ export function postalAddressOf(o: Office) {
   };
 }
 
-/** The registered office in schema.org form — the address Google looks for. */
+/** The registered office in schema.org form - the address Google looks for. */
 export function postalAddress() {
   return postalAddressOf(COMPANY.registeredOffice);
 }

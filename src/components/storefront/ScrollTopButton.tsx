@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-/** Floating bottom-right "back to top" button — appears after scrolling a
+/** Floating bottom-right "back to top" button - appears after scrolling a
  *  couple of screens, smooth-scrolls home. */
 export default function ScrollTopButton() {
   const [show, setShow] = useState(false);

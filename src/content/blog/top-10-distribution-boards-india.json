@@ -1,13 +1,13 @@
 {
   "slug": "top-10-distribution-boards-india",
   "title": "Top 10 Distribution Boards & Panels in India (2026)",
-  "description": "The 10 best distribution boards & panels in India for 2026 — SPN, TPN, 4 to 16-way, IP43, single & double door DBs from Havells, Legrand, Schneider & more.",
+  "description": "The 10 best distribution boards & panels in India for 2026 - SPN, TPN, 4 to 16-way, IP43, single & double door DBs from Havells, Legrand, Schneider & more.",
   "category": "DB & Panels",
   "date": "2026-06-27",
   "author": "Elume Editorial",
   "readMins": 7,
   "intro": [
-    "A distribution board is the heart of any electrical installation — it splits the incoming supply into final circuits and houses the MCBs, RCCBs and isolators that protect them. Get the DB wrong and you are looking at nuisance tripping, poor earthing, busbar heating and a board that runs out of ways the day after the electrician leaves. For Indian homes, shops, offices and light industry in 2026, picking the right enclosure, way count and busbar quality matters as much as the brand on the door.",
+    "A distribution board is the heart of any electrical installation - it splits the incoming supply into final circuits and houses the MCBs, RCCBs and isolators that protect them. Get the DB wrong and you are looking at nuisance tripping, poor earthing, busbar heating and a board that runs out of ways the day after the electrician leaves. For Indian homes, shops, offices and light industry in 2026, picking the right enclosure, way count and busbar quality matters as much as the brand on the door.",
     "Before you shortlist, fix five things: SPN (single phase + neutral) for homes and small shops versus TPN (three phase + neutral) for larger loads and three-phase supply; the number of ways (4, 6, 8, 12 or 16) with at least 25% spare; the IP rating (IP43 is the practical indoor standard against dust and dripping water); single versus double door for safety and finish; and the busbar and DIN-rail quality that decide how cool and reliable the board stays."
   ],
   "items": [
@@ -31,7 +31,7 @@
       "rank": 3,
       "name": "Lexic & Ekinoxe Distribution Boards",
       "brand": "Legrand",
-      "body": "Legrand brings European build quality to the Indian DB market. The Lexic and Ekinoxe ranges offer SPN and TPN boards in single and double door, with high-grade tinned busbars and excellent DIN-rail rigidity that keeps modules aligned. Fit and finish is a cut above — flush doors, smooth powder coating and IP43 sealing make them a favourite for premium apartments, hotels and corporate fit-outs. Way counts span 4 to 16 and the boards pair naturally with Legrand's MCB, RCCB and RCBO modules. Choose Legrand when the panel is on show or the spec demands a recognised international name.",
+      "body": "Legrand brings European build quality to the Indian DB market. The Lexic and Ekinoxe ranges offer SPN and TPN boards in single and double door, with high-grade tinned busbars and excellent DIN-rail rigidity that keeps modules aligned. Fit and finish is a cut above - flush doors, smooth powder coating and IP43 sealing make them a favourite for premium apartments, hotels and corporate fit-outs. Way counts span 4 to 16 and the boards pair naturally with Legrand's MCB, RCCB and RCBO modules. Choose Legrand when the panel is on show or the spec demands a recognised international name.",
       "bestFor": "Premium & corporate fit-outs",
       "productId": "leg-db-12spn"
     },
@@ -47,7 +47,7 @@
       "rank": 5,
       "name": "System pro M compact Distribution Boards",
       "brand": "ABB",
-      "body": "ABB's System pro M compact range is a go-to for projects that value safety certification and modular flexibility. The enclosures are robust metal with IP43 indoor protection, and the busbar arrangement is designed for low temperature rise even at high MCB counts. SPN and TPN versions run from 4 to 16-way in single and double door. ABB's strength is its breaker ecosystem — pairing the DB with ABB MCBs, RCCBs and isolators gives you fully coordinated, tested short-circuit performance. It is a strong specification choice for offices, healthcare and any installation where documented protection coordination matters.",
+      "body": "ABB's System pro M compact range is a go-to for projects that value safety certification and modular flexibility. The enclosures are robust metal with IP43 indoor protection, and the busbar arrangement is designed for low temperature rise even at high MCB counts. SPN and TPN versions run from 4 to 16-way in single and double door. ABB's strength is its breaker ecosystem - pairing the DB with ABB MCBs, RCCBs and isolators gives you fully coordinated, tested short-circuit performance. It is a strong specification choice for offices, healthcare and any installation where documented protection coordination matters.",
       "bestFor": "Certified, coordinated panels",
       "productId": null
     },
@@ -93,7 +93,7 @@
     }
   ],
   "buyingTips": [
-    "Size for the future, not just today: count your final circuits, then add at least 25-30% spare ways. A 6-way board that is full on day one has no room for an extra AC, geyser or RCBO later — step up to 8 or 12-way.",
+    "Size for the future, not just today: count your final circuits, then add at least 25-30% spare ways. A 6-way board that is full on day one has no room for an extra AC, geyser or RCBO later - step up to 8 or 12-way.",
     "Match the board to the supply: use SPN (single phase + neutral) for homes and small shops on single-phase supply, and TPN (three phase + neutral) wherever the incomer is three-phase or the connected load is heavy. Never force a three-phase load onto an SPN board.",
     "Inspect the busbar and DIN rail before you buy: tinned copper or an insulated comb busbar runs cooler and lasts longer than thin loop wiring, and a rigid DIN rail keeps MCBs aligned so they click in square and stay tight. These details decide how the board ages.",
     "Insist on IP43 and double door for safety and finish: IP43 keeps dust and dripping water out in normal indoor positions, while a double door shrouds live parts and hides wiring for a clean, tamper-resistant panel. Confirm the DB is compatible with your chosen incomer MCB, RCCB or isolator."
@@ -101,15 +101,15 @@
   "faq": [
     {
       "q": "What is the difference between an SPN and a TPN distribution board?",
-      "a": "SPN (Single Phase + Neutral) boards are for single-phase supplies — typical homes, small shops and offices. TPN (Three Phase + Neutral) boards distribute a three-phase supply across phases and are used for larger homes, commercial premises and light industry. Match the board to your incoming supply; do not run heavy three-phase loads through an SPN board."
+      "a": "SPN (Single Phase + Neutral) boards are for single-phase supplies - typical homes, small shops and offices. TPN (Three Phase + Neutral) boards distribute a three-phase supply across phases and are used for larger homes, commercial premises and light industry. Match the board to your incoming supply; do not run heavy three-phase loads through an SPN board."
     },
     {
       "q": "How many ways should my distribution board have?",
-      "a": "Count your final circuits — lights, sockets, AC, geyser, kitchen, pump — then add 25-30% spare. A small flat may suit a 6 or 8-way SPN board, while a larger home or office often needs 12 or 16-way. Spare ways let you add circuits later without replacing the whole board."
+      "a": "Count your final circuits - lights, sockets, AC, geyser, kitchen, pump - then add 25-30% spare. A small flat may suit a 6 or 8-way SPN board, while a larger home or office often needs 12 or 16-way. Spare ways let you add circuits later without replacing the whole board."
     },
     {
       "q": "What does IP43 mean on a distribution board?",
-      "a": "IP43 is an ingress-protection rating. The 4 means the enclosure resists solid objects above 1mm (tools, wires, most dust), and the 3 means it resists water sprayed at up to 60 degrees from vertical — effectively dripping or light splashing. IP43 is the practical standard for indoor DBs in normal Indian home and office positions."
+      "a": "IP43 is an ingress-protection rating. The 4 means the enclosure resists solid objects above 1mm (tools, wires, most dust), and the 3 means it resists water sprayed at up to 60 degrees from vertical - effectively dripping or light splashing. IP43 is the practical standard for indoor DBs in normal Indian home and office positions."
     },
     {
       "q": "Should I choose a single door or double door DB?",
@@ -117,7 +117,7 @@
     },
     {
       "q": "Does the DB brand need to match the MCB and RCCB brand?",
-      "a": "It is strongly advised. DBs, busbars and DIN rails are designed around a brand's module dimensions and incomer compatibility, so using matching MCBs, RCCBs and isolators ensures correct fit, tested short-circuit coordination and warranty validity. Mixing brands can cause poor seating, busbar mismatch and voided guarantees — keep the panel single-brand where possible."
+      "a": "It is strongly advised. DBs, busbars and DIN rails are designed around a brand's module dimensions and incomer compatibility, so using matching MCBs, RCCBs and isolators ensures correct fit, tested short-circuit coordination and warranty validity. Mixing brands can cause poor seating, busbar mismatch and voided guarantees - keep the panel single-brand where possible."
     }
   ]
 }

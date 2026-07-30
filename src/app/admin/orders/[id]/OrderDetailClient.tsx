@@ -62,7 +62,7 @@ export default function OrderDetailClient({ order, shipments, events, customer }
         if (!res.ok) setErr(res.error || "Something went wrong.");
         else router.refresh(); // route-handler mutations don't auto-refresh like server actions did
       } catch {
-        setErr("Network hiccup — check your connection and try again.");
+        setErr("Network hiccup - check your connection and try again.");
       }
     });
 
@@ -133,7 +133,7 @@ export default function OrderDetailClient({ order, shipments, events, customer }
             )}
             <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid #F0F2F6", marginTop: 8, paddingTop: 10, fontWeight: 700 }}>
               <span>Total <span style={{ fontSize: 11, color: "#8A93A6", fontWeight: 500 }}>incl. GST</span></span>
-              <span style={{ fontFamily: "var(--space-grotesk)" }}>{order.total != null ? fmt(order.total) : "—"}</span>
+              <span style={{ fontFamily: "var(--space-grotesk)" }}>{order.total != null ? fmt(order.total) : "-"}</span>
             </div>
           </Card>
 
@@ -143,7 +143,7 @@ export default function OrderDetailClient({ order, shipments, events, customer }
               {order.phone && <div style={{ fontSize: 13, color: "#3A4358", marginTop: 6 }}>📞 {order.phone}</div>}
             </Card>
             <Card title="Bill to / contact">
-              <div style={{ fontSize: 13, color: "#3A4358" }}>{order.name || "—"}</div>
+              <div style={{ fontSize: 13, color: "#3A4358" }}>{order.name || "-"}</div>
               <div style={{ fontSize: 12.5, color: "#8A93A6", margin: "2px 0 6px" }}>{order.email}</div>
               <Addr text={order.billing_address} />
               {order.gstin && <div style={{ fontSize: 12.5, marginTop: 8, fontFamily: "var(--space-mono)", background: "#F3F5F9", padding: "5px 8px", borderRadius: 7 }}>GSTIN {order.gstin}</div>}
@@ -216,7 +216,7 @@ export default function OrderDetailClient({ order, shipments, events, customer }
                       onClick={() => {
                         setInviteMsg(null);
                         fn().then((r) => setInviteMsg(r.ok ? `${okMsg} to ${order.email}.` : r.error || "Failed."))
-                          .catch(() => setInviteMsg("Network hiccup — try again."));
+                          .catch(() => setInviteMsg("Network hiccup - try again."));
                       }}
                       style={{ background: "#fff", border: "1.5px solid #4E5BDC", color: "#4E5BDC", fontWeight: 700, fontSize: 12.5, padding: "9px 14px", borderRadius: 9, cursor: "pointer" }}
                     >
@@ -367,7 +367,7 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
   );
 }
 function Addr({ text }: { text: string | null }) {
-  return <div style={{ fontSize: 13, color: "#3A4358", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{text || "—"}</div>;
+  return <div style={{ fontSize: 13, color: "#3A4358", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{text || "-"}</div>;
 }
 
 /** Which status buttons to show next, given the current one. */

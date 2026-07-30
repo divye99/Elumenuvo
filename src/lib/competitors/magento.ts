@@ -38,7 +38,7 @@ function itemFromVariant(base: string, par: Record<string, any>, hit: Record<str
   const cp = hit.product.price_range?.minimum_price;
   return {
     code,
-    name: `${par.name} — ${(hit.attributes ?? []).map((a: any) => a.label).join(" / ")}`,
+    name: `${par.name} - ${(hit.attributes ?? []).map((a: any) => a.label).join(" / ")}`,
     brand: null,
     listPrice: num(cp?.regular_price?.value),
     netPrice: num(cp?.final_price?.value),
@@ -143,7 +143,7 @@ export function makeMagentoAdapter(cfg: { key: string; name: string; siteUrl: st
       if (!sku) return null;
       try {
         // Composite "PARENT::CHILD" codes: some stores (Atomberg) don't expose
-        // configurable children to direct sku queries at all — the child's
+        // configurable children to direct sku queries at all - the child's
         // price only exists inside the parent's variant tree. Fetch the
         // parent, pick the child, return its prices with the parent's URL.
         if (sku.includes("::")) {
@@ -160,8 +160,8 @@ export function makeMagentoAdapter(cfg: { key: string; name: string; siteUrl: st
         if (it) return toItem(it);
 
         // Not directly queryable. On Magento a configurable CHILD is invisible
-        // to a sku filter — its price only exists inside the parent's variant
-        // tree — but full-text search does match the child sku and returns the
+        // to a sku filter - its price only exists inside the parent's variant
+        // tree - but full-text search does match the child sku and returns the
         // parent. Roughly half of Havells' catalogue is shaped this way, so a
         // plain child sku must not be treated as "no such product".
         const found = await gql(`query{products(search:${JSON.stringify(sku)},pageSize:5){items{__typename sku name url_key canonical_url stock_status ... on ConfigurableProduct{variants{product{sku name stock_status price_range{minimum_price{regular_price{value} final_price{value}}}} attributes{label}}}}}}`);

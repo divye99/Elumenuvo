@@ -74,7 +74,7 @@ export const CATALOGUE: CatalogueCategory[] = [
     icon: "BatteryCharging",
     title: "Power systems",
     blurb:
-      "Generation, storage, and distribution — from solar arrays to space-grade batteries and power-control units.",
+      "Generation, storage, and distribution - from solar arrays to space-grade batteries and power-control units.",
     subtypes: [
       "Space-grade batteries",
       "Power control & distribution units (PCDU)",
@@ -106,7 +106,7 @@ export const CATALOGUE: CatalogueCategory[] = [
     icon: "Flame",
     title: "Propulsion components",
     blurb:
-      "Flow-control hardware for in-space propulsion — isolation and latch valves with decades of flight heritage.",
+      "Flow-control hardware for in-space propulsion - isolation and latch valves with decades of flight heritage.",
     subtypes: [
       "Latching isolation valves",
       "Normally-closed solenoid valves",
@@ -122,7 +122,7 @@ export const CATALOGUE: CatalogueCategory[] = [
     icon: "Cable",
     title: "Connectors & harnessing",
     blurb:
-      "Space-grade interconnect across the whole vehicle — connectors, cable assemblies, release mechanisms, and databus.",
+      "Space-grade interconnect across the whole vehicle - connectors, cable assemblies, release mechanisms, and databus.",
     subtypes: [
       "Micro-D & Nano-D connectors",
       "D-Sub & circular (38999) connectors",
@@ -154,7 +154,7 @@ export const CATALOGUE: CatalogueCategory[] = [
     icon: "SatelliteDish",
     title: "Ground segment, GSE & test",
     blurb:
-      "Everything on the ground — ground-station antennas plus the electrical and mechanical equipment for assembly, integration and test.",
+      "Everything on the ground - ground-station antennas plus the electrical and mechanical equipment for assembly, integration and test.",
     subtypes: [
       "Ground-station antennas (S / X-band, 3–7.5 m)",
       "Electrical GSE (solar-array & battery sim, RF SCOE)",
@@ -182,7 +182,7 @@ export const CATALOGUE: CatalogueCategory[] = [
   },
 ];
 
-/* India-specific procurement friction — the problem Elumenuvo absorbs.
+/* India-specific procurement friction - the problem Elumenuvo absorbs.
    Source: WEF / IN-SPACe "Strengthening India's Space Supply Chain
    Ecosystem" (2025) + ISRO import data. */
 export const INDIA_FRICTION = [
@@ -190,7 +190,7 @@ export const INDIA_FRICTION = [
     stat: "12–16 mo",
     label: "Typical lead times",
     detail:
-      "Critical imported components routinely take over a year — enough to slip a launch.",
+      "Critical imported components routinely take over a year - enough to slip a launch.",
   },
   {
     stat: "~50%",

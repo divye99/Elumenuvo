@@ -1,5 +1,5 @@
 /**
- * Catalogue data access — Supabase (public `products` table, anon read via
+ * Catalogue data access - Supabase (public `products` table, anon read via
  * RLS) is the single source of truth. No static fallback: if Supabase is
  * unreachable the storefront renders an empty catalogue rather than stale data.
  *
@@ -80,7 +80,7 @@ export async function fetchProducts(): Promise<Product[]> {
   const c = client();
   if (!c) return [];
   try {
-    // Order by sort_order THEN id — sort_order values collide across import
+    // Order by sort_order THEN id - sort_order values collide across import
     // batches, and an unstable tie order differs between the HTML and RSC
     // renders, causing a hydration mismatch on the home shelves.
     // Page past PostgREST's 1000-row cap so the full catalogue (1300+) is returned.

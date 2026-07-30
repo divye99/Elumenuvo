@@ -11,7 +11,7 @@ export default async function AdminHome() {
   return (
     <div>
       <h1 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 6px" }}>Dashboard</h1>
-      <p style={{ fontSize: 14, color: "#56627A", margin: "0 0 22px" }}>Manage the catalogue and site content — changes go live on the next page load.</p>
+      <p style={{ fontSize: 14, color: "#56627A", margin: "0 0 22px" }}>Manage the catalogue and site content - changes go live on the next page load.</p>
 
       {!hasServiceRole() && (
         <div style={{ background: "#FBE9E4", border: "1px solid #f0c9bd", color: "#9a3b16", borderRadius: 10, padding: "12px 14px", fontSize: 13, marginBottom: 20 }}>

@@ -52,7 +52,7 @@ export default async function RadarPage() {
     const perSource = Object.fromEntries(
       srcList.map((s) => [s.id, { map: mapByKey.get(mapKey(p.id, s.id)) ?? null, price: priceByKey.get(mapKey(p.id, s.id)) ?? null }])
     );
-    // Every mapped source is a "seller" — including out-of-stock / no-price ones
+    // Every mapped source is a "seller" - including out-of-stock / no-price ones
     // (shown, but marked unavailable). Only APPROVED + AVAILABLE (in stock, real
     // >0 price) sellers drive the lowest / target / recommendation math.
     const sellers = srcList

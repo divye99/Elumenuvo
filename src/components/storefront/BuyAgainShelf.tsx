@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * "Buy again" — the signed-in shopper's own products, hoisted above the
+ * "Buy again" - the signed-in shopper's own products, hoisted above the
  * catalogue grid. Fetches after hydration (the catalogue page itself stays
  * static/ISR for everyone); renders nothing for anonymous visitors or
  * customers with no orders. Also identifies the session for analytics, so

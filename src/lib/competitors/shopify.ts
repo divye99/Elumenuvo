@@ -16,7 +16,7 @@ function num(v: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-// Shopify sends compare_at_price as "0.00" when no MRP is set — treat as absent.
+// Shopify sends compare_at_price as "0.00" when no MRP is set - treat as absent.
 const pos = (n: number | null): number | null => (n != null && n > 0 ? n : null);
 
 function headers(): Record<string, string> {

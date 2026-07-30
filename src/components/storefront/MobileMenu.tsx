@@ -6,10 +6,10 @@ import Link from "next/link";
 import { MENU_CATS, HOME_BRANDS } from "@/lib/data";
 import { slugify } from "@/lib/slug";
 
-/** Hamburger + LEFT slide-in drawer — a shopping-first menu (Amazon-style):
+/** Hamburger + LEFT slide-in drawer - a shopping-first menu (Amazon-style):
  *  top deals / trending, wholesale hook, categories and brands. Account links
  *  live in the Sign-in dropdown; company links live in the footer.
- *  Portalled to <body> — the header's backdrop-filter would otherwise trap
+ *  Portalled to <body> - the header's backdrop-filter would otherwise trap
  *  our position:fixed drawer inside the header's box. */
 export default function MobileMenu() {
   const [open, setOpen] = useState(false);

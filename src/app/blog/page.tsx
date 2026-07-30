@@ -7,12 +7,12 @@ import { GROTESK, MONO } from "@/lib/fonts";
 const SITE = "https://elumenuvo.com";
 
 export const metadata: Metadata = {
-  title: "Elume Blog — FMEG buying guides & Top 10 product lists (India)",
+  title: "Elume Blog - FMEG buying guides & Top 10 product lists (India)",
   description:
-    "Buying guides and Top 10 product round-ups for electrical goods in India — wires, switchgear, modular switches, distribution boards, fans and LED lighting.",
+    "Buying guides and Top 10 product round-ups for electrical goods in India - wires, switchgear, modular switches, distribution boards, fans and LED lighting.",
   alternates: { canonical: `${SITE}/blog` },
   openGraph: {
-    images: [{ url: "https://elumenuvo.com/og.png", width: 1200, height: 630, alt: "Elume" }], title: "Elume Blog — FMEG buying guides (India)", description: "Top 10 product guides for wires, switchgear, fans, lighting and more.", url: `${SITE}/blog`, type: "website" },
+    images: [{ url: "https://elumenuvo.com/og.png", width: 1200, height: 630, alt: "Elume" }], title: "Elume Blog - FMEG buying guides (India)", description: "Top 10 product guides for wires, switchgear, fans, lighting and more.", url: `${SITE}/blog`, type: "website" },
 };
 
 export default function BlogIndex() {
@@ -39,7 +39,7 @@ export default function BlogIndex() {
       <div style={{ marginBottom: 28 }}>
         <h1 style={{ fontFamily: GROTESK, fontSize: 36, fontWeight: 600, letterSpacing: "-1px", margin: 0 }}>The Elume Blog</h1>
         <p style={{ fontSize: 16, color: "#56627A", margin: "10px 0 0", maxWidth: 640 }}>
-          Buying guides and Top 10 product round-ups for India&apos;s electrical goods — wires, switchgear,
+          Buying guides and Top 10 product round-ups for India&apos;s electrical goods - wires, switchgear,
           modular, distribution boards, fans and lighting. Written for contractors, builders and procurement teams.
         </p>
       </div>

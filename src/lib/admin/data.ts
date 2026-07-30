@@ -137,7 +137,7 @@ export function isActionable(p: CompetitorPriceRow): boolean {
 }
 
 /** Count PRODUCTS (not source rows) where we'd reprice to ₹1 under the LOWEST
- *  mapped seller — matches the Amazon-style product-level recommendation. */
+ *  mapped seller - matches the Amazon-style product-level recommendation. */
 export async function countPendingSuggestions(): Promise<number> {
   const [prices, maps] = await Promise.all([listCompetitorPrices(), listCompetitorMap()]);
   // Unapproved name-matches never drive repricing counts.

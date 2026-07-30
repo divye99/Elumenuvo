@@ -80,7 +80,7 @@ async function validate(
       return { ok: false, error: `"${p.name}" is out of stock right now. Please remove it from your cart to continue.` };
     }
     const qty = Math.min(Math.floor(i.qty), 9999);
-    // The GST rate comes from the product row, never the browser — a per-product
+    // The GST rate comes from the product row, never the browser - a per-product
     // rate (solar etc.) overrides the category rate at invoicing time.
     const meta = p as { gst_rate?: number | string | null; hsn?: string | null };
     const gstRate = meta.gst_rate;
@@ -96,9 +96,9 @@ async function validate(
   return { ok: true, items, total };
 }
 
-/** Insert the order row as AWAITING PAYMENT (no emails yet — nothing is paid). */
+/** Insert the order row as AWAITING PAYMENT (no emails yet - nothing is paid). */
 /** Validate a discount code for this email. Returns the percent or an error.
- *  Consumption happens at markOrderPaid — an abandoned checkout never burns
+ *  Consumption happens at markOrderPaid - an abandoned checkout never burns
  *  a one-time code. */
 export async function checkDiscountCode(
   code: string,
@@ -147,7 +147,7 @@ async function insertPendingOrder(
     items,
     product_ids: items.map((i) => i.id),
     // Taxable value = sum of each item's ex-GST base at its own GST rate,
-    // scaled down proportionally when a discount applies — GST is charged on
+    // scaled down proportionally when a discount applies - GST is charged on
     // what the customer actually pays, so subtotal + GST always equals total.
     subtotal: (() => {
       const gross = items.some((i) => i.cat)
@@ -183,7 +183,7 @@ export async function markOrderPaid(
   razorpayOrderId: string,
   razorpayPaymentId: string
 ): Promise<PaidResult> {
-  // The order must exist and belong to this Razorpay order — never trust a
+  // The order must exist and belong to this Razorpay order - never trust a
   // caller to name an arbitrary order id.
   const { data: order } = await db.from("orders").select("*").eq("id", orderId).maybeSingle();
   if (!order) return { ok: false, error: "Order not found." };
@@ -226,7 +226,7 @@ export async function markOrderPaid(
   return { ok: true, newlyPaid: true, orderId, total: Number(order.total) };
 }
 
-/* ── Online payment (Razorpay) — the only payment path.
+/* ── Online payment (Razorpay) - the only payment path.
  *    Pay-on-delivery was retired; its placeOrder() action was removed so a
  *    stale caller can't create an unpaid COD order. ── */
 
@@ -244,7 +244,7 @@ export async function onlinePaymentAvailable(): Promise<boolean> {
  * Razorpay order, and PERSIST the order as `awaiting_payment` before the payment
  * window opens. Writing it up-front is what lets the webhook recover a payment
  * whose browser callback never came back (customer closed the tab, lost signal,
- * app-switched mid-UPI) — otherwise they'd be charged with no order to show.
+ * app-switched mid-UPI) - otherwise they'd be charged with no order to show.
  */
 export async function startOnlinePayment(input: PlaceOrderInput): Promise<StartPaymentResult> {
   if (!razorpayConfigured()) return { ok: false, error: "Online payment isn't set up yet. Please try again shortly." };
@@ -253,7 +253,7 @@ export async function startOnlinePayment(input: PlaceOrderInput): Promise<StartP
   const v = await validate(db, input);
   if (!v.ok) return v;
 
-  // Apply a discount code AFTER re-pricing — always on OUR numbers.
+  // Apply a discount code AFTER re-pricing - always on OUR numbers.
   let discount = 0;
   let appliedCode: string | null = null;
   if (input.discount_code?.trim()) {
@@ -282,7 +282,7 @@ export async function startOnlinePayment(input: PlaceOrderInput): Promise<StartP
  * Step 2 (fast path): the browser came back with a success payload. Verify the
  * signature and mark the pending order paid. The webhook is the safety net that
  * does exactly the same thing if this never runs; whichever lands first wins.
- * Nothing here trusts the client — the amount and contents come from the row we
+ * Nothing here trusts the client - the amount and contents come from the row we
  * wrote in step 1.
  */
 export async function confirmOnlinePayment(

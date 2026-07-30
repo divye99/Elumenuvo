@@ -1,5 +1,5 @@
 /**
- * Elume B2B FMEG Procurement Platform — Database Schema
+ * Elume B2B FMEG Procurement Platform - Database Schema
  * ------------------------------------------------------
  * Grounded entirely in the Elume pitch deck + SISFS project report.
  *
@@ -65,7 +65,7 @@ export const projectStatusEnum = pgEnum("project_status", [
   "completed",
 ]);
 
-// BOM lifecycle + provenance (manual, BOQ upload, or Smart BOM — per the docs).
+// BOM lifecycle + provenance (manual, BOQ upload, or Smart BOM - per the docs).
 export const bomStatusEnum = pgEnum("bom_status", ["draft", "finalised"]);
 export const bomSourceEnum = pgEnum("bom_source", [
   "manual",
@@ -105,7 +105,7 @@ export const invoiceStatusEnum = pgEnum("invoice_status", [
   "overdue",
 ]);
 
-// NBFC-partnered credit (referral model — Elume never lends from its own balance sheet).
+// NBFC-partnered credit (referral model - Elume never lends from its own balance sheet).
 export const creditStatusEnum = pgEnum("credit_status", [
   "not_applied",
   "under_review",
@@ -285,7 +285,7 @@ export const organizations = pgTable(
   })
 );
 
-// Lead capture — marketing contact + "save my workspace" trial conversion.
+// Lead capture - marketing contact + "save my workspace" trial conversion.
 export const leads = pgTable("leads", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name"),
@@ -424,7 +424,7 @@ export const bomItems = pgTable(
 /* 4. ORDER & FINANCE  (purchase orders + NBFC credit)                */
 /* ================================================================== */
 
-// NBFC-partnered credit profile per org (referral model — no Elume balance sheet).
+// NBFC-partnered credit profile per org (referral model - no Elume balance sheet).
 export const creditProfiles = pgTable("credit_profiles", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id")
@@ -435,7 +435,7 @@ export const creditProfiles = pgTable("credit_profiles", {
   approvedLimit: numeric("approved_limit", { precision: 14, scale: 2 }).default("0"),
   utilisedAmount: numeric("utilised_amount", { precision: 14, scale: 2 }).default("0"),
   nbfcPartner: text("nbfc_partner"),
-  // Proprietary FMEG credit score (0-100) — built from order + repayment data.
+  // Proprietary FMEG credit score (0-100) - built from order + repayment data.
   creditScore: integer("credit_score"),
   defaultTenureDays: integer("default_tenure_days").default(60),
   ...timestamps,

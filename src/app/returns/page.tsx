@@ -26,7 +26,7 @@ export default function ReturnsPage() {
             <>
               Most catalogue items are returnable. A few exceptions apply: wires and cables cut to a custom length,
               products that have been installed or energised, and items with tampered serial numbers or missing
-              packaging. Damaged-on-arrival or wrongly shipped items are <b>always</b> returnable — report them within
+              packaging. Damaged-on-arrival or wrongly shipped items are <b>always</b> returnable - report them within
               48 hours of delivery with photos and we&apos;ll arrange a replacement or refund immediately.
             </>
           ),
@@ -37,7 +37,7 @@ export default function ReturnsPage() {
             <>
               Email <a href="mailto:info@elumenuvo.com" style={{ color: "#4E5BDC", fontWeight: 600 }}>info@elumenuvo.com</a> or
               call +91 98188 21175 with your order ID and the item you want to return. We&apos;ll confirm eligibility and
-              arrange a free reverse pickup from your address — you don&apos;t pay for return shipping.
+              arrange a free reverse pickup from your address - you don&apos;t pay for return shipping.
             </>
           ),
         },
@@ -67,7 +67,7 @@ export default function ReturnsPage() {
         },
         {
           h: "Warranty claims",
-          body: "Manufacturing defects that surface after the return window are covered by the manufacturer's standard warranty. Keep your Elume GST invoice — it is your proof of purchase. We're happy to help you route a warranty claim to the brand's service network.",
+          body: "Manufacturing defects that surface after the return window are covered by the manufacturer's standard warranty. Keep your Elume GST invoice - it is your proof of purchase. We're happy to help you route a warranty claim to the brand's service network.",
         },
       ]}
     />

@@ -1,5 +1,5 @@
 /**
- * Shared structured-data (schema.org / JSON-LD) building blocks — reused across
+ * Shared structured-data (schema.org / JSON-LD) building blocks - reused across
  * the site so Organization, Offer policies and FAQ markup stay consistent and
  * standardised for search + AI answer engines.
  */
@@ -9,7 +9,7 @@ import { COMPANY, postalAddress, postalAddressOf } from "./company";
 
 /** Organization / publisher identity (add @context where embedded).
  *  A postal address and an identifier (CIN) are what turn this from a name
- *  into a verifiable business — Merchant Center's misrepresentation check
+ *  into a verifiable business - Merchant Center's misrepresentation check
  *  looks for exactly that. Both appear as soon as they are set in company.ts. */
 export const ORG = {
   "@type": "Organization",
@@ -82,9 +82,9 @@ export function productFaqs(p: { name: string; brand: string; unit: string }): F
   const unit = p.unit || "unit";
   return [
     { q: `Is ${p.name} genuine and warranty-backed?`, a: `Yes. Every ${p.brand} product on Elume is 100% genuine, sourced through authorised channels, and carries the manufacturer's standard warranty.` },
-    { q: "Do you deliver across India?", a: "Yes — we deliver pan-India, usually within 3–7 working days, and delivery is free." },
+    { q: "Do you deliver across India?", a: "Yes - we deliver pan-India, usually within 3–7 working days, and delivery is free." },
     { q: "Can I get a GST invoice?", a: "Yes. Enter your GSTIN at checkout and we issue a GST invoice with tax shown separately, so businesses can claim input tax credit." },
-    { q: "Is there a wholesale or bulk rate?", a: `Yes. Orders of 15 or more ${unit}s get a wholesale rate about 5% below the listed Elume price — shown on every product page.` },
+    { q: "Is there a wholesale or bulk rate?", a: `Yes. Orders of 15 or more ${unit}s get a wholesale rate about 5% below the listed Elume price - shown on every product page.` },
     { q: "What is the return policy?", a: "Unused items in original packaging can be returned within 7 days of delivery, with free return shipping." },
   ];
 }

@@ -8,11 +8,11 @@ import type { Product, TechSpecs } from "@/lib/data";
 import type { BlogPost } from "@/lib/blog";
 
 /**
- * The "deep" half of the product page — everything an electrical buyer wants
+ * The "deep" half of the product page - everything an electrical buyer wants
  * beyond price: parsed technical specifications, per-metre economics, the
  * full variant family as a comparison table, an Elume trust strip, and the
  * category buying guide with its FAQs. All spec rows are PARSED from the
- * product's own name/spec/attrs (plus category-level IS/IEC standards) —
+ * product's own name/spec/attrs (plus category-level IS/IEC standards) -
  * nothing is invented per product.
  */
 export default function ProductDeepDive({
@@ -41,7 +41,7 @@ export default function ProductDeepDive({
           [
             "📦",
             "Wholesale built in",
-            `−5% auto-applies at ${WHOLESALE_MIN_QTY}+ units — ${fmt(wholesalePrice(p.price))}/${p.unit} on this product`,
+            `−5% auto-applies at ${WHOLESALE_MIN_QTY}+ units - ${fmt(wholesalePrice(p.price))}/${p.unit} on this product`,
           ],
         ].map(([icon, title, body]) => (
           <div key={title} style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "14px 16px" }}>
@@ -95,7 +95,7 @@ export default function ProductDeepDive({
             The full range · {family.length} options
           </h3>
           <div style={{ fontSize: 12.5, color: "#8A93A6", marginBottom: 14 }}>
-            Every option is its own product with live pricing — tap a row to switch.
+            Every option is its own product with live pricing - tap a row to switch.
             {family.length > 48 ? " Showing the first 48; use the option picker above to reach any combination." : ""}
           </div>
           <div style={{ overflowX: "auto", maxHeight: 560, overflowY: "auto" }}>
@@ -128,7 +128,7 @@ export default function ProductDeepDive({
                       </td>
                       {dims.map((d) => (
                         <td key={d} style={{ padding: "10px", textAlign: "right", color: "#3A4358", borderBottom: "1px solid #F5F6F9", whiteSpace: "nowrap" }}>
-                          {s.attrs?.[d] ?? "—"}
+                          {s.attrs?.[d] ?? "-"}
                         </td>
                       ))}
                       <td style={{ padding: "10px", textAlign: "right", fontFamily: GROTESK, fontWeight: 600, color: "#19202E", borderBottom: "1px solid #F5F6F9", whiteSpace: "nowrap" }}>
@@ -136,7 +136,7 @@ export default function ProductDeepDive({
                       </td>
                       {anyMetres && (
                         <td style={{ padding: "10px", textAlign: "right", fontFamily: MONO, fontSize: 11.5, color: "#56627A", borderBottom: "1px solid #F5F6F9", whiteSpace: "nowrap" }}>
-                          {m ? `${fmt(Math.round((baseExGst(s.price, s.cat, s.gstRate) / m) * 100) / 100)}` : "—"}
+                          {m ? `${fmt(Math.round((baseExGst(s.price, s.cat, s.gstRate) / m) * 100) / 100)}` : "-"}
                         </td>
                       )}
                       <td style={{ padding: "10px", textAlign: "right", color: "#A0A7B5", textDecoration: "line-through", borderBottom: "1px solid #F5F6F9", whiteSpace: "nowrap" }}>
@@ -299,7 +299,7 @@ function TechSpecsBlock({ t }: { t: TechSpecs }) {
                 {t.fire_tests.map((f) => (
                   <tr key={f.test}>
                     <td style={{ padding: "9px 10px", borderBottom: "1px solid #F5F6F9", fontWeight: 600, color: "#19202E" }}>{f.test}</td>
-                    <td style={{ padding: "9px 10px", borderBottom: "1px solid #F5F6F9", textAlign: "right", fontFamily: MONO, fontSize: 11.5, color: "#56627A", whiteSpace: "nowrap" }}>{f.method || "—"}</td>
+                    <td style={{ padding: "9px 10px", borderBottom: "1px solid #F5F6F9", textAlign: "right", fontFamily: MONO, fontSize: 11.5, color: "#56627A", whiteSpace: "nowrap" }}>{f.method || "-"}</td>
                     <td style={{ padding: "9px 10px", borderBottom: "1px solid #F5F6F9", textAlign: "right", fontWeight: 700, color: "#137a4b", whiteSpace: "nowrap" }}>{f.value}</td>
                   </tr>
                 ))}
@@ -316,7 +316,7 @@ function TechSpecsBlock({ t }: { t: TechSpecs }) {
   );
 }
 
-/* ── Spec parsing — extracts only what the product's own data states ── */
+/* ── Spec parsing - extracts only what the product's own data states ── */
 
 function coilMetres(p: Product): number | null {
   const src = p.attrs?.Length ?? p.spec;
@@ -337,18 +337,18 @@ function techSpecs(p: Product): [string, string][] {
       if (/copper/i.test(text)) add("Conductor", /single-core/i.test(text) ? "Single-core electrolytic copper" : "Electrolytic copper");
       const q = p.attrs?.Quality;
       const ins: Record<string, string> = {
-        FR: "FR PVC — flame retardant",
-        FRLS: "FRLS PVC — flame retardant, low smoke",
+        FR: "FR PVC - flame retardant",
+        FRLS: "FRLS PVC - flame retardant, low smoke",
         PVC: "General-purpose PVC",
       };
-      add("Insulation", (q && ins[q]) ?? (/HR PVC/i.test(text) ? "HR PVC — heat resistant" : null));
+      add("Insulation", (q && ins[q]) ?? (/HR PVC/i.test(text) ? "HR PVC - heat resistant" : null));
       add("Conductor size", p.attrs?.Size);
       add("Voltage grade", /1100\s*V/.test(text) ? "1100 V (1.1 kV)" : null);
       add("Coil length", p.attrs?.Length ?? (coilMetres(p) ? `${coilMetres(p)} m` : null));
       add("Core colour", p.attrs?.Colour);
       add("Warranty", /10-yr warranty/i.test(text) ? "10-year manufacturer warranty" : null);
       add("Reference standard", "IS 694:2010");
-      add("Application", "Fixed internal wiring — conduit & casing-capping");
+      add("Application", "Fixed internal wiring - conduit & casing-capping");
       break;
     }
     case "Switchgear": {
@@ -377,7 +377,7 @@ function techSpecs(p: Product): [string, string][] {
       add("Luminaire type", form);
       add("Wattage", grab(/(\d+(?:\.\d+)?)\s*W\b/) ? `${grab(/(\d+(?:\.\d+)?)\s*W\b/)} W` : null);
       const cct = grab(/(\d{4})\s*K/);
-      add("Colour temperature", cct ? `${cct} K${cct === "6500" ? " — cool daylight" : ""}` : null);
+      add("Colour temperature", cct ? `${cct} K${cct === "6500" ? " - cool daylight" : ""}` : null);
       add("Lamp cap", grab(/\b(B22|E27)\b/));
       add("Ingress protection", grab(/IP\s?(\d{2})/) ? `IP${grab(/IP\s?(\d{2})/)}` : null);
       add("Reference standard", "IS 16102 / IS 10322");
@@ -385,7 +385,7 @@ function techSpecs(p: Product): [string, string][] {
     }
     case "Fans": {
       const isExhaust = /exhaust/i.test(text);
-      add("Fan type", isExhaust ? "Exhaust fan" : /BLDC/i.test(text) ? "Ceiling fan — BLDC motor" : "Ceiling fan");
+      add("Fan type", isExhaust ? "Exhaust fan" : /BLDC/i.test(text) ? "Ceiling fan - BLDC motor" : "Ceiling fan");
       add("Sweep", grab(/(\d{3,4})\s*mm/) ? `${grab(/(\d{3,4})\s*mm/)} mm` : null);
       add("Power", grab(/(\d+(?:\.\d+)?)\s*W\b/) ? `${grab(/(\d+(?:\.\d+)?)\s*W\b/)} W` : null);
       add("Speed", grab(/(\d+)\s*RPM/) ? `${grab(/(\d+)\s*RPM/)} RPM` : null);
@@ -395,7 +395,7 @@ function techSpecs(p: Product): [string, string][] {
       break;
     }
     case "DB & Panels": {
-      add("Enclosure type", /TPN/i.test(text) ? "Distribution board — TPN (three phase)" : "Distribution board — SPN (single phase)");
+      add("Enclosure type", /TPN/i.test(text) ? "Distribution board - TPN (three phase)" : "Distribution board - SPN (single phase)");
       add("Ways", grab(/(\d+)-way/) ? `${grab(/(\d+)-way/)}-way` : null);
       add("Door", /double door/i.test(text) ? "Double door" : /single door/i.test(text) ? "Single door" : null);
       add("Ingress protection", grab(/IP\s?(\d{2})/) ? `IP${grab(/IP\s?(\d{2})/)}` : null);

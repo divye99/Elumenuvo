@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
 /**
- * Service-role Supabase client — bypasses RLS for admin writes.
+ * Service-role Supabase client - bypasses RLS for admin writes.
  * SERVER-ONLY: never import this into a client component. Reads the secret
  * SUPABASE_SERVICE_ROLE_KEY (never NEXT_PUBLIC).
  */

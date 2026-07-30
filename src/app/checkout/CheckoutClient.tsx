@@ -93,13 +93,13 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
 
   const applyCode = async () => {
     if (!code.trim()) return;
-    if (!f.email.trim()) { setCodeState({ status: "err", msg: "Fill in your email first — codes can be tied to an email." }); return; }
+    if (!f.email.trim()) { setCodeState({ status: "err", msg: "Fill in your email first - codes can be tied to an email." }); return; }
     setCodeState({ status: "checking" });
     try {
       const r = await fetch("/api/discount/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: code.trim(), email: f.email.trim() }) });
       const d = await r.json();
       setCodeState(d.ok ? { status: "ok", percent: d.percent } : { status: "err", msg: d.error });
-    } catch { setCodeState({ status: "err", msg: "Couldn't check the code — try again." }); }
+    } catch { setCodeState({ status: "err", msg: "Couldn't check the code - try again." }); }
   };
   const discount = codeState.status === "ok" ? Math.round(total * ((codeState.percent ?? 0) / 100) * 100) / 100 : 0;
   const payable = Math.round((total - discount) * 100) / 100;
@@ -135,10 +135,10 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
       } catch (e) {
         setErr(e instanceof Error ? e.message : "Payment window failed to open."); return;
       }
-      if (!payment) { setErr("Payment cancelled — you weren't charged."); return; }
+      if (!payment) { setErr("Payment cancelled - you weren't charged."); return; }
 
       // The order was already persisted (as awaiting_payment) in step 1, so the
-      // confirm only verifies the signature and flips it to paid — the amount
+      // confirm only verifies the signature and flips it to paid - the amount
       // and contents come from the server-side row, never from the browser.
       const res = await confirmOnlinePayment({
         orderId: started.orderId,
@@ -159,7 +159,7 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
           <div style={{ fontSize: 40, marginBottom: 8 }}>🎉</div>
           <h1 style={{ fontFamily: GROTESK, fontSize: 24, fontWeight: 600, margin: "0 0 6px" }}>Order confirmed</h1>
           <p style={{ fontSize: 14, color: "#56627A", margin: "0 0 4px" }}>Order <b>{done.orderId}</b> · {fmt(done.total)} paid</p>
-          <p style={{ fontSize: 13, color: "#8A93A6", margin: "0 0 20px" }}>We&apos;ve got it — a confirmation is on its way to {f.email}. Pan-India delivery in 3–7 working days.</p>
+          <p style={{ fontSize: 13, color: "#8A93A6", margin: "0 0 20px" }}>We&apos;ve got it - a confirmation is on its way to {f.email}. Pan-India delivery in 3–7 working days.</p>
           <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
             <Link href={`/track?order=${encodeURIComponent(done.orderId)}&email=${encodeURIComponent(f.email)}`} style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14, padding: "11px 22px", borderRadius: 11 }}>Track order</Link>
             <Link href="/catalogue" style={{ background: "#EEF0FE", color: "#4E5BDC", fontWeight: 700, fontSize: 14, padding: "11px 22px", borderRadius: 11 }}>Continue shopping</Link>
@@ -240,7 +240,7 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
                     type="tel"
                     inputMode="numeric"
                     autoComplete="tel-national"
-                    /* Digits only, and never more than this country allows —
+                    /* Digits only, and never more than this country allows -
                        the field itself makes a wrong-length number impossible
                        to type, rather than only complaining at submit. */
                     maxLength={maxDigits(country)}
@@ -268,7 +268,7 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
           )}
 
           {/* GST. Business accounts already gave us their GSTIN at sign-up, so we
-              just confirm it — they're never asked again. Everyone else is offered it. */}
+              just confirm it - they're never asked again. Everyone else is offered it. */}
           {gstOnFile ? (
             <Section title="GST invoice">
               <div style={{ display: "flex", gap: 12, alignItems: "flex-start", background: "#E6F5EE", border: "1px solid #BEE7D2", borderRadius: 11, padding: "12px 14px" }}>

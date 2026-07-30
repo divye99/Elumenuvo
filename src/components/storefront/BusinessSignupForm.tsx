@@ -96,7 +96,7 @@ export default function BusinessSignupForm({ signedIn, existingCompany }: { sign
     } catch (e2) {
       const raw = e2 instanceof Error ? e2.message : "";
       setErr(!raw || raw === "{}" || /error sending confirmation email|unexpected_failure/i.test(raw)
-        ? "We couldn't create your account right now — our email service hiccuped (this is on us, not you). Please try again shortly or write to info@elumenuvo.com."
+        ? "We couldn't create your account right now - our email service hiccuped (this is on us, not you). Please try again shortly or write to info@elumenuvo.com."
         : raw);
     } finally {
       setBusy(false);

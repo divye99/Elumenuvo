@@ -20,7 +20,7 @@ import { CATALOGUE, INDIA_FRICTION } from "@/lib/space/catalogue";
 export const metadata: Metadata = {
   title: "What we source",
   description:
-    "The components, materials, and equipment Elumenuvo sources for India's space companies — across structures, avionics, power, RF, propulsion, connectors, sensors, ground segment, and thermal.",
+    "The components, materials, and equipment Elumenuvo sources for India's space companies - across structures, avionics, power, RF, propulsion, connectors, sensors, ground segment, and thermal.",
 };
 
 const ICONS: Record<string, LucideIcon> = {
@@ -52,7 +52,7 @@ export default function CataloguePage() {
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/70 sm:text-lg">
               From flight-grade materials to propulsion valves to ground-support
-              equipment — one partner across every category your build depends
+              equipment - one partner across every category your build depends
               on. We source it, manage the vendors, and handle imports and
               customs.
             </p>
@@ -82,7 +82,7 @@ export default function CataloguePage() {
               ))}
             </div>
             <p className="mt-6 max-w-3xl text-sm text-slate-500">
-              Elumenuvo exists to absorb this friction — so a small team can
+              Elumenuvo exists to absorb this friction - so a small team can
               procure like a large one.
             </p>
           </div>
@@ -98,7 +98,7 @@ export default function CataloguePage() {
                   key={cat.slug}
                   className="group flex flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200 transition-all hover:shadow-lg hover:shadow-slate-200/60 hover:ring-accent/40"
                 >
-                  {/* Image slot — swap in supplier/own photography (see SOURCING.md) */}
+                  {/* Image slot - swap in supplier/own photography (see SOURCING.md) */}
                   <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100">
                     {cat.image ? (
                       <Image

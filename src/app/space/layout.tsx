@@ -18,7 +18,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Elumenuvo — Space Procurement, so your team can build",
+    default: "Elumenuvo - Space Procurement, so your team can build",
     template: "%s · Elumenuvo",
   },
   description:

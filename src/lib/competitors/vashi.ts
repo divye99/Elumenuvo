@@ -1,5 +1,5 @@
 /**
- * Vashi (vashiisl.com) adapter — SAP Commerce OCC API. The real B2B net price
+ * Vashi (vashiisl.com) adapter - SAP Commerce OCC API. The real B2B net price
  * is PUBLIC: send the `X-Custom-Pincode` header and the price object returns the
  * discounted price (value = net incl GST, mrp = list). No login required.
  *   e.g. I-2.5PX1CBLKFRLS100 → value ₹43.78 (net inc GST) vs mrp ₹92.75 (list).

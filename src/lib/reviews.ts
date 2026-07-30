@@ -1,4 +1,4 @@
-/** Customer reviews — public read of approved reviews per product.
+/** Customer reviews - public read of approved reviews per product.
  *  Verified-purchaser model: inserts are validated in the database against
  *  the orders ledger (see supabase/migrations/0008_verified-reviews.sql). Reviewer emails and
  *  order ids are column-restricted and never selected. */
@@ -15,7 +15,7 @@ export type Review = {
   created_at: string;
 };
 
-// Explicit column list — reviewer_email/order_id are not readable by anon.
+// Explicit column list - reviewer_email/order_id are not readable by anon.
 const PUBLIC_COLS = "id, product_id, author_name, rating, title, body, is_verified, created_at";
 
 function client() {
@@ -29,7 +29,7 @@ export async function fetchReviews(productId: string): Promise<Review[]> {
   const c = client();
   if (!c) return [];
   try {
-    // No is_approved filter needed — the RLS select policy only exposes
+    // No is_approved filter needed - the RLS select policy only exposes
     // approved rows (and the column itself isn't granted to anon).
     const { data, error } = await c
       .from("reviews")

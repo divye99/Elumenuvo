@@ -1,4 +1,4 @@
-// SVG price-history chart engine — ported 1:1 from the prototype.
+// SVG price-history chart engine - ported 1:1 from the prototype.
 import { fmt } from "./format";
 import { type HomeChartSeries, type Product } from "./data";
 
@@ -26,7 +26,7 @@ export function homeElumeSeries(p: HomeChartSeries): number[] {
   return p.market.map((m, i) => m * (1 - (p.s0 + ((p.s1 - p.s0) * i) / 11)));
 }
 
-// Landing pricing engine — fixed 580×230 viewBox.
+// Landing pricing engine - fixed 580×230 viewBox.
 export function buildHomeChart(series: Record<string, HomeChartSeries>, id: string): ChartModel {
   const p = series[id] ?? Object.values(series)[0];
   const market = p.market;
@@ -73,7 +73,7 @@ export function buildHomeChart(series: Record<string, HomeChartSeries>, id: stri
   };
 }
 
-// Deterministic FNV hash + mulberry32 PRNG — drives the per-product chart.
+// Deterministic FNV hash + mulberry32 PRNG - drives the per-product chart.
 function hash(str: string): number {
   let h = 2166136261;
   for (let i = 0; i < str.length; i++) {
@@ -92,7 +92,7 @@ function rng(seed: number) {
   };
 }
 
-// App product detail — deterministic per SKU, 860×240 viewBox.
+// App product detail - deterministic per SKU, 860×240 viewBox.
 export function buildProductChart(p: Product): ChartModel {
   const r = rng(hash(p.id));
   const drift = (r() - 0.5) * 0.14;

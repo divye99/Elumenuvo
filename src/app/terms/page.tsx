@@ -21,7 +21,7 @@ export default function TermsPage() {
         },
         {
           h: "Orders & acceptance",
-          body: "Your order is an offer to buy; it's accepted when we confirm dispatch. We may decline or cancel orders for suspected fraud, pricing errors or stock unavailability — in each case anything you've paid is refunded in full.",
+          body: "Your order is an offer to buy; it's accepted when we confirm dispatch. We may decline or cancel orders for suspected fraud, pricing errors or stock unavailability - in each case anything you've paid is refunded in full.",
         },
         {
           h: "Delivery",

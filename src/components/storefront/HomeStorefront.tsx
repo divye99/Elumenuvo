@@ -54,7 +54,7 @@ function Shelf({
   );
 }
 
-/** Amazon-style FMEG storefront home — hero, category tiles, deal + category
+/** Amazon-style FMEG storefront home - hero, category tiles, deal + category
  *  shelves, pricing explainer, brands, buying guides. Pure server component;
  *  interactivity lives in the header search and product-card image slots. */
 export default function HomeStorefront({ products, posts }: { products: Product[]; posts: BlogPost[] }) {
@@ -62,7 +62,7 @@ export default function HomeStorefront({ products, posts }: { products: Product[
   //   1. Only products priced above ₹2,000 qualify (no trinket deals).
   //   2. Ranked by % discount, the highest wins.
   //   3. Exactly ONE listing per category on the shelf.
-  // Tiebreak on id — products can share the exact same discount, and an
+  // Tiebreak on id - products can share the exact same discount, and an
   // unstable tie order would differ between server and client renders (hydration).
   const discount = (p: Product) => 1 - p.price / p.market;
   const bestByCat = new Map<string, Product>();
@@ -241,7 +241,7 @@ export default function HomeStorefront({ products, posts }: { products: Product[
           </h2>
           <p style={{ fontSize: 14, color: "#56627A", margin: "8px 0 0", lineHeight: 1.55 }}>
             The Elume workspace turns your BOQ into a priced BOM, compares every brand, and tracks
-            orders to site — open to everyone, no sign-up needed.
+            orders to site - open to everyone, no sign-up needed.
           </p>
         </div>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>

@@ -112,7 +112,7 @@ export async function GET(request: Request) {
   // suffix stripped, first 4 words) stands in for query-log completions.
   const phrase = new Map<string, number>();
   for (const r of rows) {
-    const base = r.name.replace(new RegExp(`^${r.brand}\\s+`, "i"), "").split("—")[0].trim().toLowerCase();
+    const base = r.name.replace(new RegExp(`^${r.brand}\\s+`, "i"), "").split("-")[0].trim().toLowerCase();
     const p = base.split(/\s+/).slice(0, 4).join(" ");
     if (p.length >= q.length && p.includes(words[0])) phrase.set(p, (phrase.get(p) ?? 0) + 1);
   }

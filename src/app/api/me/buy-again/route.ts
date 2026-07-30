@@ -4,7 +4,7 @@ import { adminClient } from "@/lib/supabase/admin";
 
 /**
  * Personalization feed for the signed-in shopper: products they actually
- * bought (most recent + most repeated first). Session-scoped — anonymous
+ * bought (most recent + most repeated first). Session-scoped - anonymous
  * visitors get an empty list and the catalogue renders exactly as before.
  */
 export const dynamic = "force-dynamic";

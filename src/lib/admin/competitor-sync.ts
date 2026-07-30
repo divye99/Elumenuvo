@@ -1,5 +1,5 @@
 /**
- * Competitor sync core — for one source: log in (if it gates net price),
+ * Competitor sync core - for one source: log in (if it gates net price),
  * refetch every mapped item's live price, compute the ₹1-under suggestion,
  * upsert the latest snapshot, and append a history row (for the per-product
  * price chart). Used by the admin "Sync now" action and the monthly GitHub
@@ -55,11 +55,11 @@ export async function runCompetitorSync(db: SupaLike, source: string, runSource:
   // havells.com is our own-brand price source: the mapping is the product's
   // EXACT brand SKU, so a match cannot be wrong. New Havells products with a
   // brand_sku get mapped automatically here; every other source stays 100%
-  // manual (auto-matching burned us before — see the Atomberg remap).
+  // manual (auto-matching burned us before - see the Atomberg remap).
   // Brand-store sources whose prices auto-apply (suggested = comparable − 1,
   // guardrails: > 0 and >= 40% of our current price). Havells set the pattern;
   // Legrand follows the same rules. Auto-MAPPING by exact brand_sku remains
-  // Havells-only — Legrand codes are page slugs, seeded at import time.
+  // Havells-only - Legrand codes are page slugs, seeded at import time.
   const AUTO = source === "havells" || source === "legrand";
   // Auto-mapping by exact brand SKU. Havells: the SKU IS the fetch key.
   // Legrand: the fetch key is a page URL, so the SKU resolves through the
@@ -116,7 +116,7 @@ export async function runCompetitorSync(db: SupaLike, source: string, runSource:
     const effective = item.netPrice ?? item.listPrice;
     const ourPrice = priceById.get(m.product_id) ?? null;
     // Only a BUYABLE competitor (in stock + real >0 price) counts. Otherwise
-    // store a NULL comparable + status 'unavailable' — never a bogus ₹0 that
+    // store a NULL comparable + status 'unavailable' - never a bogus ₹0 that
     // would poison the lowest-price math.
     const buyable = item.inStock !== false && effective != null && effective > 0;
 
@@ -166,12 +166,12 @@ export async function runCompetitorSync(db: SupaLike, source: string, runSource:
     });
   }
 
-  // Bounded concurrency — sequential fetches were timing the serverless request
+  // Bounded concurrency - sequential fetches were timing the serverless request
   // out at ~15 products; 8-at-a-time clears far more within the budget.
   const CONCURRENCY = 8;
   let incomplete = false;
   for (let i = 0; i < rows.length; i += CONCURRENCY) {
-    if (deadlineMs && Date.now() > deadlineMs) { incomplete = true; break; } // out of time — stop cleanly
+    if (deadlineMs && Date.now() > deadlineMs) { incomplete = true; break; } // out of time - stop cleanly
     await Promise.all(rows.slice(i, i + CONCURRENCY).map((m: any) => processOne(m).catch(() => { failed++; })));
   }
 
@@ -180,7 +180,7 @@ export async function runCompetitorSync(db: SupaLike, source: string, runSource:
   // fail on DBs where migration 0046 has not run yet.
   try {
     await db.rpc("refresh_market_low", { ids: rows.map((m: any) => m.product_id) });
-  } catch { /* pre-0046 database — the storefront just falls back to MRP ranking */ }
+  } catch { /* pre-0046 database - the storefront just falls back to MRP ranking */ }
 
   if (repriced.length) {
     revalidatePath("/catalogue");

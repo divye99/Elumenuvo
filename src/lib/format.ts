@@ -1,4 +1,4 @@
-// ₹ formatting helpers — ported 1:1 from the prototype so figures match.
+// ₹ formatting helpers - ported 1:1 from the prototype so figures match.
 
 export function fmt(n: number): string {
   return "₹" + Math.round(n).toLocaleString("en-IN");

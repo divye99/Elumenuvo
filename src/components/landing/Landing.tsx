@@ -189,7 +189,7 @@ export default function Landing({ content }: { content: SiteContent }) {
             place. Priced fair.
           </h1>
           <p style={{ fontSize: 17.5, lineHeight: 1.6, color: "#56627A", margin: "0 0 24px", maxWidth: 470 }}>
-            The dedicated B2B storefront for electrical goods — 20,000+ SKUs, transparent pricing, and a year of price
+            The dedicated B2B storefront for electrical goods - 20,000+ SKUs, transparent pricing, and a year of price
             history on every product.
           </p>
           {/* storefront search */}
@@ -408,7 +408,7 @@ export default function Landing({ content }: { content: SiteContent }) {
               20,000+ SKUs. Every brand, one cart.
             </h2>
             <p style={{ fontSize: 16, lineHeight: 1.6, color: "#56627A", margin: 0, maxWidth: 520 }}>
-              From 2.5 mm² wire to BLDC fans and modular switches — browse live stock and transparent pricing across the
+              From 2.5 mm² wire to BLDC fans and modular switches - browse live stock and transparent pricing across the
               brands your sites already specify.
             </p>
           </div>
@@ -543,7 +543,7 @@ export default function Landing({ content }: { content: SiteContent }) {
               Know the real price. Every single day.
             </h2>
             <p style={{ fontSize: 16, lineHeight: 1.6, color: "#56627A", margin: 0 }}>
-              Elume captures the market price of every SKU daily — a full year of history per product. See where prices
+              Elume captures the market price of every SKU daily - a full year of history per product. See where prices
               are heading, and exactly how far below market you&apos;re buying, before you commit a PO.
             </p>
           </div>
@@ -846,7 +846,7 @@ export default function Landing({ content }: { content: SiteContent }) {
             We also procure for India&apos;s space-tech.
           </h2>
           <p style={{ fontSize: 16, lineHeight: 1.65, color: "rgba(255,255,255,0.66)", margin: "0 auto 26px", maxWidth: 560 }}>
-            Elumenuvo is our procurement partner for India&apos;s space companies — flight-grade parts and
+            Elumenuvo is our procurement partner for India&apos;s space companies - flight-grade parts and
             materials, vendor management, and imports &amp; customs handled end to end, so engineers stay
             on the hardware, not the purchase orders.
           </p>
@@ -921,7 +921,7 @@ export default function Landing({ content }: { content: SiteContent }) {
                 </div>
                 <h3 style={{ fontFamily: GROTESK, fontSize: 23, fontWeight: 600, letterSpacing: "-0.5px", margin: "14px 0 6px" }}>Request early access</h3>
                 <p style={{ fontSize: 14, color: "#56627A", margin: "0 0 24px", lineHeight: 1.5 }}>
-                  Tell us about your sites — we&apos;ll set up a portfolio and a custom savings estimate.
+                  Tell us about your sites - we&apos;ll set up a portfolio and a custom savings estimate.
                 </p>
 
                 <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
@@ -964,7 +964,7 @@ export default function Landing({ content }: { content: SiteContent }) {
                   Request access
                 </div>
                 <p style={{ fontSize: 11.5, color: "#A0A7B5", textAlign: "center", margin: "14px 0 0" }}>
-                  No commitment — we&apos;ll reach out within 2 business days.
+                  No commitment - we&apos;ll reach out within 2 business days.
                 </p>
               </div>
             )}

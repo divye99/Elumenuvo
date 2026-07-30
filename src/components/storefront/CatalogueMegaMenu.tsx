@@ -7,7 +7,7 @@ import { slugify } from "@/lib/slug";
 
 /**
  * Desktop nav "Catalogue" item with a hover mega-menu: quick links,
- * categories and brands — the same content the mobile drawer shows, so the
+ * categories and brands - the same content the mobile drawer shows, so the
  * two surfaces never drift apart. Click still goes straight to /catalogue.
  */
 export default function CatalogueMegaMenu() {

@@ -3,7 +3,7 @@ import InfoPage from "@/components/storefront/InfoPage";
 import { COMPANY, officeLine } from "@/lib/company";
 
 export const metadata: Metadata = {
-  title: "Contact Elume — email, phone and address",
+  title: "Contact Elume - email, phone and address",
   description:
     "How to reach Elume Nuvotech Private Limited: email, phone, support hours, registered office address, and where to go for order, return and business enquiries.",
   alternates: { canonical: "https://elumenuvo.com/contact" },
@@ -23,7 +23,7 @@ export default function ContactPage() {
           h: "Email",
           body: (
             <>
-              <a href={`mailto:${COMPANY.email}`} style={link}>{COMPANY.email}</a> — for orders, returns, GST invoices,
+              <a href={`mailto:${COMPANY.email}`} style={link}>{COMPANY.email}</a> - for orders, returns, GST invoices,
               bulk quotes and anything else. Include your order ID (it looks like ELM-2607-1234) and we can answer in
               one reply instead of three.
             </>
@@ -33,7 +33,7 @@ export default function ContactPage() {
           h: "Phone",
           body: (
             <>
-              <a href={`tel:${COMPANY.phone}`} style={link}>{COMPANY.phoneDisplay}</a> — {COMPANY.hours}. If we are on
+              <a href={`tel:${COMPANY.phone}`} style={link}>{COMPANY.phoneDisplay}</a> - {COMPANY.hours}. If we are on
               another call, leave a message or drop us an email and we will come straight back to you.
             </>
           ),
@@ -73,7 +73,7 @@ export default function ContactPage() {
           body: (
             <>
               You can follow any order yourself at <a href="/track" style={link}>track your order</a> using the order ID
-              and the email you ordered with — no account needed. Delivery timelines and charges are set out on our{" "}
+              and the email you ordered with - no account needed. Delivery timelines and charges are set out on our{" "}
               <a href="/shipping" style={link}>shipping page</a>.
             </>
           ),

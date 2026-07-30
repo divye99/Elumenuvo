@@ -32,11 +32,11 @@ const SITE = "https://elumenuvo.com";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: {
-    default: "Elume — India's procurement backbone for FMEG",
+    default: "Elume - India's procurement backbone for FMEG",
     template: "%s · Elume",
   },
   description:
-    "The dedicated B2B storefront for electrical goods in India — multi-brand catalogue (wires, switchgear, fans, lighting), transparent pricing, wholesale rates and project-level procurement tools.",
+    "The dedicated B2B storefront for electrical goods in India - multi-brand catalogue (wires, switchgear, fans, lighting), transparent pricing, wholesale rates and project-level procurement tools.",
   keywords: [
     "FMEG procurement", "electrical goods India", "house wires", "switchgear", "MCB", "RCCB",
     "modular switches", "distribution boards", "ceiling fans", "LED lighting", "B2B electrical",
@@ -48,12 +48,12 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "Elume",
-    title: "Elume — India's procurement backbone for FMEG",
+    title: "Elume - India's procurement backbone for FMEG",
     description: "Multi-brand electrical goods catalogue with transparent pricing and wholesale rates.",
     url: SITE,
     images: [{ url: `${SITE}/og.png`, width: 1200, height: 630, alt: "Elume" }],
   },
-  twitter: { card: "summary_large_image", title: "Elume — FMEG procurement, India", description: "Multi-brand electrical goods with transparent pricing.", images: [`${SITE}/og.png`] },
+  twitter: { card: "summary_large_image", title: "Elume - FMEG procurement, India", description: "Multi-brand electrical goods with transparent pricing.", images: [`${SITE}/og.png`] },
   robots: { index: true, follow: true },
 };
 

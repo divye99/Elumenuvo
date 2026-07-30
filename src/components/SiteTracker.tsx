@@ -11,7 +11,7 @@ import { track, flushNow, setOptOut } from "@/lib/analytics";
  *    tab hides, carrying duration_ms)
  *  - every click on a link or button (product taps and add-to-cart get their
  *    own types so journeys read cleanly)
- *  - every typed form field on blur/submit (`input` events) — EXCEPT
+ *  - every typed form field on blur/submit (`input` events) - EXCEPT
  *    passwords, OTPs and card fields, which are never recorded
  * The admin area is never tracked.
  */
@@ -74,7 +74,7 @@ export default function SiteTracker() {
       const form = e.target as HTMLFormElement | null;
       if (!form?.querySelectorAll) return;
       form.querySelectorAll("input, textarea").forEach((el) => capture(el));
-      flushNow(); // submits often navigate — don't lose the batch
+      flushNow(); // submits often navigate - don't lose the batch
     };
     document.addEventListener("blur", onBlur, true);
     document.addEventListener("submit", onSubmit, true);

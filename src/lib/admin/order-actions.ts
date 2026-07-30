@@ -31,7 +31,7 @@ const STAMP: Record<string, string> = { confirmed: "confirmed_at", delivered: "d
 async function guard() {
   if (!(await isAdmin())) return { db: null, err: "Not signed in." as const };
   const db = adminClient();
-  if (!db) return { db: null, err: "Service-role key missing — writes disabled." as const };
+  if (!db) return { db: null, err: "Service-role key missing - writes disabled." as const };
   return { db, err: null };
 }
 

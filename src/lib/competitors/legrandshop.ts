@@ -1,5 +1,5 @@
 /**
- * Legrand e-shop adapter (shop.legrand.co.in) — HTML scraping, not GraphQL.
+ * Legrand e-shop adapter (shop.legrand.co.in) - HTML scraping, not GraphQL.
  *
  * The store runs Magento like Havells, but its GraphQL layer does not expose
  * the catalogue: sku filters return nothing and full-text search misses most
@@ -10,8 +10,8 @@
  *   • competitor_code = the page SLUG ("mylinc-6a-switch-sp-1-way-...").
  *     Codes are seeded by the one-time catalogue crawl at import time
  *     (861 SKU→slug pairs), the same way the Havells index seeded 0066.
- *   • fetchByCode fetches the page and — because a slug could in principle be
- *     recycled — verifies the on-page SKU when the mapping's expected SKU is
+ *   • fetchByCode fetches the page and - because a slug could in principle be
+ *     recycled - verifies the on-page SKU when the mapping's expected SKU is
  *     appended as "slug#SKU". A mismatch returns null rather than a wrong price.
  *   • Pricing rule matches Havells: first price on the page is the selling
  *     price, the struck-through second one is the MRP.
@@ -88,7 +88,7 @@ export const legrandShopAdapter: CompetitorAdapter = {
       if (!resolved) return null;
       full = resolved;
     }
-    // "slug#EXPECTEDSKU" — the fragment pins the mapping to a SKU so a
+    // "slug#EXPECTEDSKU" - the fragment pins the mapping to a SKU so a
     // repurposed slug can never feed us another product's price.
     const [slug, expectSku] = full.split("#");
     if (!slug) return null;

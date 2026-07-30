@@ -1,11 +1,11 @@
 /**
- * BestOfElectricals (bestofelectricals.com) — a nopCommerce distributor store,
+ * BestOfElectricals (bestofelectricals.com) - a nopCommerce distributor store,
  * fully server-rendered. Carries most of our brands (Norisys, Havells, Legrand,
  * Anchor, Polycab, Finolex, Philips, Wipro, Usha, ABB, Schneider, KEI, RR Kabel,
  * Hager), each on a /<brand> manufacturer page.
- *   • search      → GET /search?q=… — product tiles carry data-productid, slug,
+ *   • search      → GET /search?q=… - product tiles carry data-productid, slug,
  *     name, old-price (MRP) and actual-price (selling).
- *   • fetchByCode → GET /<slug> — id=oldPrice (MRP), id=discountedPrice with
+ *   • fetchByCode → GET /<slug> - id=oldPrice (MRP), id=discountedPrice with
  *     itemprop=price content=NN.NN (selling).   (competitor_code = page slug)
  */
 import type { CompetitorAdapter, CompetitorItem } from "./types";

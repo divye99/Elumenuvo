@@ -31,7 +31,7 @@ export default function StoreChrome({ children }: { children: React.ReactNode })
       <div className="hdr-strip" style={{ background: "#19202E", color: "#C6CDE2", fontSize: 12.5, textAlign: "center", padding: "8px 16px" }}>
         🚚 <strong style={{ color: "#fff" }}>Free delivery</strong> pan-India · GST invoice on every order ·{" "}
         <Link href="/credit" style={{ color: "#9DB0FF", fontWeight: 700 }}>
-          30-day NBFC credit coming soon — join the waitlist →
+          30-day NBFC credit coming soon - join the waitlist →
         </Link>
       </div>
 
@@ -75,7 +75,7 @@ export default function StoreChrome({ children }: { children: React.ReactNode })
 
       <ScrollTopButton />
 
-      {/* Unified rich footer — same on desktop and mobile (responsive grid) */}
+      {/* Unified rich footer - same on desktop and mobile (responsive grid) */}
       <footer className="store-ft">
         <div className="ft-wrap">
           <div className="ft-top">
@@ -85,7 +85,7 @@ export default function StoreChrome({ children }: { children: React.ReactNode })
                 <Mark height={26} />
                 <Wordmark height={15} />
               </Link>
-              <p className="ft-tag">India&apos;s multi-brand FMEG store — wires, switchgear, fans, lighting &amp; modular at one transparent price list.</p>
+              <p className="ft-tag">India&apos;s multi-brand FMEG store - wires, switchgear, fans, lighting &amp; modular at one transparent price list.</p>
               <div className="ft-contact">
                 <a href="mailto:info@elumenuvo.com">✉ info@elumenuvo.com</a>
                 <a href="tel:+919818821175">✆ +91 98188 21175</a>

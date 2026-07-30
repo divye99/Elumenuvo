@@ -7,7 +7,7 @@ import { getLiveWorkspace } from "@/lib/workspace";
 export const dynamic = "force-dynamic";
 export const metadata = { robots: { index: false } };
 
-// The buyer workspace — sign-in required (real user base). New accounts must
+// The buyer workspace - sign-in required (real user base). New accounts must
 // pick an account type in onboarding first.
 export default async function Page() {
   const profile = await getProfile();

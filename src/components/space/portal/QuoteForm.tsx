@@ -38,7 +38,7 @@ export default function QuoteForm({ requestId }: { requestId: number }) {
       router.refresh();
     } catch (err) {
       console.error("Quote submit failed:", err);
-      setError("Couldn't submit quote — please try again.");
+      setError("Couldn't submit quote - please try again.");
     } finally {
       setLoading(false);
     }

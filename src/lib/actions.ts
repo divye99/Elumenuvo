@@ -1,6 +1,6 @@
 "use server";
 
-/** Public write actions — review submission + credit-waitlist signup.
+/** Public write actions - review submission + credit-waitlist signup.
  *  Both insert via the anon key under explicit insert-only RLS policies. */
 import { revalidatePath } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
@@ -44,12 +44,12 @@ export async function submitReview(productId: string, _prev: FormState, form: Fo
   if (error) {
     if (error.code === "42501")
       return { ok: false, message: "We couldn't verify a purchase of this product against that order ID and email." };
-    return { ok: false, message: "Couldn't save your review — please try again." };
+    return { ok: false, message: "Couldn't save your review - please try again." };
   }
 
   revalidatePath(`/catalogue/${productId}`);
   revalidatePath("/catalogue");
-  return { ok: true, message: "Thanks — your verified review is live." };
+  return { ok: true, message: "Thanks - your verified review is live." };
 }
 
 export async function joinWaitlist(_prev: FormState, form: FormData): Promise<FormState> {
@@ -67,8 +67,8 @@ export async function joinWaitlist(_prev: FormState, form: FormData): Promise<Fo
     company: company ? company.slice(0, 160) : null,
     feature: "nbfc-credit",
   });
-  if (error) return { ok: false, message: "Couldn't join the waitlist — please try again." };
-  return { ok: true, message: "You're on the list — we'll email you when credit goes live." };
+  if (error) return { ok: false, message: "Couldn't join the waitlist - please try again." };
+  return { ok: true, message: "You're on the list - we'll email you when credit goes live." };
 }
 
 /** Shared insert for the public lead forms (Sell on Elume / product requests).
@@ -91,7 +91,7 @@ export async function submitPartnerLead(kind: "seller" | "product-request", _pre
   }
 
   const c = client();
-  if (!c) return { ok: false, message: "This form isn't available right now — email us at info@elumenuvo.com." };
+  if (!c) return { ok: false, message: "This form isn't available right now - email us at info@elumenuvo.com." };
   const { error } = await c.from("partner_leads").insert({
     kind,
     name: name.slice(0, 120),
@@ -101,8 +101,8 @@ export async function submitPartnerLead(kind: "seller" | "product-request", _pre
     message: message ? message.slice(0, 4000) : null,
     details,
   });
-  if (error) return { ok: false, message: "Couldn't submit right now — please try again, or email info@elumenuvo.com." };
+  if (error) return { ok: false, message: "Couldn't submit right now - please try again, or email info@elumenuvo.com." };
   return kind === "seller"
-    ? { ok: true, message: "Thanks — our partnerships team will reach out within 2 working days." }
-    : { ok: true, message: "Got it — we'll try to source this product and email you a price." };
+    ? { ok: true, message: "Thanks - our partnerships team will reach out within 2 working days." }
+    : { ok: true, message: "Got it - we'll try to source this product and email you a price." };
 }

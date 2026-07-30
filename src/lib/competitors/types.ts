@@ -1,5 +1,5 @@
 /** A competitor price source (Vashi today; Amazon / Moglix next). Each site is
- *  one adapter implementing this interface — add a site by adding an adapter +
+ *  one adapter implementing this interface - add a site by adding an adapter +
  *  a row in competitor_sources. */
 export type CompetitorItem = {
   code: string;

@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   if (rateLimited(`disc:${requestIp(request.headers)}`, 12, 60_000)) {
-    return NextResponse.json({ ok: false, error: "Too many attempts — wait a minute and try again." }, { status: 429 });
+    return NextResponse.json({ ok: false, error: "Too many attempts - wait a minute and try again." }, { status: 429 });
   }
   let body: { code?: string; email?: string };
   try { body = await request.json(); } catch { return NextResponse.json({ ok: false, error: "Bad request." }, { status: 400 }); }

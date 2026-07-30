@@ -1,5 +1,5 @@
 /**
- * Savings model — the single source of truth for both the savings calculator and
+ * Savings model - the single source of truth for both the savings calculator and
  * the supply-chain animation, so the two never disagree.
  *
  * Grounded in the deck: a 4-5 layer distribution chain stacks 25-35% cumulative

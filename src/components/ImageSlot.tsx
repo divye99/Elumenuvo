@@ -22,7 +22,7 @@ function writeStore(next: Record<string, string>) {
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify(next));
   } catch {
-    /* quota / disabled — slot simply won't persist */
+    /* quota / disabled - slot simply won't persist */
   }
 }
 
@@ -54,7 +54,7 @@ export default function ImageSlot({
   useEffect(() => {
     // Hydrate any previously-dropped image for this slot from localStorage.
     // Starts null on the server and first client render (matching SSR), then
-    // loads on mount — the standard "read from external store" effect.
+    // loads on mount - the standard "read from external store" effect.
     const store = readStore();
     if (store[id]) setSrc(store[id]);
   }, [id]);

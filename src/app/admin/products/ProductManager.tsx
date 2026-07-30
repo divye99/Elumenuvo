@@ -101,7 +101,7 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
 
   /* ── Price suggestions ──
    * A seller only counts if the mapping is APPROVED and the listing is BUYABLE
-   * (in stock, real >0 price) — a pending match or an out-of-stock competitor
+   * (in stock, real >0 price) - a pending match or an out-of-stock competitor
    * must never drag our price down. Suggestion = undercut the cheapest such
    * seller by ₹1, and only when they are actually cheaper than us today. */
   const sellerPrice = (r: ManagerRow, s: SourceInfo): number | null => {
@@ -190,7 +190,7 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
   const suggestionCount = useMemo(() => rows.filter(needsReprice).length, [rows, sources]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /** Apply "₹1 under the cheapest live competitor" to every currently-filtered
-   *  product that has a real suggestion. Confirmed first — this changes live
+   *  product that has a real suggestion. Confirmed first - this changes live
    *  storefront prices. */
   const applyAllSuggestions = () => {
     const items = filtered.filter(needsReprice).map((r) => ({ id: r.id, target: targetFor(r) as number }));
@@ -229,7 +229,7 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
   const selectAll = () => setSelected(new Set(rows.map((r) => r.id)));
   const clearSelection = () => setSelected(new Set());
 
-  /** Download the SELECTED products as the same CSV the bulk importer accepts —
+  /** Download the SELECTED products as the same CSV the bulk importer accepts -
    *  edit in Excel, then upload right back in the import panel below. */
   const downloadSelected = () => {
     const chosen = rows.filter((r) => selected.has(r.id));
@@ -269,7 +269,7 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
         </select>
         <select value={priceView} onChange={(e) => setPriceView(e.target.value as typeof priceView)} style={{ border: "1px solid #E0E4ED", borderRadius: 10, padding: "9px 12px", fontSize: 13.5, background: "#fff", fontWeight: priceView !== "any" ? 700 : 400, color: priceView === "cheaper" ? "#C0392B" : undefined }}>
           <option value="any">Price: all</option>
-          <option value="cheaper">⚠ Competitor cheaper — needs repricing ({suggestionCount})</option>
+          <option value="cheaper">⚠ Competitor cheaper - needs repricing ({suggestionCount})</option>
           <option value="winning">✓ We&apos;re at or under every competitor</option>
         </select>
         <select value={sortBy} onChange={(e) => setSortBy(e.target.value as typeof sortBy)} style={{ border: "1px solid #E0E4ED", borderRadius: 10, padding: "9px 12px", fontSize: 13.5, background: "#fff" }}>
@@ -326,7 +326,7 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
           </span>
         )}
         <div style={{ marginLeft: "auto", display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <button onClick={downloadSelected} disabled={selected.size === 0} title={selected.size === 0 ? "Select products first — tick rows, or use Select visible / Select all" : `Download ${selected.size} products as an editable CSV`} style={{ ...ghost, opacity: selected.size === 0 ? 0.5 : 1, cursor: selected.size === 0 ? "default" : "pointer" }}>
+          <button onClick={downloadSelected} disabled={selected.size === 0} title={selected.size === 0 ? "Select products first - tick rows, or use Select visible / Select all" : `Download ${selected.size} products as an editable CSV`} style={{ ...ghost, opacity: selected.size === 0 ? 0.5 : 1, cursor: selected.size === 0 ? "default" : "pointer" }}>
             ⬇ Download template{selected.size > 0 ? ` (${selected.size})` : ""}
           </button>
           <button onClick={() => setShowImport((v) => !v)} style={showImport ? { ...primary, background: "#161D2B" } : ghost}>
@@ -335,7 +335,7 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
         </div>
       </div>
 
-      {/* Inline Excel import — same page, no navigation */}
+      {/* Inline Excel import - same page, no navigation */}
       {showImport && (
         <div style={{ marginBottom: 16 }}>
           <ImportClient />
@@ -384,7 +384,7 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
                 </span>
                 {sug && sugTarget != null && (
                   <span
-                    title={`A live competitor sells this for ${fmt(lowestFor(r)!)} — undercut to ${fmt(sugTarget)}`}
+                    title={`A live competitor sells this for ${fmt(lowestFor(r)!)} - undercut to ${fmt(sugTarget)}`}
                     style={{ fontSize: 10.5, fontWeight: 700, color: "#fff", background: "#E0612A", borderRadius: 20, padding: "2px 9px", whiteSpace: "nowrap" }}
                   >
                     ↓ {fmt(sugTarget)}
@@ -462,7 +462,7 @@ function DetailsTab({ row, onClose }: { row: ManagerRow; onClose: () => void }) 
         <Field label="MRP (₹ incl. GST)"><input type="number" step="any" value={f.mrp} onChange={set("mrp")} style={inp} /></Field>
         <Field label="Elume price (₹ incl. GST)"><input type="number" step="any" value={f.elume_price} onChange={set("elume_price")} style={{ ...inp, fontWeight: 700, borderColor: "#C9CFF6" }} /></Field>
         <div style={{ alignSelf: "end", fontSize: 12, color: "#56627A", paddingBottom: 8 }}>
-          {valid ? (() => { const gb = gstBreakdown(elume, row.category, f.gst_pct.trim() === "" ? null : Number(f.gst_pct) / 100); return <>{offMrpPct(elume, mrp)}% off · wholesale {fmt(wholesalePrice(elume))} · storefront shows <b>{fmt(gb.base)}</b> + {Math.round(gb.rate * 100)}% GST</>; })() : "—"}
+          {valid ? (() => { const gb = gstBreakdown(elume, row.category, f.gst_pct.trim() === "" ? null : Number(f.gst_pct) / 100); return <>{offMrpPct(elume, mrp)}% off · wholesale {fmt(wholesalePrice(elume))} · storefront shows <b>{fmt(gb.base)}</b> + {Math.round(gb.rate * 100)}% GST</>; })() : "-"}
         </div>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2fr", gap: 12, marginBottom: 12 }}>
@@ -492,7 +492,7 @@ function DetailsTab({ row, onClose }: { row: ManagerRow; onClose: () => void }) 
 
 const CONDITIONS = ["New", "Refurbished", "Open box"];
 
-/* ── Tab 2: Competitor pricing — LIST of every matched seller ── */
+/* ── Tab 2: Competitor pricing - LIST of every matched seller ── */
 function CompetitorTab({ row, sources }: { row: ManagerRow; sources: SourceInfo[] }) {
   const router = useRouter();
   const [busy, start] = useTransition();
@@ -530,7 +530,7 @@ function CompetitorTab({ row, sources }: { row: ManagerRow; sources: SourceInfo[
         <span>Match key ·</span>
         {row.brand_sku
           ? <span style={{ fontFamily: "var(--space-mono)", background: "#EEF0FE", color: "#3A46B8", padding: "3px 9px", borderRadius: 7, fontWeight: 600 }}>Brand SKU {row.brand_sku}</span>
-          : <span style={{ color: "#C77700", background: "#FFF3E0", padding: "3px 9px", borderRadius: 7, fontWeight: 600 }}>No brand SKU set — add it in Details for reliable cross-site matching</span>}
+          : <span style={{ color: "#C77700", background: "#FFF3E0", padding: "3px 9px", borderRadius: 7, fontWeight: 600 }}>No brand SKU set - add it in Details for reliable cross-site matching</span>}
         <span style={{ color: "#A0A7B5" }}>· our price <b style={{ color: "#4E5BDC" }}>{fmt(row.elume_price)}</b></span>
       </div>
 
@@ -581,7 +581,7 @@ function CompetitorTab({ row, sources }: { row: ManagerRow; sources: SourceInfo[
                       {fmt((p!.net_price ?? p!.list_price)! * (map.unit_factor ?? 1))}
                     </div>
                   ) : (
-                    <span style={{ fontSize: 12, color: "#C4C9D4" }}>—</span>
+                    <span style={{ fontSize: 12, color: "#C4C9D4" }}>-</span>
                   )}
                 </div>
                 {/* Availability */}
@@ -605,14 +605,14 @@ function CompetitorTab({ row, sources }: { row: ManagerRow; sources: SourceInfo[
                 <div style={{ minWidth: 0 }}>
                   {url
                     ? <a href={url} target="_blank" rel="noreferrer" style={{ fontSize: 12, fontWeight: 600, color: "#4E5BDC" }}>Open ↗</a>
-                    : <span style={{ fontSize: 12, color: "#C4C9D4" }}>—</span>}
+                    : <span style={{ fontSize: 12, color: "#C4C9D4" }}>-</span>}
                 </div>
                 {/* Actions */}
                 <div style={{ display: "flex", gap: 8, alignItems: "center", justifyContent: "flex-end" }}>
                   {map.approval === "pending" ? (
                     <>
-                      <button onClick={() => decide(s.id, true)} disabled={busy} title="Approve — trust this match for pricing" style={{ background: "#137a4b", color: "#fff", fontWeight: 700, fontSize: 11.5, border: "none", padding: "6px 12px", borderRadius: 8, cursor: "pointer" }}>✓ Approve</button>
-                      <button onClick={() => decide(s.id, false)} disabled={busy} title="Reject — wrong match, remove it" style={{ background: "#fff", color: "#C0392B", fontWeight: 700, fontSize: 11.5, border: "1px solid #F0C8C0", padding: "6px 12px", borderRadius: 8, cursor: "pointer" }}>✕ Reject</button>
+                      <button onClick={() => decide(s.id, true)} disabled={busy} title="Approve - trust this match for pricing" style={{ background: "#137a4b", color: "#fff", fontWeight: 700, fontSize: 11.5, border: "none", padding: "6px 12px", borderRadius: 8, cursor: "pointer" }}>✓ Approve</button>
+                      <button onClick={() => decide(s.id, false)} disabled={busy} title="Reject - wrong match, remove it" style={{ background: "#fff", color: "#C0392B", fontWeight: 700, fontSize: 11.5, border: "1px solid #F0C8C0", padding: "6px 12px", borderRadius: 8, cursor: "pointer" }}>✕ Reject</button>
                     </>
                   ) : (
                     <>
@@ -629,7 +629,7 @@ function CompetitorTab({ row, sources }: { row: ManagerRow; sources: SourceInfo[
         </div>
       ) : (
         <div style={{ background: "#fff", border: "1px dashed #D5DAE4", borderRadius: 12, padding: "20px", textAlign: "center", fontSize: 12.5, color: "#8A93A6" }}>
-          No sellers matched yet. Add one below — start with the brand SKU for an exact match.
+          No sellers matched yet. Add one below - start with the brand SKU for an exact match.
         </div>
       )}
 
@@ -644,7 +644,7 @@ function CompetitorTab({ row, sources }: { row: ManagerRow; sources: SourceInfo[
         )}
       </div>
       {mappedSellers.some((s) => row.perSource[s.id].map && !row.perSource[s.id].price) && (
-        <div style={{ fontSize: 11, color: "#A0A7B5", marginTop: 8 }}>Some sellers are mapped but not priced yet — run a sync from <a href="/admin/radar" style={{ color: "#4E5BDC" }}>the radar</a>.</div>
+        <div style={{ fontSize: 11, color: "#A0A7B5", marginTop: 8 }}>Some sellers are mapped but not priced yet - run a sync from <a href="/admin/radar" style={{ color: "#4E5BDC" }}>the radar</a>.</div>
       )}
     </div>
   );
@@ -678,8 +678,8 @@ function skuMatch(hit: Hit, brandSku: string | null): boolean {
 }
 
 function MatchPicker({ row, source, sourceName, onDone }: { row: ManagerRow; source: string; sourceName: string; onDone: () => void }) {
-  // Layer 1: search by brand SKU (MPN) first — it's the reliable cross-site key.
-  const [query, setQuery] = useState(row.brand_sku || `${row.brand} ${row.name}`.replace(/—.*/, "").trim());
+  // Layer 1: search by brand SKU (MPN) first - it's the reliable cross-site key.
+  const [query, setQuery] = useState(row.brand_sku || `${row.brand} ${row.name}`.replace(/-.*/, "").trim());
   const [hits, setHits] = useState<Hit[] | null>(null);
   const [chosen, setChosen] = useState<Hit | null>(null);
   const [factor, setFactor] = useState(String(row.suggestedFactor));
@@ -713,19 +713,19 @@ function MatchPicker({ row, source, sourceName, onDone }: { row: ManagerRow; sou
       <div style={{ fontSize: 12.5, color: "#56627A", marginBottom: 10 }}>
         Find the matching product on {sourceName}
         {row.brand_sku
-          ? <> — searching by brand SKU <b style={{ fontFamily: "var(--space-mono)" }}>{row.brand_sku}</b> for an exact match.</>
+          ? <> - searching by brand SKU <b style={{ fontFamily: "var(--space-mono)" }}>{row.brand_sku}</b> for an exact match.</>
           : <> (tip: add a Brand SKU in Details for reliable auto-matching).</>}
       </div>
       <div style={{ display: "flex", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
         <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && search()} placeholder={`Search ${sourceName}…`} style={{ ...inp, flex: 1, minWidth: 180 }} />
         <button onClick={search} disabled={busy} style={ghost}>{busy && !hits ? "Searching…" : "Search"}</button>
         {row.brand_sku && query !== `${row.brand} ${row.name}` && (
-          <button onClick={() => { const t = `${row.brand} ${row.name}`.replace(/—.*/, "").trim(); setQuery(t); runSearch(t); }} disabled={busy} style={{ ...ghost, fontSize: 12 }} title="Fall back to name search">Search by name</button>
+          <button onClick={() => { const t = `${row.brand} ${row.name}`.replace(/-.*/, "").trim(); setQuery(t); runSearch(t); }} disabled={busy} style={{ ...ghost, fontSize: 12 }} title="Fall back to name search">Search by name</button>
         )}
       </div>
       {hits && (
         <div style={{ maxHeight: 220, overflowY: "auto", border: "1px solid #E8EBF1", borderRadius: 9, marginBottom: 10 }}>
-          {hits.length === 0 && <div style={{ padding: 12, fontSize: 12.5, color: "#8A93A6" }}>No results — try the name search or a shorter query.</div>}
+          {hits.length === 0 && <div style={{ padding: 12, fontSize: 12.5, color: "#8A93A6" }}>No results - try the name search or a shorter query.</div>}
           {hits.map((h) => {
             const price = h.netPrice ?? h.listPrice;
             const isSku = skuMatch(h, row.brand_sku);
@@ -738,7 +738,7 @@ function MatchPicker({ row, source, sourceName, onDone }: { row: ManagerRow; sou
                   </span>
                   <span style={{ fontSize: 11, color: "#8A93A6", fontFamily: "var(--space-mono)" }}>{h.brand} · {h.code}</span>
                 </span>
-                <span style={{ fontSize: 12.5, fontWeight: 700 }}>{price != null ? fmt(price) : "—"}<span style={{ fontSize: 10, color: "#8A93A6" }}>/u</span></span>
+                <span style={{ fontSize: 12.5, fontWeight: 700 }}>{price != null ? fmt(price) : "-"}<span style={{ fontSize: 10, color: "#8A93A6" }}>/u</span></span>
               </button>
             );
           })}

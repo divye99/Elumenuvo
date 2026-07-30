@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 const OPEN = ["placed", "confirmed", "packed", "shipped", "partially_shipped", "out_for_delivery"];
 // Checkout attempts where money never captured. Kept OUT of the paid tabs,
-// but surfaced in their own "Abandoned" view — a fully-filled checkout is
+// but surfaced in their own "Abandoned" view - a fully-filled checkout is
 // the hottest recovery lead a store has (name, phone, items, address).
 const UNPAID = ["awaiting_payment", "payment_abandoned"];
 
@@ -84,14 +84,14 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
             <div key={o.id} style={{ display: "grid", gridTemplateColumns: "120px 1fr 90px 110px 150px", gap: 12, padding: "13px 16px", alignItems: "center", borderTop: i ? "1px solid #F0F2F6" : undefined }}>
               <Link href={`/admin/orders/${o.id}`} style={{ fontFamily: "var(--space-mono)", fontSize: 12.5, fontWeight: 600, color: "#4E5BDC" }}>{o.id}</Link>
               <span style={{ minWidth: 0 }}>
-                <span style={{ display: "block", fontSize: 13.5, fontWeight: 600, color: "#19202E", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.name || "—"}</span>
+                <span style={{ display: "block", fontSize: 13.5, fontWeight: 600, color: "#19202E", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.name || "-"}</span>
                 <span style={{ fontSize: 11.5, color: "#8A93A6" }}>{o.email ?? "no email"}{o.phone ? ` · ${o.phone}` : ""}</span>
               </span>
-              <span style={{ textAlign: "right", fontFamily: "var(--space-grotesk)", fontWeight: 700, fontSize: 14 }}>{o.total != null ? fmt(o.total) : "—"}</span>
+              <span style={{ textAlign: "right", fontFamily: "var(--space-grotesk)", fontWeight: 700, fontSize: 14 }}>{o.total != null ? fmt(o.total) : "-"}</span>
               <span style={{ fontSize: 12, color: "#56627A" }}>{new Date(o.created_at).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short" })}</span>
               {o.phone ? (
                 <a
-                  href={`https://wa.me/${whatsappDigits(String(o.phone))}?text=${encodeURIComponent(`Hi ${o.name || "there"}, this is Elume (elumenuvo.com). We noticed your order didn't complete — happy to help you finish it, or answer any questions!`)}`}
+                  href={`https://wa.me/${whatsappDigits(String(o.phone))}?text=${encodeURIComponent(`Hi ${o.name || "there"}, this is Elume (elumenuvo.com). We noticed your order didn't complete - happy to help you finish it, or answer any questions!`)}`}
                   target="_blank"
                   style={{ fontSize: 12, fontWeight: 700, color: "#1F9D63", background: "#E6F5EE", padding: "5px 10px", borderRadius: 8, textAlign: "center" }}
                 >
@@ -105,10 +105,10 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
             <Link key={o.id} href={`/admin/orders/${o.id}`} style={{ display: "grid", gridTemplateColumns: "120px 1fr 90px 110px 150px", gap: 12, padding: "13px 16px", alignItems: "center", borderTop: i ? "1px solid #F0F2F6" : undefined }}>
               <span style={{ fontFamily: "var(--space-mono)", fontSize: 12.5, fontWeight: 600, color: "#19202E" }}>{o.id}</span>
               <span style={{ minWidth: 0 }}>
-                <span style={{ display: "block", fontSize: 13.5, fontWeight: 600, color: "#19202E", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.name || "—"}</span>
+                <span style={{ display: "block", fontSize: 13.5, fontWeight: 600, color: "#19202E", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.name || "-"}</span>
                 <span style={{ fontSize: 11.5, color: "#8A93A6" }}>{(o.items ?? []).reduce((s, it) => s + it.qty, 0)} item{(o.items ?? []).length === 1 ? "" : "s"}{o.gstin ? " · GST" : ""}{o.is_guest ? " · guest" : ""}</span>
               </span>
-              <span style={{ textAlign: "right", fontFamily: "var(--space-grotesk)", fontWeight: 700, fontSize: 14 }}>{o.total != null ? fmt(o.total) : "—"}</span>
+              <span style={{ textAlign: "right", fontFamily: "var(--space-grotesk)", fontWeight: 700, fontSize: 14 }}>{o.total != null ? fmt(o.total) : "-"}</span>
               <span style={{ fontSize: 12, color: "#56627A" }}>{new Date(o.created_at).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short" })}</span>
               <span><OrderStatusBadge status={o.status} /></span>
             </Link>

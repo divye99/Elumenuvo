@@ -1,5 +1,5 @@
 /**
- * Phone numbers — one rule, shared by the checkout form and the server.
+ * Phone numbers - one rule, shared by the checkout form and the server.
  *
  * The old rule was /^[0-9+\-\s]{8,15}$/, i.e. "between 8 and 15 characters".
  * A 9-digit number sailed through it and an order was created with a number we

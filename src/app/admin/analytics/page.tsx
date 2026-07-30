@@ -203,7 +203,7 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
               const down = r.delta != null && r.delta < 0;
               return (
                 <div key={r.key} style={{ flex: "1 0 26px", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, minWidth: 26 }}
-                     title={`${r.key} (${r.weekday}) — ${r.visitors} unique visitor${r.visitors === 1 ? "" : "s"}${r.delta != null ? ` · ${r.delta >= 0 ? "+" : ""}${r.delta} vs ${r.prevKey}` : ""}`}>
+                     title={`${r.key} (${r.weekday}) - ${r.visitors} unique visitor${r.visitors === 1 ? "" : "s"}${r.delta != null ? ` · ${r.delta >= 0 ? "+" : ""}${r.delta} vs ${r.prevKey}` : ""}`}>
                   <span style={{ fontSize: 10.5, fontWeight: 700, color: r.visitors ? "#19202E" : "#C6CBD6" }}>{r.visitors}</span>
                   <div style={{ width: "100%", height: Math.max(h, r.visitors ? 3 : 1), borderRadius: "4px 4px 0 0", background: up ? "#1F9D63" : down ? "#E9967A" : "#4E5BDC", opacity: r.visitors ? 1 : 0.25 }} />
                   <span style={{ fontSize: 9.5, color: "#8A93A6", whiteSpace: "nowrap" }}>{r.weekday}</span>

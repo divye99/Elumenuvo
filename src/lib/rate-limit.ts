@@ -1,6 +1,6 @@
 /**
  * In-memory sliding-window rate limiter for public ingest endpoints.
- * Per serverless instance (not global) — the goal is stopping abusive
+ * Per serverless instance (not global) - the goal is stopping abusive
  * loops and junk floods cheaply, not perfect distributed quotas. Memory is
  * bounded by periodic pruning.
  */

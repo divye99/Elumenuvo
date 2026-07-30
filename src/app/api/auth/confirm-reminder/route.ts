@@ -9,7 +9,7 @@ import { sendConfirmReminder } from "@/lib/email";
  *
  * Guarded against abuse: the caller must present the user id that signUp
  * returned, and the account must actually exist, match the email, be
- * unconfirmed, and be freshly created — otherwise nothing is sent.
+ * unconfirmed, and be freshly created - otherwise nothing is sent.
  */
 export const dynamic = "force-dynamic";
 

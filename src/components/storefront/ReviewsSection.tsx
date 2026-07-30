@@ -6,7 +6,7 @@ import { submitReview, type FormState } from "@/lib/actions";
 import type { Review } from "@/lib/reviews";
 import Rating, { StarInput } from "@/components/storefront/Rating";
 
-/** Verified customer reviews — compact summary + list, with a collapsible
+/** Verified customer reviews - compact summary + list, with a collapsible
  *  write-a-review form gated to verified purchasers. */
 export default function ReviewsSection({ productId, reviews }: { productId: string; reviews: Review[] }) {
   const [state, action, pending] = useActionState<FormState, FormData>(submitReview.bind(null, productId), null);
@@ -51,11 +51,11 @@ export default function ReviewsSection({ productId, reviews }: { productId: stri
           </div>
         )}
 
-        {/* Write a review — collapsible, verified purchasers only */}
+        {/* Write a review - collapsible, verified purchasers only */}
         {showForm && (
           <form action={action} style={{ marginTop: 12, paddingTop: 14, borderTop: "1px solid #F0F2F6" }}>
             <div style={{ fontSize: 12, color: "#8A93A6", marginBottom: 10 }}>
-              Verified purchasers only — enter your Elume order ID and the email you ordered with.
+              Verified purchasers only - enter your Elume order ID and the email you ordered with.
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
               <StarInput value={rating} hover={hover} size={22} onSet={setRating} onHover={setHover} />

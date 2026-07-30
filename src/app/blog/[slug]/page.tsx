@@ -150,7 +150,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
         {/* CTA */}
         <div style={{ marginTop: 36, background: "linear-gradient(135deg,#4E5BDC,#1f9d63)", borderRadius: 16, padding: "26px 28px", color: "#fff" }}>
-          <div style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600 }}>Source these on Elume — at transparent prices.</div>
+          <div style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600 }}>Source these on Elume - at transparent prices.</div>
           <p style={{ fontSize: 14.5, opacity: 0.9, margin: "6px 0 16px", maxWidth: 520 }}>
             Compare MRP vs the Elume price across brands, with an extra 5% wholesale rate on 15+ units.
           </p>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
 import { loadSignups } from "@/lib/admin/signups-data";
 import { istDateTime } from "@/lib/admin/ist";
+import ImpersonateButton from "./ImpersonateButton";
 
 export const dynamic = "force-dynamic";
 
@@ -52,9 +53,12 @@ export default async function AdminSignups() {
               {!s.confirmed && (
                 <span style={{ fontSize: 10.5, fontWeight: 700, color: "#C77700", background: "#FFF3E0", padding: "2px 8px", borderRadius: 7 }}>email unconfirmed</span>
               )}
-              <div style={{ marginLeft: "auto", fontSize: 11.5, color: "#A0A7B5", whiteSpace: "nowrap", textAlign: "right" }}>
-                <div>joined {istDateTime(s.created_at)}</div>
-                <div>last seen {istDateTime(s.last_sign_in_at)}</div>
+              <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 14 }}>
+                {s.email && <ImpersonateButton email={s.email} name={s.name} />}
+                <div style={{ fontSize: 11.5, color: "#A0A7B5", whiteSpace: "nowrap", textAlign: "right" }}>
+                  <div>joined {istDateTime(s.created_at)}</div>
+                  <div>last seen {istDateTime(s.last_sign_in_at)}</div>
+                </div>
               </div>
             </div>
           ))}

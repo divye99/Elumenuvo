@@ -5,7 +5,7 @@ import { submitPartnerLead } from "@/lib/actions";
 import { GROTESK } from "@/lib/fonts";
 
 export const metadata: Metadata = {
-  title: "Sell on Elume — list your electrical brand",
+  title: "Sell on Elume - list your electrical brand",
   description:
     "Manufacture or distribute electrical goods? List your brand on Elume and reach electricians, contractors and businesses buying FMEG across India.",
   alternates: { canonical: "https://elumenuvo.com/sell" },
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 };
 
 const PERKS = [
-  { icon: "🛍️", title: "Pan-India storefront", body: "Your catalogue in front of electricians, contractors and businesses across India — no dealer network needed." },
+  { icon: "🛍️", title: "Pan-India storefront", body: "Your catalogue in front of electricians, contractors and businesses across India - no dealer network needed." },
   { icon: "📊", title: "Transparent pricing", body: "One price list next to every major brand. Great products win on merit, not on distribution muscle." },
   { icon: "🚚", title: "We handle the orders", body: "Checkout, GST invoicing, payment collection and delivery coordination run on Elume." },
   { icon: "🤝", title: "Simple commercials", body: "No listing fees to start. We agree a straightforward margin and you keep control of your MRP." },
@@ -38,8 +38,8 @@ export default function SellPage() {
               Sell on Elume
             </h1>
             <p style={{ fontSize: 15, color: "#56627A", lineHeight: 1.6, margin: "14px 0 26px" }}>
-              We stock India&apos;s leading electrical brands — wires, switchgear, modular, fans, lighting and
-              DBs — and we&apos;re always adding more. Tell us about your brand and our partnerships team
+              We stock India&apos;s leading electrical brands - wires, switchgear, modular, fans, lighting and
+              DBs - and we&apos;re always adding more. Tell us about your brand and our partnerships team
               will get back within 2 working days.
             </p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>

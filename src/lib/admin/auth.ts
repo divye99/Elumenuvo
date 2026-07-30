@@ -1,5 +1,5 @@
 /**
- * Admin auth — a signed httpOnly cookie gate (no Supabase Auth needed).
+ * Admin auth - a signed httpOnly cookie gate (no Supabase Auth needed).
  * Login checks ADMIN_PASSWORD; the cookie is HMAC-signed with SANDBOX_COOKIE_SECRET.
  */
 import { cookies } from "next/headers";
@@ -10,11 +10,11 @@ export const ADMIN_COOKIE = "elume_admin";
 export const ADMIN_TTL_MS = 12 * 60 * 60 * 1000; // 12h
 
 // Fail CLOSED: without the signing secret, admin tokens can neither be
-// minted nor verified — nobody gets in, instead of everybody.
+// minted nor verified - nobody gets in, instead of everybody.
 const secret = (process.env.SANDBOX_COOKIE_SECRET || "").trim();
 
 function sign(payload: string) {
-  if (!secret) throw new Error("SANDBOX_COOKIE_SECRET is not set — admin auth disabled.");
+  if (!secret) throw new Error("SANDBOX_COOKIE_SECRET is not set - admin auth disabled.");
   return createHmac("sha256", secret).update(payload).digest("base64url");
 }
 

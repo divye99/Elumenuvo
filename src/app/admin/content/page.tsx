@@ -5,21 +5,21 @@ import { updateContent } from "@/lib/admin/actions";
 export const dynamic = "force-dynamic";
 
 const LABELS: Record<string, string> = {
-  homeCatalogue: "Home — catalogue showcase tiles",
-  homeChart: "Home — price-history series (pricing engine)",
-  homeCats: "Home — category chips",
-  heroCats: "Home — hero category links",
-  featureTags: "Home — differentiator tags",
-  homeBrands: "Home — brand strip",
-  steps: "Home — how-it-works steps",
-  miniRows: "Home — hero mini project rows",
-  categories: "App — catalogue category chips",
-  autoPo: "App — auto-PO line items",
-  projects: "App — portfolio projects",
-  stages: "App — phased procurement stages",
-  bomRows: "App — sample BOM rows",
-  parsedRows: "App — Smart BOM parsed rows",
-  trackSteps: "App — delivery tracking steps",
+  homeCatalogue: "Home - catalogue showcase tiles",
+  homeChart: "Home - price-history series (pricing engine)",
+  homeCats: "Home - category chips",
+  heroCats: "Home - hero category links",
+  featureTags: "Home - differentiator tags",
+  homeBrands: "Home - brand strip",
+  steps: "Home - how-it-works steps",
+  miniRows: "Home - hero mini project rows",
+  categories: "App - catalogue category chips",
+  autoPo: "App - auto-PO line items",
+  projects: "App - portfolio projects",
+  stages: "App - phased procurement stages",
+  bomRows: "App - sample BOM rows",
+  parsedRows: "App - Smart BOM parsed rows",
+  trackSteps: "App - delivery tracking steps",
 };
 
 export default async function AdminContent({

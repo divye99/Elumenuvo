@@ -84,7 +84,7 @@ export async function POST(request: Request) {
       const { data: order } = await db.from("orders").select("*").eq("id", String(body.orderId)).maybeSingle();
       if (!order?.email) return NextResponse.json({ ok: false, error: "Order or email not found." }, { status: 400 });
       const sent = await sendCustomerStatusUpdate(order, order.status);
-      res = sent.ok ? { ok: true } : { ok: false, error: "Email failed — check Resend logs." };
+      res = sent.ok ? { ok: true } : { ok: false, error: "Email failed - check Resend logs." };
       break;
     }
     case "welcome-offer": {
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
       });
       if (insErr) return NextResponse.json({ ok: false, error: `Couldn't create the code: ${insErr.message} (run migration 0056?)` }, { status: 400 });
       const sent = await sendWelcomeOffer(order, code, percent, expires);
-      res = sent.ok ? { ok: true } : { ok: false, error: `Code ${code} created but the email failed — check Resend logs.` };
+      res = sent.ok ? { ok: true } : { ok: false, error: `Code ${code} created but the email failed - check Resend logs.` };
       break;
     }
     case "invite": {
@@ -113,7 +113,7 @@ export async function POST(request: Request) {
       const { data: order } = await db.from("orders").select("id, name, email").eq("id", String(body.orderId)).maybeSingle();
       if (!order?.email) return NextResponse.json({ ok: false, error: "Order or email not found." }, { status: 400 });
       const sent = await sendAccountInvite(order);
-      res = sent.ok ? { ok: true } : { ok: false, error: "Email failed to send — check RESEND_API_KEY / logs." };
+      res = sent.ok ? { ok: true } : { ok: false, error: "Email failed to send - check RESEND_API_KEY / logs." };
       break;
     }
     case "similar": {
@@ -145,7 +145,7 @@ export async function POST(request: Request) {
       const next = [...items];
       next[idx] = {
         id: np.id, name: np.name, qty: old.qty,
-        price: old.price, // the price the customer already paid — the bill does not move
+        price: old.price, // the price the customer already paid - the bill does not move
         cat: np.category,
         ...(np.gst_rate != null ? { gstRate: Number(np.gst_rate) } : {}),
         ...(np.hsn ? { hsn: np.hsn } : {}),
@@ -162,7 +162,7 @@ export async function POST(request: Request) {
         : `Replaced "${old.name}" with "${np.name}" (list ${listPrice}; billed at the original ${old.price} as agreed, bill unchanged)`;
       try { await db.from("order_events").insert({ order_id: order.id, status: order.status, note }); } catch { /* optional */ }
       const sent = await sendReplacementEmail(order, old.name, { name: np.name, qty: old.qty, price: old.price }, "absorbed", { listPrice });
-      res = { ok: true, ...(sent.ok ? {} : { error: "Swapped, but the email failed — check Resend logs." }) };
+      res = { ok: true, ...(sent.ok ? {} : { error: "Swapped, but the email failed - check Resend logs." }) };
       break;
     }
     case "replace-order": {
@@ -192,14 +192,14 @@ export async function POST(request: Request) {
         billing_address: order.billing_address, shipping_address: order.shipping_address,
         payment_method: order.payment_method, items: next, product_ids: next.map((x: any) => x.id),
         subtotal: recomputeSubtotal(next, newTotal), total: newTotal, is_guest: order.is_guest, user_id: order.user_id,
-        status: "placed", admin_note: `Replacement for ${order.id} ("${old.name}" discontinued). Payment carried from the original order — settle any difference manually.`,
+        status: "placed", admin_note: `Replacement for ${order.id} ("${old.name}" discontinued). Payment carried from the original order - settle any difference manually.`,
       });
       if (insErr) return NextResponse.json({ ok: false, error: insErr.message }, { status: 400 });
       await db.from("orders").update({ status: "cancelled", admin_note: `Replaced in full by ${newId}` }).eq("id", order.id);
       try { await db.from("order_events").insert({ order_id: newId, status: "placed", note: `Created as replacement for ${order.id}` }); } catch { /* optional */ }
       const diff = Math.round((newTotal - Number(order.total ?? newTotal)) * 100) / 100;
       const sent = await sendReplacementEmail({ ...order, id: newId }, old.name, { name: np.name, qty: old.qty, price: Number(np.elume_price) }, "new-order", { newOrderId: newId, diff });
-      res = { ok: true, ...(sent.ok ? {} : { error: `Order ${newId} created, but the email failed — check Resend logs.` }) };
+      res = { ok: true, ...(sent.ok ? {} : { error: `Order ${newId} created, but the email failed - check Resend logs.` }) };
       break;
     }
     case "refund-item": {
@@ -210,7 +210,7 @@ export async function POST(request: Request) {
       if (!order?.email) return NextResponse.json({ ok: false, error: "Order not found." }, { status: 400 });
       const it = (order.items ?? []).find((x: any) => x.id === body.itemId);
       if (!it) return NextResponse.json({ ok: false, error: "Item not found on this order." }, { status: 400 });
-      if (!order.razorpay_payment_id) return NextResponse.json({ ok: false, error: "No captured payment on file for this order — refund manually in Razorpay first." }, { status: 400 });
+      if (!order.razorpay_payment_id) return NextResponse.json({ ok: false, error: "No captured payment on file for this order - refund manually in Razorpay first." }, { status: 400 });
       const amount = Math.round(Number(it.price) * Number(it.qty) * 100) / 100;
       const refund = await refundPayment(order.razorpay_payment_id, Math.round(amount * 100));
       if (!refund.ok) return NextResponse.json({ ok: false, error: `Razorpay refund failed: ${refund.error}` }, { status: 400 });
@@ -225,7 +225,7 @@ export async function POST(request: Request) {
       }).eq("id", order.id);
       try { await db.from("order_events").insert({ order_id: order.id, status: remaining.length ? order.status : "cancelled", note: `Refunded ${it.name} (₹${amount}, refund ${refund.refundId}) + voucher ${code}` }); } catch { /* optional */ }
       const sent = await sendRefundVoucherEmail(order, it.name, amount, code, expires);
-      res = { ok: true, ...(sent.ok ? {} : { error: `Refund done (${refund.refundId}), but the email failed — check Resend logs.` }) };
+      res = { ok: true, ...(sent.ok ? {} : { error: `Refund done (${refund.refundId}), but the email failed - check Resend logs.` }) };
       break;
     }
     case "deliver":

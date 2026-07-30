@@ -1,5 +1,5 @@
 /**
- * SKU visibility ranking — the single scoring system behind every surface
+ * SKU visibility ranking - the single scoring system behind every surface
  * that orders products (catalogue Featured, homepage shelves, collection
  * pages). One function, so a product ranks consistently everywhere.
  *

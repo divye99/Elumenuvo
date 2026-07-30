@@ -43,7 +43,7 @@ export async function openRazorpay(args: OpenArgs): Promise<RpSuccess | null> {
       key: args.keyId,
       amount: args.amount,
       currency: "INR",
-      // Branding — the window opens as an overlay ON the Elume page (the buyer
+      // Branding - the window opens as an overlay ON the Elume page (the buyer
       // never leaves the site), so make it read as ours, not a generic popup.
       name: "Elume",
       description: args.orderId ? `Order ${args.orderId}` : "Elume order",

@@ -1,5 +1,5 @@
 /**
- * HandyPanda (handypanda.in) — a Next.js App-Router marketplace on Vercel. Its
+ * HandyPanda (handypanda.in) - a Next.js App-Router marketplace on Vercel. Its
  * homepage renders prices client-side, but category and product PAGES server-
  * render them into the RSC payload, so we scrape those.
  *   • fetchByCode → GET /products/<slug> → og:title (name) + the embedded
@@ -29,7 +29,7 @@ function nameFromSlug(slug: string): string {
   return parts.map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 }
 
-// og:title is "<Product> — <Brand> | HandyPanda" — trim the site suffix.
+// og:title is "<Product> - <Brand> | HandyPanda" - trim the site suffix.
 function cleanName(raw: string | undefined): string {
   return (raw ?? "").replace(/\s*\|\s*HandyPanda\s*$/i, "").trim();
 }

@@ -14,17 +14,17 @@ import { useCart } from "@/lib/cart";
 
 const MAX_SWATCHES = 5;
 
-/** “Delivery by 16 Jul” — always 7 days from today (shown on mobile cards). */
+/** “Delivery by 16 Jul” - always 7 days from today (shown on mobile cards). */
 function deliveryBy(): string {
   return new Date(Date.now() + 7 * 86400000).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 }
 
 /**
- * Product tile used across the public store — catalogue grid and home shelves.
+ * Product tile used across the public store - catalogue grid and home shelves.
  * `fixedWidth` pins the card for horizontal-scroll shelves; grids leave it off.
  * When `siblings` (variant family) is passed, hovering the card reveals
  * Amazon-style colour/size swatches. Clicking a swatch swaps THIS CARD to
- * that variant in place (name, price, SKU, link all update) — no navigation.
+ * that variant in place (name, price, SKU, link all update) - no navigation.
  */
 export default function ProductCard({
   p,
@@ -38,7 +38,7 @@ export default function ProductCard({
   editorial?: Record<string, { bestFor: string; rank: number; slug: string; postTitle: string }>;
 }) {
   const [hover, setHover] = useState(false);
-  // The variant currently shown on this card — swatch clicks swap it in place.
+  // The variant currently shown on this card - swatch clicks swap it in place.
   const [shown, setShown] = useState(p);
   const [added, setAdded] = useState(false);
   const { add } = useCart();
@@ -84,7 +84,7 @@ export default function ProductCard({
       <div className="pc-img" style={{ height: 150, position: "relative" }}>
         {editorial[shown.id] && (
           <span
-            title={`Ranked #${editorial[shown.id].rank} in ${editorial[shown.id].postTitle} — ${editorial[shown.id].bestFor}`}
+            title={`Ranked #${editorial[shown.id].rank} in ${editorial[shown.id].postTitle} - ${editorial[shown.id].bestFor}`}
             style={{ position: "absolute", right: 9, top: 9, zIndex: 3, pointerEvents: "none", display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 800, color: "#7A4E00", background: "linear-gradient(135deg,#FFE9B8,#FFD873)", border: "1px solid #F0C64E", padding: "4px 9px", borderRadius: 999, boxShadow: "0 2px 8px rgba(122,78,0,.18)", letterSpacing: "0.2px" }}
           >
             🏆 #{editorial[shown.id].rank}

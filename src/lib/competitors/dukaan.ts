@@ -1,6 +1,6 @@
 /**
  * Generic Dukaan (mydukaan.io) storefront adapter. Dukaan SSRs its data into a
- * `__DUKAAN_DATA__` JSON blob on every page — no login, no private API.
+ * `__DUKAAN_DATA__` JSON blob on every page - no login, no private API.
  *   • fetchByCode → GET /products/<slug> → DUKAAN_PRODUCT { selling_price,
  *     original_price (MRP), in_stock }   (competitor_code = product slug)
  *   • search      → best-effort filter over the homepage DUKAAN_CATALOG; mapping

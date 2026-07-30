@@ -1,4 +1,4 @@
-// Catalogue + sample data — ported 1:1 from the Elume prototype.
+// Catalogue + sample data - ported 1:1 from the Elume prototype.
 
 export type Product = {
   id: string;
@@ -24,7 +24,7 @@ export type Product = {
   inStock?: boolean;
   /** Row creation time; powers the New releases collection. */
   createdAt?: string;
-  /** Variant family — variations point at their parent product via parentId
+  /** Variant family - variations point at their parent product via parentId
    *  (null/undefined = parent or standalone). Family = parent + children. */
   parentId?: string;
   attrs?: Record<string, string>;
@@ -60,7 +60,7 @@ export type TechSpecs = {
   specs?: Record<string, string>;
 };
 
-// The catalogue lives in Supabase (public.products) — no static copy here.
+// The catalogue lives in Supabase (public.products) - no static copy here.
 // See supabase/migrations/0002_catalogue-v2.sql for schema + seed.
 
 
@@ -75,7 +75,7 @@ export type ShowcaseItem = {
   tile: string;
 };
 
-// Landing catalogue showcase — exact list/tiles from Elume Home.dc.html.
+// Landing catalogue showcase - exact list/tiles from Elume Home.dc.html.
 export const HOME_CATALOGUE: ShowcaseItem[] = [
   { brand: "Polycab",   name: "FRLS Wire 2.5 mm²",       spec: "90 m coil · 1100 V", sku: "POLY-FRLS-2.5", cat: "Wires & Cables", price: 1842, market: 1995, tile: "linear-gradient(135deg,#FBE9E4,#F6D9CF)" },
   { brand: "Havells",   name: "DP MCB 32A 'C' curve",    spec: "10 kA · 2-pole",     sku: "HAV-MCB-32C",   cat: "Switchgear",     price: 486,  market: 540,  tile: "linear-gradient(135deg,#E7ECFB,#D7E0F6)" },
@@ -97,7 +97,7 @@ export const HOME_CATS = ["All", "Wires & Cables", "Switchgear", "Modular", "Lig
 
 export const HERO_CATS = ["Wires & Cables", "Switchgear", "Lighting", "Fans", "Modular", "DB & Panels"];
 
-/** Every browsable category with its menu icon — one source for the desktop
+/** Every browsable category with its menu icon - one source for the desktop
  *  mega-menu and the mobile drawer, so they always show the same thing. */
 export const MENU_CATS: [string, string][] = [
   ["Wires & Cables", "〰️"],
@@ -166,7 +166,7 @@ export const HOME_BRANDS = [
 export const STEPS = [
   { n: "1", kicker: "Plan", title: "Build the BOM", body: "Upload your BOQ or build it from the catalogue. Smart BOM matches and flags every line." },
   { n: "2", kicker: "Source & price", title: "Compare & lock", body: "See every brand priced against market. Pick on spec, stock and landed cost." },
-  { n: "3", kicker: "Order & finance", title: "Release with credit", body: "POs auto-release by stage. Pay on delivery or take 30-day credit — your call." },
+  { n: "3", kicker: "Order & finance", title: "Release with credit", body: "POs auto-release by stage. Pay on delivery or take 30-day credit - your call." },
   { n: "4", kicker: "Receive & manage", title: "Track to site", body: "Live tracking, GRN on arrival, and a portfolio view across all your sites." },
 ];
 

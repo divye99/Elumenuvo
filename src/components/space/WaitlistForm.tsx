@@ -40,7 +40,7 @@ export default function WaitlistForm() {
       console.error("Waitlist submit failed:", err);
       setStatus("idle");
       setError(
-        "Something went wrong — please try again, or email info@elumenuvo.com.",
+        "Something went wrong - please try again, or email info@elumenuvo.com.",
       );
     }
   }
@@ -56,7 +56,7 @@ export default function WaitlistForm() {
           <Check className="h-6 w-6 text-accent" />
         </div>
         <p className="text-lg font-semibold text-white">
-          You&apos;re on the list — we&apos;ll be in touch.
+          You&apos;re on the list - we&apos;ll be in touch.
         </p>
       </div>
     );

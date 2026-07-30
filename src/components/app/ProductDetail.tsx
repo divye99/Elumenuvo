@@ -15,7 +15,7 @@ import {
 
 /**
  * Shared product-detail view. Used by BOTH the signed-in dashboard (variant
- * "app" — add to PO / project) and the public catalogue (variant "public" —
+ * "app" - add to PO / project) and the public catalogue (variant "public" -
  * sign-in to order). Visually identical; only the action row differs.
  */
 export default function ProductDetail({
@@ -115,7 +115,7 @@ export default function ProductDetail({
 
             {abovePrice}
 
-            {/* Elume price — ex-GST is the headline; GST shown as a statutory add-on */}
+            {/* Elume price - ex-GST is the headline; GST shown as a statutory add-on */}
             <div style={{ display: "flex", alignItems: "flex-end", gap: 10, marginBottom: 4 }}>
               <span className="pd-price" style={{ fontFamily: GROTESK, fontSize: 34, fontWeight: 600, letterSpacing: "-1px", color: "#19202E" }}>{fmt(gb.base)}</span>
               <span style={{ fontSize: 14, color: "#8A93A6", marginBottom: 6 }}>/{p.unit}</span>
@@ -192,12 +192,12 @@ export default function ProductDetail({
             )}
             {isWholesale && (
               <div style={{ fontSize: 12.5, color: "#1F9D63", fontWeight: 600, marginTop: 10 }}>
-                ✓ Wholesale price applied — {fmt(ws)}/{p.unit} on {qty} units ({WHOLESALE_MIN_QTY}+)
+                ✓ Wholesale price applied - {fmt(ws)}/{p.unit} on {qty} units ({WHOLESALE_MIN_QTY}+)
               </div>
             )}
             {variant === "public" && (
               <div style={{ fontSize: 12, color: "#8A93A6", marginTop: 12 }}>
-                🚚 Delivered pan-India · 30-day NBFC credit is coming soon —{" "}
+                🚚 Delivered pan-India · 30-day NBFC credit is coming soon -{" "}
                 <a href="/credit" style={{ color: "#4E5BDC", fontWeight: 600 }}>
                   join the waitlist
                 </a>

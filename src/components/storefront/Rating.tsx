@@ -1,5 +1,5 @@
 /**
- * Elume rating — a single star + the numeric score (e.g. ★ 4.5), with an
+ * Elume rating - a single star + the numeric score (e.g. ★ 4.5), with an
  * optional review count. Compact and number-first.
  */
 

@@ -73,7 +73,7 @@ function JourneyBar({ status }: { status: string }) {
   if (status === "cancelled") {
     return (
       <div style={{ background: "#FBE9E4", color: "#9a3b16", borderRadius: 10, padding: "11px 14px", fontSize: 13, fontWeight: 600 }}>
-        This order was cancelled. If you were charged, the refund follows our returns policy — reply to any order email and we&apos;ll sort it out.
+        This order was cancelled. If you were charged, the refund follows our returns policy - reply to any order email and we&apos;ll sort it out.
       </div>
     );
   }

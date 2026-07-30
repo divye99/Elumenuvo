@@ -1,5 +1,5 @@
 /**
- * Project + BOM data access — tenant-scoped.
+ * Project + BOM data access - tenant-scoped.
  */
 import { db } from "@/lib/db";
 import {

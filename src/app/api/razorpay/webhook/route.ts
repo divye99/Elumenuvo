@@ -4,7 +4,7 @@ import { verifyWebhookSignature, webhookConfigured } from "@/lib/razorpay";
 import { markOrderPaid } from "@/lib/order-actions";
 
 /**
- * Razorpay webhook — the safety net for online payments.
+ * Razorpay webhook - the safety net for online payments.
  *
  * The browser callback (confirmOnlinePayment) is the fast path, but it never
  * runs if the customer closes the tab, loses signal, or app-switches mid-UPI.
@@ -13,7 +13,7 @@ import { markOrderPaid } from "@/lib/order-actions";
  * charged without an order.
  *
  * Both paths call the same idempotent markOrderPaid(), which only acts while
- * the order is `awaiting_payment` — so a double-delivery can't double-email.
+ * the order is `awaiting_payment` - so a double-delivery can't double-email.
  *
  * Setup: Razorpay Dashboard → Settings → Webhooks
  *   URL:    https://elumenuvo.com/api/razorpay/webhook
@@ -25,7 +25,7 @@ export const runtime = "nodejs"; // needs node crypto for HMAC
 
 export async function POST(request: Request) {
   if (!webhookConfigured()) {
-    // Nothing to verify against — refuse rather than trust an unsigned payload.
+    // Nothing to verify against - refuse rather than trust an unsigned payload.
     return NextResponse.json({ error: "Webhook not configured." }, { status: 503 });
   }
 
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     // Razorpay counts non-2xx as delivery failure and disables the webhook
     // after enough of them. A signature mismatch means the secret in the
     // Razorpay dashboard differs from RAZORPAY_WEBHOOK_SECRET here.
-    console.error(`[razorpay-webhook] SIGNATURE MISMATCH — dashboard secret != RAZORPAY_WEBHOOK_SECRET (sig ${signature ? "present" : "MISSING"}, body ${raw.length}B)`);
+    console.error(`[razorpay-webhook] SIGNATURE MISMATCH - dashboard secret != RAZORPAY_WEBHOOK_SECRET (sig ${signature ? "present" : "MISSING"}, body ${raw.length}B)`);
     return NextResponse.json({ error: "Invalid signature." }, { status: 400 });
   }
 
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
 
   const db = adminClient();
   if (!db) {
-    // Transient on our side — 500 makes Razorpay retry rather than drop it.
+    // Transient on our side - 500 makes Razorpay retry rather than drop it.
     return NextResponse.json({ error: "Database unavailable." }, { status: 500 });
   }
 
@@ -78,7 +78,7 @@ export async function POST(request: Request) {
     orderId = data?.id ?? "";
   }
   if (!orderId) {
-    // Payment we have no order for. Don't retry forever — log loudly instead.
+    // Payment we have no order for. Don't retry forever - log loudly instead.
     console.error(`[razorpay-webhook] paid but NO ORDER: rp_order=${razorpayOrderId} rp_payment=${razorpayPaymentId}`);
     return NextResponse.json({ ok: true, warning: "no matching order" }, { status: 200 });
   }
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
     const { data: ord } = await db.from("orders").select("total").eq("id", orderId).maybeSingle();
     const expected = ord ? Math.round(Number(ord.total) * 100) : null;
     if (expected != null && paidPaise !== expected) {
-      console.error(`[razorpay-webhook] AMOUNT MISMATCH on ${orderId}: paid ${paidPaise} vs expected ${expected} — NOT marking paid`);
+      console.error(`[razorpay-webhook] AMOUNT MISMATCH on ${orderId}: paid ${paidPaise} vs expected ${expected} - NOT marking paid`);
       return NextResponse.json({ error: "Amount mismatch." }, { status: 500 }); // retry + loud log; needs a human
     }
   }

@@ -126,7 +126,7 @@ export async function updateProductDetails(input: {
 }): Promise<ActionResult> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
   const db = adminClient();
-  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  if (!db) return { ok: false, error: "Service-role key missing - writes disabled." };
   if (!input.id) return { ok: false, error: "Missing product id." };
   if (!(input.mrp > 0) || !(input.elume_price > 0)) return { ok: false, error: "MRP and Elume price must be positive." };
   const attrs = Object.fromEntries(Object.entries(input.attrs).filter(([, v]) => v && v.trim()));
@@ -154,11 +154,11 @@ export async function updateProductDetails(input: {
   return { ok: true };
 }
 
-/** Inline bulk pricing save — body is JSON [{id, mrp, elume_price}]. */
+/** Inline bulk pricing save - body is JSON [{id, mrp, elume_price}]. */
 export async function bulkUpdatePricing(edits: { id: string; mrp: number; elume_price: number }[]): Promise<ActionResult> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
   const db = adminClient();
-  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  if (!db) return { ok: false, error: "Service-role key missing - writes disabled." };
   const clean = edits.filter((e) => e.id && Number.isFinite(e.mrp) && Number.isFinite(e.elume_price) && e.mrp > 0 && e.elume_price > 0);
   if (clean.length === 0) return { ok: false, error: "No valid rows to save." };
   for (const e of clean) {
@@ -193,7 +193,7 @@ export async function applyImport(
 ): Promise<ActionResult & { applied?: number }> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
   const db = adminClient();
-  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  if (!db) return { ok: false, error: "Service-role key missing - writes disabled." };
   if (!diffs.length) return { ok: false, error: "Nothing to apply." };
 
   // BATCHED: one round-trip per chunk, not per row. A row-at-a-time loop meant
@@ -215,7 +215,7 @@ export async function applyImport(
     if (error) return { ok: false, error: `Saving products: ${error.message}` };
   }
 
-  // Change log (best-effort — never blocks the import if the table is absent).
+  // Change log (best-effort - never blocks the import if the table is absent).
   try {
     await db.from("import_log").insert({
       actor: "admin",
@@ -225,7 +225,7 @@ export async function applyImport(
       removed,
       summary: diffs.map((d) => `[${d.action}] ${d.summary}`).slice(0, 500),
     });
-  } catch { /* import_log table not created yet — ignore */ }
+  } catch { /* import_log table not created yet - ignore */ }
 
   revalidatePath("/admin/products");
   revalidatePath("/admin/products/import");
@@ -260,7 +260,7 @@ export async function searchCompetitorAction(source: string, query: string) {
 export async function saveCompetitorMap(input: { product_id: string; source: string; competitor_code: string; competitor_url?: string | null; unit_factor: number; note?: string; item_condition?: string; competitor_brand_sku?: string | null }): Promise<ActionResult> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
   const db = adminClient();
-  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  if (!db) return { ok: false, error: "Service-role key missing - writes disabled." };
   if (!input.product_id || !input.source || !input.competitor_code) return { ok: false, error: "Product, source and competitor code are required." };
   const factor = Number(input.unit_factor);
   const { error } = await db.from("competitor_map").upsert({
@@ -272,7 +272,7 @@ export async function saveCompetitorMap(input: { product_id: string; source: str
     note: input.note?.trim() || null,
     item_condition: input.item_condition?.trim() || "New",
     competitor_brand_sku: input.competitor_brand_sku?.trim() || null,
-    approval: "approved", // an admin picked it by hand — trusted
+    approval: "approved", // an admin picked it by hand - trusted
     match_method: "manual",
     updated_at: new Date().toISOString(),
   });
@@ -290,7 +290,7 @@ export async function saveCompetitorMap(input: { product_id: string; source: str
 export async function setMapApproval(productId: string, source: string, approve: boolean): Promise<ActionResult> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
   const db = adminClient();
-  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  if (!db) return { ok: false, error: "Service-role key missing - writes disabled." };
   if (approve) {
     const { error } = await db.from("competitor_map").update({ approval: "approved", updated_at: new Date().toISOString() }).eq("product_id", productId).eq("source", source);
     if (error) return { ok: false, error: error.message };
@@ -309,7 +309,7 @@ export async function setMapApproval(productId: string, source: string, approve:
 export async function updateMapCondition(productId: string, source: string, condition: string): Promise<ActionResult> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
   const db = adminClient();
-  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  if (!db) return { ok: false, error: "Service-role key missing - writes disabled." };
   const { error } = await db.from("competitor_map").update({ item_condition: condition, updated_at: new Date().toISOString() }).eq("product_id", productId).eq("source", source);
   if (error) return { ok: false, error: error.message };
   await db.from("competitor_prices").update({ item_condition: condition }).eq("product_id", productId).eq("source", source);
@@ -333,7 +333,7 @@ export async function removeCompetitorMap(productId: string, source: string): Pr
 export async function acceptSuggestion(productId: string, source: string): Promise<ActionResult> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
   const db = adminClient();
-  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  if (!db) return { ok: false, error: "Service-role key missing - writes disabled." };
   const { data: row } = await db.from("competitor_prices").select("suggested_price").eq("product_id", productId).eq("source", source).maybeSingle();
   const suggested = row?.suggested_price;
   if (suggested == null) return { ok: false, error: "No suggestion to apply." };
@@ -367,7 +367,7 @@ export async function saveRepricingRule(input: {
 }): Promise<ActionResult> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
   const db = adminClient();
-  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  if (!db) return { ok: false, error: "Service-role key missing - writes disabled." };
   const { error } = await db.from("repricing_settings").upsert({
     scope: input.scope.trim() || "global",
     basis: input.basis,
@@ -398,11 +398,11 @@ export async function deleteRepricingRule(scope: string): Promise<ActionResult> 
 export async function applyRecommendedPrice(productId: string, target: number): Promise<ActionResult> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
   const db = adminClient();
-  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  if (!db) return { ok: false, error: "Service-role key missing - writes disabled." };
   if (!(target > 0)) return { ok: false, error: "Invalid price." };
   const { data: prod } = await db.from("products").select("mrp, category").eq("id", productId).maybeSingle();
   if (!prod) return { ok: false, error: "Product not found." };
-  // Above-MRP matching is allowed — no MRP guardrail.
+  // Above-MRP matching is allowed - no MRP guardrail.
   const { error } = await db.from("products").update({ elume_price: target }).eq("id", productId);
   if (error) return { ok: false, error: error.message };
   await logPrice(db, productId, target, Number(prod.mrp));
@@ -419,7 +419,7 @@ export async function applyRecommendedPrice(productId: string, target: number): 
 export async function applyRecommendedPrices(items: { id: string; target: number }[]): Promise<ActionResult & { applied?: number; skipped?: number }> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
   const db = adminClient();
-  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  if (!db) return { ok: false, error: "Service-role key missing - writes disabled." };
   const clean = (items ?? []).filter((i) => i.id && i.target > 0);
   if (clean.length === 0) return { ok: false, error: "Nothing to apply." };
 
@@ -427,7 +427,7 @@ export async function applyRecommendedPrices(items: { id: string; target: number
   const { data: prods } = await db.from("products").select("id, mrp, category").in("id", ids);
   const byId = new Map((prods ?? []).map((p: any) => [p.id, p]));
 
-  // Above-MRP matching is allowed — apply every recommended target, no MRP skip.
+  // Above-MRP matching is allowed - apply every recommended target, no MRP skip.
   let applied = 0, skipped = 0;
   for (const { id, target } of clean) {
     const prod = byId.get(id);
@@ -448,7 +448,7 @@ export async function applyRecommendedPrices(items: { id: string; target: number
 export async function syncCompetitorNow(source: string): Promise<ActionResult & { result?: { mapped: number; fetched: number; failed: number; suggestions: number; autoApplied?: number } }> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
   const db = adminClient();
-  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  if (!db) return { ok: false, error: "Service-role key missing - writes disabled." };
   const { runCompetitorSync } = await import("@/lib/admin/competitor-sync");
   try {
     const result = await runCompetitorSync(db, source, "manual", Date.now() + 50_000);
@@ -460,12 +460,12 @@ export async function syncCompetitorNow(source: string): Promise<ActionResult & 
 }
 
 /** Refresh live prices for every ENABLED source in one click (all mapped SKUs).
- *  Large sources may exceed the serverless budget — the GitHub Action does the
+ *  Large sources may exceed the serverless budget - the GitHub Action does the
  *  full unbounded run. Returns combined totals + any sources that timed out. */
 export async function syncAllCompetitors(): Promise<ActionResult & { result?: { sources: number; mapped: number; fetched: number; failed: number; suggestions: number; autoApplied?: number; incomplete: string[] } }> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
   const db = adminClient();
-  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  if (!db) return { ok: false, error: "Service-role key missing - writes disabled." };
   const { runCompetitorSync } = await import("@/lib/admin/competitor-sync");
   const { listCompetitorSources } = await import("@/lib/admin/data");
   const sources = (await listCompetitorSources()).filter((s) => s.enabled);
@@ -487,12 +487,12 @@ export async function syncAllCompetitors(): Promise<ActionResult & { result?: { 
   return { ok: true, result: totals };
 }
 
-/** Manually set a product's selling price to any value (no MRP guardrail — the
+/** Manually set a product's selling price to any value (no MRP guardrail - the
  *  admin is explicit). Logs history + marks the competitor rows accepted. */
 export async function setElumePrice(productId: string, price: number): Promise<ActionResult> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
   const db = adminClient();
-  if (!db) return { ok: false, error: "Service-role key missing — writes disabled." };
+  if (!db) return { ok: false, error: "Service-role key missing - writes disabled." };
   const p = Math.round(Number(price));
   if (!(p > 0)) return { ok: false, error: "Enter a valid price." };
   const { data: prod } = await db.from("products").select("mrp").eq("id", productId).maybeSingle();

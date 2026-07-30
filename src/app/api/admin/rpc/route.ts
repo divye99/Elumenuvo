@@ -19,7 +19,7 @@ import { adminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 
 /**
- * Generic admin RPC over a FIXED URL — the remaining admin mutations
+ * Generic admin RPC over a FIXED URL - the remaining admin mutations
  * (products, competitor mapping, syncs, repricing rules, CSV import) were
  * still server actions, whose ids rotate every deployment and throw from any
  * tab opened before a push. Same pattern as /api/admin/orders/action.

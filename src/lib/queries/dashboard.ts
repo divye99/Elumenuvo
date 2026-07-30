@@ -1,5 +1,5 @@
 /**
- * Dashboard data access — the multi-site procurement rollup from the docs:
+ * Dashboard data access - the multi-site procurement rollup from the docs:
  * committed spend, outstanding deliveries, credit utilisation, budget variance.
  * All tenant-scoped by organizationId.
  */

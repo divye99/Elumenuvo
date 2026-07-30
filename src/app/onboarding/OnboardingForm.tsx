@@ -30,7 +30,7 @@ export default function OnboardingForm({ defaultName }: { defaultName: string })
           <Mark height={26} /><Wordmark height={15} />
         </div>
         <h1 style={{ fontSize: 21, fontWeight: 700, margin: "0 0 4px" }}>Welcome to Elume</h1>
-        <p style={{ fontSize: 13.5, color: "#8A93A6", margin: "0 0 20px" }}>Tell us who you&apos;re buying as — it tailors your pricing and workspace.</p>
+        <p style={{ fontSize: 13.5, color: "#8A93A6", margin: "0 0 20px" }}>Tell us who you&apos;re buying as - it tailors your pricing and workspace.</p>
 
         <form action={action}>
           {/* Account type */}

@@ -9,13 +9,13 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Elume for Business — open a B2B account for FMEG procurement",
+  title: "Elume for Business - open a B2B account for FMEG procurement",
   description:
     "Open a business account with Elume: automatic GST invoicing on every order, wholesale rates built in, staged POs and 30-day credit. Cut 15–25% off electrical procurement.",
   alternates: { canonical: "https://elumenuvo.com/business" },
   openGraph: {
     images: [{ url: "https://elumenuvo.com/og.png", width: 1200, height: 630, alt: "Elume" }],
-    title: "Elume for Business — open a B2B account",
+    title: "Elume for Business - open a B2B account",
     description: "Automatic GST invoicing, wholesale rates, staged POs and credit.",
     url: "https://elumenuvo.com/business",
     type: "website",

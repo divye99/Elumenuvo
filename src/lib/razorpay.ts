@@ -1,12 +1,12 @@
 /**
  * Razorpay integration via REST (no SDK dependency). Server-only.
  * Graceful: if the keys are unset, `razorpayConfigured()` is false and checkout
- * shows "payments enabling soon" with ordering paused — nothing else breaks.
+ * shows "payments enabling soon" with ordering paused - nothing else breaks.
  * Pay-on-delivery is retired; Razorpay is the only payment path.
  *
  * Env (set in Vercel, never committed):
- *   RAZORPAY_KEY_ID       — key id (safe to expose; sent to the browser checkout)
- *   RAZORPAY_KEY_SECRET   — server secret (order create + signature verify)
+ *   RAZORPAY_KEY_ID       - key id (safe to expose; sent to the browser checkout)
+ *   RAZORPAY_KEY_SECRET   - server secret (order create + signature verify)
  */
 import { createHmac, timingSafeEqual } from "crypto";
 
@@ -27,7 +27,7 @@ export function webhookConfigured(): boolean {
 /**
  * Verify a Razorpay webhook. The signature is HMAC-SHA256 of the RAW request
  * body using the webhook secret (a different secret from the API key secret).
- * The body must be the exact bytes Razorpay sent — never a re-serialised JSON.
+ * The body must be the exact bytes Razorpay sent - never a re-serialised JSON.
  */
 export function verifyWebhookSignature(rawBody: string, signature: string): boolean {
   if (!WEBHOOK_SECRET || !rawBody || !signature) return false;

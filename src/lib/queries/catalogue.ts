@@ -1,5 +1,5 @@
 /**
- * Catalogue data access — products, multi-brand price comparison, categories.
+ * Catalogue data access - products, multi-brand price comparison, categories.
  * All Elume-owned (shared) data, no tenant scoping needed.
  */
 import { db } from "@/lib/db";
@@ -41,7 +41,7 @@ export async function listCategories() {
 
 /**
  * Returns one row per comparison group, each with every brand's option and its
- * base (qty-1) transparent price — the data behind the side-by-side comparison.
+ * base (qty-1) transparent price - the data behind the side-by-side comparison.
  * Optionally filtered to a category slug.
  */
 export async function listComparisonGroups(categorySlug?: string): Promise<ComparisonRow[]> {

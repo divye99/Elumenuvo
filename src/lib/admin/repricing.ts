@@ -1,5 +1,5 @@
 /**
- * Repricing rules — turn tracked competitor prices into a recommended Elume
+ * Repricing rules - turn tracked competitor prices into a recommended Elume
  * price, with guardrails that stop nonsense (e.g. pricing above MRP because a
  * mismatched competitor SKU is far pricier). Pure + shared by the admin radar.
  */
@@ -58,7 +58,7 @@ export function recommend(
   const target = Math.max(1, Math.round(raw));
   const changePct = input.ourPrice > 0 ? Math.abs(target - input.ourPrice) / input.ourPrice * 100 : 0;
 
-  // Above-MRP is no longer blocked — we match the lowest competitor even if it
+  // Above-MRP is no longer blocked - we match the lowest competitor even if it
   // sits above our MRP. The only remaining guardrail is an extreme swing, which
   // usually signals a mis-mapped SKU rather than a real price move.
   const blocked: string | null = changePct > rule.max_change_pct ? `${Math.round(changePct)}% swing` : null;

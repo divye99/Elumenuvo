@@ -3,7 +3,7 @@ import InfoPage from "@/components/storefront/InfoPage";
 import { COMPANY, addressLine, officeLine } from "@/lib/company";
 
 export const metadata: Metadata = {
-  title: "About Elume — who we are",
+  title: "About Elume - who we are",
   description:
     "Elume is a multi-brand online store for electrical goods in India, operated by Elume Nuvotech Private Limited. Who we are, how we buy and sell, and how to reach us.",
   alternates: { canonical: "https://elumenuvo.com/about" },
@@ -14,7 +14,7 @@ export default function AboutPage() {
     <InfoPage
       kicker="About us"
       title="Who we are"
-      intro="Elume is an online store for electrical goods — wires and cables, switchgear, fans, lighting and modular switches — serving homes, electricians, contractors and businesses across India."
+      intro="Elume is an online store for electrical goods - wires and cables, switchgear, fans, lighting and modular switches - serving homes, electricians, contractors and businesses across India."
       updated="28 July 2026"
       sections={[
         {
@@ -26,7 +26,7 @@ export default function AboutPage() {
               {COMPANY.gstin ? <> Our GSTIN is <b>{COMPANY.gstin}</b>.</> : null}
               <br />
               <br />
-              <b>Registered office:</b> {addressLine()} — this is also where returns are sent.
+              <b>Registered office:</b> {addressLine()} - this is also where returns are sent.
               <br />
               <b>Additional office:</b> {officeLine(COMPANY.additionalOffice)}
               <br />

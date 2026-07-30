@@ -12,7 +12,7 @@ import { WHOLESALE_MIN_QTY } from "@/lib/pricing";
 
 /**
  * The buyer workspace: Overview (projects + real KPIs), Orders (inline
- * tracking) and Account. Catalogue and Cart route to the STOREFRONT — one
+ * tracking) and Account. Catalogue and Cart route to the STOREFRONT - one
  * catalogue, one cart, one learning loop. The old in-app demo (Meridian
  * Developments) and its duplicate catalogue/cart were removed once every
  * real session started passing `live`.

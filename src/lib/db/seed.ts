@@ -1,5 +1,5 @@
 /**
- * Seed script — loads a representative FMEG catalogue + a demo buyer tenant.
+ * Seed script - loads a representative FMEG catalogue + a demo buyer tenant.
  *
  * Everything here is grounded in the Elume documents:
  *  - Brands:     Havells, Polycab, Anchor, Finolex, Crompton, Syska, Legrand, Schneider, ABB
@@ -40,7 +40,7 @@ const {
 } = schema;
 
 const url = process.env.DATABASE_URL;
-if (!url) throw new Error("DATABASE_URL missing — fill in .env.local first.");
+if (!url) throw new Error("DATABASE_URL missing - fill in .env.local first.");
 
 const client = postgres(url, { prepare: false });
 const db = drizzle(client, { schema });
@@ -497,7 +497,7 @@ async function main() {
     role: "procurement_manager",
   });
 
-  // NBFC-partnered credit profile (referral model — approved limit, partial utilisation).
+  // NBFC-partnered credit profile (referral model - approved limit, partial utilisation).
   await db.insert(creditProfiles).values({
     organizationId: org.id,
     status: "approved",
@@ -510,17 +510,17 @@ async function main() {
 
   // Multiple concurrent sites → the multi-site project dashboard.
   const projectSeeds = [
-    { name: "Prestige Tower B — Noida", location: "Sector 150, Noida", city: "Noida",
-      scope: "32-floor residential — electrical fit-out", stage: "panel" as const,
+    { name: "Prestige Tower B - Noida", location: "Sector 150, Noida", city: "Noida",
+      scope: "32-floor residential - electrical fit-out", stage: "panel" as const,
       status: "active" as const, budget: "4500000", spendFactor: 0.62 },
-    { name: "M3M Residency Phase 2 — Gurugram", location: "Sector 94, Gurugram", city: "Gurugram",
+    { name: "M3M Residency Phase 2 - Gurugram", location: "Sector 94, Gurugram", city: "Gurugram",
       scope: "Twin-tower wiring & switchgear", stage: "rough_in" as const,
       status: "active" as const, budget: "12000000", spendFactor: 0.28 },
-    { name: "Civic Centre — Ghaziabad", location: "Raj Nagar, Ghaziabad", city: "Ghaziabad",
+    { name: "Civic Centre - Ghaziabad", location: "Raj Nagar, Ghaziabad", city: "Ghaziabad",
       scope: "Commercial complex lighting & DBs", stage: "finishing" as const,
       status: "active" as const, budget: "3000000", spendFactor: 0.84 },
     { name: "Meerut Warehouse Park", location: "Partapur, Meerut", city: "Meerut",
-      scope: "Industrial shed — power & lighting", stage: "rough_in" as const,
+      scope: "Industrial shed - power & lighting", stage: "rough_in" as const,
       status: "planning" as const, budget: "1800000", spendFactor: 0.0 },
   ];
 

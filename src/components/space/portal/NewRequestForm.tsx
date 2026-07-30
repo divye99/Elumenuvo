@@ -50,7 +50,7 @@ export default function NewRequestForm({
       router.refresh();
     } catch (err) {
       console.error("Request submit failed:", err);
-      setError("Couldn't submit — please try again.");
+      setError("Couldn't submit - please try again.");
     } finally {
       setLoading(false);
     }

@@ -14,7 +14,7 @@ import { normalizeSearchText } from "@/lib/search-normalize";
  *
  * Aggregates rebuild at most every 10 minutes per server instance and the
  * whole thing degrades to empty signals if the table is missing or the
- * service key is absent — search never breaks because learning is down.
+ * service key is absent - search never breaks because learning is down.
  */
 
 export type SearchSignals = {

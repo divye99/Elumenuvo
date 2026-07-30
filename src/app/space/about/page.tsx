@@ -35,7 +35,7 @@ export default function AboutPage() {
               <p className="mt-3 leading-relaxed text-slate-600">
                 India&apos;s space sector is moving fast, but the supply chain
                 behind it is fragmented, import-heavy, and unforgiving of small
-                builds. Elumenuvo exists to absorb that friction — so a small
+                builds. Elumenuvo exists to absorb that friction - so a small
                 team can procure like a large one.
               </p>
             </div>

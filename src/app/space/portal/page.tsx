@@ -50,7 +50,7 @@ export default async function PortalPage() {
     } = await supabase.auth.getUser();
     user = u;
   } catch {
-    // env not configured — fall through to sign-in screen
+    // env not configured - fall through to sign-in screen
   }
 
   /* ---------- signed out ---------- */

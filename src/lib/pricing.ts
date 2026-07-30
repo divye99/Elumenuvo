@@ -2,9 +2,9 @@
  * Elume pricing model (single source of truth).
  *
  * Three prices per product:
- *   1. MRP            — supplier's list price (the `market` field on a Product)
- *   2. Elume price    — our single-unit selling price (the `price` field)
- *   3. Wholesale      — 5% below the Elume price, for orders of 15+ units
+ *   1. MRP            - supplier's list price (the `market` field on a Product)
+ *   2. Elume price    - our single-unit selling price (the `price` field)
+ *   3. Wholesale      - 5% below the Elume price, for orders of 15+ units
  */
 export const WHOLESALE_DISCOUNT = 0.05; // 5% off the Elume price
 export const WHOLESALE_MIN_QTY = 15;
@@ -14,7 +14,7 @@ export function wholesalePrice(elumePrice: number): number {
   return Math.round(elumePrice * (1 - WHOLESALE_DISCOUNT));
 }
 
-/** Effective per-unit price for a quantity — wholesale kicks in at the min qty. */
+/** Effective per-unit price for a quantity - wholesale kicks in at the min qty. */
 export function unitPriceFor(elumePrice: number, qty: number): number {
   return qty >= WHOLESALE_MIN_QTY ? wholesalePrice(elumePrice) : elumePrice;
 }
@@ -29,7 +29,7 @@ export function offMrpPct(elumePrice: number, mrp: number): number {
  * GST model.
  *
  * Prices are STORED GST-inclusive (MRP is legally the all-inclusive retail
- * price, and competitor feeds quote inclusive prices — so the underlying money
+ * price, and competitor feeds quote inclusive prices - so the underlying money
  * math, checkout total, invoices and competitor matching all stay on the true
  * inclusive amount). The STOREFRONT DISPLAYS the ex-GST base as the headline
  * number (B2B convention: base is what varies, GST is a statutory add-on),
@@ -58,13 +58,13 @@ export const GST_RATES: Record<string, number> = {
   "EV Charging": 0.05, // Sch I entry 438: chargers for electrically operated vehicles
 };
 export const DEFAULT_GST_RATE = 0.18; // standard FMEG rate for anything unmapped
-/** Back-compat alias — prefer gstRateFor(category). */
+/** Back-compat alias - prefer gstRateFor(category). */
 export const GST_RATE = DEFAULT_GST_RATE;
 
 /**
  * GST rate for a product. A per-product `rate` (products.gst_rate, migration
  * 0062/0065) always wins: a product can sit in a category taxed at one rate
- * while its own HSN carries another. Solar lanterns are the live example —
+ * while its own HSN carries another. Solar lanterns are the live example -
  * Lighting is 18%, but a solar lantern is a renewable-energy device at 5%
  * (Sch I entry 437(f)). Falls back to the category rate, then 18%.
  */
@@ -91,7 +91,7 @@ export function gstBreakdown(inclusive: number, category?: string | null, rate?:
   return { base, gst: inclusive - base, incl: inclusive, rate: r };
 }
 
-/** The ex-GST base price (whole rupees) — the storefront's headline number. */
+/** The ex-GST base price (whole rupees) - the storefront's headline number. */
 export function baseExGst(inclusive: number, category?: string | null, rate?: number | null): number {
   return gstBreakdown(inclusive, category, rate).base;
 }

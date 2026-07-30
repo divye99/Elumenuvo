@@ -1,6 +1,6 @@
 import type { Product } from "@/lib/data";
 
-/** Shared variant logic — used by the detail-page picker and the catalogue
+/** Shared variant logic - used by the detail-page picker and the catalogue
  *  hover swatches. Variations point at their parent product via `parentId`;
  *  a family is the parent + all its children, differing by `attrs`. */
 

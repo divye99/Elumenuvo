@@ -4,7 +4,7 @@ import { adminClient } from "@/lib/supabase/admin";
  * Similarity engine for order-item replacement: given an (possibly
  * discontinued, even deleted) item's name/category/price, rank the live
  * catalogue by likeness. Scoring blends token overlap on name+spec,
- * same-category and same-brand bonuses, and price proximity — a practical
+ * same-category and same-brand bonuses, and price proximity - a practical
  * recommender that needs no training data, and sharpens automatically as
  * the catalogue's names/specs improve.
  */

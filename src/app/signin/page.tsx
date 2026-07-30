@@ -58,7 +58,7 @@ export default function SignIn() {
         if (error) {
           if (/not confirmed/i.test(error.message)) {
             setShowResend(true);
-            setMsg({ kind: "err", text: "Your email isn't confirmed yet — tap the link in the email we sent you, then sign in. No email? Resend it below." });
+            setMsg({ kind: "err", text: "Your email isn't confirmed yet - tap the link in the email we sent you, then sign in. No email? Resend it below." });
             setBusy(false);
             return;
           }
@@ -86,7 +86,7 @@ export default function SignIn() {
         if (error) {
           if (/already registered|already exists/i.test(error.message)) {
             setMode("in");
-            setMsg({ kind: "err", text: "You already have an account with this email — sign in below. Forgot the password? Use a different email or contact info@elumenuvo.com." });
+            setMsg({ kind: "err", text: "You already have an account with this email - sign in below. Forgot the password? Use a different email or contact info@elumenuvo.com." });
             setBusy(false);
             return;
           }
@@ -110,18 +110,18 @@ export default function SignIn() {
               body: JSON.stringify({ userId: data.user.id, email }),
             }).catch(() => {});
           }
-          setMsg({ kind: "ok", text: "Account created — check your email to confirm, then sign in." });
+          setMsg({ kind: "ok", text: "Account created - check your email to confirm, then sign in." });
           setMode("in");
         }
       }
     } catch (err) {
       // Supabase returns 500 "Error sending confirmation email" (sometimes an
-      // empty "{}" body) when its SMTP can't send — an infrastructure problem,
+      // empty "{}" body) when its SMTP can't send - an infrastructure problem,
       // not a user mistake. Say so honestly instead of leaking "{}".
       const raw = err instanceof Error ? err.message : "";
       const infra = !raw || raw === "{}" || /error sending confirmation email|unexpected_failure/i.test(raw);
       setMsg({ kind: "err", text: infra
-        ? "We couldn't create your account right now — our email service hiccuped (this is on us, not you). Please try again in a little while, or write to info@elumenuvo.com and we'll set you up."
+        ? "We couldn't create your account right now - our email service hiccuped (this is on us, not you). Please try again in a little while, or write to info@elumenuvo.com and we'll set you up."
         : raw });
     } finally { if (!navigating) setBusy(false); }
   }
@@ -137,7 +137,7 @@ export default function SignIn() {
       setShowResend(false);
       setMsg({ kind: "ok", text: `Confirmation email re-sent to ${email}. Tap the link inside, then sign in.` });
     } catch (err) {
-      setMsg({ kind: "err", text: err instanceof Error ? err.message : "Couldn't resend right now — try again in a minute." });
+      setMsg({ kind: "err", text: err instanceof Error ? err.message : "Couldn't resend right now - try again in a minute." });
     } finally { setBusy(false); }
   }
 

@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Storefront cart — client-side, localStorage-backed so guests and signed-in
+ * Storefront cart - client-side, localStorage-backed so guests and signed-in
  * shoppers keep a cart across visits. Separate from the workspace (AppShell)
  * cart, which is the signed-in B2B PO flow.
  */

@@ -317,7 +317,7 @@ export default function RadarClient({
 
       {filtered.length === 0 ? (
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "40px 20px", textAlign: "center", color: "#8A93A6", fontSize: 14 }}>
-          {view === "unmapped" ? "No unmapped products — everything is mapped 🎉" : mapped.length === 0 ? "No products have competitor prices yet. Map products in the section below, then Refresh prices." : "No products match the filters."}
+          {view === "unmapped" ? "No unmapped products - everything is mapped 🎉" : mapped.length === 0 ? "No products have competitor prices yet. Map products in the section below, then Refresh prices." : "No products match the filters."}
         </div>
       ) : (
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflow: "hidden" }}>
@@ -350,7 +350,7 @@ function MappedRow({ r, first, pending, run, colourCount = 1, siblingIds = [], q
   const pctColor = pct == null ? "#8A93A6" : pct <= 0 ? "#137a4b" : "#C0392B";
   const canAccept = !!m && m.target != null && m.target !== Math.round(r.ourPrice);
   const canExpand = !!m && m.sellers.length > 0;
-  const money = (n: number | null) => (n != null ? fmt(n) : "—");
+  const money = (n: number | null) => (n != null ? fmt(n) : "-");
   // Everything on this screen is GST-INCLUSIVE: that is how competitors list
   // their prices, so it is the only apples-to-apples basis for comparison. The
   // storefront shows the ex-GST base, so each figure carries it underneath.
@@ -359,7 +359,7 @@ function MappedRow({ r, first, pending, run, colourCount = 1, siblingIds = [], q
   return (
     <div style={{ borderTop: first ? undefined : "1px solid #F0F2F6" }}>
       <div style={{ padding: "13px 16px", display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
-        {/* Product — clicking toggles the mapping detail */}
+        {/* Product - clicking toggles the mapping detail */}
         <div onClick={() => canExpand && setOpen(!open)} style={{ display: "flex", gap: 11, alignItems: "center", flex: "1 1 300px", minWidth: 220, cursor: canExpand ? "pointer" : "default" }}>
           <div style={{ width: 46, height: 46, borderRadius: 9, background: "#F3F5F9", border: "1px solid #EEF0F4", flexShrink: 0, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
             {r.image ? <img src={r.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 16 }}>🔌</span>}
@@ -385,7 +385,7 @@ function MappedRow({ r, first, pending, run, colourCount = 1, siblingIds = [], q
               </Stat>
               <Stat label="Avg market" value={money(m.avgMarket)} sub={exGst(m.avgMarket)} />
               <Stat label={`Lowest${m.cheapestSource ? ` · ${m.cheapestSource}` : ""}`} value={money(m.lowest)} sub={exGst(m.lowest)} />
-              <Stat label="vs lowest" value={pct == null ? "—" : `${pct > 0 ? "+" : ""}${pct}%`} color={pctColor} />
+              <Stat label="vs lowest" value={pct == null ? "-" : `${pct > 0 ? "+" : ""}${pct}%`} color={pctColor} />
             </div>
             <div style={{ display: "flex", gap: 8, marginLeft: "auto", alignItems: "center" }}>
               {editing ? (
@@ -395,7 +395,7 @@ function MappedRow({ r, first, pending, run, colourCount = 1, siblingIds = [], q
                 </>
               ) : (
                 <>
-                  <button onClick={() => canAccept && onQueue?.(r.id, m.target!, siblingIds.length ? siblingIds : [r.id], r.name)} disabled={!canAccept && queuedTarget == null} title={m.target == null ? "No buyable competitor price" : canAccept ? "Queues instantly — commit with Save all" : "Already at lowest − ₹1"} style={{ ...btnAccept, background: queuedTarget != null ? "#1F9D63" : (btnAccept as any).background, opacity: !canAccept && queuedTarget == null ? 0.5 : 1 }}>{queuedTarget != null ? `✓ Queued ${fmt(queuedTarget)}` : m.target != null ? `Accept ${fmt(m.target)}` : "No price"}</button>
+                  <button onClick={() => canAccept && onQueue?.(r.id, m.target!, siblingIds.length ? siblingIds : [r.id], r.name)} disabled={!canAccept && queuedTarget == null} title={m.target == null ? "No buyable competitor price" : canAccept ? "Queues instantly - commit with Save all" : "Already at lowest − ₹1"} style={{ ...btnAccept, background: queuedTarget != null ? "#1F9D63" : (btnAccept as any).background, opacity: !canAccept && queuedTarget == null ? 0.5 : 1 }}>{queuedTarget != null ? `✓ Queued ${fmt(queuedTarget)}` : m.target != null ? `Accept ${fmt(m.target)}` : "No price"}</button>
                   <button onClick={() => { setEditing(true); setVal(String(r.ourPrice)); }} style={btnGhost}>Edit</button>
                 </>
               )}
@@ -407,7 +407,7 @@ function MappedRow({ r, first, pending, run, colourCount = 1, siblingIds = [], q
               {editing && <input autoFocus value={val} onChange={(e) => setVal(e.target.value.replace(/[^\d]/g, ""))} type="text" inputMode="numeric" style={{ width: 78, border: "1px solid #4E5BDC", borderRadius: 7, padding: "3px 7px", fontSize: 13, fontWeight: 700, textAlign: "right" }} />}
             </Stat>
             <span style={{ fontSize: 12, fontWeight: 600, color: r.mappedCount ? "#C77700" : "#C0392B", background: r.mappedCount ? "#FFF3E0" : "#FBE9E4", padding: "4px 10px", borderRadius: 8 }}>
-              {r.pendingCount ? `${r.pendingCount} match${r.pendingCount === 1 ? "" : "es"} awaiting approval` : r.mappedCount ? "Mapped — run Refresh prices" : "Not mapped"}
+              {r.pendingCount ? `${r.pendingCount} match${r.pendingCount === 1 ? "" : "es"} awaiting approval` : r.mappedCount ? "Mapped - run Refresh prices" : "Not mapped"}
             </span>
             {editing ? (
               <>
@@ -431,14 +431,14 @@ function MappedRow({ r, first, pending, run, colourCount = 1, siblingIds = [], q
             return (
               <div key={s.sourceId} style={{ display: "flex", gap: 10, alignItems: "center", padding: "6px 0", borderTop: "1px solid #EEF0F4", fontSize: 12.5, flexWrap: "wrap", opacity: isPending || !s.available ? 0.85 : 1 }}>
                 <span style={{ fontWeight: 700, minWidth: 130, color: isLowest ? "#137a4b" : "#19202E" }}>{s.source}{isLowest && <span style={{ fontSize: 10, marginLeft: 6, color: "#137a4b" }}>lowest</span>}</span>
-                <span style={{ fontFamily: "var(--space-grotesk)", fontWeight: 700, minWidth: 80, color: s.available ? "#19202E" : "#A0A7B5" }}>{s.price != null ? fmt(s.price) : "—"}</span>
+                <span style={{ fontFamily: "var(--space-grotesk)", fontWeight: 700, minWidth: 80, color: s.available ? "#19202E" : "#A0A7B5" }}>{s.price != null ? fmt(s.price) : "-"}</span>
                 <span style={{ color: "#8A93A6", fontSize: 11.5 }}>
                   {s.net != null ? `net ${fmt(s.net)}` : s.list != null ? `list ${fmt(s.list)}` : ""}{s.factor && s.factor !== 1 ? ` ×${s.factor}` : ""}
                 </span>
                 {s.code && <span style={{ fontFamily: "var(--space-mono)", fontSize: 10.5, color: "#8A93A6", background: "#EEF0F4", padding: "1px 6px", borderRadius: 5 }}>{s.code}</span>}
                 <span style={{ fontSize: 10.5, fontWeight: 600, color: (s.condition ?? "New") === "New" ? "#137a4b" : "#C77700", background: (s.condition ?? "New") === "New" ? "#E6F5EE" : "#FFF3E0", padding: "1px 7px", borderRadius: 5 }}>{s.condition ?? "New"}</span>
                 {!s.available && <span title={s.inStock === false ? "Out of stock on the competitor site" : !s.synced ? "Not synced yet" : "No valid price"} style={{ fontSize: 10, fontWeight: 800, color: "#C0392B", background: "#FBE9E4", padding: "1px 7px", borderRadius: 5 }}>{s.inStock === false ? "OUT OF STOCK" : !s.synced ? "NOT SYNCED" : "NO PRICE"}</span>}
-                {isPending && <span title="Auto-matched by name — approve before it counts for pricing" style={{ fontSize: 10, fontWeight: 800, color: "#C77700", background: "#FFF3E0", padding: "1px 7px", borderRadius: 5 }}>PENDING</span>}
+                {isPending && <span title="Auto-matched by name - approve before it counts for pricing" style={{ fontSize: 10, fontWeight: 800, color: "#C77700", background: "#FFF3E0", padding: "1px 7px", borderRadius: 5 }}>PENDING</span>}
                 <span style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
                   {s.url && <a href={s.url} target="_blank" rel="noreferrer" style={{ color: "#4E5BDC", fontWeight: 600, fontSize: 12 }}>View on {s.source} ↗</a>}
                   {isPending && (
@@ -535,7 +535,7 @@ function MappingSection({ rows, sources, lastSync, pending, run, startTransition
 
 function MatchPicker({ row, source, sourceName, onDone, onCancel }: { row: RadarRow; source: string; sourceName: string; onDone: (msg: string) => void; onCancel: () => void }) {
   const existing = row.perSource[source]?.map ?? null;
-  const [query, setQuery] = useState(`${row.brand} ${row.name}`.replace(/—.*/, "").trim());
+  const [query, setQuery] = useState(`${row.brand} ${row.name}`.replace(/-.*/, "").trim());
   const [hits, setHits] = useState<Hit[] | null>(null);
   const [chosen, setChosen] = useState<Hit | null>(existing ? { code: existing.competitor_code, name: row.perSource[source]?.price?.competitor_name ?? existing.competitor_code, brand: row.brand, listPrice: null, netPrice: null, url: existing.competitor_url } : null);
   const [factor, setFactor] = useState(String(existing?.unit_factor ?? row.suggestedFactor));
@@ -567,7 +567,7 @@ function MatchPicker({ row, source, sourceName, onDone, onCancel }: { row: Radar
       </div>
       {hits && (
         <div style={{ maxHeight: 220, overflowY: "auto", border: "1px solid #E8EBF1", borderRadius: 9, background: "#fff", marginBottom: 10 }}>
-          {hits.length === 0 && <div style={{ padding: 12, fontSize: 12.5, color: "#8A93A6" }}>No results — try a shorter query.</div>}
+          {hits.length === 0 && <div style={{ padding: 12, fontSize: 12.5, color: "#8A93A6" }}>No results - try a shorter query.</div>}
           {hits.map((h) => {
             const price = h.netPrice ?? h.listPrice;
             return (
@@ -576,7 +576,7 @@ function MatchPicker({ row, source, sourceName, onDone, onCancel }: { row: Radar
                   <span style={{ fontSize: 12.5, fontWeight: 600, color: "#19202e", display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{h.name}</span>
                   <span style={{ fontSize: 11, color: "#8A93A6", fontFamily: "var(--space-mono)" }}>{h.brand} · {h.code}</span>
                 </span>
-                <span style={{ fontSize: 12.5, fontWeight: 700 }}>{price != null ? fmt(price) : "—"}<span style={{ fontSize: 10, color: "#8A93A6" }}>/u</span></span>
+                <span style={{ fontSize: 12.5, fontWeight: 700 }}>{price != null ? fmt(price) : "-"}<span style={{ fontSize: 10, color: "#8A93A6" }}>/u</span></span>
               </button>
             );
           })}

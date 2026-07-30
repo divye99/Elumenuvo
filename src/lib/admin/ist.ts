@@ -20,7 +20,7 @@ export const istDate = (v?: string | Date | null): string =>
 export const istTime = (v?: string | Date | null): string =>
   v ? new Date(v).toLocaleTimeString("en-IN", { timeZone: TZ, hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "–";
 
-/** "2026-07-28" — the IST calendar day, safe to use as a bucket key. */
+/** "2026-07-28" - the IST calendar day, safe to use as a bucket key. */
 export const istDayKey = (v: string | Date): string => {
   const d = new Date(v);
   // en-CA gives ISO-ordered y-m-d, so no manual padding is needed.

@@ -20,10 +20,10 @@ export function makeStubAdapter(cfg: { key: string; name: string; siteUrl: strin
   };
 }
 
-// IBO — Next.js marketplace fully behind Cloudflare: prices load client-side
+// IBO - Next.js marketplace fully behind Cloudflare: prices load client-side
 // from api.ibo.com (pincode-gated via the post_code cookie), and even the JS
 // chunks refuse a plain fetch. Cracking it needs a live browser session to
-// capture the catalogue/price XHR — curl can't reach it. Left disabled.
+// capture the catalogue/price XHR - curl can't reach it. Left disabled.
 export const iboAdapter = makeStubAdapter({
   key: "ibo",
   name: "IBO",

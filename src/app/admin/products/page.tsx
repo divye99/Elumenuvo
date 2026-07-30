@@ -79,7 +79,7 @@ export default async function AdminProducts({
         Expand any product to edit its details or see live competitor pricing and set your price ₹1 under.
       </p>
 
-      {ok && <div style={{ background: "#E6F5EE", color: "#137a4b", borderRadius: 10, padding: "10px 14px", fontSize: 13, marginBottom: 14 }}>Saved{ok === "deleted" ? " — product deleted" : ""}.</div>}
+      {ok && <div style={{ background: "#E6F5EE", color: "#137a4b", borderRadius: 10, padding: "10px 14px", fontSize: 13, marginBottom: 14 }}>Saved{ok === "deleted" ? " - product deleted" : ""}.</div>}
       {error && <div style={{ background: "#FBE9E4", color: "#9a3b16", borderRadius: 10, padding: "10px 14px", fontSize: 13, marginBottom: 14 }}>{error}</div>}
 
       <ProductManager rows={managerRows} sources={srcList} />

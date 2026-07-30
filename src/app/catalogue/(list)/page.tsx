@@ -11,7 +11,7 @@ import { loadSearchSignals } from "@/lib/search-signals";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "FMEG Catalogue — wires, switchgear, fans & lighting (India)",
+  title: "FMEG Catalogue - wires, switchgear, fans & lighting (India)",
   description:
     "Browse multi-brand electrical goods in India: house wires, switchgear, modular switches, distribution boards, fans and LED lighting. MRP, Elume price and wholesale rates on every product.",
   alternates: { canonical: "https://elumenuvo.com/catalogue" },

@@ -11,7 +11,7 @@ export type AccountUser = {
   company: string | null;
 };
 
-/** Initials for the avatar — company for business accounts, else the person. */
+/** Initials for the avatar - company for business accounts, else the person. */
 function initials(u: AccountUser): string {
   const src = (u.business && u.company) || u.name || u.email;
   const words = src.replace(/@.*/, "").split(/[\s._-]+/).filter(Boolean);
@@ -21,7 +21,7 @@ function initials(u: AccountUser): string {
 /**
  * Header account button. Signed out: avatar + “Sign in” with a welcome dropdown
  * (sign in / create account). Signed in: animated gradient-ring avatar (person
- * initials, or company initials for business accounts) — click opens the
+ * initials, or company initials for business accounts) - click opens the
  * dashboard, hover shows the account menu.
  */
 export default function AccountButton({ user: initial = null }: { user?: AccountUser | null }) {
@@ -60,7 +60,7 @@ export default function AccountButton({ user: initial = null }: { user?: Account
   return (
     <div ref={wrap} onMouseEnter={enter} onMouseLeave={leave} style={{ position: "relative", flexShrink: 0 }}>
       {user ? (
-        // Signed in — click goes straight to the dashboard.
+        // Signed in - click goes straight to the dashboard.
         <button
           onClick={() => router.push("/app")}
           aria-label="Open your dashboard"
@@ -71,7 +71,7 @@ export default function AccountButton({ user: initial = null }: { user?: Account
           <span style={{ fontSize: 13.5, fontWeight: 600, color: "#fff", maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{firstName}</span>
         </button>
       ) : (
-        // Signed out — click opens the welcome dropdown.
+        // Signed out - click opens the welcome dropdown.
         <button
           onClick={() => setOpen(!open)}
           aria-label="Sign in"

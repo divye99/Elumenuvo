@@ -12,11 +12,11 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "My orders", robots: { index: false } };
 
 /** A signed-in customer's own orders (matched on user_id). Read server-side via
- *  the service role — the orders table has no anon policy. */
+ *  the service role - the orders table has no anon policy. */
 async function myOrders(userId: string): Promise<OrderRow[]> {
   const db = adminClient();
   if (!db) return [];
-  // Only real (paid) orders — an abandoned payment attempt isn't an order.
+  // Only real (paid) orders - an abandoned payment attempt isn't an order.
   const { data } = await db
     .from("orders")
     .select("*")
@@ -60,7 +60,7 @@ export default async function MyOrdersPage() {
                     <span style={{ fontFamily: "var(--space-mono)", fontSize: 13.5, fontWeight: 700 }}>{o.id}</span>
                     <OrderStatusBadge status={o.status} />
                   </div>
-                  <span style={{ fontFamily: "var(--space-grotesk)", fontWeight: 700, fontSize: 15 }}>{o.total != null ? fmt(o.total) : "—"}</span>
+                  <span style={{ fontFamily: "var(--space-grotesk)", fontWeight: 700, fontSize: 15 }}>{o.total != null ? fmt(o.total) : "-"}</span>
                 </div>
                 <div style={{ fontSize: 12.5, color: "#8A93A6" }}>
                   {new Date(o.created_at).toLocaleDateString("en-IN", { dateStyle: "medium" } as Intl.DateTimeFormatOptions)} · {(o.items ?? []).reduce((s, it) => s + it.qty, 0)} item{(o.items ?? []).length === 1 ? "" : "s"} · {(o.items ?? []).slice(0, 2).map((it) => it.name).join(", ")}{(o.items ?? []).length > 2 ? "…" : ""}

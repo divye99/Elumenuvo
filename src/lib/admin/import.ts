@@ -1,6 +1,6 @@
 /**
  * Bulk catalogue import/export via CSV (opens natively in Excel / Google
- * Sheets — no dependency). One canonical column order; the first column is the
+ * Sheets - no dependency). One canonical column order; the first column is the
  * Action (Add / Update / Remove / blank=skip). Attribute columns (size, length,
  * colour, quality, pack) map into the product's `attrs` jsonb so packaging is
  * first-class in the sheet.
@@ -127,7 +127,7 @@ export function sampleCsv(rows: ProductRow[]): string {
   }
   // A blank Add template row + a Remove example (commented via example id).
   lines.push(
-    ["add", "poly-frls-2.5-org", "POLY-FRLS-2.5-ORG", "", "FRLS Wire 2.5 sq mm — Orange", "Polycab", "Wires & Cables", "90 m coil · 1100 V", "1995", "1842", "coil", "2.5 sq mm", "90 m", "Orange", "FRLS", "", "poly25", "250", "yes", ""].map(csvCell).join(",")
+    ["add", "poly-frls-2.5-org", "POLY-FRLS-2.5-ORG", "", "FRLS Wire 2.5 sq mm - Orange", "Polycab", "Wires & Cables", "90 m coil · 1100 V", "1995", "1842", "coil", "2.5 sq mm", "90 m", "Orange", "FRLS", "", "poly25", "250", "yes", ""].map(csvCell).join(",")
   );
   return lines.join("\r\n");
 }
@@ -149,7 +149,7 @@ export type Diff = {
   summary: string;
   /** Field-level before→after for update/add. */
   changes: { field: string; from: string; to: string }[];
-  /** The db row to upsert (add/update) — assembled, or null for remove. */
+  /** The db row to upsert (add/update) - assembled, or null for remove. */
   payload: Record<string, unknown> | null;
   error?: string;
 };
@@ -186,13 +186,13 @@ export function diffFromCsv(text: string, existing: ProductRow[]): { diffs: Diff
     const current = byId.get(id);
 
     if (action === "remove") {
-      if (!current) { errors.push(`Row ${rowNumber}: can't remove "${id}" — not in the catalogue.`); continue; }
+      if (!current) { errors.push(`Row ${rowNumber}: can't remove "${id}" - not in the catalogue.`); continue; }
       diffs.push({ action, id, rowNumber, summary: `Remove ${current.name} (${id})`, changes: [], payload: null });
       continue;
     }
 
-    if (action === "add" && current) { errors.push(`Row ${rowNumber}: "${id}" already exists — use Update, not Add.`); continue; }
-    if (action === "update" && !current) { errors.push(`Row ${rowNumber}: "${id}" doesn't exist — use Add, not Update.`); continue; }
+    if (action === "add" && current) { errors.push(`Row ${rowNumber}: "${id}" already exists - use Update, not Add.`); continue; }
+    if (action === "update" && !current) { errors.push(`Row ${rowNumber}: "${id}" doesn't exist - use Add, not Update.`); continue; }
 
     // Assemble attrs from the attribute columns (fall back to current attrs).
     const attrs: Record<string, string> = { ...(current?.attrs ?? {}) };

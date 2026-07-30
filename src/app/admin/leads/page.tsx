@@ -7,10 +7,10 @@ export const dynamic = "force-dynamic";
 
 /**
  * Every lead the site captures, in one console:
- *   credit    — NBFC credit waitlist signups (waitlist table)
- *   sellers   — "Sell on Elume" partner leads (partner_leads, kind=seller)
- *   requests  — product sourcing requests (partner_leads, kind=product-request)
- *   business  — business account signups (profiles, account_type=business)
+ *   credit    - NBFC credit waitlist signups (waitlist table)
+ *   sellers   - "Sell on Elume" partner leads (partner_leads, kind=seller)
+ *   requests  - product sourcing requests (partner_leads, kind=product-request)
+ *   business  - business account signups (profiles, account_type=business)
  * Each tab is exportable as CSV via /admin/leads/export.
  */
 
