@@ -10,7 +10,8 @@ import { useCart } from "@/lib/cart";
 import { startOnlinePayment, confirmOnlinePayment } from "@/lib/order-actions";
 import { identify } from "@/lib/analytics";
 import { openRazorpay } from "@/lib/razorpay-checkout";
-import GoogleReviewOptIn from "@/components/GoogleReviewOptIn";
+import { useRouter } from "next/navigation";
+import { stashOrder } from "@/lib/gtag";
 
 type Prefill = { name: string; email: string; phone: string; gstin: string; company: string; isBusiness: boolean; signedIn: boolean };
 
@@ -47,8 +48,8 @@ function addressError(a: Address, label: string): string | null {
 
 export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Prefill; onlineEnabled: boolean }) {
   const { items, total, baseTotal, gstTotal, clear } = useCart();
+  const router = useRouter();
   const [pending, start] = useTransition();
-  const [done, setDone] = useState<{ orderId: string; total: number } | null>(null);
   const [code, setCode] = useState("");
   const [codeState, setCodeState] = useState<{ status: "idle" | "checking" | "ok" | "err"; percent?: number; msg?: string }>({ status: "idle" });
   const [err, setErr] = useState<string | null>(null);
@@ -146,58 +147,20 @@ export default function CheckoutClient({ prefill, onlineEnabled }: { prefill: Pr
         razorpay_payment_id: payment.razorpay_payment_id,
         razorpay_signature: payment.razorpay_signature,
       });
-      if (res.ok) { clear(); setDone({ orderId: res.orderId, total: res.total }); }
+      if (res.ok) {
+        // Hand the confirmation to /order-confirmed (the GA4 purchase URL).
+        // The payload rides sessionStorage - order value and email never
+        // touch the query string.
+        stashOrder({
+          orderId: res.orderId, total: res.total, email: f.email.trim(),
+          signedIn: prefill.signedIn,
+          items: items.map((i) => ({ id: i.id, name: i.name, qty: i.qty, price: i.price })),
+        });
+        clear();
+        router.replace(`/order-confirmed?order=${encodeURIComponent(res.orderId)}`);
+      }
       else setErr(res.error);
     });
-
-  if (done) {
-    return (
-      <main style={{ maxWidth: 640, margin: "0 auto", padding: "48px 28px" }}>
-        {/* Google Customer Reviews: Google's own opt-in dialog for a post-delivery review survey */}
-        <GoogleReviewOptIn orderId={done.orderId} email={f.email} />
-        <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "40px 28px", textAlign: "center" }}>
-          <div style={{ fontSize: 40, marginBottom: 8 }}>🎉</div>
-          <h1 style={{ fontFamily: GROTESK, fontSize: 24, fontWeight: 600, margin: "0 0 6px" }}>Order confirmed</h1>
-          <p style={{ fontSize: 14, color: "#56627A", margin: "0 0 4px" }}>Order <b>{done.orderId}</b> · {fmt(done.total)} paid</p>
-          <p style={{ fontSize: 13, color: "#8A93A6", margin: "0 0 20px" }}>We&apos;ve got it - a confirmation is on its way to {f.email}. Pan-India delivery in 3–7 working days.</p>
-          <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-            <Link href={`/track?order=${encodeURIComponent(done.orderId)}&email=${encodeURIComponent(f.email)}`} style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14, padding: "11px 22px", borderRadius: 11 }}>Track order</Link>
-            <Link href="/catalogue" style={{ background: "#EEF0FE", color: "#4E5BDC", fontWeight: 700, fontSize: 14, padding: "11px 22px", borderRadius: 11 }}>Continue shopping</Link>
-          </div>
-        </div>
-
-        {/* Guests: nudge them to create an account so the order lands in their dashboard */}
-        {!prefill.signedIn && (
-          <div style={{ marginTop: 16, background: "linear-gradient(135deg,#EEF0FE,#F7F8FB)", border: "1px solid #D9DDFB", borderRadius: 16, padding: "24px 26px" }}>
-            <div style={{ fontFamily: GROTESK, fontSize: 17, fontWeight: 600, color: "#19202E" }}>Create an account to track this order</div>
-            <p style={{ fontSize: 13, color: "#56627A", lineHeight: 1.6, margin: "6px 0 14px" }}>
-              We&apos;ll link order <b>{done.orderId}</b> to <b>{f.email}</b> so you can follow it to your door, and never re-type your address again.
-            </p>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "8px 16px", marginBottom: 16 }}>
-              {[
-                ["📦", "Track every order in one place"],
-                ["⚡", "One-tap checkout next time"],
-                ["🧾", "All your GST invoices, downloadable"],
-                ["💰", "Wholesale rates + 30-day credit when it launches"],
-              ].map(([icon, text]) => (
-                <div key={text} style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 12.5, color: "#3A4358" }}>
-                  <span>{icon}</span>
-                  <span>{text}</span>
-                </div>
-              ))}
-            </div>
-            <Link
-              href={`/signin?mode=signup&email=${encodeURIComponent(f.email)}`}
-              style={{ display: "inline-block", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14, padding: "12px 24px", borderRadius: 11 }}
-            >
-              Create my account →
-            </Link>
-            <span style={{ fontSize: 11.5, color: "#8A93A6", marginLeft: 12 }}>Takes 20 seconds. Your order is safe either way.</span>
-          </div>
-        )}
-      </main>
-    );
-  }
 
   if (items.length === 0) {
     return (

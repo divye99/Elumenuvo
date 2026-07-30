@@ -2,6 +2,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { jsonLd as toJsonLd } from "@/lib/jsonld";
 import SiteTracker from "@/components/SiteTracker";
 import { Suspense } from "react";
+import GoogleTag from "@/components/GoogleTag";
 import type { Metadata } from "next";
 import { Hanken_Grotesk, Space_Grotesk, Space_Mono } from "next/font/google";
 import { Toaster } from "sonner";
@@ -79,6 +80,7 @@ export default function RootLayout({
           <SiteTracker />
         </Suspense>
         <Analytics />
+        <GoogleTag />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLd(ORG_JSONLD) }} />
         {children}
         <Toaster richColors position="top-center" />
