@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { COMPANY, addressLine } from "@/lib/company";
+import { COMPANY, SOCIALS, addressLine } from "@/lib/company";
 import { Mark, Wordmark } from "@/components/Brand";
 import HeaderSearch from "@/components/storefront/HeaderSearch";
 import CatalogueMegaMenu from "@/components/storefront/CatalogueMegaMenu";
@@ -97,6 +97,30 @@ export default function StoreChrome({ children }: { children: React.ReactNode })
                     {COMPANY.cin ? `CIN ${COMPANY.cin}` : ""}{COMPANY.cin && COMPANY.gstin ? " · " : ""}{COMPANY.gstin ? `GSTIN ${COMPANY.gstin}` : ""}
                   </span>
                 )}
+              </div>
+              {/* Social profiles - sturdy stroked icons, same family as the cart */}
+              <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+                {SOCIALS.map((s) => (
+                  <a
+                    key={s.name}
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Elume on ${s.name}`}
+                    title={s.name}
+                    style={{ width: 34, height: 34, borderRadius: 9, border: "1px solid #2c3550", display: "flex", alignItems: "center", justifyContent: "center", color: "#9aa3b8" }}
+                  >
+                    {s.name === "Facebook" && (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h-2.5A4.5 4.5 0 0 0 8 7.5V10H5.5v3.5H8V21h3.8v-7.5h2.7l.6-3.5h-3.3V8c0-1 .5-1.5 1.5-1.5H15V3Z" /></svg>
+                    )}
+                    {s.name === "Instagram" && (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5" /><circle cx="12" cy="12" r="3.8" /><circle cx="17.2" cy="6.8" r="0.6" fill="currentColor" stroke="none" /></svg>
+                    )}
+                    {s.name === "YouTube" && (
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2.5" y="6" width="19" height="12.5" rx="3.5" /><path d="M10.2 9.7v5.1l4.6-2.55-4.6-2.55Z" /></svg>
+                    )}
+                  </a>
+                ))}
               </div>
             </div>
 

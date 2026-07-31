@@ -36,7 +36,13 @@ export const ORG = {
   openingHours: COMPANY.hoursSpec,
   ...(COMPANY.cin ? { identifier: COMPANY.cin } : {}),
   ...(COMPANY.gstin ? { taxID: COMPANY.gstin } : {}),
-  sameAs: [] as string[], // add social/profile URLs as they go live
+  // Live social profiles: identity corroboration for Merchant Center and the
+  // knowledge panel - the URLs must stay in sync with SOCIALS in company.ts.
+  sameAs: [
+    "https://www.facebook.com/profile.php?id=61592404302026",
+    "https://www.instagram.com/elumenuvo/",
+    "https://www.youtube.com/@ElumeNuvo",
+  ] as string[],
 };
 
 /** Standard merchant policies (pan-India, free shipping, 7-day free returns). */

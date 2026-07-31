@@ -52,6 +52,14 @@ export const COMPANY = {
   country: "India",
 } as const;
 
+/** Live social profiles - shown in the footer and mirrored in the
+ *  Organization `sameAs` markup (lib/seo.ts). */
+export const SOCIALS = [
+  { name: "Facebook", href: "https://www.facebook.com/profile.php?id=61592404302026" },
+  { name: "Instagram", href: "https://www.instagram.com/elumenuvo/" },
+  { name: "YouTube", href: "https://www.youtube.com/@ElumeNuvo" },
+] as const;
+
 /** An office as a single line of text. */
 export function officeLine(o: Office): string {
   return [o.line1, o.line2, o.city, `${o.state} ${o.pin}`, COMPANY.country].filter(Boolean).join(", ");
