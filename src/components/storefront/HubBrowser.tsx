@@ -163,8 +163,17 @@ export default function HubBrowser({ title, subtitle, rails, products, facetLabe
                 </select>
               </label>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(218px, 1fr))", gap: 14 }}>
-              {list.map((p) => <ProductCard key={p.id} p={p} />)}
+            {/* Keyed on the filter state: filter changes fade-bounce the grid
+                back in; nothing else on the page re-renders. */}
+            <div
+              key={`${[...picked].sort().join("+")}|${sort}`}
+              style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(218px, 1fr))", gap: 14 }}
+            >
+              {list.map((p, i) => (
+                <div key={p.id} className="pgrid-in" style={{ "--gi": Math.min(i, 20) } as React.CSSProperties}>
+                  <ProductCard p={p} />
+                </div>
+              ))}
             </div>
             {list.length === 0 && (
               <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "44px 20px", textAlign: "center", color: "#8A93A6", fontSize: 14 }}>

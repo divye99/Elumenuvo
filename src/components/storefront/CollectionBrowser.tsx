@@ -92,10 +92,11 @@ export default function CollectionBrowser({ kind, title, blurb, rails, brands }:
                   All {r.cat.toLowerCase()} →
                 </Link>
               </div>
-              {/* Horizontal rail: scrolls sideways inside its own box */}
-              <div style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 10, scrollSnapType: "x proximity" }}>
+              {/* Horizontal rail: scrolls sideways inside its own box. Keyed on
+                  the brand filter so a filter change fade-bounces the rail in. */}
+              <div key={[...picked].sort().join("+")} style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 10, scrollSnapType: "x proximity" }}>
                 {r.items.map((p, i) => (
-                  <div key={p.id} style={{ flex: "0 0 216px", scrollSnapAlign: "start", position: "relative" }}>
+                  <div key={p.id} className="pgrid-in" style={{ flex: "0 0 216px", scrollSnapAlign: "start", position: "relative", "--gi": Math.min(i, 20) } as React.CSSProperties}>
                     <div style={{ position: "absolute", top: -1, left: 8, zIndex: 2, background: i === 0 ? "#B8860B" : "#161D2B", color: "#fff", fontFamily: "var(--space-mono)", fontSize: 11, fontWeight: 700, borderRadius: "0 0 7px 7px", padding: "3px 8px" }}>
                       #{i + 1}
                     </div>

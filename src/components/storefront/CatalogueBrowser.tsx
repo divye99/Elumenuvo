@@ -553,9 +553,18 @@ export default function CatalogueBrowser({
         </div>
       ) : (
         <>
-          <div className="cat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(232px, 1fr))", gap: 16 }}>
-            {filtered.slice(0, shown).map((p) => (
-              <ProductCard key={p.id} p={p} siblings={variantGroups[familyKey(p)]} editorial={editorial} />
+          {/* Keyed on the FILTER state (not the search text, so typing never
+              strobes): changing a filter remounts only this grid, and the
+              cards fade-bounce back in. The rail and page never reload. */}
+          <div
+            key={`${cat}|${[...picked].sort().join("+")}|${sort}`}
+            className="cat-grid"
+            style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(232px, 1fr))", gap: 16 }}
+          >
+            {filtered.slice(0, shown).map((p, i) => (
+              <div key={p.id} className="pgrid-in" style={{ "--gi": Math.min(i, 20) } as React.CSSProperties}>
+                <ProductCard p={p} siblings={variantGroups[familyKey(p)]} editorial={editorial} />
+              </div>
             ))}
           </div>
           {filtered.length > shown && (
