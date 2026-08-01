@@ -39,6 +39,13 @@ export default function ProductGallery({
   useEffect(() => setMounted(true), []);
   const hoverFired = useRef(false);
 
+  // Dead URLs (brand CDN takedowns) silently drop out of the gallery instead
+  // of rendering broken-image icons; if every photo dies the component shows
+  // a plain white slot and the card/tile treatment stays intact elsewhere.
+  const [broken, setBroken] = useState<Set<string>>(new Set());
+  const markBroken = (u: string) => setBroken((prev) => (prev.has(u) ? prev : new Set(prev).add(u)));
+  const live = images.filter((u) => !broken.has(u));
+
   const emit = useCallback((act: string, i: number) => {
     track("pdp_image", { detail: { act, idx: i, pid } });
   }, [pid]);
@@ -58,7 +65,7 @@ export default function ProductGallery({
   };
 
   const openBox = () => { setOpen(true); emit("open", idx); };
-  const cur = images[Math.min(idx, images.length - 1)];
+  const cur = live[Math.min(idx, Math.max(0, live.length - 1))];
 
   return (
     <div>
@@ -75,7 +82,7 @@ export default function ProductGallery({
         style={{ height: 230, position: "relative", cursor: "zoom-in", background: "#fff" }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={cur} alt={alt} style={{ width: "100%", height: "100%", objectFit: "contain", padding: "6%", boxSizing: "border-box" }} />
+        {cur && <img src={cur} alt={alt} onError={() => markBroken(cur)} style={{ width: "100%", height: "100%", objectFit: "contain", padding: "6%", boxSizing: "border-box" }} />}
         {skuLabel && (
           <span style={{ position: "absolute", left: 14, bottom: 14, zIndex: 2, pointerEvents: "none", fontFamily: "var(--space-mono)", fontSize: 10.5, color: "#6b748c", background: "rgba(255,255,255,0.9)", padding: "4px 8px", borderRadius: 6 }}>{skuLabel}</span>
         )}
@@ -85,9 +92,9 @@ export default function ProductGallery({
         {lens && (
           <div style={{ position: "absolute", pointerEvents: "none", width: 96, height: 96, left: `calc(${lens.x * 100}% - 48px)`, top: `calc(${lens.y * 100}% - 48px)`, border: "1.5px solid #4E5BDC", background: "rgba(78,91,220,0.08)", borderRadius: 8 }} />
         )}
-        {images.length > 1 && (
+        {live.length > 1 && (
           <span style={{ position: "absolute", right: 12, top: 12, fontSize: 11, fontWeight: 700, color: "#56627A", background: "rgba(255,255,255,0.92)", border: "1px solid #E8EBF1", padding: "3px 9px", borderRadius: 8, pointerEvents: "none" }}>
-            {idx + 1} / {images.length}
+            {Math.min(idx, live.length - 1) + 1} / {live.length}
           </span>
         )}
       </div>
@@ -109,26 +116,26 @@ export default function ProductGallery({
       )}
 
       {/* Thumbnails */}
-      {images.length > 1 && (
+      {live.length > 1 && (
         <div style={{ display: "flex", gap: 8, padding: "10px 12px 12px", overflowX: "auto", background: "#fff" }}>
-          {images.map((u, i) => (
+          {live.map((u, i) => (
             <button
               key={u + i}
               type="button"
-              aria-label={`Photo ${i + 1} of ${images.length}`}
+              aria-label={`Photo ${i + 1} of ${live.length}`}
               aria-current={i === idx}
               onClick={(e) => { e.stopPropagation(); setIdx(i); if (i !== idx) emit("thumb", i); }}
               style={{ width: 54, height: 54, flex: "0 0 auto", padding: 0, borderRadius: 9, cursor: "pointer", background: "#fff", border: i === idx ? "2px solid #4E5BDC" : "1px solid #E0E4ED", overflow: "hidden" }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={u} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", padding: 4, boxSizing: "border-box" }} />
+              <img src={u} alt="" onError={() => markBroken(u)} style={{ width: "100%", height: "100%", objectFit: "contain", padding: 4, boxSizing: "border-box" }} />
             </button>
           ))}
         </div>
       )}
 
-      {mounted && open && createPortal(
-        <Lightbox images={images} start={idx} alt={alt} onClose={() => setOpen(false)} onNav={(i, how) => { setIdx(i); emit(how, i); }} onZoom={(i) => emit("zoom", i)} />,
+      {mounted && open && live.length > 0 && createPortal(
+        <Lightbox images={live} start={Math.min(idx, live.length - 1)} alt={alt} onClose={() => setOpen(false)} onNav={(i, how) => { setIdx(i); emit(how, i); }} onZoom={(i) => emit("zoom", i)} />,
         document.body
       )}
     </div>

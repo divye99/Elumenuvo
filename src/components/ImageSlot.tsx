@@ -49,7 +49,11 @@ export default function ImageSlot({
   const inputRef = useRef<HTMLInputElement>(null);
   // A real uploaded image (Supabase Storage) takes priority over a locally
   // dropped preview.
-  const src = imageUrl ?? localSrc;
+  // A dead image URL (brand CDN takedown, 404) must degrade to the category
+  // tile, exactly like having no image - never a broken-image icon.
+  const [broken, setBroken] = useState(false);
+  useEffect(() => setBroken(false), [imageUrl]);
+  const src = (broken ? undefined : imageUrl) ?? localSrc;
 
   useEffect(() => {
     // Hydrate any previously-dropped image for this slot from localStorage.
@@ -115,7 +119,7 @@ export default function ImageSlot({
         // product at first glance. Cover zoomed to fill the slot and cropped
         // tops/bottoms off fans and wire boxes. The slot's white background
         // letterboxes cleanly, and the padding keeps the product off the edges.
-        <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", padding: "6%", boxSizing: "border-box" }} />
+        <img src={src} alt="" onError={() => setBroken(true)} style={{ width: "100%", height: "100%", objectFit: "contain", padding: "6%", boxSizing: "border-box" }} />
       ) : allowUpload ? (
         <div style={{ textAlign: "center", pointerEvents: "none", padding: "0 10px" }}>
           <div style={{ fontSize: 11.5, fontWeight: 600, color: "#8A93A6" }}>{placeholder}</div>
