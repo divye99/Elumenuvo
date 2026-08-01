@@ -116,7 +116,9 @@ export default function SiteTracker() {
         const href = el.getAttribute("href") || undefined;
         const pm = href?.match(/^\/catalogue\/([^/?#]+)/);
         if (pm) track("product_click", { detail: { product_id: pm[1], label } });
-        else if (/add.*(cart|basket)/i.test(label)) track("add_to_cart", { detail: { label } });
+        // Buttons that fire their own add_to_cart (with pid/src) opt out of
+        // the generic classifier here, or every tap would count twice.
+        else if (/add.*(cart|basket)/i.test(label) && !el.closest("[data-cart-tracked]")) track("add_to_cart", { detail: { label } });
         else track("click", { detail: { label, ...(href ? { href } : {}) } });
       } catch { /* ignore */ }
     };

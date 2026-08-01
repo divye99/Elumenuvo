@@ -34,6 +34,7 @@ export default function MobileBuyBar({
         <div style={{ fontSize: 8.5, color: "#8EE2B8", fontWeight: 600, marginTop: 1 }}>Free pan-India delivery</div>
       </div>
       <button
+        data-cart-tracked
         onClick={() => {
           onAdd();
           setAdded(true);

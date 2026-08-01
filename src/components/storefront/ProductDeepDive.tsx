@@ -33,7 +33,7 @@ export default function ProductDeepDive({
   return (
     <div style={{ maxWidth: 1120, margin: "0 auto", padding: "0 30px", display: "flex", flexDirection: "column", gap: 18 }}>
       {/* ── Trust strip ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+      <div data-pdp-sec="trust" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
         {[
           ["🏷️", "100% genuine", "Brand-authorised stock with full manufacturer warranty"],
           ["🧾", "GST invoice", "Tax invoice on every order · GST billing with tax split"],
@@ -63,7 +63,7 @@ export default function ProductDeepDive({
 
       {/* ── Technical specifications ── */}
       {specs.length > 0 && (
-        <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
+        <div data-pdp-sec="specs" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
           <h3 style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600, letterSpacing: "-0.4px", margin: "0 0 4px" }}>
             Technical specifications
           </h3>
@@ -90,7 +90,7 @@ export default function ProductDeepDive({
 
       {/* ── Full range (variant family) ── */}
       {family.length > 1 && (
-        <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
+        <div data-pdp-sec="range" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
           <h3 style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600, letterSpacing: "-0.4px", margin: "0 0 4px" }}>
             The full range · {family.length} options
           </h3>
@@ -156,7 +156,7 @@ export default function ProductDeepDive({
 
       {/* ── Buying guide + category FAQs ── */}
       {post && (
-        <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
+        <div data-pdp-sec="guide" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
             <h3 style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600, letterSpacing: "-0.4px", margin: 0 }}>
               Know before you buy
@@ -198,7 +198,7 @@ function AboutBlock({ t, brand }: { t: TechSpecs; brand: string }) {
   const hasAny = !!t.description || !!t.key_features?.length || !!t.features?.length;
   if (!hasAny) return null;
   return (
-    <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
+    <div data-pdp-sec="about" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", margin: "0 0 12px" }}>
         <h3 style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600, letterSpacing: "-0.4px", margin: 0 }}>
           About this product

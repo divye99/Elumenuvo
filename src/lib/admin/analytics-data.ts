@@ -104,6 +104,14 @@ export function buildJourney(events: SiteEvent[], searches: SearchRow[]): Journe
     else if (e.type === "identify") items.push({ at: e.created_at, icon: ICON.identify, title: `identified as ${e.name || e.email}`, sub: e.email ?? undefined });
     else if (e.type === "legacy") items.push({ at: e.created_at, icon: ICON.legacy, title: d.label ?? "recorded action", sub: "from records predating analytics" });
     else if (e.type === "input") items.push({ at: e.created_at, icon: ICON.input, title: `typed “${d.value}”`, sub: `${prettyFieldLabel(d.label)} · ${e.path ?? d.path ?? ""}` });
+    // PDP telemetry: section-visibility pings are aggregate fuel for the
+    // Product-page tab, not journey material - a single scroll would add 12
+    // rows of noise. Photo interactions ARE deliberate acts, so they show.
+    else if (e.type === "pdp_section") continue;
+    else if (e.type === "pdp_image") {
+      const act = { open: "opened the photo viewer", thumb: "flipped through photos", arrow: "flipped through photos", zoom: "zoomed into a photo", hover: "magnified a photo" }[d.act ?? ""] ?? "looked at photos";
+      items.push({ at: e.created_at, icon: "🖼️", title: act, sub: e.path ?? undefined });
+    }
     else items.push({ at: e.created_at, icon: ICON.click, title: `tapped "${d.label ?? "?"}"`, sub: d.href });
   }
   for (const s of searches) {

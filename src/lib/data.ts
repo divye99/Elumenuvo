@@ -11,6 +11,7 @@ export type Product = {
   market: number;
   unit: string;
   image?: string;
+  images?: string[]; // gallery, ordered; image (above) stays photo #1
   /** Avg star rating (1–5) from customer reviews; undefined until reviewed. */
   rating?: number;
   ratingCount?: number;

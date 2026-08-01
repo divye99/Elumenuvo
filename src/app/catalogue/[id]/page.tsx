@@ -11,6 +11,7 @@ import ElumeFlagship from "@/components/storefront/ElumeFlagship";
 import { productDescription } from "@/lib/seo-description";
 import { getAllPosts, CATEGORY_TO_CATALOGUE } from "@/lib/blog";
 import PublicProductView from "@/components/storefront/PublicProductView";
+import PdpTelemetry from "@/components/storefront/PdpTelemetry";
 import ProductDeepDive from "@/components/storefront/ProductDeepDive";
 import ReviewsSection from "@/components/storefront/ReviewsSection";
 import ProductFaq from "@/components/storefront/ProductFaq";
@@ -81,7 +82,11 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     category: product.cat,
     brand: { "@type": "Brand", name: product.brand },
     description: productDescription(product),
-    image: product.image ? [absImage(product.image)!] : undefined,
+    // schema.org wants the property ABSENT for photo-less products, never [].
+    image: (() => {
+      const arr = (product.images?.length ? product.images : product.image ? [product.image] : []).map((u) => absImage(u)!);
+      return arr.length ? arr.slice(0, 8) : undefined;
+    })(),
     aggregateRating:
       product.rating && product.ratingCount
         ? { "@type": "AggregateRating", ratingValue: product.rating, reviewCount: product.ratingCount }
@@ -104,6 +109,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLd(jsonLd) }} />
+      <PdpTelemetry pid={product.id} />
       <PublicProductView
         p={product}
         siblings={siblings}
@@ -118,7 +124,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           <ElumeFlagship p={product} />
         </div>
       )}
-      <div style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px" }}>
+      <div data-pdp-sec="price-history" style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px" }}>
         <CompetitorPriceChart series={priceHistory} mrp={product.market} />
       </div>
       <div style={{ height: 18 }} />

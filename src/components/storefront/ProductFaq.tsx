@@ -8,7 +8,7 @@ import { jsonLd as toJsonLd } from "@/lib/jsonld";
 export default function ProductFaq({ faqs, title = "Frequently asked questions" }: { faqs: Faq[]; title?: string }) {
   if (!faqs.length) return null;
   return (
-    <section style={{ maxWidth: 1120, margin: "0 auto", padding: "0 30px" }} aria-label="Frequently asked questions">
+    <section data-pdp-sec="faq" style={{ maxWidth: 1120, margin: "0 auto", padding: "0 30px" }} aria-label="Frequently asked questions">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLd(faqJsonLd(faqs)) }} />
       <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "22px 24px" }}>
         <h2 style={{ fontFamily: "var(--space-grotesk)", fontSize: 20, fontWeight: 600, margin: "0 0 14px" }}>{title}</h2>

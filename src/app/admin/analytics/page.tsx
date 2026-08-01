@@ -127,6 +127,54 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
   const maxViews = topPages[0]?.[1].views ?? 1;
   const durTxt = (ms: number) => (ms < 60000 ? `${Math.round(ms / 1000)}s` : `${Math.floor(ms / 60000)}m ${Math.round((ms % 60000) / 1000)}s`);
   const showPages = view === "pages";
+  const showPdp = view === "pdp";
+
+  /* ── Product-page drop-off: how far down the PDP visitors actually get.
+     Unit = one (visitor, product) pair. Sections come from pdp_section
+     events (fired once per section per pageview by PdpTelemetry), photo
+     behaviour from pdp_image, the finish line from add_to_cart. ── */
+  const isPdpPath = (x: string) => /^\/catalogue\/[^\/?#]+/.test(x);
+  const PDP_SECS: [string, string][] = [
+    ["gallery", "Photo gallery"], ["quickspecs", "Quick specs"], ["buybox", "Buy box"],
+    ["wholesale", "Wholesale strip"], ["price-history", "Price history"], ["trust", "Trust badges"],
+    ["about", "About the product"], ["specs", "Specifications"], ["range", "Full range table"],
+    ["guide", "Buying guide"], ["faq", "FAQ"], ["reviews", "Reviews"],
+  ];
+  const pdpVisits = new Set<string>();
+  const secReach = new Map<string, Set<string>>(PDP_SECS.map(([k]) => [k, new Set()]));
+  const imgActs = new Map<string, number>();
+  const imgVisits = new Set<string>();
+  const atcVisits = new Set<string>();
+  const perProduct = new Map<string, { views: number; price: Set<string>; atc: Set<string>; img: Set<string> }>();
+  if (showPdp) {
+    for (const e of events) {
+      if (!keptSids.has(e.sid)) continue;
+      const path = (e.path ?? "").split("?")[0];
+      if (!isPdpPath(path)) continue;
+      const key = `${e.sid}|${path}`;
+      const prod = () => {
+        let a = perProduct.get(path);
+        if (!a) { a = { views: 0, price: new Set(), atc: new Set(), img: new Set() }; perProduct.set(path, a); }
+        return a;
+      };
+      if (e.type === "pageview") { pdpVisits.add(key); prod().views += 1; }
+      else if (e.type === "pdp_section") {
+        const sec = String((e.detail as Record<string, unknown> | null)?.sec ?? "");
+        secReach.get(sec)?.add(key);
+        if (sec === "price-history") prod().price.add(e.sid);
+      } else if (e.type === "pdp_image") {
+        const act = String((e.detail as Record<string, unknown> | null)?.act ?? "other");
+        imgActs.set(act, (imgActs.get(act) ?? 0) + 1);
+        imgVisits.add(key); prod().img.add(e.sid);
+      } else if (e.type === "add_to_cart") { atcVisits.add(key); prod().atc.add(e.sid); }
+    }
+  }
+  const pdpTotal = pdpVisits.size;
+  const pdpWorst = [...perProduct.entries()]
+    .filter(([, a]) => a.views >= 2)
+    .sort((a, b) => b[1].views - a[1].views)
+    .slice(0, 20);
+  const IMG_ACT_LABEL: Record<string, string> = { open: "Opened the viewer", thumb: "Switched thumbnails", arrow: "Browsed photos", zoom: "Zoomed in", hover: "Hover-magnified" };
   // Switching tab or day range must not silently drop the filters someone has
   // set - rebuild the query string instead of writing a fresh one.
   const linkTo = (over: { days?: number; view?: string }) => {
@@ -163,7 +211,7 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
       </div>
 
       <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-        {([["", "Visitors"], ["traffic", "Daily traffic"], ["pages", "Top pages"]] as [string, string][]).map(([key, label]) => {
+        {([["", "Visitors"], ["traffic", "Daily traffic"], ["pages", "Top pages"], ["pdp", "Product page"]] as [string, string][]).map(([key, label]) => {
           const active = (view ?? "") === key;
           return (
             <Link key={label} href={linkTo({ view: key })} style={{ fontSize: 13, fontWeight: 600, padding: "6px 14px", borderRadius: 8, background: active ? "#161D2B" : "#fff", color: active ? "#fff" : "#56627A", border: "1px solid #E8EBF1" }}>
@@ -273,7 +321,89 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
         </div>
       )}
 
-      {showPages || isTraffic ? null : visitors.length === 0 ? (
+      {showPdp && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 18, marginBottom: 20 }}>
+          {pdpTotal === 0 ? (
+            <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "44px 20px", textAlign: "center", color: "#8A93A6", fontSize: 14 }}>
+              No product-page data yet in this window. Section and photo events start flowing from the deploy that added them - give it a day of traffic.
+            </div>
+          ) : (
+            <>
+              {/* ── Section funnel: where the page loses people ── */}
+              <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflow: "hidden" }}>
+                <div style={{ padding: "15px 18px", borderBottom: "1px solid #F0F2F6", fontWeight: 700, fontSize: 14.5 }}>
+                  How far down the product page people get
+                  <span style={{ color: "#8A93A6", fontWeight: 400 }}> · {pdpTotal} product visits · last {days} days</span>
+                </div>
+                <div style={{ padding: "14px 18px" }}>
+                  {PDP_SECS.map(([k, label]) => {
+                    const n = secReach.get(k)?.size ?? 0;
+                    const pct = Math.round((n / pdpTotal) * 100);
+                    return (
+                      <div key={k} style={{ display: "flex", alignItems: "center", gap: 12, padding: "5px 0" }}>
+                        <span style={{ width: 150, fontSize: 12.5, fontWeight: 600, color: "#3A4358", flex: "none" }}>{label}</span>
+                        <div style={{ flex: 1, height: 18, background: "#F5F6F9", borderRadius: 6, overflow: "hidden" }}>
+                          <div style={{ width: `${pct}%`, height: "100%", background: pct > 60 ? "#4E5BDC" : pct > 30 ? "#8B96EA" : "#C6CDF5", borderRadius: 6 }} />
+                        </div>
+                        <span style={{ width: 84, fontSize: 12.5, color: "#56627A", textAlign: "right", flex: "none" }}><b style={{ color: "#19202E" }}>{pct}%</b> · {n}</span>
+                      </div>
+                    );
+                  })}
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 0 4px", borderTop: "1px dashed #E8EBF1", marginTop: 8 }}>
+                    <span style={{ width: 150, fontSize: 12.5, fontWeight: 800, color: "#137a4b", flex: "none" }}>🛒 Added to cart</span>
+                    <div style={{ flex: 1, height: 18, background: "#F5F6F9", borderRadius: 6, overflow: "hidden" }}>
+                      <div style={{ width: `${Math.round((atcVisits.size / pdpTotal) * 100)}%`, height: "100%", background: "#1F9D63", borderRadius: 6 }} />
+                    </div>
+                    <span style={{ width: 84, fontSize: 12.5, color: "#56627A", textAlign: "right", flex: "none" }}><b style={{ color: "#137a4b" }}>{Math.round((atcVisits.size / pdpTotal) * 100)}%</b> · {atcVisits.size}</span>
+                  </div>
+                  <p style={{ fontSize: 11.5, color: "#8A93A6", margin: "10px 0 0" }}>
+                    A section counts when at least a third of it entered the viewport. Sections that only exist on some products (wholesale, range, guide) naturally read lower.
+                  </p>
+                </div>
+              </div>
+
+              {/* ── Photo behaviour ── */}
+              <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflow: "hidden" }}>
+                <div style={{ padding: "15px 18px", borderBottom: "1px solid #F0F2F6", fontWeight: 700, fontSize: 14.5 }}>
+                  Photo behaviour
+                  <span style={{ color: "#8A93A6", fontWeight: 400 }}> · are people trying to see more of the product?</span>
+                </div>
+                <div style={{ display: "flex", gap: 26, flexWrap: "wrap", padding: "16px 18px" }}>
+                  <div>
+                    <div style={{ fontSize: 24, fontWeight: 700, fontFamily: "var(--space-grotesk)" }}>{Math.round((imgVisits.size / pdpTotal) * 100)}%</div>
+                    <div style={{ fontSize: 12, color: "#8A93A6" }}>of product visits touched the photos</div>
+                  </div>
+                  {Object.entries(IMG_ACT_LABEL).map(([act, label]) => (
+                    <div key={act}>
+                      <div style={{ fontSize: 24, fontWeight: 700, fontFamily: "var(--space-grotesk)" }}>{imgActs.get(act) ?? 0}</div>
+                      <div style={{ fontSize: 12, color: "#8A93A6" }}>{label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* ── Per-product drop-off ── */}
+              <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflow: "hidden" }}>
+                <div style={{ padding: "15px 18px", borderBottom: "1px solid #F0F2F6", fontWeight: 700, fontSize: 14.5 }}>
+                  Most-viewed products <span style={{ color: "#8A93A6", fontWeight: 400 }}>· who saw the proof, who added to cart</span>
+                </div>
+                {pdpWorst.map(([path, a], i) => (
+                  <div key={path} style={{ display: "flex", alignItems: "center", gap: 14, padding: "10px 18px", borderTop: i ? "1px solid #F5F6F9" : undefined }}>
+                    <span style={{ width: 22, fontFamily: "var(--space-mono)", fontSize: 12, fontWeight: 700, color: "#8A93A6" }}>{i + 1}</span>
+                    <a href={path} target="_blank" style={{ flex: 1, fontSize: 13, fontWeight: 600, color: "#19202E", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{path.replace("/catalogue/", "")}</a>
+                    <span style={{ fontSize: 12.5, color: "#56627A", whiteSpace: "nowrap" }}><b style={{ color: "#19202E" }}>{a.views}</b> views</span>
+                    <span style={{ fontSize: 12.5, color: "#56627A", whiteSpace: "nowrap" }}>{a.price.size} saw price proof</span>
+                    <span style={{ fontSize: 12.5, color: "#56627A", whiteSpace: "nowrap" }}>{a.img.size} touched photos</span>
+                    <span style={{ fontSize: 12.5, fontWeight: 700, color: a.atc.size ? "#137a4b" : "#B43A16", whiteSpace: "nowrap" }}>{a.atc.size} 🛒</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {showPages || isTraffic || showPdp ? null : visitors.length === 0 ? (
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "44px 20px", textAlign: "center", color: "#8A93A6", fontSize: 14 }}>
           No visits recorded yet. Data starts flowing once migration 0051 is run and the site is redeployed.
         </div>

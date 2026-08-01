@@ -4,6 +4,7 @@ import ImageSlot from "@/components/ImageSlot";
 import { GROTESK, MONO } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import { tileFor, type Product } from "@/lib/data";
+import ProductGallery from "@/components/storefront/ProductGallery";
 import {
   wholesalePrice,
   unitPriceFor,
@@ -64,6 +65,7 @@ export default function ProductDetail({
   const isWholesale = qty >= WHOLESALE_MIN_QTY;
   const lineTotal = unitPriceFor(p.price, qty) * qty;
   const gb = gstBreakdown(p.price, p.cat, p.gstRate); // ex-GST base / GST / inclusive, at the category rate
+  const galleryImages = (p.images?.length ? p.images : p.image ? [p.image] : []).filter(Boolean);
   const specs = [
     { k: "Brand", v: p.brand },
     { k: "Category", v: p.cat },
@@ -81,14 +83,26 @@ export default function ProductDetail({
       <div className="pd-grid" style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 24, alignItems: "start" }}>
         {/* image + specs */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, overflow: "hidden" }}>
-            <div style={{ height: 230, position: "relative" }}>
-              <ImageSlot id={`img-${p.sku}`} tile={tileFor(p.cat)} imageUrl={p.image} allowUpload={variant === "app"} />
-              <span style={{ position: "absolute", left: 14, bottom: 14, zIndex: 2, pointerEvents: "none", fontFamily: MONO, fontSize: 10.5, color: "#6b748c", background: "rgba(255,255,255,0.9)", padding: "4px 8px", borderRadius: 6 }}>{p.sku}</span>
-              {offPct >= 1 && <span style={{ position: "absolute", right: 14, bottom: 14, zIndex: 2, pointerEvents: "none", fontSize: 12, fontWeight: 700, color: "#1F9D63", background: "#fff", padding: "5px 10px", borderRadius: 7 }}>↓ {off} off MRP</span>}
-            </div>
+          {/* Gallery: multi-photo with lightbox + hover zoom on the public
+              store; the workspace keeps the upload-capable single slot. */}
+          <div data-pdp-sec="gallery" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, position: "relative" }}>
+            {variant === "public" && galleryImages.length > 0 ? (
+              <ProductGallery
+                images={galleryImages}
+                pid={p.id}
+                alt={p.name}
+                skuLabel={p.sku}
+                offLabel={offPct >= 1 ? `↓ ${off} off MRP` : undefined}
+              />
+            ) : (
+              <div style={{ height: 230, position: "relative", borderRadius: 16, overflow: "hidden" }}>
+                <ImageSlot id={`img-${p.sku}`} tile={tileFor(p.cat)} imageUrl={p.image} allowUpload={variant === "app"} />
+                <span style={{ position: "absolute", left: 14, bottom: 14, zIndex: 2, pointerEvents: "none", fontFamily: MONO, fontSize: 10.5, color: "#6b748c", background: "rgba(255,255,255,0.9)", padding: "4px 8px", borderRadius: 6 }}>{p.sku}</span>
+                {offPct >= 1 && <span style={{ position: "absolute", right: 14, bottom: 14, zIndex: 2, pointerEvents: "none", fontSize: 12, fontWeight: 700, color: "#1F9D63", background: "#fff", padding: "5px 10px", borderRadius: 7 }}>↓ {off} off MRP</span>}
+              </div>
+            )}
           </div>
-          <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "6px 18px" }}>
+          <div data-pdp-sec="quickspecs" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "6px 18px" }}>
             {specs.map((r) => (
               <div key={r.k} style={{ display: "flex", justifyContent: "space-between", gap: 14, padding: "12px 0", borderBottom: "1px solid #F5F6F9" }}>
                 <span style={{ fontSize: 12.5, color: "#8A93A6" }}>{r.k}</span>
@@ -102,7 +116,7 @@ export default function ProductDetail({
 
         {/* info */}
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-          <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 26px" }}>
+          <div data-pdp-sec="buybox" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 26px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
               <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#1F9D63" }} />
               <span style={{ fontSize: 12.5, color: "#8A93A6", fontWeight: 600 }}>{p.brand}</span>
@@ -142,7 +156,7 @@ export default function ProductDetail({
               </div>
             )}
             {/* Wholesale tier */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, background: "#F5F6F9", border: "1px solid #E8EBF1", borderRadius: 11, padding: "11px 14px", marginBottom: 20 }}>
+            <div data-pdp-sec="wholesale" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, background: "#F5F6F9", border: "1px solid #E8EBF1", borderRadius: 11, padding: "11px 14px", marginBottom: 20 }}>
               <div>
                 <div style={{ fontSize: 11.5, color: "#8A93A6" }}>Wholesale · {WHOLESALE_MIN_QTY}+ units</div>
                 <div style={{ fontFamily: GROTESK, fontSize: 17, fontWeight: 600, color: "#19202E" }}>
@@ -153,6 +167,7 @@ export default function ProductDetail({
                 <span style={{ fontSize: 12, fontWeight: 700, color: "#1F9D63", background: "#E6F5EE", padding: "5px 10px", borderRadius: 8 }}>save 5%</span>
                 {variant === "public" && onAddWholesale && (
                   <button
+                    data-cart-tracked
                     onClick={onAddWholesale}
                     style={{ background: "#4E5BDC", color: "#fff", border: "none", fontWeight: 700, fontSize: 11.5, padding: "7px 12px", borderRadius: 8, cursor: "pointer", whiteSpace: "nowrap" }}
                   >

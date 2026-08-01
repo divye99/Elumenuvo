@@ -68,7 +68,7 @@ export async function POST(request: Request) {
   const region = geo(h, "x-vercel-ip-country-region");
   const city = geo(h, "x-vercel-ip-city");
 
-  const ALLOWED = new Set(["pageview", "leave", "click", "product_click", "add_to_cart", "identify", "input"]);
+  const ALLOWED = new Set(["pageview", "leave", "click", "product_click", "add_to_cart", "identify", "input", "pdp_section", "pdp_image"]);
   const rows = [];
   for (const e of events as Record<string, unknown>[]) {
     const type = String(e?.type ?? "");

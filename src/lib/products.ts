@@ -27,6 +27,7 @@ type Row = {
   in_stock?: boolean | null;
   created_at?: string | null;
   attrs?: Record<string, string> | null;
+  images?: string[] | null;
   gst_rate?: number | string | null;
   hsn?: string | null;
   tech_specs?: TechSpecs | null;
@@ -55,6 +56,7 @@ const toProduct = (r: Row): Product => {
     inStock: r.in_stock ?? true,
     createdAt: r.created_at ?? undefined,
     attrs: r.attrs ?? undefined,
+    images: Array.isArray(r.images) && r.images.length ? (r.images as string[]) : undefined,
     gstRate: r.gst_rate != null ? Number(r.gst_rate) : undefined,
     hsn: r.hsn ?? undefined,
     techSpecs: r.tech_specs ?? undefined,
