@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { MENU_CATS, HOME_BRANDS } from "@/lib/data";
+import { METALS_TAXONOMY, METAL_ICONS, metalHref } from "@/lib/metals";
 import ForYouLink from "@/components/storefront/ForYouLink";
 import { slugify } from "@/lib/slug";
 
@@ -68,6 +69,16 @@ export default function MobileMenu() {
           {MENU_CATS.map(([c, icon]) => (
             <Link key={c} href={`/category/${slugify(c)}`} onClick={close}>
               <span style={{ fontSize: 13 }}>{icon}</span> {c}
+            </Link>
+          ))}
+        </div>
+
+        {/* Metals - copper buyable at daily rates, the rest enquiry-first */}
+        <div className="drw-section">Metals · daily rates</div>
+        <div className="drw-grid">
+          {METALS_TAXONOMY.map((m) => (
+            <Link key={m.name} href={metalHref(m)} onClick={close}>
+              <span style={{ fontSize: 13 }}>{METAL_ICONS[m.name] ?? "▫️"}</span> {m.name}
             </Link>
           ))}
         </div>

@@ -433,3 +433,12 @@ input[type="range"].elume-range::-moz-range-thumb {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.55; }
 }
+
+/* ── Metals (hub + PDP market charts): stack the grids on phones ── */
+@media (max-width: 760px) {
+  .metals-charts { grid-template-columns: 1fr !important; }
+  .metals-grid { grid-template-columns: 1fr 1fr !important; }
+}
+@media (max-width: 480px) {
+  .metals-grid { grid-template-columns: 1fr !important; }
+}

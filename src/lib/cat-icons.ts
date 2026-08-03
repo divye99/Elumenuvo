@@ -9,4 +9,5 @@ export const CAT_ICONS: Record<string, string> = {
   Pumps: "🚰",
   "Electrical Accessories": "🔧",
   "EV Charging": "🔋",
+  Copper: "🟠", // Metals family (see src/lib/metals.ts)
 };

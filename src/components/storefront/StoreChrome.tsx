@@ -59,6 +59,10 @@ export default function StoreChrome({ children }: { children: React.ReactNode })
 
           <nav className="hdr-actions">
             <CatalogueMegaMenu />
+            <Link href="/metals" className="hdr-navlink" style={{ fontSize: 14, fontWeight: 600, color: "#19202E", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              Metals
+              <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.4px", color: "#fff", background: "#E0612A", borderRadius: 6, padding: "2px 6px", textTransform: "uppercase" }}>New</span>
+            </Link>
             <ForYouLink variant="nav" />
             <Link href="/blog" className="hdr-navlink" style={{ fontSize: 14, fontWeight: 500, color: "#56627A" }}>
               Blog
@@ -127,6 +131,7 @@ export default function StoreChrome({ children }: { children: React.ReactNode })
             <div className="ft-col">
               <div className="ft-h">Shop</div>
               <Link href="/catalogue">Catalogue</Link>
+              <Link href="/metals">Metals</Link>
               <Link href="/collections/best-prices">Top deals</Link>
               <Link href="/collections/best-sellers">Best sellers</Link>
               <Link href="/blog">Buying guides</Link>

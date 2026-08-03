@@ -17,13 +17,26 @@
 --      public pages embed TradingView instead of displaying this data).
 
 -- ── 1. Copper products ──────────────────────────────────────────────────────
-insert into public.products (id, sku, name, brand, category, spec, mrp, elume_price, unit, sort_order, is_active, attrs, hsn, parent_id)
+-- Photos: curated royalty-free stock (Pexels licence, commercial-safe),
+-- rehosted in our product-images bucket under metals/ - representative
+-- imagery until the business supplies real product/warehouse photos.
+insert into public.products (id, sku, name, brand, category, spec, mrp, elume_price, unit, sort_order, is_active, attrs, hsn, parent_id, image_url, images)
 values
-  ('copper-super-d',     'CU-SUPERD',  'Copper Super D',                 'Elume', 'Copper', 'Premium high-conductivity copper',            995,     995,     'kg',  9010, false, null,                   '7403', null),
-  ('copper-ccr-rod-3mt', 'CU-CCR-3MT', 'Copper CCR Rod',                 'Elume', 'Copper', 'Continuous cast copper rod · 3 MT lot',       2985000, 2985000, 'lot', 9020, false, '{"Lot":"3 MT"}'::jsonb, '7407', null),
-  ('copper-ccr-rod-4mt', 'CU-CCR-4MT', 'Copper CCR Rod',                 'Elume', 'Copper', 'Continuous cast copper rod · 4 MT lot',       3980000, 3980000, 'lot', 9021, false, '{"Lot":"4 MT"}'::jsonb, '7407', 'copper-ccr-rod-3mt'),
-  ('copper-cc-rod-3mt',  'CU-CC-3MT',  'Copper CC Rod',                  'Elume', 'Copper', 'Continuous cast copper rod · 3 MT lot',       2985000, 2985000, 'lot', 9030, false, '{"Lot":"3 MT"}'::jsonb, '7407', null),
-  ('copper-cc-rod-4mt',  'CU-CC-4MT',  'Copper CC Rod',                  'Elume', 'Copper', 'Continuous cast copper rod · 4 MT lot',       3980000, 3980000, 'lot', 9031, false, '{"Lot":"4 MT"}'::jsonb, '7407', 'copper-cc-rod-3mt')
+  ('copper-super-d',     'CU-SUPERD',  'Copper Super D',                 'Elume', 'Copper', 'Premium high-conductivity copper',            995,     995,     'kg',  9010, false, null,                   '7403', null,
+    'https://jfgsigpadpewfktsohmc.supabase.co/storage/v1/object/public/product-images/metals/copper-bright-wire.jpg',
+    '["https://jfgsigpadpewfktsohmc.supabase.co/storage/v1/object/public/product-images/metals/copper-bright-wire.jpg","https://jfgsigpadpewfktsohmc.supabase.co/storage/v1/object/public/product-images/metals/copper-strands.jpg"]'::jsonb),
+  ('copper-ccr-rod-3mt', 'CU-CCR-3MT', 'Copper CCR Rod',                 'Elume', 'Copper', 'Continuous cast copper rod · 3 MT lot',       2985000, 2985000, 'lot', 9020, false, '{"Lot":"3 MT"}'::jsonb, '7407', null,
+    'https://jfgsigpadpewfktsohmc.supabase.co/storage/v1/object/public/product-images/metals/copper-spirals.jpg',
+    '["https://jfgsigpadpewfktsohmc.supabase.co/storage/v1/object/public/product-images/metals/copper-spirals.jpg","https://jfgsigpadpewfktsohmc.supabase.co/storage/v1/object/public/product-images/metals/copper-bright-wire.jpg"]'::jsonb),
+  ('copper-ccr-rod-4mt', 'CU-CCR-4MT', 'Copper CCR Rod',                 'Elume', 'Copper', 'Continuous cast copper rod · 4 MT lot',       3980000, 3980000, 'lot', 9021, false, '{"Lot":"4 MT"}'::jsonb, '7407', 'copper-ccr-rod-3mt',
+    'https://jfgsigpadpewfktsohmc.supabase.co/storage/v1/object/public/product-images/metals/copper-spirals.jpg',
+    '["https://jfgsigpadpewfktsohmc.supabase.co/storage/v1/object/public/product-images/metals/copper-spirals.jpg","https://jfgsigpadpewfktsohmc.supabase.co/storage/v1/object/public/product-images/metals/copper-bright-wire.jpg"]'::jsonb),
+  ('copper-cc-rod-3mt',  'CU-CC-3MT',  'Copper CC Rod',                  'Elume', 'Copper', 'Continuous cast copper rod · 3 MT lot',       2985000, 2985000, 'lot', 9030, false, '{"Lot":"3 MT"}'::jsonb, '7407', null,
+    'https://jfgsigpadpewfktsohmc.supabase.co/storage/v1/object/public/product-images/metals/copper-rod-dark.jpg',
+    '["https://jfgsigpadpewfktsohmc.supabase.co/storage/v1/object/public/product-images/metals/copper-rod-dark.jpg","https://jfgsigpadpewfktsohmc.supabase.co/storage/v1/object/public/product-images/metals/copper-spirals.jpg"]'::jsonb),
+  ('copper-cc-rod-4mt',  'CU-CC-4MT',  'Copper CC Rod',                  'Elume', 'Copper', 'Continuous cast copper rod · 4 MT lot',       3980000, 3980000, 'lot', 9031, false, '{"Lot":"4 MT"}'::jsonb, '7407', 'copper-cc-rod-3mt',
+    'https://jfgsigpadpewfktsohmc.supabase.co/storage/v1/object/public/product-images/metals/copper-rod-dark.jpg',
+    '["https://jfgsigpadpewfktsohmc.supabase.co/storage/v1/object/public/product-images/metals/copper-rod-dark.jpg","https://jfgsigpadpewfktsohmc.supabase.co/storage/v1/object/public/product-images/metals/copper-spirals.jpg"]'::jsonb)
 on conflict (id) do nothing;
 
 -- ── 2. Metals enquiries (business-format, GSTIN-verified leads) ─────────────

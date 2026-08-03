@@ -6,7 +6,12 @@ import { getEditorialPicks } from "@/lib/blog";
 import Link from "next/link";
 import { fetchReviews } from "@/lib/reviews";
 import { fetchPriceHistory } from "@/lib/competitor-history";
+import { fetchFullPriceHistory } from "@/lib/metals-history";
+import { isMetalCategory, lotKg } from "@/lib/metals";
+import { gstRateFor } from "@/lib/pricing";
 import CompetitorPriceChart from "@/components/storefront/CompetitorPriceChart";
+import MetalsRateChart from "@/components/metals/MetalsRateChart";
+import MetalsMarketCharts from "@/components/metals/MetalsMarketCharts";
 import ElumeFlagship from "@/components/storefront/ElumeFlagship";
 import { productDescription } from "@/lib/seo-description";
 import { getAllPosts, CATEGORY_TO_CATALOGUE } from "@/lib/blog";
@@ -67,10 +72,14 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   if (!product) notFound();
 
   // Family = parent + all variations, whichever member this page is.
-  const [siblings, reviews, priceHistory] = await Promise.all([
+  const isMetal = isMetalCategory(product.cat);
+  const [siblings, reviews, priceHistory, fullHistory] = await Promise.all([
     fetchFamily(product),
     fetchReviews(product.id),
-    fetchPriceHistory(product.id, product.price),
+    isMetal ? Promise.resolve([]) : fetchPriceHistory(product.id, product.price),
+    // Metals get the full capture-level series: the rate moves 2-3x a day by
+    // design, so the 24h chart needs every point, and 5Y needs the whole run.
+    isMetal ? fetchFullPriceHistory(product.id, product.price) : Promise.resolve([]),
   ]);
   const guide = getAllPosts().find((post) => CATEGORY_TO_CATALOGUE[post.category] === product.cat) ?? null;
 
@@ -124,9 +133,20 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           <ElumeFlagship p={product} />
         </div>
       )}
-      <div data-pdp-sec="price-history" style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px" }}>
-        <CompetitorPriceChart series={priceHistory} mrp={product.market} />
-      </div>
+      {isMetal ? (
+        <div data-pdp-sec="price-history" style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px", display: "flex", flexDirection: "column", gap: 18 }}>
+          <MetalsRateChart
+            points={fullHistory}
+            gstRate={gstRateFor(product.cat, product.gstRate)}
+            kgPerUnit={lotKg(product.attrs)}
+          />
+          <MetalsMarketCharts />
+        </div>
+      ) : (
+        <div data-pdp-sec="price-history" style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px" }}>
+          <CompetitorPriceChart series={priceHistory} mrp={product.market} />
+        </div>
+      )}
       <div style={{ height: 18 }} />
       <ProductDeepDive p={product} siblings={siblings} post={guide} />
       <div style={{ height: 18 }} />

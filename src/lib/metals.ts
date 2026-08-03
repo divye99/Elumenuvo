@@ -38,6 +38,23 @@ export const METALS_TAXONOMY: MetalEntry[] = [
  *  bulk copper buyers may prefer to talk before ordering). */
 export const ENQUIRY_METALS = METALS_TAXONOMY.map((m) => m.name);
 
+/** Menu/tile icons, in the same emoji style as CAT_ICONS. */
+export const METAL_ICONS: Record<string, string> = {
+  Copper: "🟠",
+  Aluminium: "⚪",
+  Zinc: "🔩",
+  Lead: "🔗",
+  Nickel: "🪙",
+  "MS/TMT Steel": "🏗️",
+  "Stainless Steel": "✨",
+};
+
+/** Where a metal's menu entry leads: copper has live commerce (the Metals
+ *  hub), everything else goes straight to a pre-selected enquiry form. */
+export function metalHref(m: MetalEntry): string {
+  return m.live ? "/metals" : `/metals/enquiry?metal=${encodeURIComponent(m.name)}`;
+}
+
 /** Kg per selling unit: rods carry attrs.Lot ('3 MT' → 3000 kg); everything
  *  else (Super D) sells per kg. */
 export function lotKg(attrs?: Record<string, string> | null): number {

@@ -53,6 +53,7 @@ export const CATEGORY_INTENT: Record<string, string> = {
   bulb: "Lighting", bulbs: "Lighting", led: "Lighting", downlight: "Lighting",
   downlighter: "Lighting", batten: "Lighting", lamp: "Lighting",
   pump: "Pumps", pumps: "Pumps",
+  copper: "Copper", ccr: "Copper", // Metals family (src/lib/metals.ts)
 };
 
 /** Does token t match a whole word (singular/plural tolerant)? */

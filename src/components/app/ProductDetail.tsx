@@ -4,6 +4,7 @@ import ImageSlot from "@/components/ImageSlot";
 import { GROTESK, MONO } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import { tileFor, type Product } from "@/lib/data";
+import { isMetalCategory, lotKg } from "@/lib/metals";
 import ProductGallery from "@/components/storefront/ProductGallery";
 import {
   wholesalePrice,
@@ -137,6 +138,13 @@ export default function ProductDetail({
               <span style={{ fontSize: 14, color: "#8A93A6", marginBottom: 6 }}>/{p.unit}</span>
               <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.3px", color: "#4E5BDC", background: "#EEF0FD", padding: "4px 9px", borderRadius: 7, marginBottom: 7 }}>+ {Math.round(gb.rate * 100)}% GST</span>
             </div>
+            {/* Metals: the trade quotes in ₹/kg - surface the per-kg rate under
+                the lot price so buyers can compare against the market instantly. */}
+            {isMetalCategory(p.cat) && lotKg(p.attrs) > 1 && (
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#137a4b", background: "#E6F5EE", border: "1px solid #DCEDE3", borderRadius: 9, padding: "7px 11px", margin: "0 0 10px", width: "fit-content" }}>
+                ≈ ₹{(gb.base / lotKg(p.attrs)).toLocaleString("en-IN", { maximumFractionDigits: 2 })}/kg ex-GST · {p.attrs?.Lot} lot = {lotKg(p.attrs).toLocaleString("en-IN")} kg
+              </div>
+            )}
             {/* Inclusive total + MRP reference (all figures ex-GST for a like-for-like %) */}
             <div style={{ fontSize: 13, color: "#56627A", marginBottom: showGst ? 8 : 14 }}>
               <b style={{ color: "#19202E" }}>{fmt(gb.incl)}</b> incl. GST

@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { MENU_CATS, HOME_BRANDS } from "@/lib/data";
+import { METALS_TAXONOMY, METAL_ICONS, metalHref } from "@/lib/metals";
 import { slugify } from "@/lib/slug";
 
 /**
@@ -28,7 +29,7 @@ export default function CatalogueMegaMenu() {
 
       {open && (
         <div
-          style={{ position: "absolute", top: "calc(100% + 14px)", left: "50%", transform: "translateX(-58%)", zIndex: 70, width: 640, background: "#fff", border: "1px solid #E0E4ED", borderRadius: 16, boxShadow: "0 24px 60px rgba(20,24,45,.16)", padding: "20px 22px", display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr", gap: 22 }}
+          style={{ position: "absolute", top: "calc(100% + 14px)", left: "50%", transform: "translateX(-58%)", zIndex: 70, width: 810, background: "#fff", border: "1px solid #E0E4ED", borderRadius: 16, boxShadow: "0 24px 60px rgba(20,24,45,.16)", padding: "20px 22px", display: "grid", gridTemplateColumns: "1.2fr 1.05fr 1fr 1fr", gap: 22 }}
           onMouseEnter={enter}
           onMouseLeave={leave}
         >
@@ -45,6 +46,22 @@ export default function CatalogueMegaMenu() {
                 <span style={{ width: 18, textAlign: "center" }}>{icon}</span> {c}
               </Link>
             ))}
+          </div>
+
+          <div>
+            <div style={head}>Metals</div>
+            {METALS_TAXONOMY.map((m) => (
+              <Link key={m.name} href={metalHref(m)} style={item} onClick={() => setOpen(false)}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#F5F6F9")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+              >
+                <span style={{ width: 18, textAlign: "center" }}>{METAL_ICONS[m.name] ?? "▫️"}</span> {m.name}
+                {m.live && <span style={{ fontSize: 9, fontWeight: 800, color: "#fff", background: "#E0612A", borderRadius: 5, padding: "1px 5px", textTransform: "uppercase", letterSpacing: "0.3px" }}>Buy</span>}
+              </Link>
+            ))}
+            <Link href="/metals" onClick={() => setOpen(false)} style={{ display: "block", marginTop: 10, fontSize: 12, fontWeight: 700, color: "#4E5BDC", padding: "0 8px" }}>
+              Daily copper rates →
+            </Link>
           </div>
 
           <div>

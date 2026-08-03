@@ -25,6 +25,7 @@ export const runtime = "nodejs";
 function revalidateMetals(ids: string[]) {
   revalidatePath("/admin/metals");
   revalidatePath("/catalogue");
+  revalidatePath("/metals"); // the hub shows live ₹/kg cards
   for (const id of new Set(ids)) revalidatePath(`/catalogue/${id}`);
 }
 
