@@ -18,11 +18,12 @@ type Row = Record<string, any>;
 
 async function load() {
   const db = adminClient();
-  if (!db) return { credit: [], sellers: [], requests: [], business: [] };
-  const [w, p, b] = await Promise.all([
+  if (!db) return { credit: [], sellers: [], requests: [], business: [], survey: [] };
+  const [w, p, b, ts] = await Promise.all([
     db.from("waitlist").select("*").order("created_at", { ascending: false }).limit(500),
     db.from("partner_leads").select("*").order("created_at", { ascending: false }).limit(500),
     db.from("profiles").select("*").eq("account_type", "business").order("updated_at", { ascending: false }).limit(500),
+    db.from("trade_survey").select("*").order("created_at", { ascending: false }).limit(500).then((r) => r, () => ({ data: [] })),
   ]);
   const leads = (p.data ?? []) as Row[];
   return {
@@ -30,6 +31,7 @@ async function load() {
     sellers: leads.filter((l) => l.kind === "seller"),
     requests: leads.filter((l) => l.kind !== "seller"),
     business: (b.data ?? []) as Row[],
+    survey: ((ts as { data?: Row[] | null }).data ?? []) as Row[],
   };
 }
 
@@ -44,6 +46,7 @@ export default async function AdminLeads({ searchParams }: { searchParams: Promi
     ["business", "Business accounts", data.business.length],
     ["sellers", "Sell on Elume", data.sellers.length],
     ["requests", "Product requests", data.requests.length],
+    ["survey", "Trade survey", data.survey.length],
   ];
 
   const rows: Row[] = (data as any)[tab] ?? [];
