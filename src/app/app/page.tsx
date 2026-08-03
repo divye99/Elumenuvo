@@ -25,6 +25,10 @@ export default async function Page() {
           org: profile.company ?? undefined,
           accountType: profile.account_type,
           gstin: profile.gstin ?? undefined,
+          // Collected at onboarding and at checkout; account settings has to
+          // show them back, or the customer cannot tell what we hold on them.
+          phone: profile.phone ?? undefined,
+          businessType: profile.business_type ?? undefined,
         }}
       />
     </Suspense>

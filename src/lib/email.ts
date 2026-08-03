@@ -324,6 +324,34 @@ export async function sendTradeSurveyAlert(s: {
   return send(BCC_SELF, `📋 Trade survey · ${s.company}`, html);
 }
 
+/** Nudge a business that has been buying as a guest (they gave a GSTIN at
+ *  checkout but never opened an account) to switch to a business account.
+ *  The pitch is what they gain, not what we gain. */
+export async function sendBusinessAccountNudge(to: {
+  email: string; name?: string | null; gstin: string; orders: number;
+}): Promise<EmailResult> {
+  const signupUrl = withUtm(`${SITE}/signin?mode=signup&email=${encodeURIComponent(to.email)}`, "business-nudge");
+  const html = shell(
+    "Your GST details, filled in for you next time",
+    `<p style="font-size:14px;color:#56627A;margin:0 0 10px">Hi ${escapeHtml(to.name || "there")}, thanks for buying from Elume.</p>
+     <p style="font-size:13.5px;color:#56627A;margin:0 0 12px">
+       You have been entering GSTIN <b style="font-family:monospace">${escapeHtml(to.gstin)}</b> by hand at checkout${to.orders > 1 ? ` across ${to.orders} orders` : ""}.
+       A free business account puts it on every invoice automatically, so you never type it again.
+     </p>
+     <div style="background:#F7F8FB;border:1px solid #E8EBF1;border-radius:12px;padding:14px 18px;margin:0 0 16px">
+       <p style="font-size:13px;color:#19202E;font-weight:700;margin:0 0 8px">What changes</p>
+       <p style="font-size:13px;color:#56627A;margin:0 0 6px">· GST invoice with your GSTIN on every order, automatically</p>
+       <p style="font-size:13px;color:#56627A;margin:0 0 6px">· Saved sites and addresses, so repeat deliveries take three clicks</p>
+       <p style="font-size:13px;color:#56627A;margin:0 0 6px">· Every past and future order in one place, with live tracking</p>
+       <p style="font-size:13px;color:#56627A;margin:0">· Wholesale pricing applies automatically at 15+ units</p>
+     </div>
+     <p style="font-size:13px;color:#56627A;margin:0 0 4px">It takes about a minute, and your existing orders attach to it automatically:</p>
+     ${btn(signupUrl, "Open my business account →")}
+     <p style="font-size:12px;color:#8A93A6;margin:16px 0 0">Happy as you are? Nothing changes, and you can keep checking out as a guest.</p>`
+  );
+  return send(to.email, "Stop typing your GSTIN at checkout", html, { bcc: BCC_SELF });
+}
+
 /** Item refunded (product unavailable, nothing comparable) + a 10% code. */
 export async function sendRefundVoucherEmail(
   order: OrderLike,

@@ -5,8 +5,9 @@
  * shoppers keep a cart across visits. Separate from the workspace (AppShell)
  * cart, which is the signed-in B2B PO flow.
  */
-import { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { baseExGst, unitPriceFor } from "@/lib/pricing";
+import { mergeCart, pushCart } from "@/lib/cart-sync";
 
 export type CartItem = {
   id: string;
@@ -31,20 +32,75 @@ type Ctx = {
   setQty: (id: string, qty: number) => void;
   remove: (id: string) => void;
   clear: () => void;
+  /** False until the stored cart has been read. Screens must not announce an
+   *  empty cart before this is true, or checkout flashes "Your cart is empty"
+   *  at someone who is mid-purchase. */
+  ready: boolean;
 };
 
 const CartCtx = createContext<Ctx | null>(null);
 const KEY = "elume.cart";
 
+/**
+ * Is there a Supabase session cookie in this browser?
+ *
+ * StoreChrome deliberately never reads the session (that would make all 3,400
+ * catalogue URLs dynamic), so the provider cannot be told server-side whether
+ * anyone is signed in. Without this check every anonymous page view would pay
+ * for a server round-trip that can only ever answer "you are a guest".
+ * A false positive costs one wasted call; a false negative just leaves the
+ * cart local, which is exactly the old behaviour.
+ */
+function hasAuthCookie(): boolean {
+  try {
+    return document.cookie.split(";").some((c) => {
+      const n = c.trim().split("=")[0];
+      return n.startsWith("sb-") && n.includes("auth-token");
+    });
+  } catch {
+    return false;
+  }
+}
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [ready, setReady] = useState(false);
+
+  // Loaded from localStorage first (instant), then reconciled against the
+  // account's cart. `synced` gates the push effect so the merge result is not
+  // immediately pushed back as if it were a local edit.
+  const synced = useRef(false);
 
   useEffect(() => {
+    let local: CartItem[] = [];
     try {
       const raw = localStorage.getItem(KEY);
-      if (raw) setItems(JSON.parse(raw));
+      if (raw) local = JSON.parse(raw);
     } catch { /* ignore */ }
+    if (local.length) setItems(local);
+
+    // Reconcile with the account cart (migration 0087). Guests skip the call
+    // entirely; for them the local cart is already the whole story.
+    (async () => {
+      try {
+        if (!hasAuthCookie()) return;
+        const res = await mergeCart(local as never);
+        if (res.ok) {
+          const merged = res.items as unknown as CartItem[];
+          setItems(merged);
+          try { localStorage.setItem(KEY, JSON.stringify(merged)); } catch { /* ignore */ }
+        }
+      } catch { /* stay local-only */ }
+      finally { synced.current = true; setReady(true); }
+    })();
   }, []);
+
+  // Mirror every later change to the account. Guests no-op server-side.
+  useEffect(() => {
+    if (!synced.current || !hasAuthCookie()) return;
+    const t = setTimeout(() => { void pushCart(items as never); }, 600);
+    return () => clearTimeout(t);
+  }, [items]);
 
   const persist = useCallback((next: CartItem[]) => {
     setItems(next);
@@ -86,9 +142,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       total,
       baseTotal,
       gstTotal: total - baseTotal,
-      add, setQty, remove, clear,
+      add, setQty, remove, clear, ready,
     };
-  }, [items, add, setQty, remove, clear]);
+  }, [items, add, setQty, remove, clear, ready]);
 
   return <CartCtx.Provider value={value}>{children}</CartCtx.Provider>;
 }

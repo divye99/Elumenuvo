@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { adminClient } from "@/lib/supabase/admin";
+import { getSavedAddresses, type SavedAddress } from "@/lib/addresses";
 
 /** Live data for the buyer workspace (/app): the signed-in user's REAL
  *  projects and order-derived KPIs. Replaces the demo content for real
@@ -38,6 +39,9 @@ export type LiveOrder = {
 export type LiveWorkspace = {
   projects: LiveProject[];
   orders: LiveOrder[];
+  /** Delivery/billing addresses banked from this account's checkouts, shown
+   *  in Account → Personal details so they can be reviewed and removed. */
+  addresses: SavedAddress[];
   stats: {
     committed: number;        // sum of paid orders (this account's email/user)
     openCount: number;        // paid but not yet delivered
@@ -133,6 +137,7 @@ export async function getLiveWorkspace(userId: string, email: string | null): Pr
   return {
     projects,
     orders,
+    addresses: email ? await getSavedAddresses(email) : [],
     stats: {
       committed: orders.reduce((s, o) => s + o.total, 0),
       openCount: open.length,

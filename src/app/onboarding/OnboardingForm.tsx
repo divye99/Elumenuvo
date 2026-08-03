@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { Mark, Wordmark } from "@/components/Brand";
 import { saveProfile, type ProfileState } from "@/lib/profile-actions";
+import { readCheckoutDraft } from "@/lib/checkout-draft";
 
 export const BUSINESS_TYPES = [
   "Contractor",
@@ -15,13 +16,36 @@ export const BUSINESS_TYPES = [
   "Other",
 ];
 
-export default function OnboardingForm({ defaultName }: { defaultName: string }) {
+export default function OnboardingForm({
+  defaultName, defaultPhone = "", defaultGstin = "",
+}: { defaultName: string; defaultPhone?: string; defaultGstin?: string }) {
   const [state, action, pending] = useActionState<ProfileState, FormData>(saveProfile, null);
   const [type, setType] = useState<"business" | "individual" | null>(null);
   // Split any name captured at sign-up into first / last for the two fields.
   const parts = (defaultName ?? "").trim().split(/\s+/).filter(Boolean);
   const defaultFirst = parts[0] ?? "";
   const defaultLast = parts.slice(1).join(" ");
+
+  /* ── Never ask twice ──
+     Someone who filled checkout as a guest and then created an account has
+     already given us their phone and GSTIN; asking again produced three
+     different phone numbers in one session. The server passes anything on a
+     past order; the checkout draft covers the commoner case where the account
+     is created BEFORE the order row exists. ── */
+  const [phone, setPhone] = useState(defaultPhone);
+  const [gstin, setGstin] = useState(defaultGstin);
+  const [reused, setReused] = useState(false);
+  useEffect(() => {
+    const d = readCheckoutDraft();
+    if (!d) return;
+    let used = false;
+    if (!defaultPhone && d.phone?.trim()) { setPhone(d.phone.trim()); used = true; }
+    if (!defaultGstin && d.gstin?.trim()) { setGstin(d.gstin.trim()); used = true; }
+    // A GSTIN in hand means they are buying as a business; preselect it rather
+    // than making them assert it again.
+    if ((defaultGstin || d.gstin?.trim()) && !type) setType("business");
+    if (used) setReused(true);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#F7F8FB", fontFamily: "var(--hanken)", padding: 20 }}>
@@ -58,7 +82,7 @@ export default function OnboardingForm({ defaultName }: { defaultName: string })
             <>
               <Field label="Company name"><input name="company" required style={inp} placeholder="Acme Electricals Pvt Ltd" /></Field>
               <Field label="GSTIN">
-                <input name="gstin" required style={{ ...inp, textTransform: "uppercase", fontFamily: "var(--space-mono)" }} placeholder="27AAACE1234F1Z5" maxLength={15} />
+                <input name="gstin" required value={gstin} onChange={(e) => setGstin(e.target.value)} style={{ ...inp, textTransform: "uppercase", fontFamily: "var(--space-mono)" }} placeholder="27AAACE1234F1Z5" maxLength={15} />
                 <span style={{ fontSize: 11, color: "#8A93A6", display: "block", marginTop: 4 }}>
                   We&apos;ll put this on every invoice automatically, so you&apos;ll never be asked for it at checkout.
                 </span>
@@ -71,7 +95,15 @@ export default function OnboardingForm({ defaultName }: { defaultName: string })
               </Field>
             </>
           )}
-          <Field label="Phone (optional)"><input name="phone" style={inp} placeholder="+91 98765 43210" /></Field>
+          <Field label="Phone (optional)">
+            <input name="phone" value={phone} onChange={(e) => setPhone(e.target.value)} style={inp} placeholder="+91 98765 43210" />
+          </Field>
+
+          {reused && (
+            <p style={{ fontSize: 11.5, color: "#137a4b", background: "#F2FBF6", border: "1px solid #DCEDE3", borderRadius: 8, padding: "7px 10px", margin: "0 0 12px" }}>
+              We&apos;ve carried over what you entered at checkout. Edit anything that looks wrong.
+            </p>
+          )}
 
           {state && !state.ok && <p style={{ fontSize: 12.5, color: "#E0612A", margin: "2px 0 10px" }}>{state.message}</p>}
 

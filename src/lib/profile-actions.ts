@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { inspectGstin } from "@/lib/gstin";
 
 export type ProfileState = { ok: boolean; message: string } | null;
 
@@ -119,7 +120,7 @@ export async function updatePersonalDetails(fullName: string, phone: string): Pr
 }
 
 /** Switch an individual account to business (or edit business fields). */
-export async function upgradeToBusiness(company: string, gstin: string): Promise<WsProfileResult> {
+export async function upgradeToBusiness(company: string, gstin: string, businessType?: string): Promise<WsProfileResult> {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -128,10 +129,15 @@ export async function upgradeToBusiness(company: string, gstin: string): Promise
     if (!co) return { ok: false, error: "Please enter your company name." };
     const gst = gstin.trim().toUpperCase();
     if (!GSTIN_RE.test(gst)) return { ok: false, error: "Enter a valid 15-character GSTIN (e.g. 07AABCU9603R1ZM)." };
+    // Beyond the shape: a GSTIN carries a check digit, so a transposed pair of
+    // characters is caught here rather than surfacing on an invoice later.
+    const check = inspectGstin(gst);
+    if (!check.valid) return { ok: false, error: check.error ?? "That GSTIN does not look right." };
     const { error } = await supabase.from("profiles").update({
       account_type: "business",
       company: co,
       gstin: gst,
+      ...(businessType?.trim() ? { business_type: businessType.trim().slice(0, 60) } : {}),
       updated_at: new Date().toISOString(),
     }).eq("id", user.id);
     if (error) return { ok: false, error: error.message };

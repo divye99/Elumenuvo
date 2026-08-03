@@ -182,6 +182,22 @@ async function insertPendingOrder(
     ({ error } = await db.from("orders").insert(row));
   }
   if (error) return { ok: false, error: error.message };
+
+  // Bank the address NOW, not at payment. Someone who types a full delivery
+  // address and then abandons at the payment window should never have to type
+  // it again - that retyping was the single biggest friction in the checkout
+  // sessions we traced. markOrderPaid calls this again on success, which is
+  // harmless: the write is fingerprint-deduped and only bumps last_used_at.
+  await saveAddressFromOrder(db, {
+    email: row.email as string,
+    name: row.name as string,
+    phone: row.phone as string,
+    user_id: userId,
+    // From the input, not the row: if the orders table predates the
+    // address_details column the row was stripped, but saved_addresses is a
+    // different table and can still take it.
+    address_details: input.address_details ?? null,
+  });
   return { ok: true };
 }
 

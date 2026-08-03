@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mark, Wordmark } from "@/components/Brand";
 import { GROTESK, MONO } from "@/lib/fonts";
@@ -11,6 +11,10 @@ import { type LiveProject } from "@/lib/workspace";
 import { INDIA_STATES } from "@/lib/india";
 import { DEFAULT_COUNTRY, maxDigits, nationalDigits } from "@/lib/phone";
 import { updatePersonalDetails, upgradeToBusiness } from "@/lib/profile-actions";
+import { deleteSavedAddress } from "@/lib/address-actions";
+import { type SavedAddress } from "@/lib/addresses";
+import { inspectGstin } from "@/lib/gstin";
+import { BUSINESS_TYPES } from "@/app/onboarding/OnboardingForm";
 import { WHOLESALE_MIN_QTY } from "@/lib/pricing";
 
 /**
@@ -39,7 +43,7 @@ const STAGE_COLORS: Record<string, [string, string]> = {
   Finishing: ["#E6F5EE", "#1F9D63"],
 };
 
-export default function AppShell({ user, live }: { user?: { email: string; name?: string; org?: string; accountType?: "business" | "individual"; gstin?: string }; live: LiveWorkspace }) {
+export default function AppShell({ user, live }: { user?: { email: string; name?: string; org?: string; accountType?: "business" | "individual"; gstin?: string; phone?: string; businessType?: string }; live: LiveWorkspace }) {
   const userEmail = user?.email ?? "";
   const isBusiness = user?.accountType === "business";
   const userInitials = (user?.name || userEmail || "U").slice(0, 2).toUpperCase();
@@ -194,7 +198,7 @@ export default function AppShell({ user, live }: { user?: { email: string; name?
           {screen === "portfolio" && <LivePortfolio live={live} onCatalogue={() => nav("catalogue")} />}
           {screen === "projects" && <ProjectsScreen live={live} />}
           {screen === "confirm" && <LiveOrders live={live} onCatalogue={() => nav("catalogue")} />}
-          {screen === "account" && user && <AccountScreen user={user} section={acctSection} />}
+          {screen === "account" && user && <AccountScreen user={user} section={acctSection} addresses={live.addresses ?? []} />}
         </div>
 
         {/* ═══ MOBILE TAB BAR (phones only; the sidebar hides) ═══ */}
@@ -430,13 +434,17 @@ function LiveOrders({ live, onCatalogue }: { live: LiveWorkspace; onCatalogue: (
 
 /* ============================ ACCOUNT ============================ */
 
-function AccountScreen({ user, section }: { user: { email: string; name?: string; org?: string; accountType?: "business" | "individual"; gstin?: string }; section: "personal" | "business" }) {
+function AccountScreen({ user, section, addresses = [] }: { user: { email: string; name?: string; org?: string; accountType?: "business" | "individual"; gstin?: string; phone?: string; businessType?: string }; section: "personal" | "business"; addresses?: SavedAddress[] }) {
   const router = useRouter();
   const isBiz = user.accountType === "business";
   const [name, setName] = useState(user.name ?? "");
-  const [phone, setPhone] = useState("");
+  // Prefilled from the profile: this field used to start blank even when a
+  // phone was on record, so the account looked like it held nothing.
+  const [phone, setPhone] = useState(user.phone ?? "");
   const [company, setCompany] = useState(user.org && user.org !== "Business account" && user.org !== "Individual account" ? user.org : "");
   const [gstin, setGstin] = useState(user.gstin ?? "");
+  const [bizType, setBizType] = useState(user.businessType ?? "");
+  const gstCheck = useMemo(() => inspectGstin(gstin), [gstin]);
   const [busy, setBusy] = useState<"personal" | "business" | null>(null);
   const [note, setNote] = useState<{ where: "personal" | "business"; ok: boolean; text: string } | null>(null);
   const bizRef = useRef<HTMLDivElement>(null);
@@ -458,7 +466,7 @@ function AccountScreen({ user, section }: { user: { email: string; name?: string
   const saveBusiness = async () => {
     setBusy("business"); setNote(null);
     try {
-      const res = await upgradeToBusiness(company, gstin);
+      const res = await upgradeToBusiness(company, gstin, bizType);
       setNote({ where: "business", ok: res.ok, text: res.ok ? (isBiz ? "Saved." : "You're on a business account now. GST details will appear on your invoices.") : res.error });
       if (res.ok) router.refresh();
     } catch { setNote({ where: "business", ok: false, text: "The site was updated while this page was open. Reload and try again." }); }
@@ -491,7 +499,22 @@ function AccountScreen({ user, section }: { user: { email: string; name?: string
           <span style={label}>Company name</span>
           <input style={input} value={company} onChange={(e) => setCompany(e.target.value)} placeholder="e.g. Sharma Electricals" />
           <span style={label}>GSTIN</span>
-          <input style={input} value={gstin} onChange={(e) => setGstin(e.target.value.toUpperCase())} placeholder="15-character GSTIN" maxLength={15} />
+          <input
+            style={{ ...input, fontFamily: MONO, borderColor: gstCheck.empty ? "#E0E4ED" : gstCheck.valid ? "#8FD3B0" : "#F0BBA8" }}
+            value={gstin} onChange={(e) => setGstin(e.target.value.toUpperCase())} placeholder="15-character GSTIN" maxLength={15}
+          />
+          {/* The GSTIN carries its own check digit and state code, so a typo is
+              caught here and now, without any lookup. */}
+          {!gstCheck.empty && (
+            <div style={{ fontSize: 12, marginTop: 5, color: gstCheck.valid ? "#1F9D63" : "#C2410C", fontWeight: 600 }}>
+              {gstCheck.valid ? `✓ Valid · registered in ${gstCheck.state} · PAN ${gstCheck.pan}` : gstCheck.error}
+            </div>
+          )}
+          <span style={label}>Type of business</span>
+          <select style={input} value={bizType} onChange={(e) => setBizType(e.target.value)}>
+            <option value="">Not set</option>
+            {BUSINESS_TYPES.map((b) => <option key={b} value={b}>{b}</option>)}
+          </select>
           <div>
             <button onClick={saveBusiness} disabled={busy === "business"} style={saveBtn(busy === "business")}>
               {busy === "business" ? "Saving…" : isBiz ? "Save business details" : "Switch to Business"}
@@ -516,8 +539,78 @@ function AccountScreen({ user, section }: { user: { email: string; name?: string
         </div>
         {note?.where === "personal" && <div style={{ marginTop: 10, fontSize: 12.5, fontWeight: 600, color: note.ok ? "#1F9D63" : "#D14343" }}>{note.text}</div>}
       </div>
+
+      {/* ── Saved addresses ── */}
+      <SavedAddressBook initial={addresses} />
     </div>
   );
+}
+
+/** The account's address book. Addresses bank themselves from checkout, so
+ *  this is a review-and-remove list rather than a form: adding one by hand
+ *  here would only duplicate what the next order captures anyway. */
+function SavedAddressBook({ initial }: { initial: SavedAddress[] }) {
+  const [rows, setRows] = useState(initial);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  const remove = async (id: string) => {
+    setBusyId(id); setErr(null);
+    const res = await deleteSavedAddress(id);
+    setBusyId(null);
+    if (res.ok) setRows((p) => p.filter((r) => r.id !== id));
+    else setErr(res.error ?? "Could not remove that address.");
+  };
+
+  const line = (a: SavedAddress) =>
+    [a.line1, a.line2, a.line3, a.city, a.district, a.state, a.pin].filter(Boolean).join(", ");
+
+  const card: React.CSSProperties = { background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "18px 20px", marginTop: 16 };
+
+  return (
+    <div style={card}>
+      <div style={{ fontFamily: GROTESK, fontWeight: 600, fontSize: 15.5, marginBottom: 4 }}>Saved addresses</div>
+      <div style={{ fontSize: 12.5, color: "#8A93A6" }}>
+        Saved automatically from your checkouts, so you never retype a site address. Pick one at checkout instead of typing.
+      </div>
+
+      {rows.length === 0 ? (
+        <div style={{ marginTop: 14, fontSize: 13, color: "#8A93A6", background: "#F8F9FC", border: "1px solid #EEF0F4", borderRadius: 10, padding: "14px 16px" }}>
+          No saved addresses yet. The delivery and billing addresses from your next checkout will appear here.
+        </div>
+      ) : (
+        <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 10 }}>
+          {rows.map((a) => (
+            <div key={a.id} style={{ border: "1px solid #EEF0F4", borderRadius: 10, padding: "12px 14px", display: "flex", gap: 12, alignItems: "flex-start", flexWrap: "wrap" }}>
+              <div style={{ flex: "1 1 320px", minWidth: 0 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 700, color: "#19202E" }}>
+                  {a.contact_name || "Delivery address"}
+                  {a.phone && <span style={{ fontWeight: 500, color: "#56627A" }}> · {a.phone}</span>}
+                </div>
+                <div style={{ fontSize: 12.5, color: "#56627A", marginTop: 3, lineHeight: 1.45 }}>{line(a)}</div>
+                <div style={{ display: "flex", gap: 6, marginTop: 7, flexWrap: "wrap" }}>
+                  {a.usedShipping && <Tag text="Delivery" bg="#E7F3EC" fg="#1F8F5B" />}
+                  {a.usedBilling && <Tag text="Billing" bg="#EEF0FD" fg="#4E5BDC" />}
+                </div>
+              </div>
+              <button
+                onClick={() => remove(a.id)}
+                disabled={busyId === a.id}
+                style={{ border: "1px solid #E8EBF1", background: "#fff", color: "#D14343", fontSize: 12.5, fontWeight: 700, borderRadius: 9, padding: "7px 13px", cursor: busyId === a.id ? "default" : "pointer", opacity: busyId === a.id ? 0.6 : 1 }}
+              >
+                {busyId === a.id ? "Removing…" : "Remove"}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      {err && <div style={{ marginTop: 10, fontSize: 12.5, fontWeight: 600, color: "#D14343" }}>{err}</div>}
+    </div>
+  );
+}
+
+function Tag({ text, bg, fg }: { text: string; bg: string; fg: string }) {
+  return <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.3px", textTransform: "uppercase", background: bg, color: fg, borderRadius: 5, padding: "2px 7px" }}>{text}</span>;
 }
 
 /** Thin line icons for the mobile tab bar (currentColor, 22px). */

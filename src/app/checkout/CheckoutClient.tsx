@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { readCheckoutDraft, saveCheckoutDraft, clearCheckoutDraft, hasAddress } from "@/lib/checkout-draft";
+import { inspectGstin } from "@/lib/gstin";
 import Link from "next/link";
 import { GROTESK } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
@@ -64,7 +66,7 @@ function addressError(a: Address, label: string): string | null {
 }
 
 export default function CheckoutClient({ prefill, onlineEnabled, saved = [] }: { prefill: Prefill; onlineEnabled: boolean; saved?: SavedEntry[] }) {
-  const { items, total, baseTotal, gstTotal, clear } = useCart();
+  const { items, total, baseTotal, gstTotal, clear, ready } = useCart();
   const router = useRouter();
   const [pending, start] = useTransition();
   const [code, setCode] = useState("");
@@ -81,6 +83,8 @@ export default function CheckoutClient({ prefill, onlineEnabled, saved = [] }: {
   // Country is chosen explicitly rather than parsed out of free text: it is
   // what decides how many digits are valid, and India is the only place we
   // deliver to, so it leads.
+  // A draft of whatever was typed last time this form was open. Restored below
+  // once, on mount: reading localStorage during render would break hydration.
   const [iso, setIso] = useState(DEFAULT_COUNTRY.iso);
   const country = countryByIso(iso);
 
@@ -89,6 +93,41 @@ export default function CheckoutClient({ prefill, onlineEnabled, saved = [] }: {
     billing: emptyAddress(), shipping: emptyAddress(), sameAsBilling: true,
     gstin: prefill.gstin, wantGst: prefill.isBusiness || !!prefill.gstin,
   });
+
+  /* ── Resume an interrupted checkout ──
+     Signing in mid-checkout used to wipe the form. The address blocks always
+     come back; identity fields only fill the gaps the prefill left, so a
+     freshly created account never gets overwritten by the guest values that
+     were typed before it existed. ── */
+  const [resumed, setResumed] = useState(false);
+  useEffect(() => {
+    const d = readCheckoutDraft();
+    if (!d) return;
+    if (d.iso) setIso(d.iso);
+    setF((p) => ({
+      ...p,
+      name: p.name || d.name || "",
+      email: p.email || d.email || "",
+      phone: p.phone || d.phone || "",
+      gstin: p.gstin || d.gstin || "",
+      wantGst: p.wantGst || !!d.wantGst,
+      sameAsBilling: d.sameAsBilling ?? p.sameAsBilling,
+      billing: hasAddress(d.billing) ? (d.billing as unknown as Address) : p.billing,
+      shipping: hasAddress(d.shipping) ? (d.shipping as unknown as Address) : p.shipping,
+    }));
+    if (hasAddress(d.billing) || hasAddress(d.shipping)) setResumed(true);
+  }, []);
+
+  // Keep the draft current. Cheap enough to write on every keystroke, and it
+  // has to survive a navigation that can happen at any moment.
+  useEffect(() => {
+    saveCheckoutDraft({
+      name: f.name, email: f.email, phone: f.phone, iso,
+      gstin: f.gstin, wantGst: f.wantGst, sameAsBilling: f.sameAsBilling,
+      billing: f.billing as unknown as Record<string, string>,
+      shipping: f.shipping as unknown as Record<string, string>,
+    });
+  }, [f, iso]);
   const set = (k: keyof typeof f, v: string | boolean) => setF((p) => ({ ...p, [k]: v }));
   const setAddr = (which: "billing" | "shipping", k: keyof Address, v: string) =>
     setF((p) => ({ ...p, [which]: { ...p[which], [k]: v } }));
@@ -136,6 +175,19 @@ export default function CheckoutClient({ prefill, onlineEnabled, saved = [] }: {
 
   const gst = useMemo(() => ({ base: baseTotal, tax: gstTotal }), [baseTotal, gstTotal]);
 
+  // A GSTIN names its own state of registration in its first two digits, so a
+  // valid one fills the billing state for free. Only fills a blank: a typed
+  // state is never overwritten.
+  const gstCheck = useMemo(() => inspectGstin(f.gstin), [f.gstin]);
+  useEffect(() => {
+    if (!gstCheck.valid || !gstCheck.state) return;
+    // Only fill a value the state <select> actually offers. Three GST codes
+    // have no counterpart in the list (the pre-merger "Daman and Diu", plus
+    // the 97/99 administrative codes), and setting one would blank the field.
+    if (!(INDIA_STATES as readonly string[]).includes(gstCheck.state)) return;
+    setF((p) => (p.billing.state ? p : { ...p, billing: { ...p.billing, state: gstCheck.state! } }));
+  }, [gstCheck.valid, gstCheck.state]);
+
   // Business account with a GSTIN already on file: invoice it automatically and
   // never ask again at checkout.
   const gstOnFile = prefill.isBusiness && !!prefill.gstin;
@@ -182,7 +234,10 @@ export default function CheckoutClient({ prefill, onlineEnabled, saved = [] }: {
         const shipErr = addressError(f.shipping, "shipping address");
         if (shipErr) { setErr(shipErr); return; }
       }
-      if (!gstOnFile && f.wantGst && !/^[0-9]{2}[A-Z0-9]{13}$/.test(f.gstin.trim())) { setErr("Please enter a valid 15-character GSTIN, or untick the GST invoice option."); return; }
+      if (!gstOnFile && f.wantGst) {
+        const g = inspectGstin(f.gstin);
+        if (!g.valid) { setErr(`${g.error ?? "Please enter a valid 15-character GSTIN"}, or untick the GST invoice option.`); return; }
+      }
       if (!onlineEnabled) { setErr("Online payment is being enabled - ordering opens as soon as Razorpay goes live."); return; }
 
       const input = orderInput();
@@ -221,11 +276,18 @@ export default function CheckoutClient({ prefill, onlineEnabled, saved = [] }: {
           items: items.map((i) => ({ id: i.id, name: i.name, qty: i.qty, price: i.price })),
         });
         clear();
+        clearCheckoutDraft(); // paid: the draft has served its purpose
         router.replace(`/order-confirmed?order=${encodeURIComponent(res.orderId)}`);
       }
       else setErr(res.error);
     });
 
+  // Only announce an empty cart once the stored cart has actually been read.
+  // Before that, `items` is [] purely because state starts empty, and telling
+  // someone mid-purchase that their cart is empty is alarming and wrong.
+  if (!ready) {
+    return <main style={{ maxWidth: 640, margin: "0 auto", padding: "48px 28px", textAlign: "center", color: "#8A93A6", fontSize: 14 }}>Loading your cart…</main>;
+  }
   if (items.length === 0) {
     return (
       <main style={{ maxWidth: 640, margin: "0 auto", padding: "48px 28px", textAlign: "center" }}>
@@ -240,7 +302,16 @@ export default function CheckoutClient({ prefill, onlineEnabled, saved = [] }: {
       <h1 style={{ fontFamily: GROTESK, fontSize: 28, fontWeight: 600, letterSpacing: "-0.6px", margin: "0 0 4px" }}>Checkout</h1>
       {!prefill.signedIn && (
         <p style={{ fontSize: 13, color: "#56627A", margin: "0 0 18px" }}>
-          Checking out as a guest. <Link href="/signin" style={{ color: "#4E5BDC", fontWeight: 600 }}>Sign in</Link> to save your details and track orders.
+          Checking out as a guest.{" "}
+          {/* ?next brings them straight back here, and the draft above means
+              the form is still filled when they arrive. */}
+          <Link href="/signin?next=/checkout" style={{ color: "#4E5BDC", fontWeight: 600 }}>Sign in</Link>{" "}
+          to save your details and track orders. Nothing you have typed will be lost.
+        </p>
+      )}
+      {resumed && (
+        <p style={{ fontSize: 13, color: "#137a4b", background: "#F2FBF6", border: "1px solid #DCEDE3", borderRadius: 9, padding: "9px 12px", margin: "0 0 16px" }}>
+          We kept the address you entered earlier. Check it over before paying.
         </p>
       )}
 
@@ -371,7 +442,22 @@ export default function CheckoutClient({ prefill, onlineEnabled, saved = [] }: {
           ) : (
             <Section title="GST invoice (optional)">
               <label style={ck}><input type="checkbox" checked={f.wantGst} onChange={(e) => set("wantGst", e.target.checked)} /> I want a GST invoice</label>
-              {f.wantGst && <Field label="GSTIN *"><input value={f.gstin} onChange={(e) => set("gstin", e.target.value.toUpperCase())} maxLength={15} placeholder="27AAACE1234F1Z5" style={{ ...inp, fontFamily: "var(--space-mono)" }} /></Field>}
+              {f.wantGst && (
+                <Field label="GSTIN *">
+                  <input
+                    value={f.gstin} onChange={(e) => set("gstin", e.target.value.toUpperCase())} maxLength={15}
+                    placeholder="27AAACE1234F1Z5"
+                    style={{ ...inp, fontFamily: "var(--space-mono)", borderColor: gstCheck.empty ? "#E0E4ED" : gstCheck.valid ? "#8FD3B0" : "#F0BBA8" }}
+                  />
+                  {/* Checked against the GSTIN's own check digit, so a typo is
+                      caught before payment rather than on the invoice. */}
+                  {!gstCheck.empty && (
+                    <span style={{ display: "block", fontSize: 11.5, marginTop: 5, fontWeight: 600, color: gstCheck.valid ? "#1F9D63" : "#C2410C" }}>
+                      {gstCheck.valid ? `✓ Valid · ${gstCheck.state}` : gstCheck.error}
+                    </span>
+                  )}
+                </Field>
+              )}
               {!prefill.signedIn && (
                 <div style={{ fontSize: 11.5, color: "#8A93A6" }}>
                   Buying for a business?{" "}

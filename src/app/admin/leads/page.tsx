@@ -2,6 +2,8 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
 import { adminClient } from "@/lib/supabase/admin";
 import { istDateTime } from "@/lib/admin/ist";
+import { inspectGstin } from "@/lib/gstin";
+import GuestBizTable from "./GuestBizTable";
 
 export const dynamic = "force-dynamic";
 
@@ -18,9 +20,56 @@ export const dynamic = "force-dynamic";
 
 type Row = Record<string, any>;
 
+/**
+ * Businesses buying WITHOUT a business account: they gave a GSTIN at checkout
+ * but never signed up, so they get no GST-invoice defaults, no saved sites and
+ * no order history. Each row is a nudge worth sending. Grouped by GSTIN so a
+ * repeat buyer appears once, with their order count.
+ */
+type GuestBiz = {
+  gstin: string; name: string; email: string; phone: string | null;
+  orders: number; paidOrders: number; lastAt: string; state?: string; hasAccount: boolean;
+};
+
+async function guestBusinesses(db: NonNullable<ReturnType<typeof adminClient>>): Promise<GuestBiz[]> {
+  const { data: orders } = await db
+    .from("orders")
+    .select("gstin, name, email, phone, status, created_at, user_id")
+    .not("gstin", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(2000);
+  if (!orders?.length) return [];
+
+  // Anyone who already has a business profile is not a lead.
+  const { data: profs } = await db.from("profiles").select("gstin").eq("account_type", "business");
+  const claimed = new Set((profs ?? []).map((p) => String(p.gstin ?? "").toUpperCase()).filter(Boolean));
+
+  const by = new Map<string, GuestBiz>();
+  for (const o of orders) {
+    const g = String(o.gstin ?? "").toUpperCase();
+    if (!g || claimed.has(g)) continue;
+    const hit = by.get(g);
+    if (hit) {
+      hit.orders += 1;
+      if (PAID_STATES.has(String(o.status))) hit.paidOrders += 1;
+      if (o.user_id) hit.hasAccount = true;
+      continue;
+    }
+    by.set(g, {
+      gstin: g, name: o.name ?? "", email: o.email ?? "", phone: o.phone ?? null,
+      orders: 1, paidOrders: PAID_STATES.has(String(o.status)) ? 1 : 0,
+      lastAt: o.created_at, state: inspectGstin(g).state, hasAccount: !!o.user_id,
+    });
+  }
+  // Most valuable first: real buyers before abandoned carts.
+  return [...by.values()].sort((a, b) => b.paidOrders - a.paidOrders || b.orders - a.orders || (a.lastAt < b.lastAt ? 1 : -1));
+}
+
+const PAID_STATES = new Set(["placed", "confirmed", "packed", "shipped", "partially_shipped", "out_for_delivery", "delivered"]);
+
 async function load() {
   const db = adminClient();
-  if (!db) return { credit: [], sellers: [], requests: [], business: [], survey: [] };
+  if (!db) return { credit: [], sellers: [], requests: [], business: [], survey: [], guestbiz: [] as GuestBiz[] };
   const [w, p, b, ts] = await Promise.all([
     db.from("waitlist").select("*").order("created_at", { ascending: false }).limit(500),
     db.from("partner_leads").select("*").order("created_at", { ascending: false }).limit(500),
@@ -34,6 +83,7 @@ async function load() {
     requests: leads.filter((l) => l.kind !== "seller"),
     business: (b.data ?? []) as Row[],
     survey: ((ts as { data?: Row[] | null }).data ?? []) as Row[],
+    guestbiz: await guestBusinesses(db),
   };
 }
 
@@ -49,6 +99,7 @@ export default async function AdminLeads({ searchParams }: { searchParams: Promi
     ["sellers", "Sell on Elume", data.sellers.length],
     ["requests", "Product requests", data.requests.length],
     ["survey", "Trade survey", data.survey.length],
+    ["guestbiz", "Business, no account", data.guestbiz.length],
   ];
 
   const rows: Row[] = (data as any)[tab] ?? [];
@@ -72,7 +123,9 @@ export default async function AdminLeads({ searchParams }: { searchParams: Promi
         <a href={`/admin/leads/export?tab=${tab}`} style={{ marginLeft: "auto", fontSize: 13, fontWeight: 700, color: "#4E5BDC" }}>⬇ Export CSV</a>
       </div>
 
-      {rows.length === 0 ? (
+      {tab === "guestbiz" ? (
+        <GuestBizTable rows={data.guestbiz} when={istDateTime} />
+      ) : rows.length === 0 ? (
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "44px 20px", textAlign: "center", color: "#8A93A6", fontSize: 14 }}>
           No entries yet.
         </div>
