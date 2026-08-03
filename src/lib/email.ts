@@ -324,6 +324,46 @@ export async function sendTradeSurveyAlert(s: {
   return send(BCC_SELF, `📋 Trade survey · ${s.company}`, html);
 }
 
+/** Copper booking confirmed: the 5% token landed, the rate is locked, and
+ *  the balance settles by RTGS. Bank details come from the metals_bank
+ *  content block; until the admin fills it, a details-follow line shows. */
+export async function sendMetalsBookingConfirmation(
+  order: OrderLike,
+  o: {
+    token: number;
+    balance: number;
+    bank: { account_name?: string; account_number?: string; ifsc?: string; bank?: string; branch?: string; note?: string } | null;
+  }
+): Promise<EmailResult> {
+  const row = (k: string, v?: string | null) =>
+    v ? `<tr><td style="padding:6px 0;font-size:13px;color:#56627A;white-space:nowrap">${k}</td><td style="padding:6px 0 6px 14px;font-size:13px;color:#19202E;font-weight:600">${escapeHtml(v)}</td></tr>` : "";
+  const bankBlock = o.bank
+    ? `<div style="margin-top:16px;padding:16px 18px;background:#F7F8FB;border:1px solid #E8EBF1;border-radius:12px">
+         <p style="font-size:13.5px;font-weight:700;color:#19202E;margin:0 0 8px">RTGS details for the balance</p>
+         <table style="width:100%;border-collapse:collapse">
+           ${row("Account name", o.bank.account_name)}
+           ${row("Account number", o.bank.account_number)}
+           ${row("IFSC", o.bank.ifsc)}
+           ${row("Bank", [o.bank.bank, o.bank.branch].filter(Boolean).join(" · "))}
+         </table>
+         ${o.bank.note ? `<p style="font-size:12px;color:#56627A;margin:8px 0 0">${escapeHtml(o.bank.note)}</p>` : ""}
+       </div>`
+    : `<p style="font-size:13px;color:#56627A;margin:14px 0 0">Our team will email you the RTGS bank details shortly - the balance is due within <b>2 working days</b> of this booking.</p>`;
+  const html = shell(
+    "Booking confirmed - rate locked 🔒",
+    `<p style="font-size:14px;color:#56627A;margin:0 0 10px">Hi ${escapeHtml(order.name || "there")}, your token payment is received and today's rate is <b>locked</b> for booking <b>${order.id}</b>.</p>
+     ${itemsTable(order)}
+     <div style="display:flex;gap:18px;flex-wrap:wrap;background:#E6F5EE;border:1px solid #DCEDE3;border-radius:12px;padding:12px 16px;margin:10px 0 0;font-size:13px">
+       <span style="color:#137a4b">Token received <b>${fmt(o.token)}</b></span>
+       <span style="color:#19202E">Balance by RTGS <b>${fmt(o.balance)}</b></span>
+     </div>
+     ${bankBlock}
+     <p style="font-size:13px;color:#56627A;margin:14px 0 4px">Material dispatches with a full GST tax invoice once the balance is confirmed. Track anytime:</p>
+     ${btn(trackUrl(order, "metals-booking"), "Track my booking →")}`
+  );
+  return send(order.email, `Booking ${order.id} confirmed · token received, balance by RTGS`, html, { bcc: BCC_SELF });
+}
+
 /** Ping the business inbox (info@) the moment a metals enquiry lands. Same
  *  contract as the trade-survey alert: the row in metal_enquiries (admin →
  *  Metals → Enquiries) is the source of truth; this email just makes sure a

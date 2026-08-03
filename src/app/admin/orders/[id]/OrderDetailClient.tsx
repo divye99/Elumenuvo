@@ -33,6 +33,7 @@ const replaceItemAbsorb = (orderId: string, oldItemId: string, newProductId: str
 const replaceViaNewOrder = (orderId: string, oldItemId: string, newProductId: string) => callAdmin({ op: "replace-order", orderId, oldItemId, newProductId });
 const refundItem = (orderId: string, itemId: string) => callAdmin({ op: "refund-item", orderId, itemId });
 const resendStatusEmail = (orderId: string) => callAdmin({ op: "notify", orderId });
+const markBalanceReceived = (orderId: string) => callAdmin({ op: "metals-balance-received", orderId });
 const sendWelcomeOfferEmail = (orderId: string) => callAdmin({ op: "welcome-offer", orderId });
 async function uploadDeliveryProof(fd: FormData): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
   const r = await fetch("/api/admin/orders/action", { method: "POST", body: fd });
@@ -233,6 +234,35 @@ export default function OrderDetailClient({ order, shipments, events, customer }
                 </p>
               </div>
             </Card>
+          )}
+
+          {(order as any).order_kind === "metals_booking" && (
+            <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "18px 16px" }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#19202E", marginBottom: 10 }}>🥉 Copper booking · token + RTGS</div>
+              {[
+                ["Order value", fmt(Number(order.total))],
+                ["Token received online (5%)", fmt(Number((order as any).token_amount ?? 0))],
+                ["Balance due by RTGS", fmt(Number((order as any).balance_due ?? 0))],
+              ].map(([k, v]) => (
+                <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "6px 0", fontSize: 13 }}>
+                  <span style={{ color: "#56627A" }}>{k}</span>
+                  <span style={{ fontWeight: 700 }}>{v}</span>
+                </div>
+              ))}
+              {(order as any).balance_received_at ? (
+                <div style={{ marginTop: 8, background: "#E6F5EE", color: "#137a4b", fontWeight: 700, fontSize: 12.5, borderRadius: 9, padding: "8px 12px", textAlign: "center" }}>
+                  ✓ Balance received {new Date((order as any).balance_received_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" })}
+                </div>
+              ) : (
+                <button
+                  disabled={pending}
+                  onClick={() => { if (window.confirm("Confirm the full RTGS balance is in the bank? The customer is emailed that dispatch is being scheduled.")) run(() => markBalanceReceived(order.id)); }}
+                  style={{ width: "100%", marginTop: 8, background: "#1F9D63", color: "#fff", fontWeight: 700, fontSize: 13, border: "none", padding: "10px 12px", borderRadius: 9, cursor: "pointer" }}
+                >
+                  Mark RTGS balance received
+                </button>
+              )}
+            </div>
           )}
 
           {order.status !== "cancelled" && (order as any).razorpay_payment_id && (

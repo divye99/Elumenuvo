@@ -84,10 +84,13 @@ export async function POST(request: Request) {
   }
 
   // Defense in depth: the captured amount must match what the order says.
+  // For a metals booking the online capture is the 5% TOKEN, not the total.
   const paidPaise = Number(payment.amount);
   if (Number.isFinite(paidPaise) && paidPaise > 0) {
-    const { data: ord } = await db.from("orders").select("total").eq("id", orderId).maybeSingle();
-    const expected = ord ? Math.round(Number(ord.total) * 100) : null;
+    const { data: ord } = await db.from("orders").select("*").eq("id", orderId).maybeSingle();
+    const expectedRupees =
+      ord?.order_kind === "metals_booking" && ord?.token_amount != null ? Number(ord.token_amount) : ord ? Number(ord.total) : null;
+    const expected = expectedRupees != null ? Math.round(expectedRupees * 100) : null;
     if (expected != null && paidPaise !== expected) {
       console.error(`[razorpay-webhook] AMOUNT MISMATCH on ${orderId}: paid ${paidPaise} vs expected ${expected} - NOT marking paid`);
       return NextResponse.json({ error: "Amount mismatch." }, { status: 500 }); // retry + loud log; needs a human

@@ -8,6 +8,7 @@ import Rating from "@/components/storefront/Rating";
 import MobileBuyBar from "@/components/storefront/MobileBuyBar";
 import { useCart } from "@/lib/cart";
 import { WHOLESALE_MIN_QTY } from "@/lib/pricing";
+import { isMetalCategory } from "@/lib/metals";
 import { track } from "@/lib/analytics";
 import type { Product } from "@/lib/data";
 
@@ -60,8 +61,11 @@ export default function PublicProductView({ p, siblings = [], business = false, 
         variantSlot={<VariantPicker p={p} siblings={siblings} />}
         showGst={isBiz}
       />
-      {/* Mobile-only sticky add-to-basket bar (hides on scroll down) */}
-      <MobileBuyBar price={p.price} unit={p.unit} cat={p.cat} gstRate={p.gstRate} onAdd={() => toCart("mobile-bar")} />
+      {/* Mobile-only sticky add-to-basket bar (hides on scroll down).
+          Metals book via the token flow, never the cart. */}
+      {!isMetalCategory(p.cat) && (
+        <MobileBuyBar price={p.price} unit={p.unit} cat={p.cat} gstRate={p.gstRate} onAdd={() => toCart("mobile-bar")} />
+      )}
     </>
   );
 }

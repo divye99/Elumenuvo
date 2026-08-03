@@ -7,6 +7,7 @@ import { Star } from "@/components/storefront/Rating";
 import { GROTESK, MONO } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import { baseExGst } from "@/lib/pricing";
+import { isMetalCategory } from "@/lib/metals";
 import { tileFor, type Product } from "@/lib/data";
 import { cardHighlights } from "@/lib/card-specs";
 import { valuesOf, bestMatch, COLOUR_HEX } from "@/lib/variants";
@@ -232,6 +233,12 @@ export default function ProductCard({
           {shown.inStock === false ? (
             <div style={{ width: "100%", marginTop: 10, background: "#F4F5F8", color: "#8A93A6", fontWeight: 700, fontSize: 12.5, padding: "8px 10px", borderRadius: 9, textAlign: "center" }}>
               Out of stock
+            </div>
+          ) : isMetalCategory(shown.cat) ? (
+            // Metals book via the token flow, never the cart - the card's CTA
+            // walks through to the PDP's "Book at today's rate".
+            <div className="pc-cta" style={{ width: "100%", marginTop: 10, background: "#EEF0FE", color: "#4E5BDC", fontWeight: 700, fontSize: 12.5, padding: "8px 10px", borderRadius: 9, textAlign: "center" }}>
+              Book at today's rate →
             </div>
           ) : (
             <button

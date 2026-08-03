@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { isMetalCategory } from "@/lib/metals";
 
 /**
  * Google Merchant Center product feed - RSS 2.0 with the g: namespace.
@@ -51,6 +52,9 @@ export async function GET() {
 
   const items = rows
     .filter((p) => p.image_url) // Google rejects imageless items; keep them out of the feed
+    // Metals sell as lakh-scale commodity lots via a token + RTGS booking -
+    // not a Shopping-feed purchase. Organic search still indexes their PDPs.
+    .filter((p) => !isMetalCategory(p.category))
     .map((p) => {
       const gallery = (Array.isArray(p.images) ? p.images : []).filter((u) => u && u !== p.image_url).slice(0, 10);
       const desc = [p.spec, p.tech_specs?.description].filter(Boolean).join(". ").slice(0, 4900) || p.name;

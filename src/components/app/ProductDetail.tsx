@@ -138,13 +138,29 @@ export default function ProductDetail({
               <span style={{ fontSize: 14, color: "#8A93A6", marginBottom: 6 }}>/{p.unit}</span>
               <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.3px", color: "#4E5BDC", background: "#EEF0FD", padding: "4px 9px", borderRadius: 7, marginBottom: 7 }}>+ {Math.round(gb.rate * 100)}% GST</span>
             </div>
-            {/* Metals: the trade quotes in ₹/kg - surface the per-kg rate under
-                the lot price so buyers can compare against the market instantly. */}
-            {isMetalCategory(p.cat) && lotKg(p.attrs) > 1 && (
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#137a4b", background: "#E6F5EE", border: "1px solid #DCEDE3", borderRadius: 9, padding: "7px 11px", margin: "0 0 10px", width: "fit-content" }}>
-                ≈ ₹{(gb.base / lotKg(p.attrs)).toLocaleString("en-IN", { maximumFractionDigits: 2 })}/kg ex-GST · {p.attrs?.Lot} lot = {lotKg(p.attrs).toLocaleString("en-IN")} kg
-              </div>
-            )}
+            {/* Metals rate card: the trade thinks in ₹/kg, buyers compare lot
+                totals - show today's rate at per-kg, 3 MT and 4 MT in one card. */}
+            {isMetalCategory(p.cat) && lotKg(p.attrs) > 1 && (() => {
+              const kg = lotKg(p.attrs);
+              const rate = gb.base / kg;
+              const inr = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
+              return (
+                <div style={{ background: "#F7F8FB", border: "1px solid #E8EBF1", borderRadius: 11, padding: "12px 15px", margin: "0 0 12px" }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.7px", textTransform: "uppercase", color: "#8A93A6", marginBottom: 6 }}>Today's rate</div>
+                  {[
+                    ["Per kg", `₹${rate.toLocaleString("en-IN", { maximumFractionDigits: 2 })} +GST`],
+                    ["3 MT lot (3,000 kg)", `${inr(rate * 3000)} +GST`],
+                    ["4 MT lot (4,000 kg)", `${inr(rate * 4000)} +GST`],
+                  ].map(([k, v]) => (
+                    <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "5px 0", fontSize: 13 }}>
+                      <span style={{ color: "#56627A" }}>{k}</span>
+                      <span style={{ fontWeight: 700, color: "#19202E", fontFamily: GROTESK }}>{v}</span>
+                    </div>
+                  ))}
+                  <div style={{ fontSize: 11, color: "#8A93A6", marginTop: 4 }}>Updated against MCX &amp; LME · ~9 am, 11 am and 2 pm IST on trading days</div>
+                </div>
+              );
+            })()}
             {/* Inclusive total + MRP reference (all figures ex-GST for a like-for-like %) */}
             <div style={{ fontSize: 13, color: "#56627A", marginBottom: showGst ? 8 : 14 }}>
               <b style={{ color: "#19202E" }}>{fmt(gb.incl)}</b> incl. GST
@@ -196,6 +212,21 @@ export default function ProductDetail({
                   We list this so you can see the spec and our price, but it cannot be ordered right now.
                   Email <a href="mailto:info@elumenuvo.com" style={{ color: "#4E5BDC", fontWeight: 600 }}>info@elumenuvo.com</a> and we will source it for you.
                 </p>
+              </div>
+            ) : isMetalCategory(p.cat) && variant === "public" ? (
+              // Metals never use the cart: lakh-scale lots book via the
+              // 5%-token + RTGS flow (server-side checkout guard mirrors this).
+              <div>
+                <a
+                  href={`/metals/book/${encodeURIComponent(p.id)}`}
+                  data-cart-tracked
+                  style={{ display: "block", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 15, textAlign: "center", padding: "14px 16px", borderRadius: 11 }}
+                >
+                  Book at today's rate →
+                </a>
+                <div style={{ fontSize: 12, color: "#56627A", marginTop: 10, lineHeight: 1.5 }}>
+                  Business account (GSTIN) · 5% token online locks the rate · balance by RTGS · GST tax invoice with dispatch.
+                </div>
               </div>
             ) : (
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>

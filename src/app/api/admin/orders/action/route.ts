@@ -67,6 +67,23 @@ export async function POST(request: Request) {
     case "note":
       res = await saveAdminNote(String(body.orderId), String(body.note ?? ""));
       break;
+    case "metals-balance-received": {
+      // A copper booking's RTGS balance landed in the bank: stamp it, log it,
+      // and tell the customer dispatch is being scheduled.
+      const db = adminClient();
+      if (!db) { res = { ok: false, error: "Service key missing." }; break; }
+      const orderId = String(body.orderId);
+      const { data: order } = await db.from("orders").select("*").eq("id", orderId).maybeSingle();
+      if (!order) { res = { ok: false, error: "Order not found." }; break; }
+      if (order.order_kind !== "metals_booking") { res = { ok: false, error: "Not a metals booking." }; break; }
+      if (order.balance_received_at) { res = { ok: true }; break; } // already stamped - idempotent
+      const { error } = await db.from("orders").update({ balance_received_at: new Date().toISOString() }).eq("id", orderId);
+      if (error) { res = { ok: false, error: error.message }; break; }
+      try { await db.from("order_events").insert({ order_id: orderId, status: order.status, note: `RTGS balance received in full (₹${Number(order.balance_due ?? 0).toLocaleString("en-IN")})` }); } catch { /* best-effort */ }
+      await sendCustomerStatusUpdate(order, "confirmed", { note: "Your RTGS balance is received in full. The material is being scheduled for dispatch with the GST tax invoice." });
+      res = { ok: true };
+      break;
+    }
     case "shipment":
       res = await addShipment({
         order_id: String(body.order_id),

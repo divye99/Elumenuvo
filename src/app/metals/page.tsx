@@ -5,7 +5,33 @@ import { isMetalCategory, lotKg, METALS_TAXONOMY, METAL_ICONS } from "@/lib/meta
 import { gstRateFor, baseExGst } from "@/lib/pricing";
 import { fmt } from "@/lib/format";
 import { GROTESK } from "@/lib/fonts";
+import { jsonLd as toJsonLd } from "@/lib/jsonld";
 import MetalsMarketCharts from "@/components/metals/MetalsMarketCharts";
+
+/** The questions copper buyers actually type into Google - shown on the page
+ *  AND emitted as FAQPage JSON-LD so the hub can win those queries. */
+const FAQS: [string, string][] = [
+  [
+    "What is today's copper rate on Elume?",
+    "The live ex-GST ₹/kg rate for CCR rod and CC rod is published at the top of this page and on each product page, updated up to three times a day (around 9 am, 11 am and 2 pm IST) against MCX and LME copper.",
+  ],
+  [
+    "How is the copper rate decided?",
+    "We track MCX copper futures and LME copper through the trading day and set our selling rate against them. The rate you see is the rate you pay - no phone-only quotes, and every product page charts our rate history next to the exchange charts.",
+  ],
+  [
+    "What lot sizes do CCR rod and CC rod come in?",
+    "Continuous cast copper rod is sold in 3 MT (3,000 kg) and 4 MT (4,000 kg) lots. Need larger volumes or a different put-up? Raise an enquiry and our sourcing desk will quote you directly.",
+  ],
+  [
+    "How does payment work for a copper booking?",
+    "You book online with a 5% token via Razorpay, which locks that moment's rate. The balance is paid by RTGS within 2 working days, and the material dispatches with a full GST tax invoice once the balance is confirmed.",
+  ],
+  [
+    "Who can buy copper on Elume?",
+    "Copper bookings are for GSTIN-verified business buyers - a free business account takes two minutes to set up. Aluminium, zinc, lead, nickel and steel are available through the same GSTIN-verified enquiry desk.",
+  ],
+];
 
 /**
  * Metals hub: the mission page for the Metals family. Copper sells online at
@@ -28,8 +54,24 @@ export default async function MetalsHub() {
   const copper = all.filter((p) => isMetalCategory(p.cat));
   const groups = ["Non-Ferrous", "Ferrous"] as const;
 
+  const faqLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQS.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })),
+  };
+  const listLd = copper.length
+    ? {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        name: "Copper at today's rate",
+        itemListElement: copper.map((p, i) => ({ "@type": "ListItem", position: i + 1, url: `https://elumenuvo.com/catalogue/${p.id}`, name: p.name })),
+      }
+    : null;
+
   return (
     <main style={{ maxWidth: 1120, margin: "0 auto", padding: "26px 30px 60px", display: "flex", flexDirection: "column", gap: 34 }}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLd(faqLd) }} />
+      {listLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLd(listLd) }} />}
       {/* ── Hero ── */}
       <section style={{ background: "linear-gradient(120deg,#19202E,#232B47)", borderRadius: 20, padding: "42px 40px", color: "#fff" }}>
         <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "1.2px", textTransform: "uppercase", color: "#9DB0FF" }}>Elume Metals</div>
@@ -132,6 +174,21 @@ export default async function MetalsHub() {
             </div>
           </div>
         ))}
+      </section>
+
+      {/* ── FAQ (mirrors the FAQPage JSON-LD above) ── */}
+      <section>
+        <h2 style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 600, letterSpacing: "-0.5px", margin: "0 0 14px", color: "#19202E" }}>
+          Copper buying, answered
+        </h2>
+        <div style={{ display: "grid", gap: 10 }}>
+          {FAQS.map(([q, a]) => (
+            <details key={q} style={{ ...card, padding: "16px 20px" }}>
+              <summary style={{ fontSize: 14, fontWeight: 700, color: "#19202E", cursor: "pointer" }}>{q}</summary>
+              <p style={{ fontSize: 13.5, color: "#56627A", lineHeight: 1.6, margin: "10px 0 0" }}>{a}</p>
+            </details>
+          ))}
+        </div>
       </section>
 
       {/* ── How buying works ── */}

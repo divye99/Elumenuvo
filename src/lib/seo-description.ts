@@ -1,4 +1,6 @@
 import type { Product } from "@/lib/data";
+import { isMetalCategory, lotKg } from "@/lib/metals";
+import { gstRateFor } from "@/lib/pricing";
 
 /**
  * Product descriptions for search engines and Google Merchant Center.
@@ -167,6 +169,15 @@ function accessoryDescription(p: Product): string {
  * everything else keeps the human-written spec line.
  */
 export function productDescription(p: Product): string {
+  // Metals: what copper buyers actually search - today's ₹/kg rate, the lot
+  // sizes, and that the rate tracks MCX/LME. The PDP is revalidated on every
+  // console save, so the rate in this description stays current.
+  if (isMetalCategory(p.cat)) {
+    const kg = lotKg(p.attrs);
+    const rate = p.price / (1 + gstRateFor(p.cat, p.gstRate)) / kg;
+    const lot = p.attrs?.Lot ? ` Sold in 3 MT and 4 MT lots (this listing: ${p.attrs.Lot}).` : "";
+    return `${p.name} at today's rate of ₹${rate.toFixed(2)}/kg ex-GST, updated against MCX and LME copper up to three times a day.${lot} Book online with a 5% token, balance by RTGS, GST tax invoice with dispatch. Live rate charts on this page.`;
+  }
   const tail = ` Elume price ₹${p.price} per ${p.unit} (MRP ₹${p.market}). Free delivery across India.`;
   if (p.cat === "Fans") return fanDescription(p) + tail;
   if (p.cat === "Lighting") return lightingDescription(p) + tail;

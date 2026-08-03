@@ -3,6 +3,7 @@
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { exGst, gstPart, baseExGst, unitPriceFor } from "@/lib/pricing";
+import { isMetalCategory } from "@/lib/metals";
 import { DEFAULT_COUNTRY, phoneError, normalisePhoneE164 } from "@/lib/phone";
 import { sendAdminNewOrder, sendCustomerOrderConfirmation } from "@/lib/email";
 import { saveAddressFromOrder } from "@/lib/addresses";
@@ -76,6 +77,13 @@ async function validate(
     // old, or restored from localStorage after the item went out of stock.
     if ((p as { in_stock?: boolean | null }).in_stock === false) {
       return { ok: false, error: `"${p.name}" is out of stock right now. Please remove it from your cart to continue.` };
+    }
+    // Metals never go through the normal full-amount checkout: a copper lot
+    // is lakh-scale and books via the 5%-token + RTGS flow instead. Server-
+    // side so no stray add-to-cart path (cards, collections, old tabs) can
+    // charge the full amount online.
+    if (isMetalCategory(p.category)) {
+      return { ok: false, error: `"${p.name}" is booked separately - remove it from your cart and use Book at today's rate on its product page.` };
     }
     const qty = Math.min(Math.floor(i.qty), 9999);
     // The GST rate comes from the product row, never the browser - a per-product
@@ -294,6 +302,18 @@ export async function markOrderPaid(
     total: Number(order.total), items: order.items ?? [],
     shipping_address: order.shipping_address, gstin: order.gstin ?? null,
   };
+  if (order.order_kind === "metals_booking") {
+    // A copper booking: only the TOKEN landed; the confirmation explains the
+    // RTGS balance instead of reading like a fully-paid order.
+    const { sendMetalsBookingConfirmation } = await import("@/lib/email");
+    const { getMetalsBank } = await import("@/app/metals/book/actions");
+    const bank = await getMetalsBank();
+    await Promise.allSettled([
+      sendAdminNewOrder(mail),
+      sendMetalsBookingConfirmation(mail, { token: Number(order.token_amount ?? 0), balance: Number(order.balance_due ?? 0), bank }),
+    ]);
+    return { ok: true, newlyPaid: true, orderId, total: Number(order.total) };
+  }
   await Promise.allSettled([sendAdminNewOrder(mail), sendCustomerOrderConfirmation(mail)]);
   return { ok: true, newlyPaid: true, orderId, total: Number(order.total) };
 }
