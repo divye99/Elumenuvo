@@ -301,6 +301,29 @@ export async function sendRefundReceiptEmail(
   return send(order.email, `Refund of ${fmt(o.amount)} issued &#183; order ${order.id}`, html, { bcc: BCC_SELF });
 }
 
+/** Ping the business inbox (info@) the moment a trade-survey response lands.
+ *  The response itself lives in trade_survey (admin → Leads → Trade survey);
+ *  this email just makes sure nothing sits unread. Graceful no-op without
+ *  RESEND_API_KEY - the admin tab stays the source of truth either way. */
+export async function sendTradeSurveyAlert(s: {
+  company: string; phone: string; buys?: string | null; channel?: string | null; priority?: string | null; missing?: string | null;
+}): Promise<EmailResult> {
+  const row = (k: string, v?: string | null) =>
+    v ? `<tr><td style="padding:6px 0;font-size:13px;color:#56627A;vertical-align:top;white-space:nowrap">${k}</td><td style="padding:6px 0 6px 14px;font-size:13px;color:#19202E">${escapeHtml(v)}</td></tr>` : "";
+  const html = shell(
+    "New trade survey response",
+    `<p style="font-size:14px;color:#56627A;margin:0 0 10px"><b>${escapeHtml(s.company)}</b> · ${escapeHtml(s.phone)}</p>
+     <table style="width:100%;border-collapse:collapse">
+       ${row("Buys most often", s.buys)}
+       ${row("Buys today via", s.channel)}
+       ${row("What matters", s.priority)}
+       ${row("What's missing", s.missing)}
+     </table>
+     ${btn(`${SITE}/admin/leads?tab=survey`, "All responses in admin →")}`
+  );
+  return send(BCC_SELF, `📋 Trade survey · ${s.company}`, html);
+}
+
 /** Item refunded (product unavailable, nothing comparable) + a 10% code. */
 export async function sendRefundVoucherEmail(
   order: OrderLike,

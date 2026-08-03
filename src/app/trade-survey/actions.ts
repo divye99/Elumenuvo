@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { sendTradeSurveyAlert } from "@/lib/email";
 
 /** Store one trade-survey response. Inserts under the anon RLS policy - the
  *  same pattern as partner leads; reads stay admin-only. */
@@ -22,6 +23,16 @@ export async function submitTradeSurvey(input: {
       missing: input.missing.trim().slice(0, 4000) || null,
     });
     if (error) return { ok: false, error: "Could not save just now. Please try again." };
+    // Ping info@ so a response never sits unseen; never blocks the submit
+    // (send() is graceful and catches everything internally).
+    await sendTradeSurveyAlert({
+      company,
+      phone: `+91${phone.slice(-10)}`,
+      buys: input.buys.slice(0, 200) || null,
+      channel: input.channel.slice(0, 200) || null,
+      priority: input.priority.slice(0, 200) || null,
+      missing: input.missing.trim().slice(0, 4000) || null,
+    });
     return { ok: true };
   } catch {
     return { ok: false, error: "Could not save just now. Please try again." };

@@ -11,6 +11,8 @@ export const dynamic = "force-dynamic";
  *   sellers   - "Sell on Elume" partner leads (partner_leads, kind=seller)
  *   requests  - product sourcing requests (partner_leads, kind=product-request)
  *   business  - business account signups (profiles, account_type=business)
+ *   survey    - trade outreach survey responses (trade_survey; also emailed
+ *               to info@ on arrival via sendTradeSurveyAlert)
  * Each tab is exportable as CSV via /admin/leads/export.
  */
 
@@ -80,14 +82,22 @@ export default async function AdminLeads({ searchParams }: { searchParams: Promi
             <div key={r.id ?? i} style={{ padding: "13px 16px", borderTop: i ? "1px solid #F0F2F6" : undefined, display: "flex", gap: 14, alignItems: "baseline", flexWrap: "wrap" }}>
               <div style={{ minWidth: 220 }}>
                 <div style={{ fontSize: 13.5, fontWeight: 700, color: "#19202E" }}>
-                  {r.name ?? r.full_name ?? "–"}
-                  {r.company && <span style={{ fontWeight: 500, color: "#56627A" }}> · {r.company}</span>}
+                  {r.name ?? r.full_name ?? r.company ?? "–"}
+                  {r.company && (r.name || r.full_name) && <span style={{ fontWeight: 500, color: "#56627A" }}> · {r.company}</span>}
                 </div>
-                <div style={{ fontSize: 12, color: "#4E5BDC" }}>{r.email ?? "email via account"}{r.phone ? ` · ${r.phone}` : ""}</div>
+                <div style={{ fontSize: 12, color: "#4E5BDC" }}>{r.email ?? (tab === "survey" ? "" : "email via account")}{r.phone ? `${r.email || tab !== "survey" ? " · " : ""}${r.phone}` : ""}</div>
               </div>
               {tab === "business" && (
                 <div style={{ fontSize: 12, color: "#56627A" }}>
                   GSTIN <b style={{ fontFamily: "var(--space-mono)" }}>{r.gstin ?? "–"}</b>{r.business_type ? ` · ${r.business_type}` : ""}
+                </div>
+              )}
+              {tab === "survey" && (
+                <div style={{ fontSize: 12.5, color: "#56627A", flex: "1 1 340px", display: "flex", flexDirection: "column", gap: 3 }}>
+                  {r.buys && <div><b style={{ color: "#19202E" }}>Buys:</b> {r.buys}</div>}
+                  {r.channel && <div><b style={{ color: "#19202E" }}>Channel:</b> {r.channel}</div>}
+                  {r.priority && <div><b style={{ color: "#19202E" }}>Priority:</b> {r.priority}</div>}
+                  {r.missing && <div><b style={{ color: "#19202E" }}>Missing:</b> {String(r.missing).slice(0, 400)}</div>}
                 </div>
               )}
               {r.message && <div style={{ fontSize: 12.5, color: "#56627A", flex: "1 1 260px" }}>{String(r.message).slice(0, 240)}</div>}

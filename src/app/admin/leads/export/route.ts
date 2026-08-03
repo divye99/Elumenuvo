@@ -19,6 +19,7 @@ export async function GET(request: Request) {
   let rows: Record<string, unknown>[] = [];
   if (tab === "credit") rows = (await db.from("waitlist").select("*").order("created_at", { ascending: false }).limit(5000)).data ?? [];
   else if (tab === "business") rows = (await db.from("profiles").select("*").eq("account_type", "business").order("updated_at", { ascending: false }).limit(5000)).data ?? [];
+  else if (tab === "survey") rows = (await db.from("trade_survey").select("*").order("created_at", { ascending: false }).limit(5000)).data ?? [];
   else {
     const all = (await db.from("partner_leads").select("*").order("created_at", { ascending: false }).limit(5000)).data ?? [];
     rows = tab === "sellers" ? all.filter((l: any) => l.kind === "seller") : all.filter((l: any) => l.kind !== "seller");
