@@ -27,6 +27,13 @@ export type Visitor = {
   totalMs: number;
   landingReferrer: string | null;
   utm: string | null;
+  /** UTM parts kept separately so traffic can be told apart precisely:
+   *  order emails land as email/email/order-*, cold outreach as
+   *  email/outreach/trade100-*, and utmContent names the exact company. */
+  utmSource: string | null;
+  utmMedium: string | null;
+  utmCampaign: string | null;
+  utmContent: string | null;
 };
 
 /** UA fragments identifying crawlers/agents (display-layer; catches rows
@@ -70,6 +77,28 @@ export async function fetchAllSearches(days: number): Promise<Map<string, Search
 }
 
 export type SearchRow = { query: string; source: string; results: number | null; picked: string | null; created_at: string };
+
+export type SurveyRow = { company: string; phone: string; created_at: string };
+
+/** Trade-survey responses, for cross-referencing against the outreach roster.
+ *  Tolerates the table being absent (pre-migration) by returning nothing. */
+export async function fetchSurveyResponses(): Promise<SurveyRow[]> {
+  const db = adminClient();
+  if (!db) return [];
+  const { data } = await db
+    .from("trade_survey")
+    .select("company, phone, created_at")
+    .order("created_at", { ascending: false })
+    .limit(1000)
+    .then((r) => r, () => ({ data: [] as SurveyRow[] }));
+  return (data ?? []) as SurveyRow[];
+}
+
+/** Loose key for matching a typed company name against the roster: a firm may
+ *  write "Bhutani Infra Pvt Ltd" where the roster says "Bhutani Infra". */
+export function companyKey(name: string): string {
+  return name.toLowerCase().replace(/\b(pvt|private|ltd|limited|llp|inc|co|company|and|the)\b/g, "").replace(/[^a-z0-9]/g, "");
+}
 
 export type JourneyItem = { at: string; icon: string; title: string; sub?: string };
 
@@ -129,7 +158,7 @@ export function toVisitors(events: SiteEvent[]): Visitor[] {
   for (const e of events) {
     let v = by.get(e.sid);
     if (!v) {
-      v = { sid: e.sid, identity: { email: null, name: null }, device: null, location: null, country: null, region: null, ip: null, ua: null, likelyBot: false, firstSeen: e.created_at, lastSeen: e.created_at, pageviews: 0, clicks: 0, addToCarts: 0, totalMs: 0, landingReferrer: null, utm: null };
+      v = { sid: e.sid, identity: { email: null, name: null }, device: null, location: null, country: null, region: null, ip: null, ua: null, likelyBot: false, firstSeen: e.created_at, lastSeen: e.created_at, pageviews: 0, clicks: 0, addToCarts: 0, totalMs: 0, landingReferrer: null, utm: null, utmSource: null, utmMedium: null, utmCampaign: null, utmContent: null };
       by.set(e.sid, v);
     }
     v.lastSeen = e.created_at;
@@ -145,6 +174,12 @@ export function toVisitors(events: SiteEvent[]): Visitor[] {
       if (d?.referrer_landing && !v.landingReferrer) v.landingReferrer = d.referrer_landing;
       const utm = d && ["utm_source", "utm_medium", "utm_campaign"].map((k) => d[k]).filter(Boolean).join(" / ");
       if (utm && !v.utm) v.utm = utm;
+      // First touch wins: the campaign that actually brought them in stays
+      // the attribution even if they later arrive again by another route.
+      if (d?.utm_source && !v.utmSource) v.utmSource = d.utm_source;
+      if (d?.utm_medium && !v.utmMedium) v.utmMedium = d.utm_medium;
+      if (d?.utm_campaign && !v.utmCampaign) v.utmCampaign = d.utm_campaign;
+      if (d?.utm_content && !v.utmContent) v.utmContent = d.utm_content;
     }
     if (e.type === "click" || e.type === "product_click") v.clicks++;
     if (e.type === "add_to_cart") v.addToCarts++;

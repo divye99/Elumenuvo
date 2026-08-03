@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
-import { fetchEvents, fetchAllSearches, toVisitors, buildJourney, type SiteEvent } from "@/lib/admin/analytics-data";
+import { fetchEvents, fetchAllSearches, fetchSurveyResponses, companyKey, toVisitors, buildJourney, type SiteEvent } from "@/lib/admin/analytics-data";
+import { OUTREACH_ROSTER, outreachByEmail, outreachName } from "@/lib/admin/outreach-roster";
+import OutreachTable, { type OutreachStat } from "./OutreachTable";
 import { istDateTime, istDate, istTime, istDayKey, istWeekday, shiftDayKey } from "@/lib/admin/ist";
 import Filters from "./Filters";
 
@@ -8,6 +10,13 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const dur = (ms: number) => (ms < 60000 ? `${Math.round(ms / 1000)}s` : `${Math.floor(ms / 60000)}m ${Math.round((ms % 60000) / 1000)}s`);
+
+/** Referrer hostname, tolerant of the malformed values that occasionally land
+ *  in the column - a bad URL here must not take the whole page down. */
+const hostOf = (url: string | null): string => {
+  if (!url) return "";
+  try { return new URL(url).hostname; } catch { return url.slice(0, 40); }
+};
 
 export default async function AdminAnalytics({ searchParams }: { searchParams: Promise<{ days?: string; identity?: string; device?: string; country?: string; state?: string; src?: string; min?: string; bots?: string; view?: string }> }) {
   await requireAdmin();
@@ -17,7 +26,12 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
   // it has to see one extra week behind the selected window.
   const isTraffic = view === "traffic";
   const fetchDays = isTraffic ? Math.min(97, days + 7) : days;
-  const [events, searchesBySid] = await Promise.all([fetchEvents(fetchDays), fetchAllSearches(days)]);
+  const isOutreach = view === "outreach";
+  const [events, searchesBySid, surveys] = await Promise.all([
+    fetchEvents(fetchDays),
+    fetchAllSearches(days),
+    isOutreach ? fetchSurveyResponses() : Promise.resolve([]),
+  ]);
   const allVisitors = toVisitors(events);
 
   // Dropdown options come from the data itself. India leads the country list.
@@ -38,8 +52,12 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
     if (src) {
       const ref = (v.landingReferrer ?? "").toLowerCase();
       if (src === "google" && !ref.includes("google")) return false;
-      if (src === "email" && !(v.utm ?? "").startsWith("email")) return false;
-      if (src === "campaign" && (!v.utm || (v.utm ?? "").startsWith("email"))) return false;
+      if (src === "email" && v.utmSource !== "email") return false;
+      // Cold outreach is medium=outreach; order/status mails are medium=email.
+      // Without this split both land in "From an email" and the campaign can't
+      // be read on its own.
+      if (src === "outreach" && v.utmMedium !== "outreach") return false;
+      if (src === "campaign" && (!v.utm || v.utmSource === "email")) return false;
       if (src === "referral" && (!ref || ref.includes("google") || v.utm)) return false;
       if (src === "direct" && (ref || v.utm)) return false;
     }
@@ -175,6 +193,75 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
     .sort((a, b) => b[1].views - a[1].views)
     .slice(0, 20);
   const IMG_ACT_LABEL: Record<string, string> = { open: "Opened the viewer", thumb: "Switched thumbnails", arrow: "Browsed photos", zoom: "Zoomed in", hover: "Hover-magnified" };
+  /* ── Cold-outreach attribution ──
+     Two routes to name the firm behind a session:
+       link   - utm_content carries the company slug (future campaigns).
+       domain - the visitor identified with an email on that firm's domain.
+     The August 2026 batch was sent before link tagging existed, so only the
+     domain route can fire for it; anonymous browsing from those emails stays
+     campaign-level (utm_medium=outreach) and is reachable from the Visitors
+     tab's source filter. Sessions are grouped per company - two people at one
+     firm can both click - then joined to the full roster so the firms that
+     have NOT engaged stay visible: that list is the phone-follow-up list. ── */
+  const outreachStats = new Map<string, OutreachStat>();
+  if (isOutreach) {
+    for (const v of allVisitors) {
+      if (v.likelyBot) continue;
+      // Two attribution routes. The August batch shipped before per-company
+      // link tagging, so for it only the domain route can fire; tagged links
+      // take precedence whenever both are available.
+      const dom = outreachByEmail(v.identity.email);
+      const hit = v.utmContent
+        ? { key: v.utmContent, via: "link" as const }
+        : dom
+          ? { key: dom.slug, via: "domain" as const }
+          : null;
+      if (!hit) continue;
+      const a = outreachStats.get(hit.key) ?? { sessions: 0, pageviews: 0, carts: 0, ms: 0, lastSeen: null, email: null, via: hit.via };
+      a.sessions += 1;
+      a.pageviews += v.pageviews;
+      a.carts += v.addToCarts;
+      a.ms += v.totalMs;
+      if (hit.via === "link") a.via = "link";
+      if (!a.lastSeen || v.lastSeen > a.lastSeen) a.lastSeen = v.lastSeen;
+      if (!a.email && v.identity.email) a.email = v.identity.email;
+      outreachStats.set(hit.key, a);
+    }
+  }
+  // Survey responses are matched on a loosened company name, since a firm may
+  // type "Bhutani Infra Pvt Ltd" where the roster holds "Bhutani Infra".
+  const surveyByKey = new Map(surveys.map((s) => [companyKey(s.company), s]));
+  const findSurvey = (company: string) => {
+    const k = companyKey(company);
+    const exact = surveyByKey.get(k);
+    if (exact) return exact;
+    if (k.length < 5) return undefined;
+    for (const [sk, row] of surveyByKey) if (sk.includes(k) || (sk.length >= 5 && k.includes(sk))) return row;
+    return undefined;
+  };
+  const OUTREACH_STAGE = (st: OutreachStat | undefined, surveyed: boolean, bounced?: boolean) => {
+    if (!st) {
+      if (surveyed) return { label: "Survey only", rank: 3, color: "#1F9D63" };
+      // A bounced address never received the email, so its silence is not a
+      // signal about the firm - keep it out of the follow-up list.
+      return bounced ? { label: "Bounced", rank: -1, color: "#B4341C" } : { label: "No response yet", rank: 0, color: "#A0A7B5" };
+    }
+    if (st.email) return { label: "Identified", rank: 5, color: "#137a4b" };
+    if (st.carts) return { label: "Added to cart", rank: 4, color: "#1F9D63" };
+    if (surveyed) return { label: "Took survey", rank: 3, color: "#1F9D63" };
+    if (st.pageviews >= 3) return { label: "Browsing", rank: 2, color: "#C77700" };
+    return { label: "Opened site", rank: 1, color: "#4E5BDC" };
+  };
+  const outreachRows = OUTREACH_ROSTER.map((c) => {
+    const st = outreachStats.get(c.slug);
+    const survey = findSurvey(c.company);
+    return { ...c, st, survey, stage: OUTREACH_STAGE(st, !!survey, c.bounced) };
+  }).sort((a, b) => b.stage.rank - a.stage.rank || (b.st?.pageviews ?? 0) - (a.st?.pageviews ?? 0) || a.company.localeCompare(b.company));
+  // Anyone who arrived on an outreach link that is NOT in the roster (a
+  // forwarded email, a slug we never generated) still deserves a row.
+  const strayOutreach = [...outreachStats.entries()].filter(([slug]) => !OUTREACH_ROSTER.some((c) => c.slug === slug));
+  const clickedCount = outreachRows.filter((r) => r.st).length;
+
   // Switching tab or day range must not silently drop the filters someone has
   // set - rebuild the query string instead of writing a fresh one.
   const linkTo = (over: { days?: number; view?: string }) => {
@@ -211,7 +298,7 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
       </div>
 
       <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-        {([["", "Visitors"], ["traffic", "Daily traffic"], ["pages", "Top pages"], ["pdp", "Product page"]] as [string, string][]).map(([key, label]) => {
+        {([["", "Visitors"], ["traffic", "Daily traffic"], ["pages", "Top pages"], ["pdp", "Product page"], ["outreach", "Email outreach"]] as [string, string][]).map(([key, label]) => {
           const active = (view ?? "") === key;
           return (
             <Link key={label} href={linkTo({ view: key })} style={{ fontSize: 13, fontWeight: 600, padding: "6px 14px", borderRadius: 8, background: active ? "#161D2B" : "#fff", color: active ? "#fff" : "#56627A", border: "1px solid #E8EBF1" }}>
@@ -403,7 +490,11 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
         </div>
       )}
 
-      {showPages || isTraffic || showPdp ? null : visitors.length === 0 ? (
+      {isOutreach && (
+        <OutreachTable rows={outreachRows} stray={strayOutreach} surveyCount={surveys.length} />
+      )}
+
+      {showPages || isTraffic || showPdp || isOutreach ? null : visitors.length === 0 ? (
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "44px 20px", textAlign: "center", color: "#8A93A6", fontSize: 14 }}>
           No visits recorded yet. Data starts flowing once migration 0051 is run and the site is redeployed.
         </div>
@@ -426,8 +517,13 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
                   <span style={{ fontSize: 12, color: "#56627A" }}>
                     {v.pageviews} pages · {v.clicks} taps{v.addToCarts ? ` · ${v.addToCarts} add-to-cart` : ""} · {dur(v.totalMs)}
                   </span>
-                  {(v.utm || v.landingReferrer) && (
-                    <span style={{ fontSize: 11.5, color: "#C77700" }}>{v.utm ?? new URL(v.landingReferrer!).hostname}</span>
+                  {v.utmMedium === "outreach" && v.utmContent ? (
+                    // Cold outreach: name the firm we emailed, not the raw UTM.
+                    <span style={{ fontSize: 11.5, fontWeight: 700, color: "#C77700" }}>
+                      ✉ {outreachName(v.utmContent)}
+                    </span>
+                  ) : (v.utm || v.landingReferrer) && (
+                    <span style={{ fontSize: 11.5, color: "#C77700" }}>{v.utm ?? hostOf(v.landingReferrer)}</span>
                   )}
                   <span style={{ marginLeft: "auto", fontSize: 11.5, color: "#A0A7B5", whiteSpace: "nowrap" }}>{istDateTime(v.lastSeen)}</span>
                 </summary>
