@@ -84,7 +84,7 @@ async function validate(
     const gstRate = meta.gst_rate;
     items.push({
       id: i.id, name: p.name, qty,
-      price: unitPriceFor(Number(p.elume_price), qty),
+      price: unitPriceFor(Number(p.elume_price), qty, p.category),
       cat: p.category,
       ...(gstRate != null ? { gstRate: Number(gstRate) } : {}),
       ...(meta.hsn ? { hsn: meta.hsn } : {}),
