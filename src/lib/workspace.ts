@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { adminClient } from "@/lib/supabase/admin";
 import { getSavedAddresses, type SavedAddress } from "@/lib/addresses";
+import { getSavedGstins, getSavedPhones, type SavedGstin, type SavedPhone } from "@/lib/saved-fields";
 
 /** Live data for the buyer workspace (/app): the signed-in user's REAL
  *  projects and order-derived KPIs. Replaces the demo content for real
@@ -22,7 +23,12 @@ export type LiveShipment = {
 export type LiveEvent = { status: string; note: string | null; at: string };
 export type LiveOrder = {
   id: string; total: number; status: string; created_at: string; items: number;
-  lines: { name: string; qty: number; price: number }[];
+  // `id` is what makes one-tap reordering possible: the same SKUs go straight
+  // back into the cart, re-priced server-side at checkout.
+  lines: { id: string; name: string; qty: number; price: number }[];
+  /** Structured billing/shipping, so "buy again" can restore the exact
+   *  delivery setup instead of only the composed one-line string. */
+  addressDetails: { billing?: Record<string, string>; shipping?: Record<string, string> } | null;
   // Everything the customer needs to trust the order without calling us:
   subtotal: number;               // taxable value (ex-GST)
   discount: number;               // 0 when no code applied
@@ -39,9 +45,12 @@ export type LiveOrder = {
 export type LiveWorkspace = {
   projects: LiveProject[];
   orders: LiveOrder[];
-  /** Delivery/billing addresses banked from this account's checkouts, shown
-   *  in Account → Personal details so they can be reviewed and removed. */
+  /** Delivery/billing addresses, GST registrations and phone numbers banked
+   *  from this account's checkouts, shown in Account settings so they can be
+   *  reviewed, renamed, added to and removed. */
   addresses: SavedAddress[];
+  gstins: SavedGstin[];
+  phones: SavedPhone[];
   stats: {
     committed: number;        // sum of paid orders (this account's email/user)
     openCount: number;        // paid but not yet delivered
@@ -88,7 +97,8 @@ export async function getLiveWorkspace(userId: string, email: string | null): Pr
       orders = mine.map((o: any) => ({
         id: o.id, total: Number(o.total ?? 0), status: o.status, created_at: o.created_at,
         items: Array.isArray(o.items) ? o.items.length : 0,
-        lines: Array.isArray(o.items) ? o.items.slice(0, 20).map((i: any) => ({ name: String(i.name ?? i.id ?? "item"), qty: Number(i.qty ?? 1), price: Number(i.price ?? 0) })) : [],
+        lines: Array.isArray(o.items) ? o.items.slice(0, 20).map((i: any) => ({ id: String(i.id ?? ""), name: String(i.name ?? i.id ?? "item"), qty: Number(i.qty ?? 1), price: Number(i.price ?? 0) })) : [],
+        addressDetails: (o.address_details ?? null) as LiveOrder["addressDetails"],
         subtotal: Number(o.subtotal ?? 0),
         discount: Number(o.discount_amount ?? 0),
         discountCode: o.discount_code ?? null,
@@ -138,6 +148,8 @@ export async function getLiveWorkspace(userId: string, email: string | null): Pr
     projects,
     orders,
     addresses: email ? await getSavedAddresses(email) : [],
+    gstins: email ? await getSavedGstins(email) : [],
+    phones: email ? await getSavedPhones(email) : [],
     stats: {
       committed: orders.reduce((s, o) => s + o.total, 0),
       openCount: open.length,

@@ -5,7 +5,7 @@ import { GROTESK } from "@/lib/fonts";
 import { fetchProductsLite } from "@/lib/products";
 import { glanceViews30d } from "@/lib/glance";
 import { rankProducts, diversify } from "@/lib/ranking";
-import { WHOLESALE_MIN_QTY, WHOLESALE_DISCOUNT, wholesalePrice } from "@/lib/pricing";
+import { WHOLESALE_MIN_QTY, WHOLESALE_DISCOUNT, wholesalePrice, wholesaleEligible } from "@/lib/pricing";
 import ProductCard from "@/components/storefront/ProductCard";
 import { fmt } from "@/lib/format";
 
@@ -25,7 +25,9 @@ export const metadata: Metadata = {
  */
 export default async function WholesalePage() {
   const [products, gv] = await Promise.all([fetchProductsLite(), glanceViews30d()]);
-  const buyable = products.filter((p) => p.inStock !== false);
+  // Metals are commodity-priced and never wholesale-eligible - keep them out
+  // of a page whose whole premise is the 15-unit −5% tier.
+  const buyable = products.filter((p) => p.inStock !== false && wholesaleEligible(p.cat));
 
   // Biggest rupee saving on a minimum wholesale order (15 units), demand-aware.
   const savings = (p: (typeof buyable)[number]) => (p.price - wholesalePrice(p.price)) * WHOLESALE_MIN_QTY;

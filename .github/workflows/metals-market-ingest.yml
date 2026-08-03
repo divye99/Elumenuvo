@@ -1,0 +1,36 @@
+name: Metals market ingest (MCX + LME copper)
+
+# Feeds the INTERNAL reference series in Supabase (metal_market_ticks/_daily)
+# by hitting the CRON_SECRET-protected ingest routes. Two cadences:
+#   - MCX (Angel One, free): every 15 min during MCX hours, Mon-Fri
+#     ("*/15 3-17 * * 1-5" UTC ≈ 8:30 am to 11:15 pm IST).
+#   - LME (metals.dev free tier, 100 req/month): twice per weekday
+#     (08:40 / 16:40 UTC, inside LME trading hours) ≈ 44 calls/month.
+# Jobs are routed by which cron fired; a manual run triggers both.
+# Requires the repo secret CRON_SECRET (same value as Vercel).
+on:
+  schedule:
+    - cron: "*/15 3-17 * * 1-5"
+    - cron: "40 8,16 * * 1-5"
+  workflow_dispatch: {}
+
+jobs:
+  mcx:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '*/15 3-17 * * 1-5'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ingest MCX copper snapshot
+        run: |
+          curl -fsS --retry 2 --retry-delay 30 \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "https://elumenuvo.com/api/cron/ingest-mcx"
+
+  lme:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '40 8,16 * * 1-5'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ingest LME copper snapshot
+        run: |
+          curl -fsS --retry 2 --retry-delay 30 \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "https://elumenuvo.com/api/cron/ingest-lme"

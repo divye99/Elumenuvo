@@ -2,7 +2,7 @@ import Link from "next/link";
 import WholesaleAddButton from "@/components/storefront/WholesaleAddButton";
 import { GROTESK, MONO } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
-import { wholesalePrice, offMrpPct, WHOLESALE_MIN_QTY, baseExGst } from "@/lib/pricing";
+import { wholesalePrice, wholesaleEligible, offMrpPct, WHOLESALE_MIN_QTY, baseExGst } from "@/lib/pricing";
 import { dimsOf } from "@/lib/variants";
 import type { Product, TechSpecs } from "@/lib/data";
 import type { BlogPost } from "@/lib/blog";
@@ -38,11 +38,13 @@ export default function ProductDeepDive({
           ["🏷️", "100% genuine", "Brand-authorised stock with full manufacturer warranty"],
           ["🧾", "GST invoice", "Tax invoice on every order · GST billing with tax split"],
           ["🚚", "Pan-India delivery", "3–7 working days to any site in India"],
-          [
-            "📦",
-            "Wholesale built in",
-            `−5% auto-applies at ${WHOLESALE_MIN_QTY}+ units - ${fmt(wholesalePrice(p.price))}/${p.unit} on this product`,
-          ],
+          wholesaleEligible(p.cat)
+            ? [
+                "📦",
+                "Wholesale built in",
+                `−5% auto-applies at ${WHOLESALE_MIN_QTY}+ units - ${fmt(wholesalePrice(p.price))}/${p.unit} on this product`,
+              ]
+            : ["📈", "Transparent pricing", "Rates updated against the market through the day - what you see is the live trade rate"],
         ].map(([icon, title, body]) => (
           <div key={title} style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "14px 16px" }}>
             <div style={{ fontSize: 18, marginBottom: 6 }}>{icon}</div>

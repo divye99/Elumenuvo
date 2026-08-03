@@ -6,16 +6,28 @@
  *   2. Elume price    - our single-unit selling price (the `price` field)
  *   3. Wholesale      - 5% below the Elume price, for orders of 15+ units
  */
+import { isMetalCategory } from "@/lib/metals";
+
 export const WHOLESALE_DISCOUNT = 0.05; // 5% off the Elume price
 export const WHOLESALE_MIN_QTY = 15;
+
+/** The 15-unit wholesale tier is an FMEG policy. Commodity-priced metals
+ *  (see METALS_CATEGORIES) are quoted at the trade rate two to three times a
+ *  day with margins far below 5% - an automatic volume discount would sell
+ *  them below cost, so metals are NEVER wholesale-eligible. */
+export function wholesaleEligible(category?: string | null): boolean {
+  return !isMetalCategory(category);
+}
 
 /** Per-unit wholesale price (Elume price − 5%). */
 export function wholesalePrice(elumePrice: number): number {
   return Math.round(elumePrice * (1 - WHOLESALE_DISCOUNT));
 }
 
-/** Effective per-unit price for a quantity - wholesale kicks in at the min qty. */
-export function unitPriceFor(elumePrice: number, qty: number): number {
+/** Effective per-unit price for a quantity - wholesale kicks in at the min
+ *  qty. Pass the product's category so metals stay at the quoted rate. */
+export function unitPriceFor(elumePrice: number, qty: number, category?: string | null): number {
+  if (!wholesaleEligible(category)) return elumePrice;
   return qty >= WHOLESALE_MIN_QTY ? wholesalePrice(elumePrice) : elumePrice;
 }
 
@@ -56,6 +68,7 @@ export const GST_RATES: Record<string, number> = {
   "Pumps": 0.18,     // Sch II 400(c): power driven pumps for handling water
   "Electrical Accessories": 0.18,
   "EV Charging": 0.05, // Sch I entry 438: chargers for electrically operated vehicles
+  "Copper": 0.18,      // Metals family - HSN 7403/7407, Sch II standard rate
 };
 export const DEFAULT_GST_RATE = 0.18; // standard FMEG rate for anything unmapped
 /** Back-compat alias - prefer gstRateFor(category). */

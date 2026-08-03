@@ -3,24 +3,15 @@
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { exGst, gstPart, baseExGst, unitPriceFor } from "@/lib/pricing";
-import { COUNTRIES, DEFAULT_COUNTRY, phoneError, toE164 } from "@/lib/phone";
+import { DEFAULT_COUNTRY, phoneError, normalisePhoneE164 } from "@/lib/phone";
 import { sendAdminNewOrder, sendCustomerOrderConfirmation } from "@/lib/email";
 import { saveAddressFromOrder } from "@/lib/addresses";
+import { rememberGstin, rememberPhone } from "@/lib/saved-fields";
 import { createRazorpayOrder, verifyPaymentSignature, razorpayConfigured, razorpayKeyId } from "@/lib/razorpay";
 
 /** Validate a submitted phone against the country its dial code names.
- *  Longest dial code first, so "+971…" is not mistaken for "+9…". */
-function normalisePhone(raw: string): string | null {
-  const digits = (raw ?? "").replace(/\D/g, "");
-  const byLongestDial = [...COUNTRIES].sort((a, b) => b.dial.length - a.dial.length);
-  for (const c of byLongestDial) {
-    if (digits.startsWith(c.dial)) {
-      const hit = toE164(digits.slice(c.dial.length), c);
-      if (hit) return hit;
-    }
-  }
-  return toE164(digits, DEFAULT_COUNTRY); // bare national number, assume India
-}
+ *  Shares one implementation with the rest of the app (lib/phone). */
+const normalisePhone = normalisePhoneE164;
 
 export type CheckoutItem = { id: string; name: string; qty: number; price: number; cat?: string; gstRate?: number; hsn?: string };
 export type StructuredOrderAddress = { line1: string; line2: string; line3: string; city: string; district: string; state: string; pin: string; country: string };
@@ -198,7 +189,53 @@ async function insertPendingOrder(
     // different table and can still take it.
     address_details: input.address_details ?? null,
   });
+  // The GSTIN and phone are banked the same way, so an enterprise with several
+  // registrations picks the right one next time instead of retyping it, and a
+  // site number stays distinguishable from the accounts number.
+  await rememberGstin(db, { email: row.email as string, gstin: row.gstin as string | null, user_id: userId });
+  await rememberPhone(db, { email: row.email as string, phone: row.phone as string, user_id: userId, source: "checkout" });
+  await ensureFirstProject(db, userId, row, input);
   return { ok: true };
+}
+
+/**
+ * A business account's first order creates "Project 1" from that order's
+ * delivery setup: address, site contact and GSTIN in one renamable preset.
+ *
+ * Projects are the layer between the account and a single order. A firm
+ * running three sites bills them all to one registration, or each to its own,
+ * and either way should pick a site rather than reassemble it. Only the FIRST
+ * one is created automatically; after that, projects are the customer's to
+ * manage, and quietly minting "Project 4" behind them would be noise.
+ */
+async function ensureFirstProject(
+  db: NonNullable<ReturnType<typeof adminClient>>,
+  userId: string | null,
+  row: Record<string, unknown>,
+  input: PlaceOrderInput
+): Promise<void> {
+  if (!userId) return; // guests have nowhere to hang a project
+  const ship = input.address_details?.shipping;
+  if (!ship?.line1?.trim()) return;
+  try {
+    const { data: prof } = await db.from("profiles").select("account_type").eq("id", userId).maybeSingle();
+    if (prof?.account_type !== "business") return;
+
+    const { count } = await db.from("app_projects").select("id", { count: "exact", head: true }).eq("user_id", userId);
+    if ((count ?? 0) > 0) return; // they already have one; leave their setup alone
+
+    await db.from("app_projects").insert({
+      user_id: userId,
+      name: "Project 1",
+      site: [ship.city, ship.state].filter(Boolean).join(", ") || null,
+      stage: "active",
+      contact_name: (row.name as string) || null,
+      contact_phone: (row.phone as string) || null,
+      address_line1: ship.line1, address_line2: ship.line2 || null, address_line3: ship.line3 || null,
+      city: ship.city || null, district: ship.district || null, state: ship.state || null, pin: ship.pin || null,
+      gstin: (row.gstin as string) || null,
+    });
+  } catch { /* projects table shape varies pre-0089; never block an order */ }
 }
 
 export type PaidResult = { ok: true; newlyPaid: boolean; orderId: string; total: number } | { ok: false; error: string };

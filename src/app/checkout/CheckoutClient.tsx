@@ -3,11 +3,12 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { readCheckoutDraft, saveCheckoutDraft, clearCheckoutDraft, hasAddress } from "@/lib/checkout-draft";
 import { inspectGstin } from "@/lib/gstin";
+import SavedPicker, { type PickerOption } from "@/app/checkout/SavedPicker";
 import Link from "next/link";
 import { GROTESK } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import { unitPriceFor, baseExGst } from "@/lib/pricing";
-import { COUNTRIES, DEFAULT_COUNTRY, countryByIso, maxDigits, nationalDigits, phoneError, toE164 } from "@/lib/phone";
+import { COUNTRIES, DEFAULT_COUNTRY, countryByIso, maxDigits, nationalDigits, normalisePhoneE164, phoneError, toE164 } from "@/lib/phone";
 import { useCart } from "@/lib/cart";
 import { startOnlinePayment, confirmOnlinePayment } from "@/lib/order-actions";
 import { identify } from "@/lib/analytics";
@@ -65,7 +66,12 @@ function addressError(a: Address, label: string): string | null {
   return null;
 }
 
-export default function CheckoutClient({ prefill, onlineEnabled, saved = [] }: { prefill: Prefill; onlineEnabled: boolean; saved?: SavedEntry[] }) {
+export default function CheckoutClient({
+  prefill, onlineEnabled, saved = [], savedGstins = [], savedPhones = [],
+}: {
+  prefill: Prefill; onlineEnabled: boolean; saved?: SavedEntry[];
+  savedGstins?: PickerOption[]; savedPhones?: PickerOption[];
+}) {
   const { items, total, baseTotal, gstTotal, clear, ready } = useCart();
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -362,6 +368,28 @@ export default function CheckoutClient({ prefill, onlineEnabled, saved = [] }: {
             <Row>
               <Field label="Full name *"><input name="full_name" autoComplete="name" value={f.name} onChange={(e) => set("name", e.target.value)} style={inp} /></Field>
               <Field label="Phone *">
+                {/* Saved numbers first: the site number and the accounts
+                    number are rarely the same, and one traced session gave us
+                    three different numbers with no way to tell them apart. */}
+                {savedPhones.length > 0 && (
+                  <div style={{ marginBottom: 9 }}>
+                    <SavedPicker
+                      options={savedPhones}
+                      selected={toE164(f.phone, country) ?? ""}
+                      onSelect={(v) => { const s = splitE164(v); if (s) { setIso(s.iso); set("phone", s.national); } }}
+                      onAddNew={(v) => {
+                        const e164 = normalisePhoneE164(v);
+                        if (!e164) return "Please enter a valid mobile number.";
+                        const s = splitE164(e164);
+                        if (s) { setIso(s.iso); set("phone", s.national); }
+                        return null;
+                      }}
+                      addLabel="Add a number"
+                      placeholder="98765 43210"
+                      inputMode="tel"
+                    />
+                  </div>
+                )}
                 <div style={{ display: "flex", gap: 6 }}>
                   <select
                     aria-label="Country dialling code"
@@ -444,17 +472,41 @@ export default function CheckoutClient({ prefill, onlineEnabled, saved = [] }: {
               <label style={ck}><input type="checkbox" checked={f.wantGst} onChange={(e) => set("wantGst", e.target.checked)} /> I want a GST invoice</label>
               {f.wantGst && (
                 <Field label="GSTIN *">
-                  <input
-                    value={f.gstin} onChange={(e) => set("gstin", e.target.value.toUpperCase())} maxLength={15}
-                    placeholder="27AAACE1234F1Z5"
-                    style={{ ...inp, fontFamily: "var(--space-mono)", borderColor: gstCheck.empty ? "#E0E4ED" : gstCheck.valid ? "#8FD3B0" : "#F0BBA8" }}
-                  />
-                  {/* Checked against the GSTIN's own check digit, so a typo is
-                      caught before payment rather than on the invoice. */}
-                  {!gstCheck.empty && (
-                    <span style={{ display: "block", fontSize: 11.5, marginTop: 5, fontWeight: 600, color: gstCheck.valid ? "#1F9D63" : "#C2410C" }}>
-                      {gstCheck.valid ? `✓ Valid · ${gstCheck.state}` : gstCheck.error}
-                    </span>
+                  {/* A group can hold one registration per state, so this is a
+                      pick-list, not a single value. Choosing one here is
+                      independent of the address: a repeat order can change
+                      either, both or neither. */}
+                  {savedGstins.length > 0 ? (
+                    <SavedPicker
+                      options={savedGstins}
+                      selected={f.gstin.trim().toUpperCase()}
+                      onSelect={(v) => set("gstin", v)}
+                      onAddNew={(v) => {
+                        const c = inspectGstin(v);
+                        if (!c.valid) return c.error ?? "That GSTIN does not look right.";
+                        set("gstin", v.toUpperCase());
+                        return null;
+                      }}
+                      addLabel="Add a GSTIN"
+                      placeholder="27AAACE1234F1Z5"
+                      mono
+                      maxLength={15}
+                    />
+                  ) : (
+                    <>
+                      <input
+                        value={f.gstin} onChange={(e) => set("gstin", e.target.value.toUpperCase())} maxLength={15}
+                        placeholder="27AAACE1234F1Z5"
+                        style={{ ...inp, fontFamily: "var(--space-mono)", borderColor: gstCheck.empty ? "#E0E4ED" : gstCheck.valid ? "#8FD3B0" : "#F0BBA8" }}
+                      />
+                      {/* Checked against the GSTIN's own check digit, so a typo
+                          is caught before payment rather than on the invoice. */}
+                      {!gstCheck.empty && (
+                        <span style={{ display: "block", fontSize: 11.5, marginTop: 5, fontWeight: 600, color: gstCheck.valid ? "#1F9D63" : "#C2410C" }}>
+                          {gstCheck.valid ? `✓ Valid · ${gstCheck.state}` : gstCheck.error}
+                        </span>
+                      )}
+                    </>
                   )}
                 </Field>
               )}
@@ -512,7 +564,7 @@ export default function CheckoutClient({ prefill, onlineEnabled, saved = [] }: {
           {items.map((it) => (
             <div key={it.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12.5, marginBottom: 7 }}>
               <span style={{ color: "#56627A", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{it.qty}× {it.name}</span>
-              <span style={{ fontFamily: GROTESK, fontWeight: 600 }}>{fmt(baseExGst(unitPriceFor(it.price, it.qty), it.cat, it.gstRate) * it.qty)}</span>
+              <span style={{ fontFamily: GROTESK, fontWeight: 600 }}>{fmt(baseExGst(unitPriceFor(it.price, it.qty, it.cat), it.cat, it.gstRate) * it.qty)}</span>
             </div>
           ))}
           <div style={{ borderTop: "1px solid #F0F2F6", marginTop: 8, paddingTop: 10 }}>

@@ -57,6 +57,18 @@ export async function upsertProduct(formData: FormData): Promise<void> {
 
   const id = String(formData.get("id") ?? "").trim();
 
+  // Metals products are managed ONLY in /admin/metals: this form's attrs
+  // fields don't include Lot, so saving a rod here would silently drop the
+  // 3/4-MT lot attribute and corrupt its per-lot pricing.
+  {
+    const { isMetalCategory } = await import("@/lib/metals");
+    const submittedCategory = String(formData.get("category") ?? "").trim();
+    const { data: existing } = await db.from("products").select("category").eq("id", id).maybeSingle();
+    if (isMetalCategory(existing?.category) || isMetalCategory(submittedCategory)) {
+      redirect("/admin/metals");
+    }
+  }
+
   // Optional image upload → Supabase Storage (bucket: product-images).
   let image_url: string | null = String(formData.get("current_image_url") ?? "") || null;
   const file = formData.get("image");
@@ -174,10 +186,25 @@ export async function bulkUpdatePricing(edits: { id: string; mrp: number; elume_
 /** Parse + diff an uploaded CSV against the live catalogue (no writes). */
 export async function previewImport(csvText: string) {
   if (!(await isAdmin())) return { diffs: [], errors: ["Not signed in."] };
-  const { listProductRows } = await import("@/lib/admin/data");
+  const { listProductRows, listMetalIds } = await import("@/lib/admin/data");
   const { diffFromCsv } = await import("@/lib/admin/import");
+  const { isMetalCategory } = await import("@/lib/metals");
   const existing = await listProductRows();
-  return diffFromCsv(csvText, existing);
+  const res = diffFromCsv(csvText, existing);
+  // The Metals catalogue is managed in /admin/metals and is invisible to this
+  // diff's base list - a CSV row reusing a metals id (e.g. a re-uploaded old
+  // export) would look like an "add" and upsert straight over the metals row.
+  const metalIds = await listMetalIds();
+  const blocked = res.diffs.filter(
+    (d) => metalIds.has(d.id) || isMetalCategory((d.payload as { category?: string } | null)?.category)
+  );
+  if (blocked.length) {
+    return {
+      diffs: res.diffs.filter((d) => !blocked.includes(d)),
+      errors: [...res.errors, `${blocked.length} row(s) skipped: the Metals catalogue is managed in /admin/metals, not via CSV import.`],
+    };
+  }
+  return res;
 }
 
 /** Apply a parsed CSV import (add/update/remove) in one go, then log it. The
@@ -195,6 +222,18 @@ export async function applyImport(
   const db = adminClient();
   if (!db) return { ok: false, error: "Service-role key missing - writes disabled." };
   if (!diffs.length) return { ok: false, error: "Nothing to apply." };
+
+  // Re-validate the metals guard server-side (diffs arrive from the client):
+  // never delete or upsert a row that belongs to the metals catalogue.
+  {
+    const { listMetalIds } = await import("@/lib/admin/data");
+    const { isMetalCategory } = await import("@/lib/metals");
+    const metalIds = await listMetalIds();
+    diffs = diffs.filter(
+      (d) => !metalIds.has(d.id) && !isMetalCategory((d.payload as { category?: string } | null)?.category)
+    );
+    if (!diffs.length) return { ok: false, error: "Only metals rows were in this import - the Metals catalogue is managed in /admin/metals." };
+  }
 
   // BATCHED: one round-trip per chunk, not per row. A row-at-a-time loop meant
   // a few hundred edits blew the serverless time limit and the request died

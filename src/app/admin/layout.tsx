@@ -16,6 +16,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               <nav style={{ display: "flex", gap: 16, fontSize: 14 }}>
                 <Link href="/admin/orders" style={{ color: "rgba(255,255,255,0.75)" }}>Orders</Link>
                 <Link href="/admin/products" style={{ color: "rgba(255,255,255,0.75)" }}>Products</Link>
+                <Link href="/admin/metals" style={{ color: "rgba(255,255,255,0.75)" }}>Metals</Link>
                 <Link href="/admin/radar" style={{ color: "rgba(255,255,255,0.75)" }}>Price radar</Link>
                 <Link href="/admin/content" style={{ color: "rgba(255,255,255,0.75)" }}>Content</Link>
               </nav>

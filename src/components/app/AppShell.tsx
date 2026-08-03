@@ -15,6 +15,8 @@ import { deleteSavedAddress } from "@/lib/address-actions";
 import { type SavedAddress } from "@/lib/addresses";
 import { inspectGstin } from "@/lib/gstin";
 import { BUSINESS_TYPES } from "@/app/onboarding/OnboardingForm";
+import { GstinBook, PhoneBook, type GstinRow, type PhoneRow } from "@/components/app/SavedFieldBooks";
+import BuyAgainButton from "@/components/app/BuyAgainButton";
 import { WHOLESALE_MIN_QTY } from "@/lib/pricing";
 
 /**
@@ -198,7 +200,7 @@ export default function AppShell({ user, live }: { user?: { email: string; name?
           {screen === "portfolio" && <LivePortfolio live={live} onCatalogue={() => nav("catalogue")} />}
           {screen === "projects" && <ProjectsScreen live={live} />}
           {screen === "confirm" && <LiveOrders live={live} onCatalogue={() => nav("catalogue")} />}
-          {screen === "account" && user && <AccountScreen user={user} section={acctSection} addresses={live.addresses ?? []} />}
+          {screen === "account" && user && <AccountScreen user={user} section={acctSection} addresses={live.addresses ?? []} gstins={live.gstins ?? []} phones={live.phones ?? []} />}
         </div>
 
         {/* ═══ MOBILE TAB BAR (phones only; the sidebar hides) ═══ */}
@@ -385,8 +387,13 @@ function LiveOrders({ live, onCatalogue }: { live: LiveWorkspace; onCatalogue: (
                   <span style={{ fontSize: 12, color: "#8A93A6" }}>{o.items} item{o.items === 1 ? "" : "s"}</span>
                   <span style={{ fontFamily: GROTESK, fontSize: 14, fontWeight: 600 }}>{fmt(o.total)}</span>
                   <span style={{ display: "inline-block", fontSize: 11.5, fontWeight: 700, padding: "3px 10px", borderRadius: 7, background: bg, color: fg }}>{LABEL[o.status] ?? o.status.replace(/_/g, " ")}</span>
-                  <span style={{ marginLeft: "auto", fontSize: 11.5, color: "#A0A7B5" }}>
-                    {new Date(o.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                  {/* Two taps to repeat: here, then Pay. The cart, address,
+                      GSTIN and phone all come back from this order. */}
+                  <span onClick={(e) => e.preventDefault()} style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
+                    <BuyAgainButton order={o} compact />
+                    <span style={{ fontSize: 11.5, color: "#A0A7B5", whiteSpace: "nowrap" }}>
+                      {new Date(o.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                    </span>
                   </span>
                 </summary>
 
@@ -434,7 +441,7 @@ function LiveOrders({ live, onCatalogue }: { live: LiveWorkspace; onCatalogue: (
 
 /* ============================ ACCOUNT ============================ */
 
-function AccountScreen({ user, section, addresses = [] }: { user: { email: string; name?: string; org?: string; accountType?: "business" | "individual"; gstin?: string; phone?: string; businessType?: string }; section: "personal" | "business"; addresses?: SavedAddress[] }) {
+function AccountScreen({ user, section, addresses = [], gstins = [], phones = [] }: { user: { email: string; name?: string; org?: string; accountType?: "business" | "individual"; gstin?: string; phone?: string; businessType?: string }; section: "personal" | "business"; addresses?: SavedAddress[]; gstins?: GstinRow[]; phones?: PhoneRow[] }) {
   const router = useRouter();
   const isBiz = user.accountType === "business";
   const [name, setName] = useState(user.name ?? "");
@@ -540,8 +547,10 @@ function AccountScreen({ user, section, addresses = [] }: { user: { email: strin
         {note?.where === "personal" && <div style={{ marginTop: 10, fontSize: 12.5, fontWeight: 600, color: note.ok ? "#1F9D63" : "#D14343" }}>{note.text}</div>}
       </div>
 
-      {/* ── Saved addresses ── */}
+      {/* ── Saved addresses, GST registrations and phone numbers ── */}
       <SavedAddressBook initial={addresses} />
+      <GstinBook initial={gstins} />
+      <PhoneBook initial={phones} />
     </div>
   );
 }

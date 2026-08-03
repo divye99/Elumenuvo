@@ -4,7 +4,7 @@ import type { Product } from "@/lib/data";
  *  hover swatches. Variations point at their parent product via `parentId`;
  *  a family is the parent + all its children, differing by `attrs`. */
 
-export const DIM_ORDER = ["Size", "Sweep", "Colour", "Length", "Quality"];
+export const DIM_ORDER = ["Size", "Sweep", "Colour", "Length", "Quality", "Lot"];
 
 /** Swatch colours for known Colour/finish attr values. */
 export const COLOUR_HEX: Record<string, string> = {

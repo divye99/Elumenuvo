@@ -1,0 +1,23 @@
+name: Metals price reminders (9am / 11am / 2pm IST)
+
+# Emails info@elumenuvo.com a copper price-update reminder (with the latest
+# internal MCX/LME readings) three times a day, Mon-Sat, by hitting the
+# CRON_SECRET-protected route. Runs here because Vercel Hobby crons are
+# daily-max. GitHub cron is UTC: 03:30 / 05:30 / 08:30 UTC = 9:00 / 11:00 /
+# 2:00 pm IST. Requires the repo secret CRON_SECRET (same value as Vercel).
+on:
+  schedule:
+    - cron: "30 3 * * 1-6"
+    - cron: "30 5 * * 1-6"
+    - cron: "30 8 * * 1-6"
+  workflow_dispatch: {}
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger reminder email
+        run: |
+          curl -fsS --retry 2 --retry-delay 30 \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "https://elumenuvo.com/api/cron/metals-reminder"

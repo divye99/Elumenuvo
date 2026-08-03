@@ -7,6 +7,7 @@ import { tileFor, type Product } from "@/lib/data";
 import ProductGallery from "@/components/storefront/ProductGallery";
 import {
   wholesalePrice,
+  wholesaleEligible,
   unitPriceFor,
   offMrpPct,
   WHOLESALE_MIN_QTY,
@@ -62,8 +63,9 @@ export default function ProductDetail({
   const offPct = offMrpPct(p.price, p.market);
   const off = offPct + "%";
   const ws = wholesalePrice(p.price);
-  const isWholesale = qty >= WHOLESALE_MIN_QTY;
-  const lineTotal = unitPriceFor(p.price, qty) * qty;
+  const canWholesale = wholesaleEligible(p.cat);
+  const isWholesale = canWholesale && qty >= WHOLESALE_MIN_QTY;
+  const lineTotal = unitPriceFor(p.price, qty, p.cat) * qty;
   const gb = gstBreakdown(p.price, p.cat, p.gstRate); // ex-GST base / GST / inclusive, at the category rate
   const galleryImages = (p.images?.length ? p.images : p.image ? [p.image] : []).filter(Boolean);
   const specs = [
@@ -155,7 +157,8 @@ export default function ProductDetail({
                 <span style={{ fontSize: 11, color: "#4E5BDC", fontWeight: 600 }}>Business · GST invoice</span>
               </div>
             )}
-            {/* Wholesale tier */}
+            {/* Wholesale tier (FMEG only - commodity-priced metals sell at the quoted rate) */}
+            {canWholesale && (
             <div data-pdp-sec="wholesale" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, background: "#F5F6F9", border: "1px solid #E8EBF1", borderRadius: 11, padding: "11px 14px", marginBottom: 20 }}>
               <div>
                 <div style={{ fontSize: 11.5, color: "#8A93A6" }}>Wholesale · {WHOLESALE_MIN_QTY}+ units</div>
@@ -176,6 +179,7 @@ export default function ProductDetail({
                 )}
               </div>
             </div>
+            )}
 
             {p.inStock === false ? (
               <div style={{ background: "#F7F8FB", border: "1px solid #E8EBF1", borderRadius: 12, padding: "16px 18px" }}>

@@ -324,6 +324,70 @@ export async function sendTradeSurveyAlert(s: {
   return send(BCC_SELF, `📋 Trade survey · ${s.company}`, html);
 }
 
+/** Ping the business inbox (info@) the moment a metals enquiry lands. Same
+ *  contract as the trade-survey alert: the row in metal_enquiries (admin →
+ *  Metals → Enquiries) is the source of truth; this email just makes sure a
+ *  GSTIN-verified lead never sits unread. */
+export async function sendMetalsEnquiryAlert(e: {
+  company: string; gstin: string; name: string; email: string; phone: string; metal: string; message: string;
+}): Promise<EmailResult> {
+  const row = (k: string, v?: string | null) =>
+    v ? `<tr><td style="padding:6px 0;font-size:13px;color:#56627A;vertical-align:top;white-space:nowrap">${k}</td><td style="padding:6px 0 6px 14px;font-size:13px;color:#19202E">${escapeHtml(v)}</td></tr>` : "";
+  const html = shell(
+    `New metals enquiry · ${escapeHtml(e.metal)}`,
+    `<p style="font-size:14px;color:#56627A;margin:0 0 10px"><b>${escapeHtml(e.company)}</b> · GSTIN <span style="font-family:monospace">${escapeHtml(e.gstin)}</span></p>
+     <table style="width:100%;border-collapse:collapse">
+       ${row("Metal", e.metal)}
+       ${row("Contact", `${e.name} · ${e.phone}`)}
+       ${row("Email", e.email)}
+       ${row("Requirement", e.message)}
+     </table>
+     ${btn(`${SITE}/admin/metals/enquiries`, "All enquiries in admin →")}`
+  );
+  return send(BCC_SELF, `🔩 Metals enquiry · ${e.metal} · ${e.company}`, html);
+}
+
+/** Thrice-daily (9am / 11am / 2pm IST) nudge to update the copper selling
+ *  rate. Carries the latest internal MCX + LME reference readings so the
+ *  decision can be made straight from the inbox, and deep-links to the
+ *  price console. Sent by /api/cron/metals-reminder (GitHub Actions cron). */
+export async function sendMetalsPriceReminder(
+  slot: string,
+  readings: {
+    mcx?: { price: number; change: number | null; changePct: number | null; ts: string } | null;
+    lme?: { price: number; change: number | null; changePct: number | null; ts: string } | null;
+  }
+): Promise<EmailResult> {
+  const ago = (ts: string) => {
+    const mins = Math.max(0, Math.round((Date.now() - new Date(ts).getTime()) / 60_000));
+    return mins < 60 ? `${mins} min ago` : `${Math.round(mins / 60)} h ago`;
+  };
+  const chip = (change: number | null, pct: number | null) => {
+    if (change == null && pct == null) return "";
+    const up = (change ?? pct ?? 0) >= 0;
+    const txt = `${up ? "▲" : "▼"} ${change != null ? Math.abs(change).toFixed(2) : ""}${pct != null ? ` (${Math.abs(pct).toFixed(2)}%)` : ""}`;
+    return `<span style="font-size:12px;font-weight:700;color:${up ? "#1F9D63" : "#D14343"}">${txt}</span>`;
+  };
+  const card = (label: string, body: string) =>
+    `<div style="background:#F7F8FB;border:1px solid #E8EBF1;border-radius:12px;padding:14px 16px;margin:0 0 10px">
+       <div style="font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#8A93A6;margin-bottom:4px">${label}</div>
+       ${body}
+     </div>`;
+  const mcx = readings.mcx
+    ? card("MCX Copper · near month", `<span style="font-size:20px;font-weight:700">₹${readings.mcx.price.toFixed(2)}/kg</span> ${chip(readings.mcx.change, readings.mcx.changePct)}<div style="font-size:12px;color:#8A93A6;margin-top:2px">updated ${ago(readings.mcx.ts)}</div>`)
+    : card("MCX Copper · near month", `<span style="font-size:13px;color:#8A93A6">No feed data yet - check the console.</span>`);
+  const lme = readings.lme
+    ? card("LME Copper · 3-month", `<span style="font-size:20px;font-weight:700">$${readings.lme.price.toFixed(2)}/t</span> ${chip(readings.lme.change, readings.lme.changePct)}<div style="font-size:12px;color:#8A93A6;margin-top:2px">updated ${ago(readings.lme.ts)}</div>`)
+    : card("LME Copper · 3-month", `<span style="font-size:13px;color:#8A93A6">No feed data yet - check the console.</span>`);
+  const html = shell(
+    `Copper price update due · ${slot} IST`,
+    `<p style="font-size:14px;color:#56627A;margin:0 0 14px">Time for the ${slot} copper rate. Latest internal reference readings:</p>
+     ${mcx}${lme}
+     ${btn(`${SITE}/admin/metals`, "Open the price console →")}`
+  );
+  return send(BCC_SELF, `⏰ Copper price update due · ${slot} IST`, html);
+}
+
 /** Nudge a business that has been buying as a guest (they gave a GSTIN at
  *  checkout but never opened an account) to switch to a business account.
  *  The pitch is what they gain, not what we gain. */

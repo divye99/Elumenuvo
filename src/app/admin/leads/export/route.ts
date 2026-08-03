@@ -6,7 +6,10 @@ import { adminClient } from "@/lib/supabase/admin";
 export const dynamic = "force-dynamic";
 
 const esc = (v: unknown) => {
-  const s = v == null ? "" : typeof v === "object" ? JSON.stringify(v) : String(v);
+  let s = v == null ? "" : typeof v === "object" ? JSON.stringify(v) : String(v);
+  // Neutralise spreadsheet formula injection: lead/survey fields are written
+  // by public forms, and a leading = + - @ would execute in Excel.
+  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
   return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 

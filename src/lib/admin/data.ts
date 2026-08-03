@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { adminClient } from "@/lib/supabase/admin";
+import { isMetalCategory, METALS_CATEGORIES } from "@/lib/metals";
 
 export type ProductRow = {
   gst_rate?: number | string | null;
@@ -52,7 +53,22 @@ async function readAll<T>(db: any, table: string, columns = "*", order = "id"): 
 export async function listProductRows(): Promise<ProductRow[]> {
   const db = reader();
   if (!db) return [];
-  return readAll<ProductRow>(db, "products", "*", "sort_order");
+  // The FMEG catalogue only: Metals products (see src/lib/metals.ts) are
+  // managed in /admin/metals and MUST stay out of the FMEG product manager,
+  // CSV export and - critically - the import diff, whose "removed" set is
+  // computed against this list (a CSV round-trip would otherwise delete them).
+  const rows = await readAll<ProductRow>(db, "products", "*", "sort_order");
+  return rows.filter((r) => !isMetalCategory(r.category));
+}
+
+/** Ids of every metals product (any active state) - the CSV import guard uses
+ *  this to refuse rows that would overwrite the separately-managed metals
+ *  catalogue (an id collision would otherwise upsert straight over it). */
+export async function listMetalIds(): Promise<Set<string>> {
+  const db = reader();
+  if (!db) return new Set();
+  const { data } = await db.from("products").select("id").in("category", METALS_CATEGORIES);
+  return new Set(((data ?? []) as { id: string }[]).map((r) => r.id));
 }
 
 export async function getProductRow(id: string): Promise<ProductRow | null> {

@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin/auth";
 import { getProductRow, listProductRows } from "@/lib/admin/data";
 import { upsertProduct } from "@/lib/admin/actions";
+import { isMetalCategory } from "@/lib/metals";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,10 @@ export default async function ProductForm({ params }: { params: Promise<{ id: st
   const isNew = id === "new";
   const row = isNew ? null : await getProductRow(id);
   if (!isNew && !row) notFound();
+  // Metals products live in their own console - this form doesn't know about
+  // the Lot attribute and would corrupt per-lot pricing (guard mirrored in
+  // upsertProduct).
+  if (row && isMetalCategory(row.category)) redirect("/admin/metals");
 
   const all = await listProductRows();
   const brands = [...new Set(all.map((p) => p.brand))].sort();

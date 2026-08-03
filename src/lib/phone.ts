@@ -80,6 +80,25 @@ export function toE164(raw: string, c: Country = DEFAULT_COUNTRY): string | null
   return isValidPhone(raw, c) ? `+${c.dial}${n}` : null;
 }
 
+/**
+ * E.164 from a raw string that may already carry its dial code, e.g. a number
+ * pasted back out of the database or typed with "+91" in front. Longest dial
+ * code first, so "+971…" is not mistaken for "+9…". Falls back to reading the
+ * input as a bare Indian national number.
+ */
+export function normalisePhoneE164(raw: string): string | null {
+  const digits = (raw ?? "").replace(/\D/g, "");
+  if (!digits) return null;
+  const byLongestDial = [...COUNTRIES].sort((a, b) => b.dial.length - a.dial.length);
+  for (const c of byLongestDial) {
+    if (digits.startsWith(c.dial)) {
+      const hit = toE164(digits.slice(c.dial.length), c);
+      if (hit) return hit;
+    }
+  }
+  return toE164(digits, DEFAULT_COUNTRY);
+}
+
 /** Why a number was rejected, phrased for the person typing it. */
 export function phoneError(raw: string, c: Country = DEFAULT_COUNTRY): string | null {
   const n = nationalDigits(raw, c);
