@@ -79,6 +79,35 @@ export type RadarRow = {
 
 type Hit = { code: string; name: string; brand: string | null; listPrice: number | null; netPrice: number | null; url: string | null };
 
+/* ── Sorting ──
+   Every sortable column is a numeric accessor returning null when the row has
+   no value for it (unmapped, or mapped with no buyable competitor). Nulls are
+   sunk in both directions by the comparator, so an unknown never masquerades
+   as the cheapest or the dearest. */
+type SortCol = "action" | "name" | "ourPrice" | "avgMarket" | "lowest" | "pctVsLowest";
+type SortState = { col: SortCol; dir: "asc" | "desc" };
+
+const SORT_VALUE: Record<Exclude<SortCol, "action" | "name">, (r: RadarRow) => number | null> = {
+  ourPrice: (r) => r.ourPrice,
+  avgMarket: (r) => r.market?.avgMarket ?? null,
+  lowest: (r) => r.market?.lowest ?? null,
+  pctVsLowest: (r) => r.market?.pctVsLowest ?? null,
+};
+
+const DEFAULT_DIR: Record<SortCol, "asc" | "desc"> = {
+  action: "desc",
+  name: "asc",
+  ourPrice: "asc",      // cheapest first
+  avgMarket: "asc",
+  lowest: "asc",
+  pctVsLowest: "desc",  // most overpriced vs the market first
+};
+
+/** One column template shared by the header and every row, so they stay in
+ *  step. Matches the pattern already used by the admin orders and products
+ *  lists. Collapses to a plain stacked card below 900px. */
+const RADAR_COLS = "minmax(190px,1fr) 104px 104px 116px 80px 200px";
+
 export default function RadarClient({
   rows,
   sources,
@@ -104,7 +133,17 @@ export default function RadarClient({
   const [sellersN, setSellersN] = useState<"any" | number>("any"); // exact number of sellers mapped
   const [pos, setPos] = useState<"any" | "below" | "above" | "at">("any"); // our price vs the lowest competitor
   const [groupColours, setGroupColours] = useState(true); // one row per cable spec (colours share a price)
-  const [sort, setSort] = useState<"action" | "priceAsc" | "priceDesc" | "pct" | "pctAsc" | "avgAsc" | "avgDesc" | "lowAsc" | "lowDesc" | "name">("action");
+  // Sorting is a column + direction, driven by the list headers rather than a
+  // dropdown: tapping a header sorts by it and tapping again flips direction,
+  // the way every price-intelligence tool behaves.
+  const [sort, setSort] = useState<SortState>({ col: "action", dir: "desc" });
+  const toggleSort = (col: SortCol) =>
+    setSort((p) => (p.col === col
+      ? { col, dir: p.dir === "asc" ? "desc" : "asc" }
+      // First tap picks the direction that answers the question the column is
+      // usually asked: cheapest first for money, worst overpricing first for
+      // the gap, A-Z for a name.
+      : { col, dir: DEFAULT_DIR[col] }));
 
   // ── Accept queue: taps are instant; one floating "Save all" commits the
   //    whole batch in a single request (per-row saves felt slow). ──
@@ -156,19 +195,26 @@ export default function RadarClient({
         )))
     );
     return [...list].sort((a, b) => {
-      if (sort === "priceAsc") return a.ourPrice - b.ourPrice;
-      if (sort === "priceDesc") return b.ourPrice - a.ourPrice;
-      if (sort === "pct") return (b.market?.pctVsLowest ?? -999) - (a.market?.pctVsLowest ?? -999);
-      if (sort === "pctAsc") return (a.market?.pctVsLowest ?? 999) - (b.market?.pctVsLowest ?? 999);
-      if (sort === "avgDesc") return (b.market?.avgMarket ?? -1) - (a.market?.avgMarket ?? -1);
-      if (sort === "avgAsc") return (a.market?.avgMarket ?? 1e12) - (b.market?.avgMarket ?? 1e12);
-      if (sort === "lowDesc") return (b.market?.lowest ?? -1) - (a.market?.lowest ?? -1);
-      if (sort === "lowAsc") return (a.market?.lowest ?? 1e12) - (b.market?.lowest ?? 1e12);
-      if (sort === "name") return a.name.localeCompare(b.name);
-      // "action" (default): products that need repricing first, biggest gap on top.
-      const aa = needsAction(a) ? 1 : 0, bb = needsAction(b) ? 1 : 0;
-      if (aa !== bb) return bb - aa;
-      return Math.abs(b.market?.pctVsLowest ?? 0) - Math.abs(a.market?.pctVsLowest ?? 0);
+      // "action" is not a column: it is the composite default, putting products
+      // that need repricing first with the biggest gap on top.
+      if (sort.col === "action") {
+        const aa = needsAction(a) ? 1 : 0, bb = needsAction(b) ? 1 : 0;
+        if (aa !== bb) return bb - aa;
+        return Math.abs(b.market?.pctVsLowest ?? 0) - Math.abs(a.market?.pctVsLowest ?? 0);
+      }
+      if (sort.col === "name") {
+        const c = a.name.localeCompare(b.name);
+        return sort.dir === "asc" ? c : -c;
+      }
+      const va = SORT_VALUE[sort.col](a);
+      const vb = SORT_VALUE[sort.col](b);
+      // Rows with no value for this column always sink, in BOTH directions:
+      // an unmapped product is not "the cheapest", it is simply unknown, and a
+      // price tool that floats unknowns to the top is unusable.
+      if (va == null && vb == null) return a.name.localeCompare(b.name);
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      return sort.dir === "asc" ? va - vb : vb - va;
     });
   }, [rows, view, q, brand, cat, sellersN, pos, sort]);
 
@@ -297,18 +343,19 @@ export default function RadarClient({
           <option value="above">We are COSTLIER than the lowest</option>
           <option value="at">Exactly at the lowest</option>
         </select>
-        <select value={sort} onChange={(e) => setSort(e.target.value as any)} style={sel}>
-          <option value="action">Sort: needs repricing first</option>
-          <option value="priceAsc">Elume price: low → high</option>
-          <option value="priceDesc">Elume price: high → low</option>
-          <option value="pct">% vs lowest: high → low</option>
-          <option value="pctAsc">Vs lowest: most below first</option>
-          <option value="avgDesc">Avg market: high → low</option>
-          <option value="avgAsc">Avg market: low → high</option>
-          <option value="lowDesc">Lowest seller: high → low</option>
-          <option value="lowAsc">Lowest seller: low → high</option>
-          <option value="name">Name: A → Z</option>
-        </select>
+        {/* "Needs repricing first" is a composite of two keys, not a column,
+            so it stays a button rather than becoming a header. */}
+        <button
+          onClick={() => setSort({ col: "action", dir: "desc" })}
+          style={{
+            ...sel, cursor: "pointer", fontWeight: 700,
+            background: sort.col === "action" ? "#161D2B" : "#fff",
+            color: sort.col === "action" ? "#fff" : "#56627A",
+            border: `1px solid ${sort.col === "action" ? "#161D2B" : "#E0E4ED"}`,
+          }}
+        >
+          Needs repricing first
+        </button>
       </div>
 
       {flash && <div style={{ background: flash.ok ? "#E6F5EE" : "#FBE9E4", color: flash.ok ? "#137a4b" : "#9a3b16", borderRadius: 10, padding: "10px 14px", fontSize: 13, marginBottom: 14 }}>{flash.msg}</div>}
@@ -321,6 +368,16 @@ export default function RadarClient({
         </div>
       ) : (
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflow: "hidden" }}>
+          {/* Sortable header. Hidden below 900px, where rows stack into cards
+              and a column header would have nothing to align to. */}
+          <div className="radar-head" style={{ display: "grid", gridTemplateColumns: RADAR_COLS, gap: 12, alignItems: "center", padding: "10px 16px", borderBottom: "1px solid #EEF0F4", background: "#FBFCFE" }}>
+            <SortHead label="Product" col="name" sort={sort} onSort={toggleSort} align="left" />
+            <SortHead label="Elume · incl. GST" col="ourPrice" sort={sort} onSort={toggleSort} />
+            <SortHead label="Avg market" col="avgMarket" sort={sort} onSort={toggleSort} />
+            <SortHead label="Lowest" col="lowest" sort={sort} onSort={toggleSort} />
+            <SortHead label="Vs lowest" col="pctVsLowest" sort={sort} onSort={toggleSort} />
+            <span />
+          </div>
           {grouped.map((r, i) => <MappedRow key={r.id} r={r} first={i === 0} pending={pending} run={run} colourCount={colourCounts.get(r.familyKey ?? r.id) ?? 1} siblingIds={familyIds.get(r.familyKey ?? r.id) ?? [r.id]} queuedTarget={queue.get(r.id)?.target ?? null} onQueue={toggleQueue} />)}
         </div>
       )}
@@ -358,9 +415,12 @@ function MappedRow({ r, first, pending, run, colourCount = 1, siblingIds = [], q
 
   return (
     <div style={{ borderTop: first ? undefined : "1px solid #F0F2F6" }}>
-      <div style={{ padding: "13px 16px", display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
+      {/* Same grid template as the header, so every figure sits under the
+          column that sorts it. Below 900px this collapses to a stacked card
+          (see .radar-row in globals.css) where a header would be meaningless. */}
+      <div className="radar-row" style={{ padding: "13px 16px", display: "grid", gridTemplateColumns: RADAR_COLS, gap: 12, alignItems: "center" }}>
         {/* Product - clicking toggles the mapping detail */}
-        <div onClick={() => canExpand && setOpen(!open)} style={{ display: "flex", gap: 11, alignItems: "center", flex: "1 1 300px", minWidth: 220, cursor: canExpand ? "pointer" : "default" }}>
+        <div onClick={() => canExpand && setOpen(!open)} style={{ display: "flex", gap: 11, alignItems: "center", minWidth: 0, cursor: canExpand ? "pointer" : "default" }}>
           <div style={{ width: 46, height: 46, borderRadius: 9, background: "#F3F5F9", border: "1px solid #EEF0F4", flexShrink: 0, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
             {r.image ? <img src={r.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 16 }}>🔌</span>}
           </div>
@@ -379,15 +439,17 @@ function MappedRow({ r, first, pending, run, colourCount = 1, siblingIds = [], q
 
         {m ? (
           <>
-            <div style={{ display: "flex", gap: 18, alignItems: "center" }}>
-              <Stat label="Elume · incl. GST" value={editing ? undefined : fmt(r.ourPrice)} sub={exGst(editing ? price : r.ourPrice)}>
-                {editing && <input autoFocus value={val} onChange={(e) => setVal(e.target.value.replace(/[^\d]/g, ""))} type="text" inputMode="numeric" style={{ width: 78, border: "1px solid #4E5BDC", borderRadius: 7, padding: "3px 7px", fontSize: 13, fontWeight: 700, textAlign: "right" }} />}
-              </Stat>
-              <Stat label="Avg market" value={money(m.avgMarket)} sub={exGst(m.avgMarket)} />
-              <Stat label={`Lowest${m.cheapestSource ? ` · ${m.cheapestSource}` : ""}`} value={money(m.lowest)} sub={exGst(m.lowest)} />
-              <Stat label="vs lowest" value={pct == null ? "-" : `${pct > 0 ? "+" : ""}${pct}%`} color={pctColor} />
-            </div>
-            <div style={{ display: "flex", gap: 8, marginLeft: "auto", alignItems: "center" }}>
+            {/* Each figure is its own grid cell so it lands under its header.
+                The competitor name moved out of the "Lowest" label into a
+                sub-line: a label whose width changes per row can never align
+                to a fixed header. */}
+            <Stat label="Elume · incl. GST" value={editing ? undefined : fmt(r.ourPrice)} sub={exGst(editing ? price : r.ourPrice)}>
+              {editing && <input autoFocus value={val} onChange={(e) => setVal(e.target.value.replace(/[^\d]/g, ""))} type="text" inputMode="numeric" style={{ width: "100%", border: "1px solid #4E5BDC", borderRadius: 7, padding: "3px 7px", fontSize: 13, fontWeight: 700, textAlign: "right" }} />}
+            </Stat>
+            <Stat label="Avg market" value={money(m.avgMarket)} sub={exGst(m.avgMarket)} />
+            <Stat label="Lowest" value={money(m.lowest)} sub={[exGst(m.lowest), m.cheapestSource].filter(Boolean).join(" · ")} />
+            <Stat label="vs lowest" value={pct == null ? "-" : `${pct > 0 ? "+" : ""}${pct}%`} color={pctColor} />
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", alignItems: "center" }}>
               {editing ? (
                 <>
                   <button onClick={() => { if (Number(val) > 0) { onQueue?.(r.id, Number(val), siblingIds.length ? siblingIds : [r.id], r.name); setEditing(false); } }} disabled={!(Number(val) > 0)} style={btnAccept}>Queue ₹{val}</button>
@@ -402,22 +464,29 @@ function MappedRow({ r, first, pending, run, colourCount = 1, siblingIds = [], q
             </div>
           </>
         ) : (
-          <div style={{ display: "flex", gap: 14, alignItems: "center", marginLeft: "auto" }}>
+          /* No market data: the Elume figure keeps its own column so it stays
+             under its header, and the status badge spans the three empty
+             market columns rather than shunting everything out of line. */
+          <>
             <Stat label="Elume · incl. GST" value={editing ? undefined : fmt(r.ourPrice)} sub={exGst(editing ? price : r.ourPrice)}>
-              {editing && <input autoFocus value={val} onChange={(e) => setVal(e.target.value.replace(/[^\d]/g, ""))} type="text" inputMode="numeric" style={{ width: 78, border: "1px solid #4E5BDC", borderRadius: 7, padding: "3px 7px", fontSize: 13, fontWeight: 700, textAlign: "right" }} />}
+              {editing && <input autoFocus value={val} onChange={(e) => setVal(e.target.value.replace(/[^\d]/g, ""))} type="text" inputMode="numeric" style={{ width: "100%", border: "1px solid #4E5BDC", borderRadius: 7, padding: "3px 7px", fontSize: 13, fontWeight: 700, textAlign: "right" }} />}
             </Stat>
-            <span style={{ fontSize: 12, fontWeight: 600, color: r.mappedCount ? "#C77700" : "#C0392B", background: r.mappedCount ? "#FFF3E0" : "#FBE9E4", padding: "4px 10px", borderRadius: 8 }}>
-              {r.pendingCount ? `${r.pendingCount} match${r.pendingCount === 1 ? "" : "es"} awaiting approval` : r.mappedCount ? "Mapped - run Refresh prices" : "Not mapped"}
+            <span className="radar-badge" style={{ gridColumn: "3 / 6", textAlign: "right", fontSize: 12, fontWeight: 600, color: r.mappedCount ? "#C77700" : "#C0392B" }}>
+              <span style={{ background: r.mappedCount ? "#FFF3E0" : "#FBE9E4", padding: "4px 10px", borderRadius: 8, display: "inline-block" }}>
+                {r.pendingCount ? `${r.pendingCount} match${r.pendingCount === 1 ? "" : "es"} awaiting approval` : r.mappedCount ? "Mapped - run Refresh prices" : "Not mapped"}
+              </span>
             </span>
-            {editing ? (
-              <>
-                <button onClick={() => { if (Number(val) > 0) { onQueue?.(r.id, Number(val), siblingIds.length ? siblingIds : [r.id], r.name); setEditing(false); } }} disabled={!(Number(val) > 0)} style={btnAccept}>Queue ₹{val}</button>
-                <button onClick={() => { setEditing(false); setVal(String(r.ourPrice)); }} style={linkBtn}>Cancel</button>
-              </>
-            ) : (
-              <button onClick={() => { setEditing(true); setVal(String(r.ourPrice)); }} style={btnGhost}>Edit</button>
-            )}
-          </div>
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", alignItems: "center" }}>
+              {editing ? (
+                <>
+                  <button onClick={() => { if (Number(val) > 0) { onQueue?.(r.id, Number(val), siblingIds.length ? siblingIds : [r.id], r.name); setEditing(false); } }} disabled={!(Number(val) > 0)} style={btnAccept}>Queue ₹{val}</button>
+                  <button onClick={() => { setEditing(false); setVal(String(r.ourPrice)); }} style={linkBtn}>Cancel</button>
+                </>
+              ) : (
+                <button onClick={() => { setEditing(true); setVal(String(r.ourPrice)); }} style={btnGhost}>Edit</button>
+              )}
+            </div>
+          </>
         )}
       </div>
 
@@ -670,11 +739,41 @@ function RuleEditor({ rule, categories, usedScopes, onSaved, isGlobal, isNew }: 
   );
 }
 
+/** One clickable column header. Shows an arrow only on the active column, so
+ *  the current sort is unambiguous at a glance; the arrow points the way the
+ *  values run down the list (▲ = smallest at the top). */
+function SortHead({ label, col, sort, onSort, align = "right" }: { label: string; col: SortCol; sort: SortState; onSort: (c: SortCol) => void; align?: "left" | "right" }) {
+  const on = sort.col === col;
+  return (
+    <button
+      onClick={() => onSort(col)}
+      aria-sort={on ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
+      title={`Sort by ${label}`}
+      style={{
+        display: "flex", alignItems: "center", gap: 4, justifyContent: align === "left" ? "flex-start" : "flex-end",
+        background: "none", border: "none", padding: 0, cursor: "pointer", width: "100%",
+        fontSize: 10, letterSpacing: "0.3px", textTransform: "uppercase", whiteSpace: "nowrap",
+        fontWeight: on ? 800 : 700, color: on ? "#19202E" : "#8A93A6",
+      }}
+    >
+      {label}
+      <span style={{ fontSize: 9, opacity: on ? 1 : 0.35 }}>{on ? (sort.dir === "asc" ? "▲" : "▼") : "▾"}</span>
+    </button>
+  );
+}
+
 function Stat({ label, value, sub, color, children }: { label: string; value?: string; sub?: string; color?: string; children?: React.ReactNode }) {
   return (
-    <div style={{ textAlign: "right", minWidth: 62 }}>
-      <div style={{ fontSize: 10, color: "#8A93A6", textTransform: "uppercase", letterSpacing: "0.3px", whiteSpace: "nowrap" }}>{label}</div>
-      {children ?? <div style={{ fontSize: 14, fontWeight: 700, color: color ?? "#19202e", fontVariantNumeric: "tabular-nums" }}>{value}</div>}
+    <div style={{ textAlign: "right", minWidth: 0 }}>
+      {/* Redundant once the sortable header row is on screen, so it is hidden
+          on desktop and shown again below 900px where the header is not. */}
+      <div className="radar-stat-label" style={{ fontSize: 10, color: "#8A93A6", textTransform: "uppercase", letterSpacing: "0.3px", whiteSpace: "nowrap" }}>{label}</div>
+      {/* `||`, not `??`. The Elume cells pass `{editing && <input/>}` as their
+          child, which is the BOOLEAN false when not editing - and `??` only
+          falls back on null/undefined, so false won and the inclusive price
+          rendered as nothing at all. That is why this column showed its
+          ex-GST sub-line and no headline figure. */}
+      {children || <div style={{ fontSize: 14, fontWeight: 700, color: color ?? "#19202e", fontVariantNumeric: "tabular-nums" }}>{value}</div>}
       {sub && <div style={{ fontSize: 10, color: "#A0A7B5" }}>{sub}</div>}
     </div>
   );

@@ -442,3 +442,26 @@ input[type="range"].elume-range::-moz-range-thumb {
 @media (max-width: 480px) {
   .metals-grid { grid-template-columns: 1fr !important; }
 }
+
+/* The sortable header names every column, so repeating the label inside each
+   row is noise. It comes back below 900px, where the header is hidden. */
+.radar-row .radar-stat-label { display: none; }
+
+/* ── Admin price radar ──
+   The list is a real grid on a desktop screen: the header row and every
+   product row share one gridTemplateColumns, so tapping a header sorts the
+   column sitting directly beneath it. Below 900px there is no room for six
+   columns, so the header is hidden and each row becomes a stacked card - a
+   column header with nothing under it would be worse than none. */
+@media (max-width: 900px) {
+  .radar-head { display: none !important; }
+  .radar-row {
+    grid-template-columns: 1fr 1fr !important;
+    row-gap: 10px !important;
+  }
+  /* Product name spans the full width; the figures pair up two per line. */
+  .radar-row > *:first-child { grid-column: 1 / -1 !important; }
+  .radar-row > *:last-child { grid-column: 1 / -1 !important; justify-content: flex-start !important; }
+  .radar-badge { grid-column: 1 / -1 !important; text-align: left !important; }
+  .radar-row .radar-stat-label { display: block !important; }
+}
