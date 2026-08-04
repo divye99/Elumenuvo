@@ -13,9 +13,12 @@ import { COMPANY, postalAddress, postalAddressOf } from "./company";
  *  looks for exactly that. Both appear as soon as they are set in company.ts. */
 export const ORG = {
   "@type": "Organization",
-  name: "Elume Nuvotech Private Limited",
+  // `name` is the BRAND, `legalName` the registered entity. They were both the
+  // legal name, which left Google with no confident brand string and it fell
+  // back to showing the bare domain in search results.
+  name: "Elume",
   legalName: "Elume Nuvotech Private Limited",
-  alternateName: "Elume",
+  alternateName: "Elume Nuvotech",
   url: SITE,
   logo: `${SITE}/assets/elume-mark.png`,
   email: "info@elumenuvo.com",
@@ -43,6 +46,31 @@ export const ORG = {
     "https://www.instagram.com/elumenuvo/",
     "https://www.youtube.com/@ElumeNuvo",
   ] as string[],
+};
+
+/**
+ * WebSite entity - the signal Google uses to print a SITE NAME above a search
+ * result instead of the bare domain ("Elume", not "elumenuvo.com").
+ *
+ * Two rules from Google's site-name documentation drive the shape of this:
+ *   1. It must appear on the HOMEPAGE. Google reads the site name from the
+ *      root document and applies it to every result for the domain, so
+ *      emitting this site-wide adds nothing and risks contradicting itself.
+ *   2. `name` must be the short brand. `alternateName` gives Google a second
+ *      accepted form without competing for the headline.
+ *
+ * `url` is the domain root with a trailing slash, which is what Google matches
+ * the entity against.
+ *
+ * Expect a lag: Google only refreshes this when it next recrawls the homepage,
+ * typically days to a few weeks.
+ */
+export const WEBSITE = {
+  "@type": "WebSite",
+  name: "Elume",
+  alternateName: "Elume Nuvotech",
+  url: `${SITE}/`,
+  publisher: { "@type": "Organization", name: "Elume", url: SITE },
 };
 
 /** Standard merchant policies (pan-India, free shipping, 7-day free returns). */

@@ -60,7 +60,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     title,
     description,
     alternates: { canonical: url },
-    openGraph: { title, description, url, type: "website", images: p.image ? [absImage(p.image)!] : undefined },
+    openGraph: {
+    siteName: "Elume", title, description, url, type: "website", images: p.image ? [absImage(p.image)!] : undefined },
     twitter: { card: "summary_large_image", title, description },
   };
 }
