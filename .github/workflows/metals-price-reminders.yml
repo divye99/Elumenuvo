@@ -4,7 +4,12 @@ name: Metals price reminders (9am / 11am / 2pm IST)
 # internal MCX/LME readings) three times a day, Mon-Sat, by hitting the
 # CRON_SECRET-protected route. Runs here because Vercel Hobby crons are
 # daily-max. GitHub cron is UTC: 03:30 / 05:30 / 08:30 UTC = 9:00 / 11:00 /
-# 2:00 pm IST. Requires the repo secret CRON_SECRET (same value as Vercel).
+# 2:00 pm IST.
+#
+# Requires the repo secret CRON_SECRET to hold EXACTLY the value of
+# CRON_SECRET in Vercel (Production). The secret is passed via env, never
+# interpolated into the shell command, so a value containing $ ` " or a
+# newline cannot be mangled.
 on:
   schedule:
     - cron: "30 3 * * 1-6"
@@ -17,7 +22,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger reminder email
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
-          curl -fsS --retry 2 --retry-delay 30 \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            "https://elumenuvo.com/api/cron/metals-reminder"
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::CRON_SECRET is empty here. Add it under Settings -> Secrets and variables -> Actions -> REPOSITORY secrets (an Environment secret is not visible to this job), with the exact value of CRON_SECRET from Vercel -> Settings -> Environment Variables (Production)."
+            exit 1
+          fi
+          echo "Secret received by this job: ${#CRON_SECRET} characters."
+          code=$(curl -sS -o /tmp/cron-out.txt -w '%{http_code}' --retry 2 --retry-delay 30 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "https://elumenuvo.com/api/cron/metals-reminder")
+          echo "HTTP $code"
+          cat /tmp/cron-out.txt || true
+          echo
+          if [ "$code" = "401" ]; then
+            echo "::error::The site rejected this token (401). The value stored in this repo's CRON_SECRET does not match CRON_SECRET in Vercel Production. Copy it from the Vercel dashboard (not from a local .env file - that value is different) and re-save it here with no leading/trailing spaces."
+            exit 1
+          fi
+          if [ "$code" != "200" ]; then
+            echo "::error::Unexpected HTTP $code from /api/cron/metals-reminder."
+            exit 1
+          fi
+          echo "Reminder sent to info@elumenuvo.com."
