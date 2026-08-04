@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { GROTESK, MONO } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import type { MarketPoint } from "@/lib/competitor-history";
@@ -14,13 +14,52 @@ const MARKET = "#E0612A"; // avg-market line
  * with the date, our price and the AVG market price across tracked sellers.
  * Competitors are aggregated server-side; the browser never sees who they are.
  */
+/** Selectable windows. The server sends up to a year in one payload, so
+ *  switching range is an instant client-side slice, not a refetch. */
+const RANGES = [
+  { key: "7d", label: "7D", days: 7 },
+  { key: "30d", label: "30D", days: 30 },
+  { key: "6m", label: "6M", days: 182 },
+  { key: "1y", label: "1Y", days: 365 },
+] as const;
+type RangeKey = (typeof RANGES)[number]["key"];
+
+const DAY_MS = 86400000;
+const daysBetween = (fromIso: string, toIso: string) =>
+  Math.round((new Date(`${toIso.slice(0, 10)}T00:00:00Z`).getTime() - new Date(`${fromIso.slice(0, 10)}T00:00:00Z`).getTime()) / DAY_MS);
+
 export default function CompetitorPriceChart({ series, mrp }: { series: MarketPoint[]; mrp?: number }) {
-  const pts = useMemo(() => series.filter((p) => p.our != null || p.marketAvg != null), [series]);
+  const all = useMemo(() => series.filter((p) => p.our != null || p.marketAvg != null), [series]);
+
+  // How much history actually exists. Tracking began mid-2026, so the longer
+  // windows are honestly labelled rather than pretending to a full year.
+  const spanDays = all.length > 1 ? daysBetween(all[0].at, all[all.length - 1].at) + 1 : all.length;
+
+  // Default to the shortest range that still shows the whole history, so a
+  // product with three weeks of data does not open on a mostly-empty year.
+  const [range, setRange] = useState<RangeKey>(() => (RANGES.find((r) => r.days >= spanDays) ?? RANGES[RANGES.length - 1]).key);
+
+  const pts = useMemo(() => {
+    if (all.length === 0) return all;
+    const days = RANGES.find((r) => r.key === range)!.days;
+    const newest = all[all.length - 1].at;
+    const cutoff = new Date(new Date(`${newest.slice(0, 10)}T00:00:00Z`).getTime() - (days - 1) * DAY_MS)
+      .toISOString()
+      .slice(0, 10);
+    const win = all.filter((p) => p.at.slice(0, 10) >= cutoff);
+    // A single point cannot draw a line; fall back to everything rather than
+    // render an empty chart for a range the customer explicitly picked.
+    return win.length >= 2 ? win : all.slice(-2);
+  }, [all, range]);
+
   const [hover, setHover] = useState<number | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
   const hasMarket = pts.some((p) => p.marketAvg != null);
   const W = 1000, H = 320, padX = 14, padY = 22;
+  // Reset the crosshair when the window changes: an index into the old slice
+  // points at a different day (or past the end) in the new one.
+  useEffect(() => { setHover(null); }, [range]);
 
   const { x, y, lo, hi } = useMemo(() => {
     const vals = [...pts.flatMap((p) => [p.our, p.marketAvg]), mrp].filter((v): v is number => v != null);
@@ -76,6 +115,32 @@ export default function CompetitorPriceChart({ series, mrp }: { series: MarketPo
           {hasMarket && <Legend color={MARKET} label="Avg market price" />}
           {mrp != null && <Legend color="#AEB6C4" label="MRP" dashed />}
         </div>
+      </div>
+
+      {/* Range selector. Ranges longer than the history we hold stay clickable
+          but are dimmed, so it is obvious we are not hiding data. */}
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
+        {RANGES.map((r) => {
+          const on = r.key === range;
+          const covered = spanDays >= r.days;
+          return (
+            <button
+              key={r.key}
+              onClick={() => setRange(r.key)}
+              aria-pressed={on}
+              title={covered ? `Last ${r.label}` : `We have ${spanDays} day${spanDays === 1 ? "" : "s"} of history so far`}
+              style={{
+                fontFamily: MONO, fontSize: 11.5, fontWeight: 700, letterSpacing: "0.3px",
+                padding: "6px 13px", borderRadius: 8, cursor: "pointer",
+                background: on ? "#19202E" : "#fff",
+                color: on ? "#fff" : covered ? "#56627A" : "#AEB6C4",
+                border: `1px solid ${on ? "#19202E" : "#E0E4ED"}`,
+              }}
+            >
+              {r.label}
+            </button>
+          );
+        })}
       </div>
 
       <div style={{ position: "relative" }}>
@@ -147,7 +212,11 @@ export default function CompetitorPriceChart({ series, mrp }: { series: MarketPo
         {mrp != null && <Stat label="MRP" value={fmt(mrp)} color="#8A93A6" />}
       </div>
       <div style={{ fontFamily: MONO, fontSize: 10, color: "#A0A7B5", marginTop: 8 }}>
-        {pts.length} day{pts.length === 1 ? "" : "s"} of price data · logged daily{hasMarket ? " · market = average across tracked sellers" : ""}
+        {/* Say what is actually plotted. Claiming "1 year" over three weeks of
+            snapshots would be a lie the chart itself contradicts. */}
+        {pts.length} day{pts.length === 1 ? "" : "s"} plotted
+        {spanDays < (RANGES.find((r) => r.key === range)?.days ?? 0) ? ` · ${spanDays} day${spanDays === 1 ? "" : "s"} tracked so far` : ""}
+        {" · logged daily"}{hasMarket ? " · market = average across tracked sellers" : ""}
       </div>
     </div>
   );

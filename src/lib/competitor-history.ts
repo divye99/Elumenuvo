@@ -10,7 +10,11 @@ export type CompetitorPoint = { source: string; comparable: number | null; net: 
  *  approved seller logged that day (see migration 0048's daily snapshots). */
 export type MarketPoint = { at: string; our: number | null; marketAvg: number | null };
 
-const WINDOW_DAYS = 120;
+/** How far back the product page fetches. The chart offers 7d / 30d / 6m / 1y
+ *  ranges and slices this one payload client-side, so the window has to cover
+ *  the widest range on offer. One point per product per day means a year is at
+ *  most ~365 rows of ours plus a handful of competitor rows per day. */
+const WINDOW_DAYS = 365;
 
 function client() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -41,7 +45,9 @@ export async function fetchPriceHistory(productId: string, currentPrice?: number
         .eq("product_id", productId)
         .gte("captured_at", since)
         .order("captured_at", { ascending: true })
-        .limit(1000);
+        // A year of daily snapshots plus intra-day admin edits; generous
+        // enough that the oldest days are never silently truncated away.
+        .limit(4000);
       // Last write of the day wins (an admin edit after the morning snapshot).
       for (const r of (data ?? []) as { elume_price: number; captured_at: string }[]) {
         ourByDay.set(day(r.captured_at), Number(r.elume_price));
