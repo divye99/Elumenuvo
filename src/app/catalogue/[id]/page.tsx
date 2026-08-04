@@ -129,12 +129,12 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         ) : undefined}
       />
       {product.brand === "Elume" && (
-        <div style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px" }}>
+        <div className="pdp-wrap" style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px" }}>
           <ElumeFlagship p={product} />
         </div>
       )}
       {isMetal ? (
-        <div data-pdp-sec="price-history" style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px", display: "flex", flexDirection: "column", gap: 18 }}>
+        <div data-pdp-sec="price-history" className="pdp-wrap" style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px", display: "flex", flexDirection: "column", gap: 18 }}>
           <MetalsRateChart
             points={fullHistory}
             gstRate={gstRateFor(product.cat, product.gstRate)}
@@ -143,7 +143,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           <MetalsMarketCharts />
         </div>
       ) : (
-        <div data-pdp-sec="price-history" style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px" }}>
+        <div data-pdp-sec="price-history" className="pdp-wrap" style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px" }}>
           <CompetitorPriceChart series={priceHistory} mrp={product.market} />
         </div>
       )}

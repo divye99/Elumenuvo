@@ -31,9 +31,11 @@ export default function ProductDeepDive({
   const anyMetres = family.some((s) => coilMetres(s));
 
   return (
-    <div style={{ maxWidth: 1120, margin: "0 auto", padding: "0 30px", display: "flex", flexDirection: "column", gap: 18 }}>
+    <div className="pdp-wrap" style={{ maxWidth: 1120, margin: "0 auto", padding: "0 30px", display: "flex", flexDirection: "column", gap: 18 }}>
       {/* ── Trust strip ── */}
-      <div data-pdp-sec="trust" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+      {/* Four across on desktop; two-up on a phone, where four tracks left
+          each card ~80px wide and the wholesale CTA unreachable. */}
+      <div data-pdp-sec="trust" className="pdp-trust" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
         {[
           ["🏷️", "100% genuine", "Brand-authorised stock with full manufacturer warranty"],
           ["🧾", "GST invoice", "Tax invoice on every order · GST billing with tax split"],
@@ -46,7 +48,7 @@ export default function ProductDeepDive({
               ]
             : ["📈", "Transparent pricing", "Rates updated against the market through the day - what you see is the live trade rate"],
         ].map(([icon, title, body]) => (
-          <div key={title} style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "14px 16px" }}>
+          <div key={title} className="pdp-trust-card" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "14px 16px" }}>
             <div style={{ fontSize: 18, marginBottom: 6 }}>{icon}</div>
             <div style={{ fontSize: 13, fontWeight: 700, color: "#19202E" }}>{title}</div>
             <div style={{ fontSize: 11.5, color: "#56627A", lineHeight: 1.45, marginTop: 3 }}>{body}</div>
@@ -65,14 +67,14 @@ export default function ProductDeepDive({
 
       {/* ── Technical specifications ── */}
       {specs.length > 0 && (
-        <div data-pdp-sec="specs" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
+        <div data-pdp-sec="specs" className="pdp-card" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
           <h3 style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600, letterSpacing: "-0.4px", margin: "0 0 4px" }}>
             Technical specifications
           </h3>
           <div style={{ fontSize: 12.5, color: "#8A93A6", marginBottom: 14 }}>
             {p.brand} {p.name} · {p.sku}
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 40 }}>
+          <div className="pdp-specgrid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 40 }}>
             {specs.map(([k, v]) => (
               <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 16, padding: "11px 0", borderBottom: "1px solid #F5F6F9" }}>
                 <span style={{ fontSize: 12.5, color: "#8A93A6", flexShrink: 0 }}>{k}</span>
@@ -92,7 +94,7 @@ export default function ProductDeepDive({
 
       {/* ── Full range (variant family) ── */}
       {family.length > 1 && (
-        <div data-pdp-sec="range" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
+        <div data-pdp-sec="range" className="pdp-card" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
           <h3 style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600, letterSpacing: "-0.4px", margin: "0 0 4px" }}>
             The full range · {family.length} options
           </h3>
@@ -158,7 +160,7 @@ export default function ProductDeepDive({
 
       {/* ── Buying guide + category FAQs ── */}
       {post && (
-        <div data-pdp-sec="guide" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
+        <div data-pdp-sec="guide" className="pdp-card" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
             <h3 style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600, letterSpacing: "-0.4px", margin: 0 }}>
               Know before you buy
@@ -200,12 +202,11 @@ function AboutBlock({ t, brand }: { t: TechSpecs; brand: string }) {
   const hasAny = !!t.description || !!t.key_features?.length || !!t.features?.length;
   if (!hasAny) return null;
   return (
-    <div data-pdp-sec="about" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
+    <div data-pdp-sec="about" className="pdp-card" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", margin: "0 0 12px" }}>
         <h3 style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600, letterSpacing: "-0.4px", margin: 0 }}>
           About this product
         </h3>
-        {t.source && <span style={{ fontSize: 11, color: "#A0A7B5" }}>from {t.source}</span>}
       </div>
 
       {t.description && (
@@ -214,8 +215,11 @@ function AboutBlock({ t, brand }: { t: TechSpecs; brand: string }) {
 
       {t.key_features?.length ? (
         <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 7 }}>
-          {t.key_features.map((f) => (
-            <li key={f} style={{ fontSize: 13, color: "#3B4557", lineHeight: 1.55 }}>{f}</li>
+          {/* Index in the key: scraped feature lists repeat themselves (this
+              fan ships the same sentence twice), and a text-only key made
+              React drop the duplicate and warn. */}
+          {t.key_features.map((f, i) => (
+            <li key={`${i}-${f}`} style={{ fontSize: 13, color: "#3B4557", lineHeight: 1.55 }}>{f}</li>
           ))}
         </ul>
       ) : null}
@@ -267,15 +271,14 @@ function TechSpecsBlock({ t }: { t: TechSpecs }) {
   if (rows.length === 0 && !t.fire_tests?.length) return null;
 
   return (
-    <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
+    <div className="pdp-card" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", margin: "0 0 14px" }}>
         <h3 style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600, letterSpacing: "-0.4px", margin: 0 }}>
           Technical data{t.line ? ` · ${t.line}` : ""}
         </h3>
-        {t.source && <span style={{ fontSize: 11, color: "#A0A7B5" }}>from {t.source}</span>}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 40 }}>
+      <div className="pdp-specgrid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 40 }}>
         {rows.map(([k, v]) => (
           <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 16, padding: "11px 0", borderBottom: "1px solid #F5F6F9" }}>
             <span style={{ fontSize: 12.5, color: "#8A93A6", flexShrink: 0 }}>{k}</span>

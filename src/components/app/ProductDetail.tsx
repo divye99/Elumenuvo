@@ -84,8 +84,13 @@ export default function ProductDetail({
       </div>
 
       <div className="pd-grid" style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 24, alignItems: "start" }}>
-        {/* image + specs */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {/* image + specs.
+            On mobile this wrapper dissolves (display:contents) so the gallery,
+            the buy box and the quick specs become siblings of the same
+            single-column grid, letting quick specs sit BELOW the buy stack.
+            Reordering the grid's own children could not do that: the gallery
+            would have gone below the buy box with it. */}
+        <div className="pd-media-col" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {/* Gallery: multi-photo with lightbox + hover zoom on the public
               store; the workspace keeps the upload-capable single slot. */}
           <div data-pdp-sec="gallery" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, position: "relative" }}>
@@ -113,7 +118,9 @@ export default function ProductDetail({
               </div>
             ))}
           </div>
-          {/* compact price-history bar, under the specs */}
+          {/* compact price-history bar, under the specs.
+              If this is ever wired up, give it an explicit `order` in the
+              mobile rule below or it will land above the buy box. */}
           {priceHistorySlot}
         </div>
 

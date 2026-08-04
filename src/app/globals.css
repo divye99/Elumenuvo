@@ -465,3 +465,30 @@ input[type="range"].elume-range::-moz-range-thumb {
   .radar-badge { grid-column: 1 / -1 !important; text-align: left !important; }
   .radar-row .radar-stat-label { display: block !important; }
 }
+
+/* ── Product detail: mobile ──
+   Quick specs must sit BELOW the buy stack on a phone. The gallery and quick
+   specs live in one left-column wrapper, so reordering the grid's own children
+   would drag the gallery down with them. Dissolving the wrapper with
+   display:contents promotes all three to siblings of the single-column grid,
+   and only quick specs is then re-ordered. `!important` beats the inline
+   display:flex on that wrapper. The wrapper's own flex gap of 16 is replaced
+   exactly by the grid's mobile `gap: 16px`, so spacing is unchanged. */
+@media (max-width: 760px) {
+  .pd-media-col { display: contents !important; }
+  .pd-media-col > [data-pdp-sec="quickspecs"] { order: 1; }
+
+  /* The below-fold sections keep a 30px desktop gutter inline; a phone cannot
+     spare 60px of a 375px screen. */
+  .pdp-wrap { padding-left: 14px !important; padding-right: 14px !important; }
+
+  /* Four trust cards across a phone leaves ~80px each and buries the
+     wholesale CTA. Two-up gives every card room to be read and tapped. */
+  .pdp-trust { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+  .pdp-trust-card { padding: 11px 12px !important; border-radius: 12px !important; }
+
+  /* Spec rows: one column, label above value. Two columns at 40px gutter
+     squeezed values into ~14px-wide boxes that wrapped one character a line. */
+  .pdp-specgrid { grid-template-columns: 1fr !important; }
+  .pdp-card { padding: 16px !important; }
+}

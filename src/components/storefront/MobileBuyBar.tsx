@@ -4,11 +4,14 @@ import { useState } from "react";
 import { GROTESK } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import { baseExGst } from "@/lib/pricing";
-import { useScrollDown } from "@/lib/useScrollDown";
 
 /** Mobile-only sticky bar pinned to the bottom of the product page - price +
- *  a sleek “Add to basket”. Hides while scrolling down, returns on scroll up.
- *  Hidden entirely on desktop via CSS (.pd-buybar). */
+ *  a sleek “Add to basket”. Hidden entirely on desktop via CSS (.pd-buybar).
+ *
+ *  It used to hide itself on every downward scroll (useScrollDown(140)), which
+ *  meant the buy button vanished the moment anyone started reading the page -
+ *  precisely when they are deciding. It now stays put for the whole scroll.
+ *  The hook is untouched: HeaderScrollFx still uses it for the header. */
 export default function MobileBuyBar({
   price,
   unit,
@@ -22,11 +25,10 @@ export default function MobileBuyBar({
   gstRate?: number;
   onAdd: () => void;
 }) {
-  const hidden = useScrollDown(140);
   const [added, setAdded] = useState(false);
 
   return (
-    <div className={`pd-buybar${hidden ? " hidden" : ""}`}>
+    <div className="pd-buybar">
       <div style={{ minWidth: 0 }}>
         <div style={{ fontFamily: GROTESK, fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1.1 }}>
           {fmt(baseExGst(price, cat, gstRate))} <span style={{ fontSize: 9.5, fontWeight: 500, color: "#9AA3B8" }}>/{unit} + GST</span>
