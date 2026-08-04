@@ -492,3 +492,21 @@ input[type="range"].elume-range::-moz-range-thumb {
   .pdp-specgrid { grid-template-columns: 1fr !important; }
   .pdp-card { padding: 16px !important; }
 }
+
+/* ── Product detail: collapsible sections (MOBILE ONLY) ──
+   No rule above 760px, so desktop ignores `data-open` entirely and every
+   section stays expanded exactly as before. On a phone the page becomes a
+   list of headings the customer opens on demand.
+   The collapsed body is display:none, which has no layout box, so the
+   IntersectionObserver in PdpTelemetry cannot fire for it - which is what
+   turns the mobile funnel into "who chose to open this". */
+.pdp-collapse-chev { display: none; }
+.pdp-collapse-head { cursor: default !important; }
+
+@media (max-width: 760px) {
+  .pdp-collapse-chev { display: inline !important; }
+  .pdp-collapse-head { cursor: pointer !important; }
+  .pdp-collapse-body[data-open="false"] { display: none !important; }
+  /* A collapsed card is just a heading; drop the tall padding. */
+  .pdp-collapse:has(.pdp-collapse-body[data-open="false"]) { padding: 14px 16px !important; }
+}

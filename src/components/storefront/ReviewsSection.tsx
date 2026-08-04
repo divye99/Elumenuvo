@@ -5,6 +5,7 @@ import { GROTESK, MONO } from "@/lib/fonts";
 import { submitReview, type FormState } from "@/lib/actions";
 import type { Review } from "@/lib/reviews";
 import Rating, { StarInput } from "@/components/storefront/Rating";
+import PdpCollapse from "@/components/storefront/PdpCollapse";
 
 /** Verified customer reviews - compact summary + list, with a collapsible
  *  write-a-review form gated to verified purchasers. */
@@ -17,12 +18,11 @@ export default function ReviewsSection({ productId, reviews }: { productId: stri
 
   return (
     // id anchors the review-request email's deep links (…/catalogue/<id>#reviews)
-    <div id="reviews" data-pdp-sec="reviews" className="pdp-wrap" style={{ maxWidth: 1120, margin: "0 auto", padding: "0 30px 40px", scrollMarginTop: 90 }}>
-      <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "18px 20px" }}>
+    <div id="reviews" className="pdp-wrap" style={{ maxWidth: 1120, margin: "0 auto", padding: "0 30px 40px", scrollMarginTop: 90 }}>
+      <PdpCollapse title="Verified reviews" sec="reviews" count={reviews.length ? `${reviews.length}` : "none yet"} openOnHash="reviews">
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
-            <h3 style={{ fontFamily: GROTESK, fontSize: 16, fontWeight: 600, margin: 0 }}>Verified reviews</h3>
             {reviews.length > 0 ? <Rating rating={avg} count={reviews.length} size={13} /> : <span style={{ fontSize: 12.5, color: "#8A93A6" }}>No reviews yet</span>}
           </div>
           {!showForm && (
@@ -78,7 +78,7 @@ export default function ReviewsSection({ productId, reviews }: { productId: stri
             </div>
           </form>
         )}
-      </div>
+      </PdpCollapse>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { faqJsonLd, type Faq } from "@/lib/seo";
 import { jsonLd as toJsonLd } from "@/lib/jsonld";
+import PdpCollapse from "@/components/storefront/PdpCollapse";
 
 /**
  * Visible FAQ section + matching FAQPage JSON-LD. The on-page Q&A must mirror
@@ -8,10 +9,11 @@ import { jsonLd as toJsonLd } from "@/lib/jsonld";
 export default function ProductFaq({ faqs, title = "Frequently asked questions" }: { faqs: Faq[]; title?: string }) {
   if (!faqs.length) return null;
   return (
-    <section data-pdp-sec="faq" className="pdp-wrap" style={{ maxWidth: 1120, margin: "0 auto", padding: "0 30px" }} aria-label="Frequently asked questions">
+    <section className="pdp-wrap" style={{ maxWidth: 1120, margin: "0 auto", padding: "0 30px" }} aria-label="Frequently asked questions">
+      {/* JSON-LD stays outside the collapse: it is metadata for crawlers and
+          must be emitted whether or not a human opens the section. */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLd(faqJsonLd(faqs)) }} />
-      <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "22px 24px" }}>
-        <h2 style={{ fontFamily: "var(--space-grotesk)", fontSize: 20, fontWeight: 600, margin: "0 0 14px" }}>{title}</h2>
+      <PdpCollapse title={title} sec="faq" count={`${faqs.length}`}>
         <div>
           {faqs.map((f, i) => (
             <details key={i} style={{ borderTop: i ? "1px solid #F0F2F6" : undefined, padding: "12px 0" }}>
@@ -20,7 +22,7 @@ export default function ProductFaq({ faqs, title = "Frequently asked questions" 
             </details>
           ))}
         </div>
-      </div>
+      </PdpCollapse>
     </section>
   );
 }

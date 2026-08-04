@@ -32,11 +32,20 @@ export default function ProductCard({
   fixedWidth,
   siblings = [],
   editorial = {},
+  current = false,
+  attrsLine,
 }: {
   p: Product;
   fixedWidth?: number;
   siblings?: Product[];
   editorial?: Record<string, { bestFor: string; rank: number; slug: string; postTitle: string }>;
+  /** Ring + "Viewing" chip: this card is the product already on screen.
+   *  Used by the product page's full-range rail. */
+  current?: boolean;
+  /** What makes this option different (colour, length, size). The card's own
+   *  highlight logic is category-driven and skips colour for some categories,
+   *  which is exactly what a variant rail has to show. */
+  attrsLine?: string;
 }) {
   const [hover, setHover] = useState(false);
   // The variant currently shown on this card - swatch clicks swap it in place.
@@ -80,6 +89,7 @@ export default function ProductCard({
         width: fixedWidth,
         flexShrink: fixedWidth ? 0 : undefined,
         position: "relative",
+        ...(current ? { outline: "2px solid #4E5BDC", outlineOffset: -2 } : {}),
       }}
     >
       <div className="pc-img" style={{ height: 150, position: "relative" }}>
@@ -196,6 +206,14 @@ export default function ProductCard({
           )}
         </div>
         <div className="pc-name" style={{ fontSize: 14, fontWeight: 600, color: "#19202E", margin: "4px 0", lineHeight: 1.3 }}>{shown.name}</div>
+        {(attrsLine || current) && (
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", margin: "0 0 4px" }}>
+            {attrsLine && <span style={{ fontSize: 11, color: "#56627A", fontWeight: 600 }}>{attrsLine}</span>}
+            {current && (
+              <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "0.4px", textTransform: "uppercase", color: "#4E5BDC", background: "#EEF0FE", padding: "2px 7px", borderRadius: 7 }}>Viewing</span>
+            )}
+          </div>
+        )}
 
         {shown.rating && shown.ratingCount ? (
           <div style={{ margin: "1px 0 4px" }}>

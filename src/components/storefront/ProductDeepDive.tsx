@@ -1,5 +1,7 @@
 import Link from "next/link";
 import WholesaleAddButton from "@/components/storefront/WholesaleAddButton";
+import RangeRail from "@/components/storefront/RangeRail";
+import PdpCollapse from "@/components/storefront/PdpCollapse";
 import { GROTESK, MONO } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import { wholesalePrice, wholesaleEligible, offMrpPct, WHOLESALE_MIN_QTY, baseExGst } from "@/lib/pricing";
@@ -67,16 +69,13 @@ export default function ProductDeepDive({
 
       {/* ── Technical specifications ── */}
       {specs.length > 0 && (
-        <div data-pdp-sec="specs" className="pdp-card" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
-          <h3 style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600, letterSpacing: "-0.4px", margin: "0 0 4px" }}>
-            Technical specifications
-          </h3>
+        <PdpCollapse title="Technical specifications" sec="specs" count={`${specs.length} spec${specs.length === 1 ? "" : "s"}`}>
           <div style={{ fontSize: 12.5, color: "#8A93A6", marginBottom: 14 }}>
             {p.brand} {p.name} · {p.sku}
           </div>
           <div className="pdp-specgrid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 40 }}>
-            {specs.map(([k, v]) => (
-              <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 16, padding: "11px 0", borderBottom: "1px solid #F5F6F9" }}>
+            {specs.map(([k, v], i) => (
+              <div key={`${i}-${k}`} style={{ display: "flex", justifyContent: "space-between", gap: 16, padding: "11px 0", borderBottom: "1px solid #F5F6F9" }}>
                 <span style={{ fontSize: 12.5, color: "#8A93A6", flexShrink: 0 }}>{k}</span>
                 <span style={{ fontSize: 12.5, fontWeight: 600, color: "#19202E", textAlign: "right" }}>{v}</span>
               </div>
@@ -89,95 +88,30 @@ export default function ProductDeepDive({
               <PriceStat label="MRP equivalent" value={`${fmt(Math.round((baseExGst(p.market, p.cat, p.gstRate) / metres) * 100) / 100)}/m`} muted />
             </div>
           )}
-        </div>
+        </PdpCollapse>
       )}
 
-      {/* ── Full range (variant family) ── */}
-      {family.length > 1 && (
-        <div data-pdp-sec="range" className="pdp-card" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
-          <h3 style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600, letterSpacing: "-0.4px", margin: "0 0 4px" }}>
-            The full range · {family.length} options
-          </h3>
-          <div style={{ fontSize: 12.5, color: "#8A93A6", marginBottom: 14 }}>
-            Every option is its own product with live pricing - tap a row to switch.
-            {family.length > 48 ? " Showing the first 48; use the option picker above to reach any combination." : ""}
-          </div>
-          <div style={{ overflowX: "auto", maxHeight: 560, overflowY: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
-              <thead>
-                <tr>
-                  {["Option", ...dims, "Elume price (ex-GST)", ...(anyMetres ? ["₹ / metre"] : []), "MRP", "Off"].map((h) => (
-                    <th key={h} style={{ textAlign: h === "Option" ? "left" : "right", padding: "8px 10px", fontSize: 10.5, fontWeight: 700, letterSpacing: "0.5px", textTransform: "uppercase", color: "#8A93A6", borderBottom: "1px solid #E8EBF1", whiteSpace: "nowrap" }}>
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {family.slice(0, 48).map((s) => {
-                  const current = s.id === p.id;
-                  const m = coilMetres(s);
-                  return (
-                    <tr key={s.id} style={{ background: current ? "#F7F8FF" : undefined }}>
-                      <td style={{ padding: "10px", borderBottom: "1px solid #F5F6F9" }}>
-                        <Link href={`/catalogue/${s.id}`} style={{ fontWeight: 600, color: current ? "#4E5BDC" : "#19202E", display: "inline-flex", alignItems: "center", gap: 7 }}>
-                          {s.name}
-                          {!s.parentId && (
-                            <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "0.4px", color: "#8A93A6", background: "#F0F2F6", padding: "2px 7px", borderRadius: 7, textTransform: "uppercase" }}>Parent</span>
-                          )}
-                          {current && (
-                            <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "0.4px", color: "#4E5BDC", background: "#EEF0FE", padding: "2px 7px", borderRadius: 7, textTransform: "uppercase" }}>Viewing</span>
-                          )}
-                        </Link>
-                      </td>
-                      {dims.map((d) => (
-                        <td key={d} style={{ padding: "10px", textAlign: "right", color: "#3A4358", borderBottom: "1px solid #F5F6F9", whiteSpace: "nowrap" }}>
-                          {s.attrs?.[d] ?? "-"}
-                        </td>
-                      ))}
-                      <td style={{ padding: "10px", textAlign: "right", fontFamily: GROTESK, fontWeight: 600, color: "#19202E", borderBottom: "1px solid #F5F6F9", whiteSpace: "nowrap" }}>
-                        {fmt(baseExGst(s.price, s.cat, s.gstRate))}
-                      </td>
-                      {anyMetres && (
-                        <td style={{ padding: "10px", textAlign: "right", fontFamily: MONO, fontSize: 11.5, color: "#56627A", borderBottom: "1px solid #F5F6F9", whiteSpace: "nowrap" }}>
-                          {m ? `${fmt(Math.round((baseExGst(s.price, s.cat, s.gstRate) / m) * 100) / 100)}` : "-"}
-                        </td>
-                      )}
-                      <td style={{ padding: "10px", textAlign: "right", color: "#A0A7B5", textDecoration: "line-through", borderBottom: "1px solid #F5F6F9", whiteSpace: "nowrap" }}>
-                        {fmt(baseExGst(s.market, s.cat, s.gstRate))}
-                      </td>
-                      <td style={{ padding: "10px", textAlign: "right", fontWeight: 700, color: "#1F9D63", borderBottom: "1px solid #F5F6F9", whiteSpace: "nowrap" }}>
-                        {offMrpPct(s.price, s.market)}%
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+      {/* ── Full range (variant family) ──
+          A card rail, not a table: the question "which colour/length is this"
+          is answered by a photo, and a 10-column table on a phone was a
+          sideways scroll with no image at all. */}
+      {family.length > 1 && <RangeRail p={p} family={family.slice(0, 48)} />}
 
       {/* ── Buying guide + category FAQs ── */}
       {post && (
-        <div data-pdp-sec="guide" className="pdp-card" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
-          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
-            <h3 style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600, letterSpacing: "-0.4px", margin: 0 }}>
-              Know before you buy
-            </h3>
-            <Link href={`/blog/${post.slug}`} style={{ fontSize: 13, fontWeight: 600, color: "#4E5BDC" }}>
-              Read: {post.title} →
-            </Link>
-          </div>
+        <PdpCollapse title="Know before you buy" sec="guide">
+          <Link href={`/blog/${post.slug}`} style={{ fontSize: 13, fontWeight: 600, color: "#4E5BDC" }}>
+            Read: {post.title} →
+          </Link>
           <div style={{ marginTop: 8 }}>
-            {post.faq.slice(0, 3).map((f) => (
-              <div key={f.q} style={{ padding: "14px 0", borderBottom: "1px solid #F5F6F9" }}>
+            {post.faq.slice(0, 3).map((f, i) => (
+              <div key={`${i}-${f.q}`} style={{ padding: "14px 0", borderBottom: "1px solid #F5F6F9" }}>
                 <div style={{ fontSize: 13.5, fontWeight: 700, color: "#19202E", marginBottom: 5 }}>{f.q}</div>
                 <div style={{ fontSize: 13, color: "#56627A", lineHeight: 1.55 }}>{f.a}</div>
               </div>
             ))}
           </div>
-        </div>
+        </PdpCollapse>
       )}
     </div>
   );
@@ -202,12 +136,7 @@ function AboutBlock({ t, brand }: { t: TechSpecs; brand: string }) {
   const hasAny = !!t.description || !!t.key_features?.length || !!t.features?.length;
   if (!hasAny) return null;
   return (
-    <div data-pdp-sec="about" className="pdp-card" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", margin: "0 0 12px" }}>
-        <h3 style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600, letterSpacing: "-0.4px", margin: 0 }}>
-          About this product
-        </h3>
-      </div>
+    <PdpCollapse title="About this product" sec="about">
 
       {t.description && (
         <p style={{ fontSize: 13.5, color: "#3B4557", lineHeight: 1.65, margin: "0 0 14px" }}>{t.description}</p>
@@ -226,8 +155,8 @@ function AboutBlock({ t, brand }: { t: TechSpecs; brand: string }) {
 
       {t.features?.length ? (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12, marginTop: t.key_features?.length || t.description ? 16 : 0 }}>
-          {t.features.map((f) => (
-            <div key={f.title} style={{ background: "#F7F8FB", border: "1px solid #EEF0F4", borderRadius: 12, padding: "13px 15px" }}>
+          {t.features.map((f, i) => (
+            <div key={`${i}-${f.title}`} style={{ background: "#F7F8FB", border: "1px solid #EEF0F4", borderRadius: 12, padding: "13px 15px" }}>
               <div style={{ fontSize: 12.5, fontWeight: 700, color: "#19202E" }}>{f.title}</div>
               {f.body && <div style={{ fontSize: 12, color: "#56627A", lineHeight: 1.5, marginTop: 4 }}>{f.body}</div>}
             </div>
@@ -238,7 +167,7 @@ function AboutBlock({ t, brand }: { t: TechSpecs; brand: string }) {
       <div style={{ fontSize: 10.5, color: "#A0A7B5", marginTop: 14 }}>
         As published by {brand}. Verify critical parameters against the datasheet before specifying.
       </div>
-    </div>
+    </PdpCollapse>
   );
 }
 
@@ -279,8 +208,8 @@ function TechSpecsBlock({ t }: { t: TechSpecs }) {
       </div>
 
       <div className="pdp-specgrid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 40 }}>
-        {rows.map(([k, v]) => (
-          <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 16, padding: "11px 0", borderBottom: "1px solid #F5F6F9" }}>
+        {rows.map(([k, v], i) => (
+          <div key={`${i}-${k}`} style={{ display: "flex", justifyContent: "space-between", gap: 16, padding: "11px 0", borderBottom: "1px solid #F5F6F9" }}>
             <span style={{ fontSize: 12.5, color: "#8A93A6", flexShrink: 0 }}>{k}</span>
             <span style={{ fontSize: 12.5, fontWeight: 600, color: "#19202E", textAlign: "right" }}>{v}</span>
           </div>
