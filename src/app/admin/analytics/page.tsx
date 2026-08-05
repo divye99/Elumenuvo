@@ -3,6 +3,8 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { fetchEvents, fetchAllSearches, fetchSurveyResponses, companyKey, toVisitors, buildJourney, type SiteEvent } from "@/lib/admin/analytics-data";
 import { OUTREACH_ROSTER, outreachByEmail, outreachName } from "@/lib/admin/outreach-roster";
 import OutreachTable, { type OutreachStat } from "./OutreachTable";
+import SearchPanel from "./SearchPanel";
+import { fetchSearchAnalytics } from "@/lib/admin/search-analytics";
 import { istDateTime, istDate, istTime, istDayKey, istWeekday, shiftDayKey } from "@/lib/admin/ist";
 import Filters from "./Filters";
 
@@ -27,10 +29,12 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
   const isTraffic = view === "traffic";
   const fetchDays = isTraffic ? Math.min(97, days + 7) : days;
   const isOutreach = view === "outreach";
-  const [events, searchesBySid, surveys] = await Promise.all([
+  const isSearch = view === "search";
+  const [events, searchesBySid, surveys, searchStats] = await Promise.all([
     fetchEvents(fetchDays),
     fetchAllSearches(days),
     isOutreach ? fetchSurveyResponses() : Promise.resolve([]),
+    isSearch ? fetchSearchAnalytics(days) : Promise.resolve(null),
   ]);
   const allVisitors = toVisitors(events);
 
@@ -298,7 +302,7 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
       </div>
 
       <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-        {([["", "Visitors"], ["traffic", "Daily traffic"], ["pages", "Top pages"], ["pdp", "Product page"], ["outreach", "Email outreach"]] as [string, string][]).map(([key, label]) => {
+        {([["", "Visitors"], ["traffic", "Daily traffic"], ["pages", "Top pages"], ["pdp", "Product page"], ["search", "Searches"], ["outreach", "Email outreach"]] as [string, string][]).map(([key, label]) => {
           const active = (view ?? "") === key;
           return (
             <Link key={label} href={linkTo({ view: key })} style={{ fontSize: 13, fontWeight: 600, padding: "6px 14px", borderRadius: 8, background: active ? "#161D2B" : "#fff", color: active ? "#fff" : "#56627A", border: "1px solid #E8EBF1" }}>
@@ -490,11 +494,13 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
         </div>
       )}
 
+      {isSearch && searchStats && <SearchPanel data={searchStats} />}
+
       {isOutreach && (
         <OutreachTable rows={outreachRows} stray={strayOutreach} surveyCount={surveys.length} />
       )}
 
-      {showPages || isTraffic || showPdp || isOutreach ? null : visitors.length === 0 ? (
+      {showPages || isTraffic || showPdp || isOutreach || isSearch ? null : visitors.length === 0 ? (
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "44px 20px", textAlign: "center", color: "#8A93A6", fontSize: 14 }}>
           No visits recorded yet. Data starts flowing once migration 0051 is run and the site is redeployed.
         </div>
