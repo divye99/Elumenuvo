@@ -33,14 +33,30 @@ export default function RangeRail({ p, family }: { p: Product; family: Product[]
   const dims = dimsOf(family);
   const shown = showAll ? family : family.slice(0, FIRST_PAGE);
 
-  // Bring the variant being viewed into the rail. `block: "nearest"` is
-  // essential: without it the browser scrolls the PAGE to the rail on load.
+  // Bring the variant being viewed into the rail by scrolling the RAIL only.
+  // scrollIntoView (even with block: "nearest") scrolls ancestors too, which
+  // yanked the whole page down to this section after every variant switch.
+  // Centering runs once the rail has real layout, so it also works when the
+  // mobile collapse opens later (collapsed = display:none = zero width).
   useEffect(() => {
-    const el = currentRef.current;
     const rail = railRef.current;
-    if (!el || !rail) return;
-    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-    el.scrollIntoView({ inline: "center", block: "nearest", behavior: reduce ? "auto" : "smooth" });
+    if (!rail) return;
+    let done = false;
+    const centre = () => {
+      const el = currentRef.current;
+      if (done || !el || rail.clientWidth === 0) return;
+      done = true;
+      const railRect = rail.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      const left = rail.scrollLeft + (elRect.left - railRect.left) - (rail.clientWidth - elRect.width) / 2;
+      const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+      rail.scrollTo({ left: Math.max(0, left), behavior: reduce ? "auto" : "smooth" });
+    };
+    centre();
+    if (done) return;
+    const ro = new ResizeObserver(centre);
+    ro.observe(rail);
+    return () => ro.disconnect();
   }, []);
 
   const lineFor = (s: Product) => {
