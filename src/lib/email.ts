@@ -30,6 +30,7 @@ type OrderLike = {
   total?: number | null;
   items?: { name: string; qty: number; price?: number }[] | null;
   shipping_address?: string | null;
+  shipping_fee?: number | null;
   gstin?: string | null;
 };
 
@@ -87,8 +88,12 @@ function itemsTable(order: OrderLike): string {
   const rows = (order.items ?? [])
     .map((i) => `<tr><td style="padding:6px 0;color:#56627A">${i.qty}× ${escapeHtml(i.name)}</td><td style="padding:6px 0;text-align:right;font-weight:600">${i.price != null ? fmt(i.price * i.qty) : ""}</td></tr>`)
     .join("");
+  // Shipping gets its own line whenever it was charged, so the item lines
+  // plus shipping visibly add up to the total that hit the card.
+  const ship = Number(order.shipping_fee ?? 0);
   return `<table style="width:100%;border-collapse:collapse;font-size:13.5px;margin:8px 0">${rows}
-    ${order.total != null ? `<tr><td style="padding:10px 0 0;border-top:1px solid #F0F2F6;font-weight:700">Total</td><td style="padding:10px 0 0;border-top:1px solid #F0F2F6;text-align:right;font-weight:700">${fmt(order.total)}</td></tr>` : ""}
+    ${ship > 0 ? `<tr><td style="padding:6px 0;color:#56627A">Delivery</td><td style="padding:6px 0;text-align:right;font-weight:600">${fmt(ship)}</td></tr>` : ""}
+    ${order.total != null ? `<tr><td style="padding:10px 0 0;border-top:1px solid #F0F2F6;font-weight:700">Total${ship === 0 ? " · free delivery" : ""}</td><td style="padding:10px 0 0;border-top:1px solid #F0F2F6;text-align:right;font-weight:700">${fmt(order.total)}</td></tr>` : ""}
   </table>`;
 }
 

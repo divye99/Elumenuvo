@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import ImageSlot from "@/components/ImageSlot";
 import { GROTESK } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
-import { baseExGst, unitPriceFor, wholesaleEligible, WHOLESALE_MIN_QTY } from "@/lib/pricing";
+import { baseExGst, unitPriceFor, wholesaleEligible, WHOLESALE_MIN_QTY, shippingFeeFor, amountToFreeShipping } from "@/lib/pricing";
 import { tileFor } from "@/lib/data";
 import { useCart } from "@/lib/cart";
 
@@ -66,13 +66,20 @@ export default function CartClient() {
             <span style={{ color: "#56627A" }}>GST</span>
             <span style={{ fontFamily: GROTESK, fontWeight: 600 }}>{fmt(gstTotal)}</span>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13.5, marginBottom: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13.5, marginBottom: shippingFeeFor(total) > 0 ? 8 : 12 }}>
             <span style={{ color: "#56627A" }}>Delivery</span>
-            <span style={{ color: "#1F9D63", fontWeight: 600 }}>Free · pan-India</span>
+            {shippingFeeFor(total) > 0
+              ? <span style={{ fontFamily: GROTESK, fontWeight: 600 }}>{fmt(shippingFeeFor(total))}</span>
+              : <span style={{ color: "#1F9D63", fontWeight: 600 }}>Free · pan-India</span>}
           </div>
+          {shippingFeeFor(total) > 0 && (
+            <div style={{ fontSize: 11.5, color: "#137a4b", background: "#F2FBF6", border: "1px solid #DCEDE3", borderRadius: 8, padding: "7px 10px", marginBottom: 12 }}>
+              Add {fmt(amountToFreeShipping(total))} more for free delivery
+            </div>
+          )}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", borderTop: "1px solid #F0F2F6", paddingTop: 12, marginBottom: 14 }}>
             <span style={{ fontWeight: 600, fontSize: 14 }}>Total <span style={{ fontSize: 11, color: "#8A93A6", fontWeight: 500 }}>(incl. GST)</span></span>
-            <span style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 700 }}>{fmt(total)}</span>
+            <span style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 700 }}>{fmt(total + shippingFeeFor(total))}</span>
           </div>
           <button onClick={() => router.push("/checkout")} style={{ width: "100%", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14.5, border: "none", padding: 13, borderRadius: 11, cursor: "pointer" }}>
             Checkout

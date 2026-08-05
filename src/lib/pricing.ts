@@ -31,6 +31,41 @@ export function unitPriceFor(elumePrice: number, qty: number, category?: string 
   return qty >= WHOLESALE_MIN_QTY ? wholesalePrice(elumePrice) : elumePrice;
 }
 
+/**
+ * Shipping.
+ *
+ * Tiered on the GST-INCLUSIVE goods total, taken AFTER any discount code -
+ * the fee follows what the customer actually pays for the goods:
+ *
+ *   under ₹2,000            → ₹200
+ *   ₹2,000 to under ₹4,000  → ₹100
+ *   ₹4,000 and above        → free
+ *
+ * The fee is a flat, tax-inclusive amount added to the payable. It does not
+ * enter the goods GST split (subtotal + GST still equals the GOODS total;
+ * shipping sits on its own line everywhere).
+ *
+ * Metals never reach this: they book through the token flow, not the cart,
+ * and freight on a 4-tonne copper lot is quoted per delivery.
+ */
+export const SHIPPING_TIERS: { below: number; fee: number }[] = [
+  { below: 2000, fee: 200 },
+  { below: 4000, fee: 100 },
+];
+export const FREE_SHIPPING_MIN = 4000;
+
+/** Shipping fee for a GST-inclusive goods total (post-discount). */
+export function shippingFeeFor(goodsTotal: number): number {
+  if (!Number.isFinite(goodsTotal) || goodsTotal <= 0) return 0;
+  for (const t of SHIPPING_TIERS) if (goodsTotal < t.below) return t.fee;
+  return 0;
+}
+
+/** How much more spend unlocks free delivery; 0 when already free. */
+export function amountToFreeShipping(goodsTotal: number): number {
+  return Math.max(0, FREE_SHIPPING_MIN - Math.max(0, goodsTotal));
+}
+
 /** Discount of the Elume price vs MRP, as a rounded whole percent. */
 export function offMrpPct(elumePrice: number, mrp: number): number {
   if (!mrp || mrp <= 0) return 0;

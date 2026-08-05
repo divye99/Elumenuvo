@@ -632,7 +632,10 @@ const dt = (x: string | null) =>
   x ? new Date(x).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", hour12: true }) : "";
 
 function OrderDetail({ o, labelOf }: { o: LiveWorkspace["orders"][number]; labelOf: (s: string) => string }) {
-  const gstAmount = Math.max(0, Math.round((o.total - o.subtotal) * 100) / 100);
+  // GST applies to the goods alone: total = goods(incl GST) + shipping, so the
+  // shipping fee must come out before the split or it masquerades as tax.
+  const shipFee = Number(o.shippingFee ?? 0);
+  const gstAmount = Math.max(0, Math.round((o.total - shipFee - o.subtotal) * 100) / 100);
   const card: React.CSSProperties = { background: "#fff", border: "1px solid #EEF0F4", borderRadius: 10, padding: "12px 14px" };
   const h: React.CSSProperties = { fontSize: 11, fontWeight: 700, letterSpacing: "0.5px", textTransform: "uppercase", color: "#8A93A6", marginBottom: 8 };
   const shipBadge: Record<string, [string, string]> = {
@@ -687,7 +690,10 @@ function OrderDetail({ o, labelOf }: { o: LiveWorkspace["orders"][number]; label
           <div style={{ fontSize: 12.5, color: "#2c3550" }}>
             <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0" }}><span style={{ color: "#8A93A6" }}>Subtotal (excl. GST)</span><span>{fmt(o.subtotal)}</span></div>
             <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0" }}><span style={{ color: "#8A93A6" }}>GST</span><span>{fmt(gstAmount)}</span></div>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0" }}><span style={{ color: "#8A93A6" }}>Delivery</span><span style={{ color: "#1F9D63", fontWeight: 600 }}>Free</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0" }}>
+              <span style={{ color: "#8A93A6" }}>Delivery</span>
+              {shipFee > 0 ? <span>{fmt(shipFee)}</span> : <span style={{ color: "#1F9D63", fontWeight: 600 }}>Free</span>}
+            </div>
             {o.discount > 0 && (
               <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0" }}>
                 <span style={{ color: "#8A93A6" }}>Discount{o.discountCode ? ` (${o.discountCode})` : ""}</span>

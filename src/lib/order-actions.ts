@@ -2,7 +2,7 @@
 
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { exGst, gstPart, baseExGst, unitPriceFor } from "@/lib/pricing";
+import { exGst, gstPart, baseExGst, unitPriceFor, shippingFeeFor } from "@/lib/pricing";
 import { isMetalCategory } from "@/lib/metals";
 import { DEFAULT_COUNTRY, phoneError, normalisePhoneE164 } from "@/lib/phone";
 import { sendAdminNewOrder, sendCustomerOrderConfirmation } from "@/lib/email";
@@ -132,8 +132,13 @@ async function insertPendingOrder(
   total: number,
   razorpayOrderId: string,
   discountCode: string | null = null,
-  discountAmount = 0
+  discountAmount = 0,
+  shippingFee = 0
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  // `total` is the amount actually charged (goods + shipping). All goods-GST
+  // arithmetic below must run on the goods portion alone: shipping is a flat
+  // inclusive charge on its own line, never part of the taxable-value split.
+  const goodsTotal = Math.round((total - shippingFee) * 100) / 100;
   let userId: string | null = null;
   try {
     const supabase = await createClient();
@@ -158,12 +163,13 @@ async function insertPendingOrder(
     subtotal: (() => {
       const gross = items.some((i) => i.cat)
         ? items.reduce((s, i) => s + baseExGst(i.price, i.cat, i.gstRate) * i.qty, 0)
-        : Math.round(exGst(total + discountAmount) * 100) / 100;
-      const preDiscount = total + discountAmount;
-      const scale = preDiscount > 0 ? total / preDiscount : 1;
+        : Math.round(exGst(goodsTotal + discountAmount) * 100) / 100;
+      const preDiscount = goodsTotal + discountAmount;
+      const scale = preDiscount > 0 ? goodsTotal / preDiscount : 1;
       return Math.round(gross * scale * 100) / 100;
     })(),
     total,
+    shipping_fee: shippingFee,
     discount_code: discountCode,
     discount_amount: discountAmount || null,
     is_guest: !userId,
@@ -178,6 +184,12 @@ async function insertPendingOrder(
   // retry without it so ordering never breaks on the schema gap.
   if (error && "address_details" in row && /address_details/.test(error.message)) {
     delete row.address_details;
+    ({ error } = await db.from("orders").insert(row));
+  }
+  // shipping_fee ships in migration 0092. Pre-migration the fee is still
+  // charged (it is inside `total`); only the itemised record is lost.
+  if (error && /shipping_fee/.test(error.message)) {
+    delete row.shipping_fee;
     ({ error } = await db.from("orders").insert(row));
   }
   if (error) return { ok: false, error: error.message };
@@ -354,14 +366,20 @@ export async function startOnlinePayment(input: PlaceOrderInput): Promise<StartP
     discount = Math.round(v.total * (dc.percent / 100) * 100) / 100;
     appliedCode = input.discount_code.trim().toUpperCase();
   }
-  const payable = Math.round((v.total - discount) * 100) / 100;
-  if (payable < 1) return { ok: false, error: "Order total too small." };
+  const goodsPayable = Math.round((v.total - discount) * 100) / 100;
+  if (goodsPayable < 1) return { ok: false, error: "Order total too small." };
+
+  // Shipping is tiered on the goods total AFTER the discount - the fee follows
+  // what the customer actually pays for the goods, and a code that lifts an
+  // order past 4,000 still earns free delivery.
+  const shipping = shippingFeeFor(goodsPayable);
+  const payable = Math.round((goodsPayable + shipping) * 100) / 100;
 
   const id = orderId();
   const rp = await createRazorpayOrder(Math.round(payable * 100), id, { orderId: id, email: input.email.trim().toLowerCase() });
   if (!rp.ok) return { ok: false, error: rp.error };
 
-  const pending = await insertPendingOrder(db, id, input, v.items, payable, rp.id, appliedCode, discount);
+  const pending = await insertPendingOrder(db, id, input, v.items, payable, rp.id, appliedCode, discount, shipping);
   if (!pending.ok) return { ok: false, error: pending.error };
 
   return {

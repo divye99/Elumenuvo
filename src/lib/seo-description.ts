@@ -178,7 +178,7 @@ export function productDescription(p: Product): string {
     const lot = p.attrs?.Lot ? ` Sold in 3 MT and 4 MT lots (this listing: ${p.attrs.Lot}).` : "";
     return `${p.name} at today's rate of ₹${rate.toFixed(2)}/kg ex-GST, updated against MCX and LME copper up to three times a day.${lot} Book online with a 5% token, balance by RTGS, GST tax invoice with dispatch. Live rate charts on this page.`;
   }
-  const tail = ` Elume price ₹${p.price} per ${p.unit} (MRP ₹${p.market}). Free delivery across India.`;
+  const tail = ` Elume price ₹${p.price} per ${p.unit} (MRP ₹${p.market}). Pan-India delivery, free on orders above ₹4,000.`;
   if (p.cat === "Fans") return fanDescription(p) + tail;
   if (p.cat === "Lighting") return lightingDescription(p) + tail;
   if (p.cat === "Electrical Accessories") return accessoryDescription(p) + tail;

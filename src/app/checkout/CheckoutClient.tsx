@@ -7,7 +7,7 @@ import SavedPicker, { type PickerOption } from "@/app/checkout/SavedPicker";
 import Link from "next/link";
 import { GROTESK } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
-import { unitPriceFor, baseExGst } from "@/lib/pricing";
+import { unitPriceFor, baseExGst, shippingFeeFor, amountToFreeShipping } from "@/lib/pricing";
 import { COUNTRIES, DEFAULT_COUNTRY, countryByIso, maxDigits, nationalDigits, normalisePhoneE164, phoneError, toE164 } from "@/lib/phone";
 import { useCart } from "@/lib/cart";
 import { startOnlinePayment, confirmOnlinePayment } from "@/lib/order-actions";
@@ -225,7 +225,13 @@ export default function CheckoutClient({
     } catch { setCodeState({ status: "err", msg: "Couldn't check the code - try again." }); }
   };
   const discount = codeState.status === "ok" ? Math.round(total * ((codeState.percent ?? 0) / 100) * 100) / 100 : 0;
-  const payable = Math.round((total - discount) * 100) / 100;
+  // Shipping mirrors the server exactly (order-actions runs the same
+  // function on the same post-discount goods total), so the figure shown is
+  // the figure charged.
+  const goodsPayable = Math.round((total - discount) * 100) / 100;
+  const shipping = shippingFeeFor(goodsPayable);
+  const toFree = amountToFreeShipping(goodsPayable);
+  const payable = Math.round((goodsPayable + shipping) * 100) / 100;
 
   const submit = () =>
     start(async () => {
@@ -571,8 +577,13 @@ export default function CheckoutClient({
             {/* Prices are quoted ex-GST, so always show the taxable value + GST. */}
             <SumRow label="Subtotal (excl. GST)" value={fmt(gst.base)} muted />
             <SumRow label="GST" value={fmt(gst.tax)} muted />
-            <SumRow label="Delivery" value="Free" green />
             {discount > 0 && <SumRow label={`Discount (${codeState.percent}% · ${code.trim().toUpperCase()})`} value={`− ${fmt(discount)}`} green />}
+            <SumRow label="Delivery" value={shipping > 0 ? fmt(shipping) : "Free"} muted={shipping > 0} green={shipping === 0} />
+            {shipping > 0 && (
+              <div style={{ fontSize: 11.5, color: "#137a4b", background: "#F2FBF6", border: "1px solid #DCEDE3", borderRadius: 8, padding: "7px 10px", margin: "2px 0 4px" }}>
+                Add {fmt(toFree)} more for free delivery
+              </div>
+            )}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 8 }}>
               <span style={{ fontWeight: 600, fontSize: 14 }}>Total <span style={{ fontSize: 11, color: "#8A93A6", fontWeight: 500 }}>incl. GST</span></span>
               <span style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 700 }}>{fmt(payable)}</span>

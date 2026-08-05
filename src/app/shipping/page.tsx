@@ -16,8 +16,8 @@ export default function ShippingPage() {
     <InfoPage
       kicker="Help centre"
       title="Shipping & delivery"
-      intro="Free delivery anywhere in India, in 3 to 7 days, with tracking on every order. No shipping charge is added at checkout, whatever you buy."
-      updated="28 July 2026"
+      intro="Pan-India delivery in 3 to 7 days, with tracking on every order. Free on orders of ₹4,000 and above; a small flat fee applies below that, shown clearly at checkout before you pay."
+      updated="5 August 2026"
       sections={[
         {
           h: "Where we deliver",
@@ -41,13 +41,19 @@ export default function ShippingPage() {
           ),
         },
         {
-          h: "Delivery is free",
+          h: "Delivery charges",
           body: (
             <>
-              <b>We do not charge for delivery.</b> There is no minimum order value, no surcharge for remote PIN codes,
-              and no fee added after you have ordered. The amount you see at checkout is the amount you pay: product
-              price plus GST, nothing else. Prices on product pages are shown excluding GST, and GST is added at
-              checkout.
+              Delivery is charged as a flat fee based on your order value (the GST-inclusive goods total, after any
+              discount code):
+              <ul style={{ margin: "10px 0", paddingLeft: 20 }}>
+                <li>Orders under <b>₹2,000</b>: <b>₹200</b> delivery fee</li>
+                <li>Orders from <b>₹2,000</b> to under <b>₹4,000</b>: <b>₹100</b> delivery fee</li>
+                <li>Orders of <b>₹4,000 and above</b>: <b>free delivery</b></li>
+              </ul>
+              The fee is shown on its own line in the cart and at checkout before you pay - never added afterwards -
+              and there is no surcharge for remote PIN codes beyond it. Prices on product pages are shown excluding
+              GST; GST on the goods is added at checkout, and the delivery fee is a flat, all-inclusive amount.
             </>
           ),
         },

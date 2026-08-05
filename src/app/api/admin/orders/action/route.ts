@@ -9,10 +9,14 @@ import { baseExGst } from "@/lib/pricing";
 /** Taxable value for an order's items at each item's own GST rate, scaled so
  *  subtotal + GST still equals the amount actually charged (this keeps any
  *  order-level discount correctly apportioned). */
-function recomputeSubtotal(items: any[], total: number): number {
+function recomputeSubtotal(items: any[], total: number, shippingFee = 0): number {
+  // `total` is the amount charged, which includes any flat shipping fee
+  // (migration 0092). The GST split covers the GOODS alone, so shipping comes
+  // out before scaling or it would be apportioned across the items as tax.
+  const goodsTotal = Math.max(0, total - shippingFee);
   const gross = items.reduce((s, i) => s + baseExGst(Number(i.price), i.cat, i.gstRate) * Number(i.qty), 0);
   const lines = items.reduce((s, i) => s + Number(i.price) * Number(i.qty), 0);
-  const scale = lines > 0 && total > 0 ? total / lines : 1;
+  const scale = lines > 0 && goodsTotal > 0 ? goodsTotal / lines : 1;
   return Math.round(gross * scale * 100) / 100;
 }
 import {
@@ -170,7 +174,7 @@ export async function POST(request: Request) {
       const { error: upErr } = await db.from("orders").update({
         items: next,
         product_ids: next.map((x: any) => x.id),
-        subtotal: recomputeSubtotal(next, Number(order.total ?? 0)),
+        subtotal: recomputeSubtotal(next, Number(order.total ?? 0), Number(order.shipping_fee ?? 0)),
       }).eq("id", order.id);
       if (upErr) return NextResponse.json({ ok: false, error: upErr.message }, { status: 400 });
       const listPrice = Number(np.elume_price);

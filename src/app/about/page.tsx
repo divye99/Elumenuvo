@@ -55,7 +55,7 @@ export default function AboutPage() {
               We publish one transparent price list. Prices are shown excluding GST, with the GST amount and the
               inclusive total displayed before you pay, and a wholesale rate applies automatically on 15 units or more.
               We track brand and marketplace pricing daily and keep our price at or below it wherever we can. There are
-              no hidden charges: delivery is free anywhere in India, so the only thing added at checkout is GST.
+              no hidden charges: delivery is free on orders of ₹4,000 and above, with a small flat fee below that, and every charge is itemised at checkout before you pay.
             </>
           ),
         },

@@ -54,7 +54,7 @@ export default async function WholesalePage() {
           <div style={{ display: "flex", gap: 26, flexWrap: "wrap", fontSize: 13.5 }}>
             <div><span style={{ color: "#9DB0FF", fontWeight: 700 }}>Applies per product</span><br /><span style={{ color: "#C6CDE2" }}>{WHOLESALE_MIN_QTY}+ of the same item, any colour mix within a wire family</span></div>
             <div><span style={{ color: "#9DB0FF", fontWeight: 700 }}>Stacks with GST invoice</span><br /><span style={{ color: "#C6CDE2" }}>full input credit for business buyers</span></div>
-            <div><span style={{ color: "#9DB0FF", fontWeight: 700 }}>Free delivery still applies</span><br /><span style={{ color: "#C6CDE2" }}>pan-India, whatever the order size</span></div>
+            <div><span style={{ color: "#9DB0FF", fontWeight: 700 }}>Free delivery above ₹4,000</span><br /><span style={{ color: "#C6CDE2" }}>pan-India - wholesale orders clear it comfortably</span></div>
           </div>
           {example && (
             <p style={{ fontSize: 13, color: "#8FA0C9", margin: "18px 0 0" }}>

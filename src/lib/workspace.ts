@@ -30,7 +30,8 @@ export type LiveOrder = {
    *  delivery setup instead of only the composed one-line string. */
   addressDetails: { billing?: Record<string, string>; shipping?: Record<string, string> } | null;
   // Everything the customer needs to trust the order without calling us:
-  subtotal: number;               // taxable value (ex-GST)
+  subtotal: number;               // taxable value (ex-GST, goods only)
+  shippingFee: number;            // flat delivery charge inside `total`; 0 = free
   discount: number;               // 0 when no code applied
   discountCode: string | null;
   gstin: string | null;
@@ -100,6 +101,7 @@ export async function getLiveWorkspace(userId: string, email: string | null): Pr
         lines: Array.isArray(o.items) ? o.items.slice(0, 20).map((i: any) => ({ id: String(i.id ?? ""), name: String(i.name ?? i.id ?? "item"), qty: Number(i.qty ?? 1), price: Number(i.price ?? 0) })) : [],
         addressDetails: (o.address_details ?? null) as LiveOrder["addressDetails"],
         subtotal: Number(o.subtotal ?? 0),
+        shippingFee: Number(o.shipping_fee ?? 0),
         discount: Number(o.discount_amount ?? 0),
         discountCode: o.discount_code ?? null,
         gstin: o.gstin ?? null,

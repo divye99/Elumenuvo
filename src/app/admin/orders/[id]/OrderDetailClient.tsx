@@ -134,8 +134,14 @@ export default function OrderDetailClient({ order, shipments, events, customer }
                 <span>− {fmt((order as any).discount_amount)}</span>
               </div>
             )}
+            {Number((order as any).shipping_fee ?? 0) > 0 && (
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: 13, color: "#56627A" }}>
+                <span>Delivery</span>
+                <span>{fmt(Number((order as any).shipping_fee))}</span>
+              </div>
+            )}
             <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid #F0F2F6", marginTop: 8, paddingTop: 10, fontWeight: 700 }}>
-              <span>Total <span style={{ fontSize: 11, color: "#8A93A6", fontWeight: 500 }}>incl. GST</span></span>
+              <span>Total <span style={{ fontSize: 11, color: "#8A93A6", fontWeight: 500 }}>incl. GST{Number((order as any).shipping_fee ?? 0) > 0 ? " + delivery" : ""}</span></span>
               <span style={{ fontFamily: "var(--space-grotesk)" }}>{order.total != null ? fmt(order.total) : "-"}</span>
             </div>
           </Card>

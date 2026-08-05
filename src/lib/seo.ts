@@ -6,6 +6,7 @@
 export const SITE = "https://elumenuvo.com";
 
 import { COMPANY, postalAddress, postalAddressOf } from "./company";
+import { shippingFeeFor } from "./pricing";
 
 /** Organization / publisher identity (add @context where embedded).
  *  A postal address and an identifier (CIN) are what turn this from a name
@@ -83,16 +84,26 @@ export const RETURN_POLICY = {
   returnFees: "https://schema.org/FreeReturn",
 };
 
-export const SHIPPING_DETAILS = {
-  "@type": "OfferShippingDetails",
-  shippingRate: { "@type": "MonetaryAmount", value: 0, currency: "INR" },
-  shippingDestination: { "@type": "DefinedRegion", addressCountry: "IN" },
-  deliveryTime: {
-    "@type": "ShippingDeliveryTime",
-    handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "DAY" },
-    transitTime: { "@type": "QuantitativeValue", minValue: 2, maxValue: 7, unitCode: "DAY" },
-  },
-};
+/**
+ * Shipping is tiered on order value (free at ₹4,000+, see lib/pricing), but an
+ * Offer's shippingDetails describes ONE product bought on its own, so the rate
+ * published is the fee a single unit of THIS product would incur. Google
+ * compares this against the landing page and checkout; overstating (a flat
+ * worst case) or understating (still claiming 0) both invite price-mismatch
+ * disapprovals.
+ */
+export function shippingDetailsFor(inclusivePrice: number) {
+  return {
+    "@type": "OfferShippingDetails",
+    shippingRate: { "@type": "MonetaryAmount", value: shippingFeeFor(inclusivePrice), currency: "INR" },
+    shippingDestination: { "@type": "DefinedRegion", addressCountry: "IN" },
+    deliveryTime: {
+      "@type": "ShippingDeliveryTime",
+      handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "DAY" },
+      transitTime: { "@type": "QuantitativeValue", minValue: 2, maxValue: 7, unitCode: "DAY" },
+    },
+  };
+}
 
 export const NEW_CONDITION = "https://schema.org/NewCondition";
 
@@ -116,7 +127,7 @@ export function productFaqs(p: { name: string; brand: string; unit: string }): F
   const unit = p.unit || "unit";
   return [
     { q: `Is ${p.name} genuine and warranty-backed?`, a: `Yes. Every ${p.brand} product on Elume is 100% genuine, sourced through authorised channels, and carries the manufacturer's standard warranty.` },
-    { q: "Do you deliver across India?", a: "Yes - we deliver pan-India, usually within 3–7 working days, and delivery is free." },
+    { q: "Do you deliver across India?", a: "Yes - we deliver pan-India, usually within 3–7 working days. Delivery is free on orders of ₹4,000 and above; a flat ₹100 fee applies from ₹2,000 to ₹4,000 and ₹200 below ₹2,000." },
     { q: "Can I get a GST invoice?", a: "Yes. Enter your GSTIN at checkout and we issue a GST invoice with tax shown separately, so businesses can claim input tax credit." },
     { q: "Is there a wholesale or bulk rate?", a: `Yes. Orders of 15 or more ${unit}s get a wholesale rate about 5% below the listed Elume price - shown on every product page.` },
     { q: "What is the return policy?", a: "Unused items in original packaging can be returned within 7 days of delivery, with free return shipping." },

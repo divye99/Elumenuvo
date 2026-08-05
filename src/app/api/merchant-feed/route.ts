@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { shippingFeeFor } from "@/lib/pricing";
 import { isMetalCategory } from "@/lib/metals";
 
 /**
@@ -76,7 +77,7 @@ ${idPart}
       <g:product_type>${esc(p.category)}</g:product_type>
       <g:shipping>
         <g:country>IN</g:country>
-        <g:price>0.00 INR</g:price>
+        <g:price>${shippingFeeFor(p.elume_price).toFixed(2)} INR</g:price>
       </g:shipping>
     </item>`;
     });

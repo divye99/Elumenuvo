@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { GROTESK } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
-import { baseExGst } from "@/lib/pricing";
+import { baseExGst, shippingFeeFor, FREE_SHIPPING_MIN } from "@/lib/pricing";
 
 /** Mobile-only sticky bar pinned to the bottom of the product page - price +
  *  a sleek “Add to basket”. Hidden entirely on desktop via CSS (.pd-buybar).
@@ -33,7 +33,11 @@ export default function MobileBuyBar({
         <div style={{ fontFamily: GROTESK, fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1.1 }}>
           {fmt(baseExGst(price, cat, gstRate))} <span style={{ fontSize: 9.5, fontWeight: 500, color: "#9AA3B8" }}>/{unit} + GST</span>
         </div>
-        <div style={{ fontSize: 8.5, color: "#8EE2B8", fontWeight: 600, marginTop: 1 }}>Free pan-India delivery</div>
+        {/* Only promise free delivery when THIS item alone already earns it;
+            below that, state the threshold rather than a blanket claim. */}
+        <div style={{ fontSize: 8.5, color: "#8EE2B8", fontWeight: 600, marginTop: 1 }}>
+          {shippingFeeFor(price) === 0 ? "Free pan-India delivery" : `Free delivery over ${fmt(FREE_SHIPPING_MIN)}`}
+        </div>
       </div>
       <button
         data-cart-tracked

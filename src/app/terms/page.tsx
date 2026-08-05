@@ -25,7 +25,7 @@ export default function TermsPage() {
         },
         {
           h: "Delivery",
-          body: "We deliver pan-India, typically within 3–7 working days of dispatch. Delivery timelines shown on the site are estimates, not guarantees; remote pin codes can take longer. Risk in the goods passes to you on delivery.",
+          body: "We deliver pan-India, typically within 3–7 working days of dispatch. Delivery is free on orders of ₹4,000 and above (GST-inclusive goods value, after any discount); orders from ₹2,000 to under ₹4,000 carry a flat ₹100 delivery fee and orders under ₹2,000 a flat ₹200 fee, always itemised at checkout before payment. Delivery timelines shown on the site are estimates, not guarantees; remote pin codes can take longer. Risk in the goods passes to you on delivery.",
         },
         {
           h: "Payments",

@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 const FAQS: Faq[] = [
   { q: "Are the products genuine?", a: "Yes. Every product on Elume is 100% genuine, sourced through authorised channels, and carries the manufacturer's standard warranty." },
-  { q: "Do you deliver across India?", a: "Yes - we deliver pan-India, usually within 3–7 working days, and delivery is free on every order." },
+  { q: "Do you deliver across India?", a: "Yes - we deliver pan-India, usually within 3–7 working days. Delivery is free on orders of ₹4,000 and above; below that a flat fee applies (₹100 for orders of ₹2,000–₹4,000, ₹200 under ₹2,000), always shown at checkout before you pay." },
   { q: "Can I get a GST invoice?", a: "Yes. Enter your GSTIN at checkout and we issue a GST invoice with tax shown separately, so businesses can claim input tax credit." },
   { q: "Is there a wholesale or bulk rate?", a: "Yes. Bulk orders unlock a wholesale rate about 5% below the listed Elume price - the tier is shown on every product page." },
   { q: "What payment methods do you accept?", a: "We accept UPI, credit and debit cards, net banking and wallets through our secure Razorpay checkout. Payment is taken online when you place the order. 30-day NBFC credit for businesses is coming soon." },

@@ -20,7 +20,7 @@ import PdpTelemetry from "@/components/storefront/PdpTelemetry";
 import ProductDeepDive from "@/components/storefront/ProductDeepDive";
 import ReviewsSection from "@/components/storefront/ReviewsSection";
 import ProductFaq from "@/components/storefront/ProductFaq";
-import { NEW_CONDITION, RETURN_POLICY, SHIPPING_DETAILS, productFaqs } from "@/lib/seo";
+import { NEW_CONDITION, RETURN_POLICY, shippingDetailsFor, productFaqs } from "@/lib/seo";
 
 // ISR, not dynamic. Product pages are the same for every visitor, so they are
 // generated once and served from cache: Googlebot gets bytes instead of a
@@ -111,7 +111,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       areaServed: { "@type": "Country", name: "India" },
       seller: { "@type": "Organization", name: "Elume Nuvotech Private Limited" },
       hasMerchantReturnPolicy: RETURN_POLICY,
-      shippingDetails: SHIPPING_DETAILS,
+      shippingDetails: shippingDetailsFor(product.price),
     },
   };
   const faqs = productFaqs({ name: product.name, brand: product.brand, unit: product.unit });
