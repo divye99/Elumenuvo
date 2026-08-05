@@ -45,6 +45,11 @@ export default async function AdminHome() {
           <div style={{ fontSize: 28, fontWeight: 700 }}>{content.length}</div>
           <div style={{ fontSize: 13, color: "#4E5BDC", fontWeight: 600, marginTop: 6 }}>Edit site content →</div>
         </Link>
+        <Link href="/admin/cart-links" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: 20 }}>
+          <div style={{ fontSize: 13, color: "#8A93A6" }}>Cart links</div>
+          <div style={{ fontSize: 28, fontWeight: 700 }}>🛒</div>
+          <div style={{ fontSize: 13, color: "#4E5BDC", fontWeight: 600, marginTop: 6 }}>Prefilled WhatsApp carts →</div>
+        </Link>
         <Link href="/admin/metals" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: 20 }}>
           <div style={{ fontSize: 13, color: "#8A93A6" }}>Metals</div>
           <div style={{ fontSize: 28, fontWeight: 700 }}>🥉</div>
