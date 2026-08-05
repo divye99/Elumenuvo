@@ -7,7 +7,7 @@ import { CATS, type Product } from "@/lib/data";
 import { groupVariants, familyKey } from "@/lib/variants";
 import { logSearch } from "@/lib/search-log";
 import { useSearchParams } from "next/navigation";
-import { searchTokens, matchesAll, relevanceScore, buildSearchVocab, correctSearchTokens } from "@/lib/search-normalize";
+import { searchTokens, matchesAll, relevanceScore, buildSearchVocab, correctSearchTokens, editDistance, normalizeSearchText } from "@/lib/search-normalize";
 
 const CAT_ICONS: Record<string, string> = {
   All: "◈",
@@ -110,7 +110,7 @@ export default function CatalogueBrowser({
   // that would give typos plausible-looking but useless correction targets.
   const vocab = useMemo(() => buildSearchVocab(products.map((p) => `${p.brand} ${p.name} ${p.cat}`)), [products]);
 
-  const { filtered, correctedTo } = useMemo(() => {
+  const { filtered, correctedTo, partial } = useMemo(() => {
     // Word-based matching, same rule as the header's suggest API: EVERY word
     // must appear somewhere in brand/name/spec/sku/category. A whole-string
     // substring test made "hav mcb" (a suggestion the search bar itself
@@ -126,18 +126,40 @@ export default function CatalogueBrowser({
 
     let list = match(tokens);
     let correctedTo: string | null = null;
+    let partial: { matched: number; total: number } | null = null;
     // Typo rescue, ONLY on a dead end: "water moter" found nothing, so try
     // the closest catalogue words and say so. A search that found anything
     // is never second-guessed - SKU and part-number queries stay exact.
-    if (list.length === 0 && tokens.length > 0) {
-      const fix = correctSearchTokens(tokens, vocab);
-      if (fix.changed) {
-        const rescued = match(fix.tokens);
-        if (rescued.length > 0) {
-          list = rescued;
-          tokens = fix.tokens;
-          correctedTo = fix.tokens.join(" ");
-        }
+    const fix = list.length === 0 && tokens.length > 0 ? correctSearchTokens(tokens, vocab) : null;
+    if (fix?.changed) {
+      const rescued = match(fix.tokens);
+      if (rescued.length > 0) {
+        list = rescued;
+        tokens = fix.tokens;
+        correctedTo = fix.tokens.join(" ");
+      }
+    }
+    // Best-possible-match fallback, still on a dead end: "Apogee 1m
+    // 12switches board slim plate" has no product carrying EVERY word, but
+    // walking away with zero when we stock a wall of Apogee plates is worse
+    // than showing the closest thing. Keep the products that match the MOST
+    // query words (each word also counts via its typo-corrected form) and
+    // say so in a banner. Analytics still logs the query as 0 exact results,
+    // so missed-demand reporting keeps seeing the truth.
+    if (list.length === 0 && tokens.length > 1) {
+      const forms = tokens.map((t, i) => (fix?.changed && fix.tokens[i] !== t ? [t, fix.tokens[i]] : [t]));
+      const pool = products.filter((p) => (cat === "All" || p.cat === cat) && (picked.size === 0 || picked.has(p.brand)));
+      let best = 0;
+      const counted = pool.map((p) => {
+        const hay = `${p.brand} ${p.name} ${p.spec} ${p.sku} ${p.cat}`;
+        let n = 0;
+        for (const f of forms) if (f.some((w) => matchesAll(hay, [w]))) n += 1;
+        if (n > best) best = n;
+        return { p, n };
+      });
+      if (best > 0) {
+        list = counted.filter((c) => c.n === best).map((c) => c.p);
+        partial = { matched: best, total: tokens.length };
       }
     }
     // Out-of-stock products stay browsable and searchable, but never lead a
@@ -200,7 +222,7 @@ export default function CatalogueBrowser({
       }
     }
     })();
-    return { filtered: sorted, correctedTo };
+    return { filtered: sorted, correctedTo, partial };
   }, [products, vocab, cat, picked, dq, sort, searchBoost]);
 
   useEffect(() => {
@@ -217,11 +239,36 @@ export default function CatalogueBrowser({
         logSearch({ q: needle, source: "search", results: 0, cat: cat === "All" ? undefined : cat });
         logSearch({ q: correctedTo, source: "search", results: filtered.length, cat: cat === "All" ? undefined : cat });
       } else {
-        logSearch({ q: needle, source: "search", results: filtered.length, cat: cat === "All" ? undefined : cat });
+        // A best-effort partial rescue is NOT an exact hit: log 0 so the
+        // missed-demand report keeps seeing what we genuinely don't carry.
+        logSearch({ q: needle, source: "search", results: partial ? 0 : filtered.length, cat: cat === "All" ? undefined : cat });
       }
     }, 1200);
     return () => clearTimeout(t);
-  }, [q, cat, filtered.length, correctedTo]);
+  }, [q, cat, filtered.length, correctedTo, partial]);
+
+  // When even the partial fallback finds nothing (SKU-style queries like
+  // "CHZ/PO/0015"), read category INTENT from the words instead: fuzzy-match
+  // tokens against category names and offer that category's most popular
+  // products, so the dead end still hands the shopper somewhere to go.
+  const deadEndSuggest = useMemo(() => {
+    if (filtered.length !== 0) return null;
+    // Letter runs, not whitespace tokens: "CHZ/PO/0015" still yields "chz",
+    // "po" so even part-number pastes reach the fallback shelf.
+    const toks = normalizeSearchText(dq).split(/[^\p{L}]+/u).filter((t) => t.length >= 3);
+    if (dq.trim().length < 2) return null;
+    const cats = [...new Set(products.map((p) => p.cat))];
+    const hitCats = cats.filter((c) =>
+      normalizeSearchText(c).split(/\s+/).some((w) =>
+        toks.some((t) => w.startsWith(t) || t.startsWith(w) || editDistance(t, w, 2) <= (w.length <= 5 ? 1 : 2))
+      )
+    );
+    const pool = (hitCats.length ? products.filter((p) => hitCats.includes(p.cat)) : products)
+      .filter((p) => p.inStock !== false && p.image);
+    const trendLite = (p: Product) => Math.min(searchBoost[p.id] ?? 0, 20) * 3 + Math.min(p.unitsSold ?? 0, 200) + (p.recommended ? 8 : 0);
+    const items = [...pool].sort((a, b) => trendLite(b) - trendLite(a)).slice(0, 8);
+    return items.length ? { cats: hitCats, items } : null;
+  }, [filtered.length, dq, products, searchBoost]);
 
   const toggleBrand = (b: string) =>
     setPicked((prev) => {
@@ -573,6 +620,11 @@ export default function CatalogueBrowser({
           Showing results for <b>{correctedTo}</b> · no matches for “{q.trim()}”
         </div>
       )}
+      {partial && (
+        <div style={{ fontSize: 13.5, color: "#3A4358", background: "#FFF9EE", border: "1px solid #F0DFC0", borderRadius: 10, padding: "10px 14px", margin: "0 0 14px" }}>
+          Nothing matches all of “{q.trim()}” · showing the closest matches ({partial.matched} of {partial.total} words)
+        </div>
+      )}
       {filtered.length === 0 ? (
         <div
           style={{
@@ -592,6 +644,20 @@ export default function CatalogueBrowser({
           >
             Clear all filters
           </button>
+          {deadEndSuggest && (
+            <div style={{ marginTop: 34, textAlign: "left" }}>
+              <div style={{ fontSize: 14.5, fontWeight: 700, color: "#19202E", marginBottom: 12 }}>
+                {deadEndSuggest.cats.length
+                  ? <>Were you looking for {deadEndSuggest.cats.join(" or ")}? Popular picks:</>
+                  : "Popular right now:"}
+              </div>
+              <div className="cat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(232px, 1fr))", gap: 16 }}>
+                {deadEndSuggest.items.map((p) => (
+                  <ProductCard key={p.id} p={p} siblings={variantGroups[familyKey(p)]} editorial={editorial} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <>
