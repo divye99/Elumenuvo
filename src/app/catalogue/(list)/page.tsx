@@ -22,5 +22,9 @@ export const metadata: Metadata = {
 
 export default async function CataloguePage() {
   const [products, signals] = await Promise.all([fetchProducts(), loadSearchSignals()]);
-  return <CatalogueBrowser products={products} editorial={getEditorialPicks()} searchBoost={signals.pickTotals} personalShelf={<BuyAgainShelf />} />;
+  // key: the shelf element crosses the server->client boundary as a prop and
+  // lands in <main>'s children array un-validated; without an explicit key
+  // React warns "missing key ... passed a child from CataloguePage" on every
+  // catalogue render.
+  return <CatalogueBrowser products={products} editorial={getEditorialPicks()} searchBoost={signals.pickTotals} personalShelf={<BuyAgainShelf key="buy-again" />} />;
 }
