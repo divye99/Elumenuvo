@@ -7,7 +7,7 @@ import { CATS, type Product } from "@/lib/data";
 import { groupVariants, familyKey } from "@/lib/variants";
 import { logSearch } from "@/lib/search-log";
 import { useSearchParams } from "next/navigation";
-import { searchTokens, matchesAll, relevanceScore } from "@/lib/search-normalize";
+import { searchTokens, matchesAll, relevanceScore, buildSearchVocab, correctSearchTokens } from "@/lib/search-normalize";
 
 const CAT_ICONS: Record<string, string> = {
   All: "◈",
@@ -105,21 +105,45 @@ export default function CatalogueBrowser({
   const dq = useDeferredValue(q);
   useEffect(() => { setShown(PAGE); }, [dq, cat, picked, sort]);
 
-  const filtered = useMemo(() => {
+  // Catalogue word list for typo correction, built once per product load.
+  // Names + brands + categories only: spec text is full of codes and units
+  // that would give typos plausible-looking but useless correction targets.
+  const vocab = useMemo(() => buildSearchVocab(products.map((p) => `${p.brand} ${p.name} ${p.cat}`)), [products]);
+
+  const { filtered, correctedTo } = useMemo(() => {
     // Word-based matching, same rule as the header's suggest API: EVERY word
     // must appear somewhere in brand/name/spec/sku/category. A whole-string
     // substring test made "hav mcb" (a suggestion the search bar itself
     // offers) return zero results, since no single field contains it.
-    const tokens = searchTokens(dq);
-    const list = products.filter((p) => {
-      const inCat = cat === "All" || p.cat === cat;
-      const inBrand = picked.size === 0 || picked.has(p.brand);
-      const inSearch = tokens.length === 0 || matchesAll(`${p.brand} ${p.name} ${p.spec} ${p.sku} ${p.cat}`, tokens);
-      return inCat && inBrand && inSearch;
-    });
+    let tokens = searchTokens(dq);
+    const match = (toks: string[]) =>
+      products.filter((p) => {
+        const inCat = cat === "All" || p.cat === cat;
+        const inBrand = picked.size === 0 || picked.has(p.brand);
+        const inSearch = toks.length === 0 || matchesAll(`${p.brand} ${p.name} ${p.spec} ${p.sku} ${p.cat}`, toks);
+        return inCat && inBrand && inSearch;
+      });
+
+    let list = match(tokens);
+    let correctedTo: string | null = null;
+    // Typo rescue, ONLY on a dead end: "water moter" found nothing, so try
+    // the closest catalogue words and say so. A search that found anything
+    // is never second-guessed - SKU and part-number queries stay exact.
+    if (list.length === 0 && tokens.length > 0) {
+      const fix = correctSearchTokens(tokens, vocab);
+      if (fix.changed) {
+        const rescued = match(fix.tokens);
+        if (rescued.length > 0) {
+          list = rescued;
+          tokens = fix.tokens;
+          correctedTo = fix.tokens.join(" ");
+        }
+      }
+    }
     // Out-of-stock products stay browsable and searchable, but never lead a
     // list: sink them to the bottom of whatever ordering is chosen.
     const stockRank = (a: Product, b: Product) => Number(a.inStock === false) - Number(b.inStock === false);
+    const sorted = (() => {
     switch (sort) {
       case "recommended":
         return [...list].sort((a, b) => stockRank(a, b) || Number(b.recommended ?? false) - Number(a.recommended ?? false));
@@ -175,7 +199,9 @@ export default function CatalogueBrowser({
         return [...lead, ...ranked.filter((p) => !chosen.has(p.id))];
       }
     }
-  }, [products, cat, picked, dq, sort, searchBoost]);
+    })();
+    return { filtered: sorted, correctedTo };
+  }, [products, vocab, cat, picked, dq, sort, searchBoost]);
 
   useEffect(() => {
     const needle = q.trim();
@@ -184,10 +210,18 @@ export default function CatalogueBrowser({
       const key = `${needle.toLowerCase()}|${cat}`;
       if (loggedRef.current.has(key)) return;
       loggedRef.current.add(key);
-      logSearch({ q: needle, source: "search", results: filtered.length, cat: cat === "All" ? undefined : cat });
+      if (correctedTo) {
+        // The typed query genuinely found nothing; the corrected one is what
+        // the shopper is now looking at. Two rows keep both facts true, and
+        // the corrected row teaches the suggest layer the right spelling.
+        logSearch({ q: needle, source: "search", results: 0, cat: cat === "All" ? undefined : cat });
+        logSearch({ q: correctedTo, source: "search", results: filtered.length, cat: cat === "All" ? undefined : cat });
+      } else {
+        logSearch({ q: needle, source: "search", results: filtered.length, cat: cat === "All" ? undefined : cat });
+      }
     }, 1200);
     return () => clearTimeout(t);
-  }, [q, cat, filtered.length]);
+  }, [q, cat, filtered.length, correctedTo]);
 
   const toggleBrand = (b: string) =>
     setPicked((prev) => {
@@ -517,7 +551,7 @@ export default function CatalogueBrowser({
           {[...picked].map((b) => (
             <FilterChip key={b} label={b} onClear={() => toggleBrand(b)} />
           ))}
-          {q.trim() && <FilterChip label={`“${q.trim()}”`} onClear={() => setQ("")} />}
+          {q.trim() && <FilterChip label={`“${correctedTo ?? q.trim()}”`} onClear={() => setQ("")} />}
           {sort !== "featured" && (
             <FilterChip label={SORTS.find((s) => s.key === sort)!.label} onClear={() => setSort("featured")} />
           )}
@@ -531,6 +565,14 @@ export default function CatalogueBrowser({
       )}
 
       {/* Grid */}
+      {/* Typo rescue is announced, never silent: the shopper typed one thing
+          and is seeing another, and Amazon's wording for this is the pattern
+          buyers already know. */}
+      {correctedTo && (
+        <div style={{ fontSize: 13.5, color: "#3A4358", background: "#F2FBF6", border: "1px solid #DCEDE3", borderRadius: 10, padding: "10px 14px", margin: "0 0 14px" }}>
+          Showing results for <b>{correctedTo}</b> · no matches for “{q.trim()}”
+        </div>
+      )}
       {filtered.length === 0 ? (
         <div
           style={{

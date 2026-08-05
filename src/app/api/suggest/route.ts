@@ -97,6 +97,11 @@ export async function GET(request: Request) {
     terms.push({ label, q: qq, ...(cat ? { cat } : {}) });
   };
 
+  // A learned spelling fix outranks everything: someone typed exactly this
+  // before, got nothing, and found what they wanted with the corrected form.
+  const fix = signals.corrections[normQ];
+  if (fix) add(fix, fix);
+
   // LEARNED first: completions from what real visitors actually searched
   // (frequency-ranked, successful queries only). The list grows and reorders
   // itself as search volume accumulates.

@@ -21,9 +21,13 @@ export type SearchSignals = {
   popularQueries: { q: string; count: number }[];
   picksByQuery: Record<string, Record<string, number>>;
   pickTotals: Record<string, number>;
+  /** Learned spelling fixes, mined from the log: a zero-result search
+   *  followed in the same session by a search that found something. The
+   *  customers who corrected themselves teach the ones who won't. */
+  corrections: Record<string, string>;
 };
 
-const EMPTY: SearchSignals = { popularQueries: [], picksByQuery: {}, pickTotals: {} };
+const EMPTY: SearchSignals = { popularQueries: [], picksByQuery: {}, pickTotals: {}, corrections: {} };
 
 let cache: { at: number; data: SearchSignals } | null = null;
 const TTL = 10 * 60_000;
@@ -37,7 +41,7 @@ export async function loadSearchSignals(): Promise<SearchSignals> {
     const since = new Date(Date.now() - 90 * 86_400_000).toISOString();
     const { data, error } = await db
       .from("search_queries")
-      .select("query, results, picked")
+      .select("query, results, picked, session_id, created_at")
       .gte("created_at", since)
       .order("created_at", { ascending: false })
       .limit(8000);
@@ -63,13 +67,53 @@ export async function loadSearchSignals(): Promise<SearchSignals> {
       }
     }
 
+    /* ── Reformulation mining: zero-result -> success, same session ──
+       "Water moter" (0) followed by "Water motor" (1 hit) within ten minutes
+       is a customer telling us the correct spelling. Next time anyone types
+       the failing form, suggest can offer the fix immediately. Guard rails:
+       the pair must share a word-overlap or be within a small edit of each
+       other, so an unrelated next search ("Seimens rcbo" -> "Exhaust fan")
+       never becomes a "correction". */
+    const corrections: Record<string, string> = {};
+    {
+      type R = { query: string; results: number | null; picked: string | null; session_id?: string | null; created_at?: string };
+      const bySession = new Map<string, R[]>();
+      for (const r of [...(data as R[])].reverse()) { // oldest first
+        if (!r.session_id) continue;
+        (bySession.get(r.session_id) ?? bySession.set(r.session_id, []).get(r.session_id)!).push(r);
+      }
+      const related = (a: string, b: string) => {
+        const aw = new Set(a.split(" "));
+        if (b.split(" ").some((w) => aw.has(w))) return true;
+        return Math.abs(a.length - b.length) <= 3 && a.slice(0, 3) === b.slice(0, 3);
+      };
+      const votes = new Map<string, Map<string, number>>();
+      for (const rows of bySession.values()) {
+        for (let i = 0; i < rows.length - 1; i++) {
+          if ((rows[i].results ?? -1) !== 0) continue;
+          const bad = normalizeSearchText(rows[i].query ?? "");
+          if (bad.length < 3) continue;
+          const next = rows.slice(i + 1, i + 3).find((x) => (x.results ?? 0) > 0);
+          if (!next?.created_at || !rows[i].created_at) continue;
+          if (new Date(next.created_at).getTime() - new Date(rows[i].created_at!).getTime() > 10 * 60_000) continue;
+          const good = normalizeSearchText(next.query ?? "");
+          if (good === bad || !related(bad, good)) continue;
+          (votes.get(bad) ?? votes.set(bad, new Map()).get(bad)!).set(good, (votes.get(bad)!.get(good) ?? 0) + 1);
+        }
+      }
+      for (const [bad, opts] of votes) {
+        const [best] = [...opts.entries()].sort((a, b) => b[1] - a[1]);
+        if (best) corrections[bad] = best[0];
+      }
+    }
+
     const popularQueries = [...queryCount.values()]
       .filter((x) => x.count >= 2) // one-off typos don't teach anything
       .sort((a, b) => b.count - a.count)
       .slice(0, 300)
       .map((x) => ({ q: x.display, count: x.count }));
 
-    const dataOut: SearchSignals = { popularQueries, picksByQuery, pickTotals };
+    const dataOut: SearchSignals = { popularQueries, picksByQuery, pickTotals, corrections };
     cache = { at: Date.now(), data: dataOut };
     return dataOut;
   } catch {

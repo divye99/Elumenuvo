@@ -36,6 +36,79 @@ export function matchesAll(haystack: string, tokens: string[]): boolean {
   });
 }
 
+/* ── Typo tolerance ──
+ * Customers type "water moter", "gyser", "seimens". Strict token matching
+ * returns 0 for all of them, and the search log shows people either fixing
+ * the spelling themselves or leaving. When the STRICT search finds nothing,
+ * each unmatched word is corrected to the closest word that actually occurs
+ * in the catalogue, and the results page says what it searched for instead.
+ * Correction never runs when strict matching succeeds, so exact SKU and
+ * part-number searches are untouched. */
+
+/** Bounded Damerau-Levenshtein distance (transposition counts 1, so
+ *  "moter"→"motor" is a single edit). Returns max+1 when exceeded. */
+export function editDistance(a: string, b: string, max: number): number {
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  const d: number[][] = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0));
+  for (let i = 0; i <= a.length; i++) d[i][0] = i;
+  for (let j = 0; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    let rowMin = Infinity;
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost);
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+        d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+      }
+      rowMin = Math.min(rowMin, d[i][j]);
+    }
+    if (rowMin > max) return max + 1; // early out: whole row over budget
+  }
+  return d[a.length][b.length];
+}
+
+/** word → occurrence count, from catalogue text. Frequency breaks ties, so a
+ *  typo lands on the common word ("motor"), not an obscure one. */
+export type SearchVocab = Map<string, number>;
+
+export function buildSearchVocab(texts: Iterable<string>): SearchVocab {
+  const vocab: SearchVocab = new Map();
+  for (const t of texts) {
+    for (const w of normalizeSearchText(t).split(/[^\p{L}]+/u)) {
+      if (w.length >= 3) vocab.set(w, (vocab.get(w) ?? 0) + 1);
+    }
+  }
+  return vocab;
+}
+
+/** Correct the tokens a strict search failed on. Only alphabetic words of 4+
+ *  characters are candidates (numbers and unit tokens are never "typos"), and
+ *  a word the catalogue already contains - even as a prefix - is left alone. */
+export function correctSearchTokens(
+  tokens: string[],
+  vocab: SearchVocab
+): { tokens: string[]; changed: boolean } {
+  let changed = false;
+  const out = tokens.map((t) => {
+    if (!/^[\p{L}]{4,}$/u.test(t)) return t;
+    if (vocab.has(t)) return t;
+    for (const w of vocab.keys()) if (w.startsWith(t)) return t; // mid-typing, not a typo
+    const budget = t.length <= 5 ? 1 : 2;
+    let best: string | null = null;
+    let bestDist = budget + 1;
+    let bestCount = 0;
+    for (const [w, count] of vocab) {
+      const dist = editDistance(t, w, budget);
+      if (dist < bestDist || (dist === bestDist && count > bestCount)) {
+        if (dist <= budget) { best = w; bestDist = dist; bestCount = count; }
+      }
+    }
+    if (best) { changed = true; return best; }
+    return t;
+  });
+  return { tokens: out, changed };
+}
+
 /* ── Relevance ranking ──
  * Matching stays deliberately broad (recall: "wire" still substring-matches
  * "wireless", so nothing ever vanishes), but ORDER is earned: whole-word
