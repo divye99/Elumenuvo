@@ -87,6 +87,9 @@ export default async function ProductForm({ params }: { params: Promise<{ id: st
           <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13.5, color: "#19202e" }}>
             <input type="checkbox" name="is_recommended" defaultChecked={row?.is_recommended ?? false} /> Recommended (featured in sort)
           </label>
+          <label title="Unticked = listed as out of stock: the page stays live for SEO but it cannot be bought" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13.5, color: "#19202e" }}>
+            <input type="checkbox" name="in_stock" defaultChecked={row?.in_stock ?? true} /> In stock
+          </label>
         </div>
         <div>
           <label style={labelStyle}>Product photo</label>

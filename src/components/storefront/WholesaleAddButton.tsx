@@ -14,6 +14,9 @@ export default function WholesaleAddButton({ p }: { p: Product }) {
   const { add } = useCart();
   const [added, setAdded] = useState(false);
 
+  // Checkout refuses OOS items server-side; don't offer the shortcut at all.
+  if (p.inStock === false) return null;
+
   if (added) {
     return (
       <div style={{ marginTop: 10, fontSize: 12, fontWeight: 700, color: "#1F9D63" }}>

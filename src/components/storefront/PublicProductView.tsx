@@ -62,8 +62,9 @@ export default function PublicProductView({ p, siblings = [], business = false, 
         showGst={isBiz}
       />
       {/* Mobile-only sticky add-to-basket bar (hides on scroll down).
-          Metals book via the token flow, never the cart. */}
-      {!isMetalCategory(p.cat) && (
+          Metals book via the token flow, never the cart; OOS products show
+          the out-of-stock panel instead of a buy bar. */}
+      {!isMetalCategory(p.cat) && p.inStock !== false && (
         <MobileBuyBar price={p.price} unit={p.unit} cat={p.cat} gstRate={p.gstRate} onAdd={() => toCart("mobile-bar")} />
       )}
     </>

@@ -108,6 +108,7 @@ export async function upsertProduct(formData: FormData): Promise<void> {
     sort_order: Number(formData.get("sort_order") ?? 0),
     is_active: formData.get("is_active") === "on",
     is_recommended: formData.get("is_recommended") === "on",
+    in_stock: formData.get("in_stock") === "on",
     parent_id: String(formData.get("parent_id") ?? "").trim() || null,
     attrs: Object.keys(attrs).length ? attrs : null,
     image_url,
@@ -131,6 +132,8 @@ export async function updateProductDetails(input: {
   elume_price: number;
   is_active: boolean;
   is_recommended: boolean;
+  /** false = listed but not buyable: OOS panel on the PDP, demoted in ranking, blocked at checkout. */
+  in_stock: boolean;
   /** Per-product GST rate (0.05 = 5%); null clears it back to the category rate. */
   gst_rate?: number | null;
   hsn?: string;
@@ -155,6 +158,7 @@ export async function updateProductDetails(input: {
     elume_price: input.elume_price,
     is_active: input.is_active,
     is_recommended: input.is_recommended,
+    in_stock: input.in_stock,
     gst_rate: gstRate ?? null,
     hsn: input.hsn?.trim() || null,
     attrs: Object.keys(attrs).length ? attrs : null,

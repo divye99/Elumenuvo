@@ -21,6 +21,7 @@ export type ProductRow = {
   attrs: Record<string, string> | null;
   parent_id: string | null;
   is_recommended: boolean;
+  in_stock?: boolean | null;
   units_sold: number;
 };
 

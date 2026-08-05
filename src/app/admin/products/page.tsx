@@ -54,6 +54,7 @@ export default async function AdminProducts({
     elume_price: r.elume_price,
     is_active: r.is_active,
     is_recommended: r.is_recommended,
+    in_stock: r.in_stock ?? null,
     parent_id: r.parent_id,
     attrs: r.attrs,
     gst_rate: r.gst_rate != null ? Number(r.gst_rate) : null,

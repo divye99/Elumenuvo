@@ -59,6 +59,7 @@ export type ManagerRow = {
   elume_price: number;
   is_active: boolean;
   is_recommended: boolean;
+  in_stock: boolean | null;
   parent_id: string | null;
   attrs: Record<string, string> | null;
   gst_rate: number | null;
@@ -367,6 +368,7 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
                     <a href={`/catalogue/${r.id}`} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} title="Open the live product page" style={{ color: "#4E5BDC", fontSize: 11.5, fontWeight: 700 }}>↗</a>
                     {groupColours && (colourCountRef.current.get(familyKeyOf(r)) ?? 1) > 1 && <Tag color="#4E5BDC">{colourCountRef.current.get(familyKeyOf(r))} colours</Tag>}
                     {!r.is_active && <Tag color="#E0612A">hidden</Tag>}
+                    {r.in_stock === false && <Tag color="#C0392B">out of stock</Tag>}
                     {r.parent_id && <Tag color="#8A93A6">variant</Tag>}
                     {r.is_recommended && <Tag color="#4E5BDC">rec</Tag>}
                   </div>
@@ -421,7 +423,7 @@ function DetailsTab({ row, onClose }: { row: ManagerRow; onClose: () => void }) 
   const [f, setF] = useState({
     name: row.name, brand_sku: row.brand_sku ?? "", spec: row.spec ?? "", unit: row.unit,
     mrp: String(row.mrp), elume_price: String(row.elume_price),
-    is_active: row.is_active, is_recommended: row.is_recommended,
+    is_active: row.is_active, is_recommended: row.is_recommended, in_stock: row.in_stock !== false,
     gst_pct: row.gst_rate != null ? String(Math.round(row.gst_rate * 10000) / 100) : "",
     hsn: row.hsn ?? "",
     Size: row.attrs?.Size ?? "", Length: row.attrs?.Length ?? "", Colour: row.attrs?.Colour ?? "", Quality: row.attrs?.Quality ?? "", Pack: row.attrs?.Pack ?? "",
@@ -437,7 +439,7 @@ function DetailsTab({ row, onClose }: { row: ManagerRow; onClose: () => void }) 
     start(async () => {
       const res = await updateProductDetails({
         id: row.id, name: f.name, brand_sku: f.brand_sku, spec: f.spec, unit: f.unit, mrp, elume_price: elume,
-        is_active: f.is_active, is_recommended: f.is_recommended,
+        is_active: f.is_active, is_recommended: f.is_recommended, in_stock: f.in_stock,
         gst_rate: f.gst_pct.trim() === "" ? null : Number(f.gst_pct) / 100,
         hsn: f.hsn,
         attrs: { Size: f.Size, Length: f.Length, Colour: f.Colour, Quality: f.Quality, Pack: f.Pack },
@@ -480,6 +482,7 @@ function DetailsTab({ row, onClose }: { row: ManagerRow; onClose: () => void }) 
       <div style={{ display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap" }}>
         <label style={ckLabel}><input type="checkbox" checked={f.is_active} onChange={set("is_active")} /> Active</label>
         <label style={ckLabel}><input type="checkbox" checked={f.is_recommended} onChange={set("is_recommended")} /> Recommended</label>
+        <label style={ckLabel} title="Unticked = listed as out of stock: the page stays live for SEO but it cannot be bought"><input type="checkbox" checked={f.in_stock} onChange={set("in_stock")} /> In stock</label>
         <div style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center" }}>
           {msg && <span style={{ fontSize: 12.5, fontWeight: 600, color: msg.ok ? "#137a4b" : "#C0392B" }}>{msg.t}</span>}
           <button onClick={del} disabled={busy} style={{ ...ghost, color: "#C0392B" }}>Delete</button>

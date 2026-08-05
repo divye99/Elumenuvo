@@ -64,7 +64,7 @@ export default function ProductDetail({
   const offPct = offMrpPct(p.price, p.market);
   const off = offPct + "%";
   const ws = wholesalePrice(p.price);
-  const canWholesale = wholesaleEligible(p.cat);
+  const canWholesale = wholesaleEligible(p.cat) && p.inStock !== false;
   const isWholesale = canWholesale && qty >= WHOLESALE_MIN_QTY;
   const lineTotal = unitPriceFor(p.price, qty, p.cat) * qty;
   const gb = gstBreakdown(p.price, p.cat, p.gstRate); // ex-GST base / GST / inclusive, at the category rate
@@ -74,7 +74,7 @@ export default function ProductDetail({
     { k: "Category", v: p.cat },
     { k: "Specification", v: p.spec },
     { k: "SKU", v: p.sku },
-    { k: "Availability", v: "In stock · ships in 24h" },
+    { k: "Availability", v: p.inStock === false ? "Out of stock" : "In stock · ships in 24h" },
     { k: "Delivery", v: "Pan-India · 3–7 working days" },
   ];
   return (
@@ -128,9 +128,9 @@ export default function ProductDetail({
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <div data-pdp-sec="buybox" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 26px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
-              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#1F9D63" }} />
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: p.inStock === false ? "#C0392B" : "#1F9D63" }} />
               <span style={{ fontSize: 12.5, color: "#8A93A6", fontWeight: 600 }}>{p.brand}</span>
-              <span style={{ fontSize: 11, color: "#1F9D63", fontWeight: 600 }}>· In stock</span>
+              <span style={{ fontSize: 11, color: p.inStock === false ? "#C0392B" : "#1F9D63", fontWeight: 600 }}>{p.inStock === false ? "· Out of stock" : "· In stock"}</span>
               {ratingSummary && <span style={{ marginLeft: 6 }}>{ratingSummary}</span>}
             </div>
             <h2 style={{ fontFamily: GROTESK, fontSize: 25, fontWeight: 600, letterSpacing: "-0.5px", margin: "0 0 16px" }}>{p.name}</h2>
