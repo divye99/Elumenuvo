@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
 import { listProductRows, listContentRows, hasServiceRole, countPendingSuggestions, countOpenOrders } from "@/lib/admin/data";
+import { countPendingReviews } from "@/lib/admin/review-actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminHome() {
   await requireAdmin();
-  const [products, content, pending, openOrders] = await Promise.all([listProductRows(), listContentRows(), countPendingSuggestions(), countOpenOrders()]);
+  const [products, content, pending, openOrders, pendingReviews] = await Promise.all([listProductRows(), listContentRows(), countPendingSuggestions(), countOpenOrders(), countPendingReviews()]);
 
   return (
     <div>
@@ -44,6 +45,12 @@ export default async function AdminHome() {
           <div style={{ fontSize: 13, color: "#8A93A6" }}>Content blocks</div>
           <div style={{ fontSize: 28, fontWeight: 700 }}>{content.length}</div>
           <div style={{ fontSize: 13, color: "#4E5BDC", fontWeight: 600, marginTop: 6 }}>Edit site content →</div>
+        </Link>
+        <Link href="/admin/reviews" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: 20, position: "relative" }}>
+          {pendingReviews > 0 && <span style={{ position: "absolute", top: 14, right: 14, fontSize: 12, fontWeight: 700, color: "#fff", background: "#E0612A", borderRadius: 20, padding: "2px 9px" }}>{pendingReviews}</span>}
+          <div style={{ fontSize: 13, color: "#8A93A6" }}>Reviews</div>
+          <div style={{ fontSize: 28, fontWeight: 700 }}>{pendingReviews > 0 ? pendingReviews : "⚡"}</div>
+          <div style={{ fontSize: 13, color: "#4E5BDC", fontWeight: 600, marginTop: 6 }}>{pendingReviews > 0 ? "Approve pending reviews →" : "Moderation queue →"}</div>
         </Link>
         <Link href="/admin/cart-links" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: 20 }}>
           <div style={{ fontSize: 13, color: "#8A93A6" }}>Cart links</div>

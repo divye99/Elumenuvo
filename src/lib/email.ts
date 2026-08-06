@@ -168,10 +168,31 @@ function reviewAsk(order: OrderLike): string {
       <p style="font-size:13.5px;color:#19202E;font-weight:700;margin:0 0 6px">How did we do? ⚡</p>
       <p style="font-size:13px;color:#56627A;margin:0 0 10px">
         A 1-minute review helps other electricians and builders buy with confidence.
-        Use order ID <b>${escapeHtml(order.id)}</b> and this email address on the review form.
+        Use order ID <b>${escapeHtml(order.id)}</b> and this email address on the review form
+        (signed-in customers skip both).
+      </p>
+      <p style="font-size:13px;color:#56627A;margin:0 0 10px">
+        📷 If you can, add a photo of the product or the delivery - photos help other buyers most.
       </p>
       ${links ? `<p style="font-size:13px;margin:0">${links}</p>` : ""}
     </div>`;
+}
+
+/** Next-day nudge from the review-reminders cron: delivered yesterday, no
+ *  review yet. Sent at most once per order (orders.review_reminder_sent_at). */
+export async function sendReviewReminder(order: OrderLike): Promise<EmailResult> {
+  const html = shell(
+    "How is everything working? ⚡",
+    `<p style="font-size:14px;color:#56627A;margin:0 0 8px">
+       Hi ${escapeHtml(order.name || "there")}, your order <b>${order.id}</b> was delivered recently -
+       we hope everything is installed and running well.
+     </p>
+     ${reviewAsk(order)}
+     <p style="font-size:12.5px;color:#8A93A6;margin:14px 0 0">
+       Something not right? Just reply to this email and we will sort it out first.
+     </p>`
+  );
+  return send(order.email, `How is your order ${order.id} working out?`, html, { bcc: BCC_SELF });
 }
 
 const STATUS_COPY: Record<string, { title: string; line: string }> = {

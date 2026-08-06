@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { GROTESK, MONO } from "@/lib/fonts";
 import { submitReview, type FormState } from "@/lib/actions";
 import type { Review } from "@/lib/reviews";
@@ -14,6 +14,18 @@ export default function ReviewsSection({ productId, reviews }: { productId: stri
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [showForm, setShowForm] = useState(false);
+  const [photoCount, setPhotoCount] = useState(0);
+  // Signed-in purchasers skip the order-ID/email fields: the server already
+  // knows their orders. This probe is a UX hint only - submission re-verifies.
+  const [me, setMe] = useState<{ eligible: boolean; orderId?: string; name?: string } | null>(null);
+  useEffect(() => {
+    let live = true;
+    fetch(`/api/me/review-context?product=${encodeURIComponent(productId)}`)
+      .then((r) => r.json())
+      .then((d) => { if (live) setMe(d); })
+      .catch(() => {});
+    return () => { live = false; };
+  }, [productId]);
   const avg = reviews.length ? reviews.reduce((a, r) => a + r.rating, 0) / reviews.length : 0;
 
   return (
@@ -46,6 +58,16 @@ export default function ReviewsSection({ productId, reviews }: { productId: stri
                   </span>
                 </div>
                 {r.body && <p style={{ fontSize: 13, color: "#3A4358", lineHeight: 1.5, margin: "5px 0 0" }}>{r.body}</p>}
+                {(r.photos?.length ?? 0) > 0 && (
+                  <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+                    {r.photos!.map((u) => (
+                      <a key={u} href={u} target="_blank" rel="noreferrer" title="Open photo">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={u} alt="Customer photo" loading="lazy" style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 9, border: "1px solid #E8EBF1", display: "block" }} />
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -54,21 +76,47 @@ export default function ReviewsSection({ productId, reviews }: { productId: stri
         {/* Write a review - collapsible, verified purchasers only */}
         {showForm && (
           <form action={action} style={{ marginTop: 12, paddingTop: 14, borderTop: "1px solid #F0F2F6" }}>
-            <div style={{ fontSize: 12, color: "#8A93A6", marginBottom: 10 }}>
-              Verified purchasers only - enter your Elume order ID and the email you ordered with.
-            </div>
+            {me?.eligible ? (
+              <div style={{ fontSize: 12, fontWeight: 600, color: "#137a4b", background: "#E6F5EE", border: "1px solid #B6E2C8", borderRadius: 8, padding: "7px 11px", marginBottom: 10, display: "inline-block" }}>
+                ✓ Verified purchase · order {me.orderId} - no order details needed
+              </div>
+            ) : (
+              <div style={{ fontSize: 12, color: "#8A93A6", marginBottom: 10 }}>
+                Verified purchasers only - enter your Elume order ID and the email you ordered with.
+              </div>
+            )}
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
               <StarInput value={rating} hover={hover} size={22} onSet={setRating} onHover={setHover} />
               <input type="hidden" name="rating" value={rating} />
               <span style={{ fontSize: 12, color: "#8A93A6" }}>{rating ? `${rating}/5` : "Tap to rate"}</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
-              <input name="order_id" placeholder="Order ID (ELM-…)" style={{ ...inp, fontFamily: MONO, fontSize: 12 }} />
-              <input name="email" type="email" placeholder="Order email" style={inp} />
-              <input name="author" placeholder="Your name" style={inp} />
+              {!me?.eligible && (
+                <>
+                  <input name="order_id" placeholder="Order ID (ELM-…)" style={{ ...inp, fontFamily: MONO, fontSize: 12 }} />
+                  <input name="email" type="email" placeholder="Order email" style={inp} />
+                </>
+              )}
+              <input name="author" placeholder="Your name" defaultValue={me?.eligible ? me.name ?? "" : ""} style={inp} />
               <input name="title" placeholder="Title (optional)" style={inp} />
             </div>
             <textarea name="body" placeholder="How did it perform? Build quality, delivery, value…" rows={2} style={{ ...inp, width: "100%", resize: "vertical", fontFamily: "inherit" }} />
+            <div style={{ marginTop: 10, background: "#FBFCFE", border: "1px dashed #D5DAE4", borderRadius: 10, padding: "10px 12px" }}>
+              <label style={{ fontSize: 12.5, fontWeight: 600, color: "#3A4358", cursor: "pointer", display: "block" }}>
+                📷 Add photos of the product or the delivery{photoCount > 0 ? ` · ${photoCount} selected` : " (optional, up to 4)"}
+                <input
+                  type="file"
+                  name="photos"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => setPhotoCount(e.target.files?.length ?? 0)}
+                  style={{ display: "block", marginTop: 6, fontSize: 12 }}
+                />
+              </label>
+              <div style={{ fontSize: 11.5, color: "#8A93A6", marginTop: 5 }}>
+                Photos help other buyers most - the coil as it arrived, the fan installed, the packaging.
+              </div>
+            </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 10, flexWrap: "wrap" }}>
               <button type="submit" disabled={pending} style={{ background: "#4E5BDC", color: "#fff", fontSize: 13, fontWeight: 700, border: "none", borderRadius: 9, padding: "9px 18px", cursor: pending ? "wait" : "pointer", opacity: pending ? 0.7 : 1 }}>
                 {pending ? "Verifying…" : "Verify & post"}

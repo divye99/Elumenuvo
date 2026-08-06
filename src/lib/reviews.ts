@@ -13,10 +13,11 @@ export type Review = {
   body: string | null;
   is_verified: boolean;
   created_at: string;
+  photos?: string[] | null;
 };
 
 // Explicit column list - reviewer_email/order_id are not readable by anon.
-const PUBLIC_COLS = "id, product_id, author_name, rating, title, body, is_verified, created_at";
+const PUBLIC_COLS = "id, product_id, author_name, rating, title, body, is_verified, created_at, photos";
 
 function client() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
