@@ -21,6 +21,8 @@ import ProductDeepDive from "@/components/storefront/ProductDeepDive";
 import ReviewsSection from "@/components/storefront/ReviewsSection";
 import ProductFaq from "@/components/storefront/ProductFaq";
 import { NEW_CONDITION, RETURN_POLICY, shippingDetailsFor, productFaqs } from "@/lib/seo";
+import CompareRail from "@/components/storefront/CompareRail";
+import { fetchCompareRail } from "@/lib/compare/rail";
 
 // ISR, not dynamic. Product pages are the same for every visitor, so they are
 // generated once and served from cache: Googlebot gets bytes instead of a
@@ -74,13 +76,14 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
   // Family = parent + all variations, whichever member this page is.
   const isMetal = isMetalCategory(product.cat);
-  const [siblings, reviews, priceHistory, fullHistory] = await Promise.all([
+  const [siblings, reviews, priceHistory, fullHistory, compare] = await Promise.all([
     fetchFamily(product),
     fetchReviews(product.id),
     isMetal ? Promise.resolve([]) : fetchPriceHistory(product.id, product.price),
     // Metals get the full capture-level series: the rate moves 2-3x a day by
     // design, so the 24h chart needs every point, and 5Y needs the whole run.
     isMetal ? fetchFullPriceHistory(product.id, product.price) : Promise.resolve([]),
+    isMetal ? Promise.resolve(null) : fetchCompareRail(product.id),
   ]);
   const guide = getAllPosts().find((post) => CATEGORY_TO_CATALOGUE[post.category] === product.cat) ?? null;
 
@@ -147,6 +150,17 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         <div data-pdp-sec="price-history" className="pdp-wrap" style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px" }}>
           <CompetitorPriceChart series={priceHistory} mrp={product.market} />
         </div>
+      )}
+      {/* Like-to-like alternatives - renders nothing when no group matches. */}
+      {compare && (
+        <CompareRail
+          current={{
+            id: product.id, name: product.name, brand: product.brand, price: product.price,
+            mrp: product.market, unit: product.unit, cat: product.cat, gstRate: product.gstRate,
+            image: product.image, display: compare.currentDisplay,
+          }}
+          items={compare.items}
+        />
       )}
       <div style={{ height: 18 }} />
       <ProductDeepDive p={product} siblings={siblings} post={guide} />
