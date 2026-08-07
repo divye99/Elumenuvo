@@ -116,6 +116,9 @@ export async function upsertProduct(formData: FormData): Promise<void> {
   const { error } = await db.from("products").upsert(row);
   if (error) redirect(`/admin/products?error=${encodeURIComponent(error.message)}`);
   await logPrice(db, id, row.elume_price, row.mrp);
+  // Compare mapping is event-driven: a saved product joins/leaves its
+  // like-to-like group immediately, no cron needed.
+  { const { rebuildCompareKeysFor } = await import("@/lib/compare/build"); await rebuildCompareKeysFor([id]); }
   revalidatePath("/admin/products");
   revalidateProducts([id]);
   redirect("/admin/products?ok=1");
@@ -165,6 +168,7 @@ export async function updateProductDetails(input: {
   }).eq("id", input.id);
   if (error) return { ok: false, error: error.message };
   await logPrice(db, input.id, input.elume_price, input.mrp);
+  { const { rebuildCompareKeysFor } = await import("@/lib/compare/build"); await rebuildCompareKeysFor([input.id]); }
   revalidatePath("/admin/products");
   revalidateProducts([input.id]);
   return { ok: true };
@@ -256,6 +260,12 @@ export async function applyImport(
   for (let i = 0; i < upserts.length; i += CHUNK) {
     const { error } = await db.from("products").upsert(upserts.slice(i, i + CHUNK));
     if (error) return { ok: false, error: `Saving products: ${error.message}` };
+  }
+  // A whole new brand maps into existing compare groups the moment its
+  // import lands - only the imported rows are re-fingerprinted.
+  {
+    const { rebuildCompareKeysFor } = await import("@/lib/compare/build");
+    await rebuildCompareKeysFor(upserts.map((u) => String(u.id ?? "")));
   }
 
   // Change log (best-effort - never blocks the import if the table is absent).

@@ -27,6 +27,38 @@ type Row = {
   compare_meta: Record<string, unknown> | null;
 };
 
+/**
+ * Incremental variant: re-fingerprint ONLY the given products (a save, or a
+ * bulk import's rows). Fingerprints are per-product and independent, so new
+ * or edited products join existing groups without touching any other row -
+ * this is what makes mapping event-driven instead of nightly.
+ */
+export async function rebuildCompareKeysFor(ids: string[]): Promise<void> {
+  const db = adminClient();
+  const unique = [...new Set(ids.filter(Boolean))];
+  if (!db || unique.length === 0) return;
+  try {
+    for (let i = 0; i < unique.length; i += 200) {
+      const { data } = await db
+        .from("products")
+        .select("id, name, category, spec, attrs, compare_key, compare_meta")
+        .in("id", unique.slice(i, i + 200));
+      for (const r of (data ?? []) as Omit<Row, "parent_id">[]) {
+        const fp = fingerprintProduct(r);
+        const key = fp?.key ?? null;
+        const meta = fp ? { conflicts: fp.conflicts, display: fp.display, source: fp.source } : null;
+        if (key !== r.compare_key || JSON.stringify(meta) !== JSON.stringify(r.compare_meta)) {
+          await db.from("products").update({ compare_key: key, compare_meta: meta }).eq("id", r.id);
+        }
+      }
+    }
+  } catch (e) {
+    // Mapping is a progressive enhancement: a failed refresh must never fail
+    // the product save that triggered it. (Missing 0095 column lands here.)
+    console.warn("[compare-rebuild]", e instanceof Error ? e.message : e);
+  }
+}
+
 export async function rebuildCompareKeys(): Promise<BuildStats | { error: string }> {
   const db = adminClient();
   if (!db) return { error: "Service-role key missing." };
