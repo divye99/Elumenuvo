@@ -17,6 +17,7 @@ import { inspectGstin } from "@/lib/gstin";
 import { BUSINESS_TYPES } from "@/app/onboarding/OnboardingForm";
 import { GstinBook, PhoneBook, type GstinRow, type PhoneRow } from "@/components/app/SavedFieldBooks";
 import BuyAgainButton from "@/components/app/BuyAgainButton";
+import DuePanel from "@/components/app/DuePanel";
 import { WHOLESALE_MIN_QTY } from "@/lib/pricing";
 
 /**
@@ -197,7 +198,12 @@ export default function AppShell({ user, live }: { user?: { email: string; name?
 
         {/* CONTENT */}
         <div ref={contentRef} style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
-          {screen === "portfolio" && <LivePortfolio live={live} onCatalogue={() => nav("catalogue")} />}
+          {screen === "portfolio" && (
+            <>
+              <DuePanel />
+              <LivePortfolio live={live} onCatalogue={() => nav("catalogue")} />
+            </>
+          )}
           {screen === "projects" && <ProjectsScreen live={live} />}
           {screen === "confirm" && <LiveOrders live={live} onCatalogue={() => nav("catalogue")} />}
           {screen === "account" && user && <AccountScreen user={user} section={acctSection} addresses={live.addresses ?? []} gstins={live.gstins ?? []} phones={live.phones ?? []} />}

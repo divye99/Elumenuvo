@@ -6,10 +6,20 @@ import { searchTokens, matchesAll } from "@/lib/search-normalize";
 import { shippingFeeFor } from "@/lib/pricing";
 import type { Product } from "@/lib/data";
 
-/** Compose a cart, get the link, send it on WhatsApp. */
-export default function CartLinkBuilder({ products }: { products: Product[] }) {
+/** Compose a cart, get the link, send it on WhatsApp.
+ *  initialItems ("id:qty,id:qty") lets other consoles arrive prefilled -
+ *  e.g. Customers' "build cart with all due items". */
+export default function CartLinkBuilder({ products, initialItems }: { products: Product[]; initialItems?: string }) {
   const [q, setQ] = useState("");
-  const [chosen, setChosen] = useState<Map<string, number>>(new Map());
+  const [chosen, setChosen] = useState<Map<string, number>>(() => {
+    const m = new Map<string, number>();
+    const valid = new Set(products.map((p) => p.id));
+    for (const part of (initialItems ?? "").split(",")) {
+      const [id, qty] = part.split(":");
+      if (id && valid.has(id)) m.set(id, Math.min(999, Math.max(1, Math.round(Number(qty)) || 1)));
+    }
+    return m;
+  });
   const [phone, setPhone] = useState("");
   const [copied, setCopied] = useState<"link" | "msg" | null>(null);
 

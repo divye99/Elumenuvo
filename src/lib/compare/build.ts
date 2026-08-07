@@ -95,10 +95,21 @@ export async function rebuildCompareKeys(): Promise<BuildStats | { error: string
   }
   stats.groups = [...groupFamilies.values()].filter((f) => f.size >= 2).length;
 
-  for (const c of changes) {
-    const { error } = await db.from("products").update({ compare_key: c.compare_key, compare_meta: c.compare_meta }).eq("id", c.id);
-    if (error) return { error: `${error.message} (at ${c.id}, after ${stats.updated} updates)` };
-    stats.updated += 1;
+  // Parallel batches, and one bad row never aborts the run: the first live
+  // rebuild died on sequential updates (serverless deadline) leaving half
+  // the catalogue unkeyed - exactly the failure this shape prevents.
+  let firstError: string | null = null;
+  for (let i = 0; i < changes.length; i += 40) {
+    const results = await Promise.all(
+      changes.slice(i, i + 40).map((c) =>
+        db.from("products").update({ compare_key: c.compare_key, compare_meta: c.compare_meta }).eq("id", c.id)
+      )
+    );
+    for (const r of results) {
+      if (r.error) firstError ??= r.error.message;
+      else stats.updated += 1;
+    }
   }
+  if (firstError && stats.updated === 0) return { error: firstError };
   return stats;
 }

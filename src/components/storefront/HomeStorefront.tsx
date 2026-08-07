@@ -57,6 +57,8 @@ function Shelf({
 /** Amazon-style FMEG storefront home - hero, category tiles, deal + category
  *  shelves, pricing explainer, brands, buying guides. Pure server component;
  *  interactivity lives in the header search and product-card image slots. */
+import PersonalRails from "@/components/storefront/PersonalRails";
+
 export default function HomeStorefront({ products, posts }: { products: Product[]; posts: BlogPost[] }) {
   // "Today's best prices" mechanism (user-defined, Jul 2026):
   //   1. Only products priced above ₹2,000 qualify (no trinket deals).
@@ -252,6 +254,13 @@ export default function HomeStorefront({ products, posts }: { products: Product[
             How Elume works for business
           </Link>
         </div>
+      </section>
+
+      {/* Personal shelves: rendered after hydration for this device only, so
+          the page itself stays cached and identical for every visitor.
+          Invisible until the visitor has browsed enough to earn rails. */}
+      <section style={{ maxWidth: 1200, margin: "0 auto", padding: "34px 24px 10px" }}>
+        <PersonalRails ctx="home" heading />
       </section>
     </main>
   );

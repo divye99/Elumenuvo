@@ -1,18 +1,20 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import StoreChrome from "@/components/storefront/StoreChrome";
 import ForYouClient from "./ForYouClient";
+import PersonalRails from "@/components/storefront/PersonalRails";
 import { getProfile } from "@/lib/profile";
 import { buildForYou } from "@/lib/for-you";
 
 /**
- * The personalized "For you" page - the customer's own catalogue, assembled
- * from their orders, views, searches and our editorial ranks. Per-user and
- * signed-in only, so it renders dynamically (no ISR).
+ * The personalized "For you" page - the visitor's own catalogue.
  *
- * Desktop: Brands you love strip up top, then Previously ordered (left) and
- * Previously viewed (right) side by side, then a full-width Recommended rail.
- * Mobile: the same sections stacked. Every section has a "See all".
+ * Signed-in customers get the account view (Brands you love, Previously
+ * ordered/viewed, Recommended) PLUS the engine rails (Due for a reorder,
+ * More like what you viewed, Picked for you).
+ *
+ * Guests are welcome too: no sign-in wall. Their device's browsing history
+ * powers the engine rails client-side, and the page keeps sharpening as
+ * they browse - the Netflix pattern, not a login gate.
  */
 export const dynamic = "force-dynamic";
 
@@ -23,12 +25,29 @@ export const metadata: Metadata = {
 
 export default async function ForYouPage() {
   const profile = await getProfile();
-  if (!profile?.email) redirect("/signin?next=/for-you");
+
+  if (!profile?.email) {
+    return (
+      <StoreChrome>
+        <main style={{ maxWidth: 1200, margin: "0 auto", padding: "30px 24px 70px" }}>
+          <h1 style={{ fontSize: 26, fontWeight: 700, letterSpacing: "-0.5px", margin: "0 0 4px" }}>For you</h1>
+          <p style={{ fontSize: 14, color: "#56627A", margin: "0 0 24px" }}>
+            Built from what you browse - it sharpens every visit. Sign in and your orders join in:
+            reorder reminders, your brands, your prices.
+          </p>
+          <PersonalRails ctx="foryou" />
+        </main>
+      </StoreChrome>
+    );
+  }
 
   const data = await buildForYou(profile.email);
   return (
     <StoreChrome>
       <ForYouClient data={data} firstName={(profile.full_name ?? "").split(" ")[0] || null} />
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "10px 24px 60px" }}>
+        <PersonalRails ctx="foryou" />
+      </div>
     </StoreChrome>
   );
 }

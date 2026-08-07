@@ -39,8 +39,16 @@ export default function CompareConsole({ groups, rejected, coverage }: { groups:
   const rebuild = () => {
     setBusy("rebuild");
     start(async () => {
-      const res = await rebuildCompareAction();
-      setNote(res.ok && res.stats ? `Rebuilt: ${res.stats.scanned} scanned, ${res.stats.keyed} fingerprinted, ${res.stats.groups} groups, ${res.stats.updated} rows updated.` : res.error ?? "Failed.");
+      // Route, not server action: the full rebuild needs the long deadline.
+      let note = "Failed.";
+      try {
+        const r = await fetch("/api/admin/rebuild-compare", { method: "POST" });
+        const d = await r.json();
+        note = d.ok
+          ? `Rebuilt: ${d.scanned} scanned, ${d.keyed} fingerprinted, ${d.groups} groups, ${d.updated} rows updated.`
+          : d.error ?? "Failed.";
+      } catch { /* note stays Failed */ }
+      setNote(note);
       setBusy(null);
       router.refresh();
     });

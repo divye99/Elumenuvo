@@ -52,6 +52,11 @@ export default async function AdminHome() {
           <div style={{ fontSize: 28, fontWeight: 700 }}>{pendingReviews > 0 ? pendingReviews : "⚡"}</div>
           <div style={{ fontSize: 13, color: "#4E5BDC", fontWeight: 600, marginTop: 6 }}>{pendingReviews > 0 ? "Approve pending reviews →" : "Moderation queue →"}</div>
         </Link>
+        <Link href="/admin/customers" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: 20 }}>
+          <div style={{ fontSize: 13, color: "#8A93A6" }}>Customers</div>
+          <div style={{ fontSize: 28, fontWeight: 700 }}>🤝</div>
+          <div style={{ fontSize: 13, color: "#4E5BDC", fontWeight: 600, marginTop: 6 }}>Portfolios · predicted reorders →</div>
+        </Link>
         <Link href="/admin/compare" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: 20 }}>
           <div style={{ fontSize: 13, color: "#8A93A6" }}>Compare mappings</div>
           <div style={{ fontSize: 28, fontWeight: 700 }}>⇄</div>

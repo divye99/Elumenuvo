@@ -10,8 +10,9 @@ export const dynamic = "force-dynamic";
  * that is left is checkout. Links carry ids + quantities only; price, GST
  * and stock resolve live when opened.
  */
-export default async function CartLinksPage() {
+export default async function CartLinksPage({ searchParams }: { searchParams: Promise<{ items?: string }> }) {
   await requireAdmin();
+  const { items } = await searchParams;
   const products = await fetchProductsLite();
   return (
     <div>
@@ -21,7 +22,7 @@ export default async function CartLinksPage() {
         already in their cart, and they go straight to checkout. Prices and stock are resolved when the
         customer opens the link, so it stays correct even if you reprice later.
       </p>
-      <CartLinkBuilder products={products.filter((p) => p.inStock !== false)} />
+      <CartLinkBuilder products={products.filter((p) => p.inStock !== false)} initialItems={items} />
     </div>
   );
 }

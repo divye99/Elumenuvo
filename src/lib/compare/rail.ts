@@ -94,23 +94,24 @@ export async function fetchCompareRail(productId: string): Promise<{ currentDisp
       .sort((a, b) => (boosts.get(b.id) ?? 0) - (boosts.get(a.id) ?? 0) || a.elume_price - b.elume_price);
 
     for (const r of candidates) {
-      // One card per family: the rail compares alternatives, and a family's
-      // colours are the same alternative. First survivor of a family (already
-      // engagement/price ordered) represents it. Two extra dedupes keep the
-      // rail diverse instead of a wall of one brand's colourways: max 2 cards
-      // per brand, and never two cards whose names differ only by colour
-      // suffix (duplicate listings exist in the catalogue).
+      // EVERY distinct alternative is shown - but a colour is not an
+      // alternative, so each product appears exactly once:
+      //  1. one card per variant family (a family's colours are one product);
+      //  2. duplicate listings of the same SKU from different import
+      //     pipelines ("…House Wire · Yellow" vs "…Cables · White") collapse
+      //     on a colour-stripped name;
+      //  3. same-brand colourways that are SEPARATE rows (no family link,
+      //     e.g. Norisys "Ice White"/"Metal Grey" plates) collapse on
+      //     brand + identical key specs + identical price.
       const fam = r.parent_id ?? r.id;
       if (seenFamilies.has(fam)) continue;
-      // The catalogue holds duplicate listings of the same SKU from different
-      // import pipelines ("…House Wire · Yellow" vs "…Cables · White").
-      // Strip colour suffix, filler words and punctuation so a product can
-      // never be compared against its own duplicate.
       const baseName = r.name.split("·")[0].toLowerCase().replace(/\b(house wire|cables|cable|wire)\b/g, "").replace(/[^a-z0-9]+/g, " ").trim();
       if (seenNames.has(baseName)) continue;
-      if ((perBrand.get(r.brand) ?? 0) >= 2) continue;
+      const twinKey = `${r.brand}|${(r.compare_meta?.display ?? []).map(([, v]) => v).join("~")}|${r.elume_price}`;
+      if (seenNames.has(twinKey)) continue;
       seenFamilies.add(fam);
       seenNames.add(baseName);
+      seenNames.add(twinKey);
       perBrand.set(r.brand, (perBrand.get(r.brand) ?? 0) + 1);
       items.push({
         id: r.id,
@@ -124,7 +125,7 @@ export async function fetchCompareRail(productId: string): Promise<{ currentDisp
         image: r.image_url ?? undefined,
         display: r.compare_meta?.display ?? [],
       });
-      if (items.length >= 8) break;
+      if (items.length >= 24) break; // safety valve, not a curation cap
     }
 
     if (items.length === 0) return null;

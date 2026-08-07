@@ -22,6 +22,7 @@ import ReviewsSection from "@/components/storefront/ReviewsSection";
 import ProductFaq from "@/components/storefront/ProductFaq";
 import { NEW_CONDITION, RETURN_POLICY, shippingDetailsFor, productFaqs } from "@/lib/seo";
 import CompareRail from "@/components/storefront/CompareRail";
+import PersonalRailsLazy from "@/components/storefront/PersonalRails";
 import { fetchCompareRail } from "@/lib/compare/rail";
 
 // ISR, not dynamic. Product pages are the same for every visitor, so they are
@@ -149,6 +150,13 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       ) : (
         <div data-pdp-sec="price-history" className="pdp-wrap" style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px" }}>
           <CompetitorPriceChart series={priceHistory} mrp={product.market} />
+        </div>
+      )}
+      {/* "Often bought together" - client-personalised, hidden when the
+          co-purchase graph has nothing for this product. */}
+      {!isMetal && (
+        <div className="pdp-wrap" style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px" }}>
+          <PersonalRailsLazy ctx={`pdp:${product.id}`} />
         </div>
       )}
       {/* Like-to-like alternatives - renders nothing when no group matches. */}
