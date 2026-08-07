@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { adminClient } from "@/lib/supabase/admin";
-import { conflictsCompatible } from "@/lib/compare/fingerprint";
+import { conflictsCompatible, decodeEntities } from "@/lib/compare/fingerprint";
 import { loadCompareBoosts } from "@/lib/compare/signals";
 
 /**
@@ -102,7 +102,11 @@ export async function fetchCompareRail(productId: string): Promise<{ currentDisp
       // suffix (duplicate listings exist in the catalogue).
       const fam = r.parent_id ?? r.id;
       if (seenFamilies.has(fam)) continue;
-      const baseName = r.name.split("·")[0].trim().toLowerCase();
+      // The catalogue holds duplicate listings of the same SKU from different
+      // import pipelines ("…House Wire · Yellow" vs "…Cables · White").
+      // Strip colour suffix, filler words and punctuation so a product can
+      // never be compared against its own duplicate.
+      const baseName = r.name.split("·")[0].toLowerCase().replace(/\b(house wire|cables|cable|wire)\b/g, "").replace(/[^a-z0-9]+/g, " ").trim();
       if (seenNames.has(baseName)) continue;
       if ((perBrand.get(r.brand) ?? 0) >= 2) continue;
       seenFamilies.add(fam);
@@ -110,7 +114,7 @@ export async function fetchCompareRail(productId: string): Promise<{ currentDisp
       perBrand.set(r.brand, (perBrand.get(r.brand) ?? 0) + 1);
       items.push({
         id: r.id,
-        name: r.name,
+        name: decodeEntities(r.name),
         brand: r.brand,
         price: Number(r.elume_price),
         mrp: Number(r.mrp),
