@@ -124,7 +124,7 @@ export default async function AdminLeads({ searchParams }: { searchParams: Promi
       </div>
 
       {tab === "guestbiz" ? (
-        <GuestBizTable rows={data.guestbiz} when={istDateTime} />
+        <GuestBizTable rows={data.guestbiz} />
       ) : rows.length === 0 ? (
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "44px 20px", textAlign: "center", color: "#8A93A6", fontSize: 14 }}>
           No entries yet.

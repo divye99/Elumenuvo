@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { nudgeBusinessAccount } from "./actions";
+import { istDateTime } from "@/lib/admin/ist";
 
 /**
  * Businesses buying without a business account. Every row is someone who has
@@ -13,7 +14,11 @@ export type GuestBizRow = {
   orders: number; paidOrders: number; lastAt: string; state?: string; hasAccount: boolean;
 };
 
-export default function GuestBizTable({ rows, when }: { rows: GuestBizRow[]; when: (s: string) => string }) {
+// istDateTime is imported here rather than passed as a prop: a function
+// prop cannot cross the server→client boundary, and passing it was exactly
+// what crashed this tab.
+export default function GuestBizTable({ rows }: { rows: GuestBizRow[] }) {
+  const when = istDateTime;
   const [sent, setSent] = useState<Record<string, "sending" | "ok" | string>>({});
 
   const nudge = async (r: GuestBizRow) => {
