@@ -168,6 +168,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             image: product.image, display: compare.currentDisplay,
           }}
           items={compare.items}
+          pageSlug={compare.pageSlug}
         />
       )}
       <div style={{ height: 18 }} />

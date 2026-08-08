@@ -14,7 +14,10 @@ function revalidateProducts(ids: Array<string | null | undefined>) {
   revalidateTag(PRODUCTS_CACHE_TAG, "max");
   revalidatePath("/");
   revalidatePath("/catalogue");
-  for (const id of new Set(ids.filter(Boolean) as string[])) revalidatePath(`/catalogue/${id}`);
+  const unique = [...new Set(ids.filter(Boolean) as string[])];
+  for (const id of unique) revalidatePath(`/catalogue/${id}`);
+  // Tell IndexNow engines the product pages changed (fire-and-forget).
+  { void import("@/lib/indexnow").then(({ submitIndexNow }) => submitIndexNow(unique.map((id) => `/catalogue/${id}`))); }
 }
 import {
   ADMIN_COOKIE,

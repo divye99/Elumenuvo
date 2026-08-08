@@ -1,0 +1,39 @@
+{
+  "slug": "top-10-extension-boards-spike-guards-india",
+  "title": "Top 10 Extension Boards & Spike Guards in India (2026): Ranked",
+  "description": "The best extension boards and spike guards in India for 2026: Havells USB Star, GM Lemoid, Orient 16A, Goldmedal 360, Anchor and Syska compared on sockets, surge protection, cord length and price.",
+  "category": "Extension Boards",
+  "date": "2026-08-08",
+  "author": "Elume Editorial",
+  "readMins": 8,
+  "intro": [
+    "An extension board looks like the simplest thing you will buy for your home, and it is also the product most people buy wrong. The trade calls them spike guards for a reason: the good ones carry a metal oxide varistor (MOV) that absorbs voltage spikes before they reach your laptop, TV or router, and the cheap unbranded ones are just sockets in a plastic box, sometimes with wiring thinner than the load they claim to carry.",
+    "We ranked the boards we stock across Havells, GM Modular, Goldmedal, Anchor by Panasonic, Orient, Wipro and Syska, on the things that actually matter: socket count and spacing, current rating (6 A for electronics, 10 A and 16 A for heavier loads), cord length, surge protection, and honest pricing. Every product below links to its live price, and most have like-for-like alternatives you can compare side by side on the product page."
+  ],
+  "items": [
+    { "rank": 1, "name": "Havells USB Star 4+1 Surge & Spikeguard", "brand": "Havells", "body": "The all-rounder for a desk or bedside: three universal sockets plus three USB ports with a master switch, surge and spike protection, and USB overload protection built in. You stop losing wall sockets to phone chargers, which is the real reason most extension boards fill up.", "bestFor": "Desks and bedside charging", "productId": "hav-ahnkxxg063" },
+    { "rank": 2, "name": "GM Modular Lemoid 4+1 with 3 USB (GM 3260)", "brand": "GM Modular", "body": "GM's design-led take on the same idea: four sockets, master switch and three USB ports rated 2.1 A, in a slimmer housing that looks at home on a desk rather than hidden behind one. Surge protector included.", "bestFor": "Work-from-home setups", "productId": "gm-3260" },
+    { "rank": 3, "name": "Orient Electric 16 A Power Extension Board", "brand": "Orient", "body": "The one board on this list built for heavy loads: 16 A rating, up to 2500 W, with an MCB for overload and short-circuit protection instead of a fuse. This is the correct answer for a geyser, room heater, OTG or power tools on site. Running those on a 6 A board is how boards melt.", "bestFor": "Geysers, heaters and power tools", "productId": "ori-16a-power-2m" },
+    { "rank": 4, "name": "Goldmedal 360 Spike Guard, 6 Socket", "brand": "Goldmedal", "body": "Six sockets on a rotating 360-degree body, so plugs point where the wires need to go instead of fighting each other. MOV surge protection and wall mounting make it a tidy TV-unit or router-corner board.", "bestFor": "TV units and entertainment setups", "productId": "gold-205104" },
+    { "rank": 5, "name": "Anchor by Panasonic Spike Guard 4 Socket, 1.5 m", "brand": "Anchor", "body": "The trade favourite: four universal sockets, single master switch, polycarbonate body and Panasonic build quality at a price electricians approve of. If you are buying five boards for a whole house, this is the workhorse.", "bestFor": "Whole-house value buying", "productId": "anc-22047" },
+    { "rank": 6, "name": "Havells Ecostar 4+1 Surge & Spikeguard (4 m)", "brand": "Havells", "body": "Same trusted Ecostar board with a 4 metre cord, which solves the actual problem in most Indian rooms: the wall socket is never where the appliance is. Four sockets, master switch, surge protection.", "bestFor": "Rooms where the socket is far away", "productId": "hav-ahnkxxr004" },
+    { "rank": 7, "name": "GM Modular Quadro 8+1 with 2 USB (GM 3205)", "brand": "GM Modular", "body": "Eight sockets plus two USB ports for the corner that has everything: router, set-top box, soundbar, console, chargers. A master switch kills the lot when you leave.", "bestFor": "Maximum sockets in one board", "productId": "gm-3205" },
+    { "rank": 8, "name": "Havells Wheel Star 5X 5+1 Surge & SpikeGuard", "brand": "Havells", "body": "Five sockets arranged on a wheel so adapters and fat plugs do not block their neighbours, a genuinely clever answer to the oldest extension-board complaint. Surge protection included.", "bestFor": "Fat plugs and adapters", "productId": "hav-ahnxoxf06x" },
+    { "rank": 9, "name": "Syska 0402 4 Socket with Individual Switches", "brand": "Syska", "body": "Budget board done right: each of the four sockets gets its own switch, so the router stays on while the rest turns off. Spike buster protection at one of the lowest prices on this list.", "bestFor": "Budget buyers who want per-socket switches", "productId": "sys-0402" },
+    { "rank": 10, "name": "Wipro Guardian 4 Way Extension Socket", "brand": "Wipro", "body": "A simple, honest four-socket spike guard from a brand better known for lighting. Does the basics well at a fair price, and fills the gap when the premium boards are out of budget.", "bestFor": "Simple, reliable basics", "productId": "wip-guardian-4w" }
+  ],
+  "buyingTips": [
+    "Match the rating to the load: 6 A boards (most of this list) are for electronics up to roughly 1,200 W total. A geyser, iron, kettle or heater needs a 16 A board like the Orient, full stop.",
+    "Surge protection is the point: look for spike guard or MOV in the name. It sacrifices itself during voltage spikes so your electronics do not, and it is why a board can cost more than a plain socket strip.",
+    "Count your USB devices before buying: a board with built-in USB ports frees two or three sockets that chargers would otherwise occupy.",
+    "Cord length matters more than you think: measure the distance from wall socket to where the board will sit, then add a metre. 1.5 m suits desks; 4 to 5 m suits beds and TV units.",
+    "Buy ISI-marked and branded: an unbranded board with thin wiring is a fire risk at full load. Every board we stock is from an established electrical brand with a warranty."
+  ],
+  "faq": [
+    { "q": "What is the difference between an extension board and a spike guard?", "a": "Shape and sockets are the same; the difference is surge protection. A spike guard contains a MOV (metal oxide varistor) that absorbs voltage spikes from the supply, protecting connected electronics. A plain extension board just extends the socket. For anything with a circuit board (TV, router, laptop), buy the spike guard." },
+    { "q": "Can I run a geyser or room heater on a normal extension board?", "a": "No. Geysers and heaters draw 1,500 to 2,500 W, far beyond a 6 A board's safe limit, and overloading is how boards melt and catch fire. Use a 16 A board with MCB protection, like the Orient 16 A on this list, or better, a dedicated 16 A wall point." },
+    { "q": "How many devices can I plug into a 6 A spike guard?", "a": "Count watts, not sockets. A 6 A board at 240 V handles roughly 1,200 to 1,400 W total. A laptop (65 W), router (20 W), TV (100 W) and phone chargers together barely reach 300 W, which is fine. One iron (1,000 W) nearly maxes it out alone." },
+    { "q": "Do USB ports on extension boards charge slowly?", "a": "Boards with 2.1 A shared USB output (like the GM Lemoid) charge phones at standard speed, similar to a basic wall charger. They will not match a fast charger for flagship phones, but they are perfect for overnight charging and for freeing up sockets." },
+    { "q": "Which extension board brand is best in India?", "a": "Havells and Anchor by Panasonic lead on build quality and service network, GM Modular and Goldmedal on design, Syska and Wipro on price. All seven brands we stock are ISI-marked; open any product above to compare the same specification across brands side by side." }
+  ]
+}

@@ -20,6 +20,9 @@ import coilLength from "@/content/blog/wire-coil-length-guide-2bhk-3bhk.json";
 import checklist from "@/content/blog/electrical-material-checklist-2bhk-3bhk.json";
 import protection from "@/content/blog/mcb-vs-rccb-vs-rcbo-guide.json";
 import colourTemp from "@/content/blog/led-colour-temperature-guide.json";
+import extBoards from "@/content/blog/top-10-extension-boards-spike-guards-india.json";
+import sixteenAmp from "@/content/blog/6a-vs-16a-switches-sockets-guide.json";
+import plateSizes from "@/content/blog/modular-plate-sizes-guide.json";
 
 export type BlogPost = {
   slug: string;
@@ -44,9 +47,10 @@ export const CATEGORY_TO_CATALOGUE: Record<string, string> = {
   Fans: "Fans",
   Lighting: "Lighting",
   Pumps: "Pumps",
+  "Extension Boards": "Extension Boards",
 };
 
-const ALL = [wires, switchgear, modular, dbs, fans, lighting, bldcFans, battens, panels, mcbRccb, exhaust, floodLights, pumps, bulbs, wireSize, wireGrades, mcbRating, bldcSavings, coilLength, checklist, protection, colourTemp] as unknown as BlogPost[];
+const ALL = [wires, switchgear, modular, dbs, fans, lighting, bldcFans, battens, panels, mcbRccb, exhaust, floodLights, pumps, bulbs, wireSize, wireGrades, mcbRating, bldcSavings, coilLength, checklist, protection, colourTemp, extBoards, sixteenAmp, plateSizes] as unknown as BlogPost[];
 
 export function getAllPosts(): BlogPost[] {
   return [...ALL].sort((a, b) => (a.date < b.date ? 1 : -1));

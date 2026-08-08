@@ -41,7 +41,7 @@ const labelCss = (h: number): React.CSSProperties => ({
   ...row(h), fontSize: 10.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.4px", color: "#8A93A6",
 });
 
-export default function CompareRail({ current, items }: { current: CompareCurrent; items: CompareItem[] }) {
+export default function CompareRail({ current, items, pageSlug }: { current: CompareCurrent; items: CompareItem[]; pageSlug?: string }) {
   const cart = useCart();
   const [added, setAdded] = useState<Set<string>>(new Set());
 
@@ -59,8 +59,15 @@ export default function CompareRail({ current, items }: { current: CompareCurren
   return (
     <div className="pdp-wrap" style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px" }}>
       <PdpCollapse title="Compare with other items" sec="compare" count={`${items.length} similar`}>
-        <div style={{ fontSize: 12.5, color: "#8A93A6", margin: "0 0 12px" }}>
-          Same key specifications, different brands - matched on spec, never on looks. Tap a product to open it.
+        <div style={{ display: "flex", gap: 12, alignItems: "baseline", flexWrap: "wrap", margin: "0 0 12px" }}>
+          <span style={{ fontSize: 12.5, color: "#8A93A6" }}>
+            Same key specifications, different brands - matched on spec, never on looks. Tap a product to open it.
+          </span>
+          {pageSlug && (
+            <Link href={`/compare/${pageSlug}`} style={{ fontSize: 12.5, fontWeight: 700, color: "#4E5BDC", whiteSpace: "nowrap" }}>
+              Full comparison page →
+            </Link>
+          )}
         </div>
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflowX: "auto" }}>
           <div style={{ display: "flex", minWidth: "max-content" }}>

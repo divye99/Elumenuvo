@@ -55,7 +55,7 @@ function reader() {
   return url && key ? createClient(url, key, { auth: { persistSession: false } }) : null;
 }
 
-export async function fetchCompareRail(productId: string): Promise<{ currentDisplay: [string, string][]; items: CompareItem[] } | null> {
+export async function fetchCompareRail(productId: string): Promise<{ currentDisplay: [string, string][]; items: CompareItem[]; pageSlug?: string } | null> {
   const db = reader();
   if (!db) return null;
   try {
@@ -129,7 +129,12 @@ export async function fetchCompareRail(productId: string): Promise<{ currentDisp
     }
 
     if (items.length === 0) return null;
-    return { currentDisplay: meta?.display ?? [], items };
+    // The public comparison landing page for this group (design categories
+    // only) - the rail links to it for internal-linking juice and shoppers
+    // who want the full table on its own page.
+    const { COMPARE_PAGE_CATEGORIES, compareSlugOf } = await import("@/lib/compare/pages");
+    const pageSlug = COMPARE_PAGE_CATEGORIES.includes(items[0]?.cat ?? "") ? compareSlugOf(key) : undefined;
+    return { currentDisplay: meta?.display ?? [], items, pageSlug };
   } catch {
     return null; // compare must never break a product page
   }

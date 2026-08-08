@@ -1,15 +1,18 @@
 import type { MetadataRoute } from "next";
 import { fetchProducts } from "@/lib/products";
 import { getSlugs } from "@/lib/blog";
+import { listPublicCompareSlugs } from "@/lib/compare/pages";
 
 const SITE = "https://elumenuvo.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
-  const products = await fetchProducts();
+  const [products, compareSlugs] = await Promise.all([fetchProducts(), listPublicCompareSlugs()]);
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: SITE, lastModified: now, changeFrequency: "weekly", priority: 1 },
+    { url: `${SITE}/compare`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
+    ...compareSlugs.map((s) => ({ url: `${SITE}/compare/${s.slug}`, lastModified: now, changeFrequency: "daily" as const, priority: 0.7 })),
     { url: `${SITE}/catalogue`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
     { url: `${SITE}/metals`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
     { url: `${SITE}/metals/enquiry`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
