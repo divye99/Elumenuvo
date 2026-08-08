@@ -175,6 +175,27 @@ export default function CompetitorPriceChart({ series, mrp }: { series: MarketPo
           {!h && hasMarket && latestAvg != null && <circle cx={x(pts.length - 1)} cy={y(latestAvg)} r="5" style={{ fill: MARKET, stroke: "#fff", strokeWidth: "2px" }} />}
         </svg>
 
+        {/* Y-axis: ₹ labels as HTML overlays, not SVG text - SVG text scales
+            with the viewBox and turns illegible on phones. HTML keeps a fixed
+            10px whatever the chart width; the translucent chip keeps the
+            label readable where lines pass beneath it. Minor ticks (25/75%)
+            hide on phones so five labels never crowd a 320px-wide chart. */}
+        {[0, 0.25, 0.5, 0.75, 1].map((g) => (
+          <span
+            key={g}
+            className={g === 0.25 || g === 0.75 ? "ph-ylab ph-ylab-minor" : "ph-ylab"}
+            style={{
+              position: "absolute", left: 4, top: `${((padY + g * (H - padY * 2)) / H) * 100}%`,
+              transform: "translateY(-50%)", fontFamily: MONO, fontSize: 10, fontWeight: 600,
+              color: "#8A93A6", background: "rgba(255,255,255,0.88)", padding: "1px 5px",
+              borderRadius: 4, pointerEvents: "none", lineHeight: 1.4,
+            }}
+          >
+            {fmt(Math.round(hi - g * (hi - lo)))}
+          </span>
+        ))}
+        <style>{`@media (max-width: 640px) { .ph-ylab-minor { display: none; } }`}</style>
+
         {/* Tooltip */}
         {h && (
           <div style={{ position: "absolute", top: 8, left: `${tipLeftPct}%`, transform: tipFlip ? "translateX(calc(-100% - 14px))" : "translateX(14px)", background: "#19202E", color: "#fff", borderRadius: 10, padding: "9px 12px", pointerEvents: "none", boxShadow: "0 10px 26px rgba(20,24,45,.25)", whiteSpace: "nowrap", zIndex: 5 }}>
