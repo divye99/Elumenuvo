@@ -7,6 +7,7 @@
  * at the family's parent product (parent_id NULL = parent/standalone).
  */
 import { createClient } from "@supabase/supabase-js";
+import { unstable_cache } from "next/cache";
 import type { Product, TechSpecs } from "@/lib/data";
 
 type Row = {
@@ -78,7 +79,21 @@ async function selectProducts(c: NonNullable<ReturnType<typeof client>>, applyFi
   return res;
 }
 
-export async function fetchProducts(): Promise<Product[]> {
+/**
+ * The full catalogue is ~1.9 MB from Supabase, and every page that used to
+ * fetch it per-request (worst: the force-dynamic homepage, hammered by bots)
+ * was the #1 cause of blowing the egress quota. Both catalogue fetchers are
+ * now cached ONCE and shared by every page and API for up to 5 minutes.
+ *
+ * Freshness guarantee: 5 minutes is only the ceiling for changes made with
+ * raw SQL. Every admin write path (product edits, repricing, radar accepts,
+ * imports, metals console, OOS toggles) calls revalidateTag("products"),
+ * which drops this cache instantly - an admin price change is live on the
+ * very next request.
+ */
+export const PRODUCTS_CACHE_TAG = "products";
+
+const fetchProductsUncached = async (): Promise<Product[]> => {
   const c = client();
   if (!c) return [];
   try {
@@ -97,7 +112,12 @@ export async function fetchProducts(): Promise<Product[]> {
   } catch {
     return [];
   }
-}
+};
+
+export const fetchProducts = unstable_cache(fetchProductsUncached, ["products-full"], {
+  tags: [PRODUCTS_CACHE_TAG],
+  revalidate: 300,
+});
 
 /**
  * Catalogue-grid fetch: display columns only. Skips the attrs/tech_specs
@@ -107,7 +127,7 @@ export async function fetchProducts(): Promise<Product[]> {
  */
 const LITE_COLS = "id, sku, name, brand, category, spec, mrp, elume_price, unit, image_url, units_sold, is_recommended, parent_id, market_low, gst_rate, in_stock, created_at";
 
-export async function fetchProductsLite(): Promise<Product[]> {
+const fetchProductsLiteUncached = async (): Promise<Product[]> => {
   const c = client();
   if (!c) return [];
   try {
@@ -122,7 +142,14 @@ export async function fetchProductsLite(): Promise<Product[]> {
   } catch {
     return [];
   }
-}
+};
+
+// Same cache contract as fetchProducts: shared for ≤5 min, dropped instantly
+// by revalidateTag("products") on every admin write.
+export const fetchProductsLite = unstable_cache(fetchProductsLiteUncached, ["products-lite"], {
+  tags: [PRODUCTS_CACHE_TAG],
+  revalidate: 300,
+});
 
 export async function fetchProduct(id: string): Promise<Product | null> {
   const c = client();

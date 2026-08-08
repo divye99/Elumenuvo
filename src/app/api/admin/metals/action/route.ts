@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { PRODUCTS_CACHE_TAG } from "@/lib/products";
 import { isAdmin } from "@/lib/admin/auth";
 import { adminClient } from "@/lib/supabase/admin";
 import { gstRateFor } from "@/lib/pricing";
@@ -23,6 +24,10 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 function revalidateMetals(ids: string[]) {
+  // Copper moves 2-3x a day: bust the shared catalogue data cache so the
+  // fresh rate is what the revalidated pages render.
+  revalidateTag(PRODUCTS_CACHE_TAG, "max");
+  revalidatePath("/");
   revalidatePath("/admin/metals");
   revalidatePath("/catalogue");
   revalidatePath("/metals"); // the hub shows live ₹/kg cards

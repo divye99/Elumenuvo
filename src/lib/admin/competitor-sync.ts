@@ -5,7 +5,8 @@
  * price chart). Used by the admin "Sync now" action and the monthly GitHub
  * Action (which reimplements the same loop for Vashi in plain JS).
  */
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { PRODUCTS_CACHE_TAG } from "@/lib/products";
 import { getAdapter, credsFor } from "@/lib/competitors";
 import { legrandCodeFor } from "@/lib/competitors/legrandshop";
 
@@ -183,6 +184,8 @@ export async function runCompetitorSync(db: SupaLike, source: string, runSource:
   } catch { /* pre-0046 database - the storefront just falls back to MRP ranking */ }
 
   if (repriced.length) {
+    revalidateTag(PRODUCTS_CACHE_TAG, "max");
+    revalidatePath("/");
     revalidatePath("/catalogue");
     for (const id of new Set(repriced)) revalidatePath(`/catalogue/${id}`);
   }

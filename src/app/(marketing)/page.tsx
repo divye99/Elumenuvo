@@ -6,7 +6,16 @@ import { getAllPosts } from "@/lib/blog";
 import { WEBSITE } from "@/lib/seo";
 import { jsonLd as toJsonLd } from "@/lib/jsonld";
 
-export const dynamic = "force-dynamic";
+/**
+ * ISR, not force-dynamic. The homepage is the most bot-hammered URL on the
+ * site, and rendering it per-request pulled the full 1.9 MB product table
+ * from Supabase on every hit - the #1 cause of the egress blowout. Cached
+ * for ≤5 min; every admin catalogue write revalidates "/" instantly via
+ * revalidateTag/revalidatePath, so price and stock edits are never stale.
+ * Personalised shelves stay client-side (PersonalRails), so caching the
+ * page costs no personalisation.
+ */
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Elume - Buy electrical goods online in India | Wires, MCBs, Switches, Fans, Lights",
