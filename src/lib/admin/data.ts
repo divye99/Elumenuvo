@@ -39,6 +39,15 @@ export function hasServiceRole(): boolean {
   return !!adminClient();
 }
 
+/** Product count only - the dashboard card was pulling the entire 1.9 MB
+ *  product table (select *) just to render `products.length`. */
+export async function countProducts(): Promise<number> {
+  const db = reader();
+  if (!db) return 0;
+  const { count } = await db.from("products").select("id", { count: "exact", head: true });
+  return count ?? 0;
+}
+
 /** Read every row of a table, paging past PostgREST's 1000-row response cap. */
 async function readAll<T>(db: any, table: string, columns = "*", order = "id"): Promise<T[]> {
   const out: T[] = [];

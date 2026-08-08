@@ -93,31 +93,64 @@ async function selectProducts(c: NonNullable<ReturnType<typeof client>>, applyFi
  */
 export const PRODUCTS_CACHE_TAG = "products";
 
-const fetchProductsUncached = async (): Promise<Product[]> => {
-  const c = client();
-  if (!c) return [];
-  try {
-    // Order by sort_order THEN id - sort_order values collide across import
-    // batches, and an unstable tie order differs between the HTML and RSC
-    // renders, causing a hydration mismatch on the home shelves.
-    // Page past PostgREST's 1000-row cap so the full catalogue (1300+) is returned.
-    const all: Row[] = [];
-    for (let from = 0; ; from += 1000) {
-      const { data, error } = await selectProducts(c, (q) => q.eq("is_active", true).order("sort_order").order("id").range(from, from + 999));
-      if (error || !data?.length) break;
-      all.push(...(data as Row[]));
-      if (data.length < 1000) break;
-    }
-    return all.map(toProduct);
-  } catch {
-    return [];
-  }
-};
+/**
+ * Card-level column set for LIST surfaces (homepage, catalogue, collections,
+ * PDP sibling rails). The safe-list rule, audited caller by caller:
+ *   - everything SEARCH matches on stays: brand, name, spec, sku, category
+ *   - everything CARDS render stays: price/mrp/image/stock/rating join,
+ *     attrs (colour swatches, size chips, decision-spec lines)
+ *   - what goes is only what NO list surface reads: tech_specs blobs,
+ *     gallery arrays, brochure text - the product's own page fetches its
+ *     full record via fetchProduct and shows all of it, unchanged.
+ * Measured: full row set ≈ 1.9 MB, this set ≈ ⅓ of that.
+ */
+const CARD_COLS = `${"id, sku, brand_sku, name, brand, category, spec, mrp, elume_price, unit, image_url, units_sold, is_recommended, parent_id, market_low, gst_rate, in_stock, created_at"}, attrs`;
 
-export const fetchProducts = unstable_cache(fetchProductsUncached, ["products-full"], {
-  tags: [PRODUCTS_CACHE_TAG],
-  revalidate: 300,
-});
+async function selectCards(c: NonNullable<ReturnType<typeof client>>, applyFilter: (q: any) => any) {
+  // Ratings come from the reviews join (cards show stars); fall back without
+  // the join if the relationship is unavailable rather than losing the grid.
+  let res = await applyFilter(c.from("products").select(`${CARD_COLS}, reviews(rating)`));
+  if (res.error) res = await applyFilter(c.from("products").select(CARD_COLS));
+  return res;
+}
+
+/** The catalogue is cached in CHUNKS of raw rows, mapped after retrieval:
+ *  Next's data cache hard-rejects any entry over 2 MB (and fails SILENTLY in
+ *  production - the fetch just runs uncached on every request, which is the
+ *  exact egress leak this exists to stop). The whole catalogue serializes
+ *  past that line, so each 1500-row chunk is its own comfortably-small cache
+ *  entry sharing the same tag and 5-minute window. */
+const ROW_CHUNK = 1500;
+
+const cardRowsChunk = unstable_cache(
+  async (page: number): Promise<Row[]> => {
+    const c = client();
+    if (!c) return [];
+    try {
+      // Order by sort_order THEN id - sort_order values collide across import
+      // batches, and an unstable tie order differs between the HTML and RSC
+      // renders, causing a hydration mismatch on the home shelves.
+      const from = page * ROW_CHUNK;
+      const { data, error } = await selectCards(c, (q) => q.eq("is_active", true).order("sort_order").order("id").range(from, from + ROW_CHUNK - 1));
+      if (error || !data) return [];
+      return data as Row[];
+    } catch {
+      return [];
+    }
+  },
+  ["products-card-chunk"],
+  { tags: [PRODUCTS_CACHE_TAG], revalidate: 300 }
+);
+
+export async function fetchProducts(): Promise<Product[]> {
+  const all: Row[] = [];
+  for (let page = 0; ; page++) {
+    const rows = await cardRowsChunk(page);
+    all.push(...rows);
+    if (rows.length < ROW_CHUNK) break;
+  }
+  return all.map(toProduct);
+}
 
 /**
  * Catalogue-grid fetch: display columns only. Skips the attrs/tech_specs
@@ -127,29 +160,34 @@ export const fetchProducts = unstable_cache(fetchProductsUncached, ["products-fu
  */
 const LITE_COLS = "id, sku, name, brand, category, spec, mrp, elume_price, unit, image_url, units_sold, is_recommended, parent_id, market_low, gst_rate, in_stock, created_at";
 
-const fetchProductsLiteUncached = async (): Promise<Product[]> => {
-  const c = client();
-  if (!c) return [];
-  try {
-    const all: Row[] = [];
-    for (let from = 0; ; from += 1000) {
-      const { data, error } = await c.from("products").select(LITE_COLS).eq("is_active", true).order("sort_order").order("id").range(from, from + 999);
-      if (error || !data?.length) break;
-      all.push(...(data as unknown as Row[]));
-      if (data.length < 1000) break;
+// Same chunked-cache contract as fetchProducts (see the 2 MB note above):
+// shared for ≤5 min, dropped instantly by revalidateTag on admin writes.
+const liteRowsChunk = unstable_cache(
+  async (page: number): Promise<Row[]> => {
+    const c = client();
+    if (!c) return [];
+    try {
+      const from = page * ROW_CHUNK;
+      const { data, error } = await c.from("products").select(LITE_COLS).eq("is_active", true).order("sort_order").order("id").range(from, from + ROW_CHUNK - 1);
+      if (error || !data) return [];
+      return data as unknown as Row[];
+    } catch {
+      return [];
     }
-    return all.map(toProduct);
-  } catch {
-    return [];
-  }
-};
+  },
+  ["products-lite-chunk"],
+  { tags: [PRODUCTS_CACHE_TAG], revalidate: 300 }
+);
 
-// Same cache contract as fetchProducts: shared for ≤5 min, dropped instantly
-// by revalidateTag("products") on every admin write.
-export const fetchProductsLite = unstable_cache(fetchProductsLiteUncached, ["products-lite"], {
-  tags: [PRODUCTS_CACHE_TAG],
-  revalidate: 300,
-});
+export async function fetchProductsLite(): Promise<Product[]> {
+  const all: Row[] = [];
+  for (let page = 0; ; page++) {
+    const rows = await liteRowsChunk(page);
+    all.push(...rows);
+    if (rows.length < ROW_CHUNK) break;
+  }
+  return all.map(toProduct);
+}
 
 export async function fetchProduct(id: string): Promise<Product | null> {
   const c = client();
@@ -172,7 +210,10 @@ export async function fetchFamily(p: Pick<Product, "id" | "parentId">): Promise<
   if (!c) return [];
   const root = p.parentId ?? p.id;
   try {
-    const { data, error } = await selectProducts(c, (q) =>
+    // Card columns: the family feeds the variant picker (attrs) and the
+    // range rail (ProductCard) - neither reads tech_specs or galleries, and
+    // a 37-colour family at full weight was real per-PDP-render tonnage.
+    const { data, error } = await selectCards(c, (q) =>
       q.or(`id.eq.${root},parent_id.eq.${root}`).eq("is_active", true).order("sort_order")
     );
     if (error || !data || data.length < 2) return [];

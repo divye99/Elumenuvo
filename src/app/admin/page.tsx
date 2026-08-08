@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
-import { listProductRows, listContentRows, hasServiceRole, countPendingSuggestions, countOpenOrders } from "@/lib/admin/data";
+import { countProducts, listContentRows, hasServiceRole, countPendingSuggestions, countOpenOrders } from "@/lib/admin/data";
 import { countPendingReviews } from "@/lib/admin/review-actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminHome() {
   await requireAdmin();
-  const [products, content, pending, openOrders, pendingReviews] = await Promise.all([listProductRows(), listContentRows(), countPendingSuggestions(), countOpenOrders(), countPendingReviews()]);
+  const [productCount, content, pending, openOrders, pendingReviews] = await Promise.all([countProducts(), listContentRows(), countPendingSuggestions(), countOpenOrders(), countPendingReviews()]);
 
   return (
     <div>
@@ -29,7 +29,7 @@ export default async function AdminHome() {
         </Link>
         <Link href="/admin/products" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: 20 }}>
           <div style={{ fontSize: 13, color: "#8A93A6" }}>Catalogue</div>
-          <div style={{ fontSize: 28, fontWeight: 700 }}>{products.length}</div>
+          <div style={{ fontSize: 28, fontWeight: 700 }}>{productCount}</div>
           <div style={{ fontSize: 13, color: "#4E5BDC", fontWeight: 600, marginTop: 6 }}>Manage products & pricing →</div>
         </Link>
       </div>
