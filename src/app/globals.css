@@ -235,6 +235,11 @@ input[type="range"].elume-range::-moz-range-thumb {
 .pgrid-in {
   animation: elumeCardIn 0.34s cubic-bezier(0.3, 1.4, 0.5, 1) both;
   animation-delay: calc(var(--gi, 0) * 22ms);
+  /* Low-end phones: skip layout/paint work for cards below the fold - the
+     browser renders them only as they approach the viewport. The intrinsic
+     size keeps the scrollbar honest while they are skipped. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 340px;
 }
 @media (prefers-reduced-motion: reduce) {
   .pgrid-in { animation: none; }

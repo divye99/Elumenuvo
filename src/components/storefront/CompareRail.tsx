@@ -141,9 +141,15 @@ export default function CompareRail({ current, items }: { current: CompareCurren
         .cmp-col { width: 196px; }
         .cmp-current { left: 108px; }
         @media (max-width: 640px) {
-          .cmp-labels { width: 86px; }
-          .cmp-col { width: 164px; }
-          .cmp-current { left: 86px; }
+          /* Phones: the frozen current-product column ate half the screen and
+             made side-by-side comparison impossible. The labels stay frozen
+             (they're the anchor); the current product scrolls WITH the rail -
+             the page above it already is the current product. Columns shrink
+             so ~2.2 alternatives fit a 375px screen. */
+          .cmp-labels { width: 64px; }
+          .cmp-labels > div { font-size: 9px !important; padding: 0 7px !important; }
+          .cmp-col { width: 138px; }
+          .cmp-current { position: static !important; box-shadow: none !important; }
         }
       `}</style>
     </div>

@@ -119,7 +119,11 @@ export default function ImageSlot({
         // product at first glance. Cover zoomed to fill the slot and cropped
         // tops/bottoms off fans and wire boxes. The slot's white background
         // letterboxes cleanly, and the padding keeps the product off the edges.
-        <img src={src} alt="" onError={() => setBroken(true)} style={{ width: "100%", height: "100%", objectFit: "contain", padding: "6%", boxSizing: "border-box" }} />
+        // lazy + async: a catalogue grid renders 60 cards, and eager-loading
+        // sixty ~240 KB photos at once is what buried low-RAM phones (and
+        // burned data). Off-screen cards now load as they approach the
+        // viewport, and decoding never blocks the main thread.
+        <img src={src} alt="" loading="lazy" decoding="async" onError={() => setBroken(true)} style={{ width: "100%", height: "100%", objectFit: "contain", padding: "6%", boxSizing: "border-box" }} />
       ) : allowUpload ? (
         <div style={{ textAlign: "center", pointerEvents: "none", padding: "0 10px" }}>
           <div style={{ fontSize: 11.5, fontWeight: 600, color: "#8A93A6" }}>{placeholder}</div>
