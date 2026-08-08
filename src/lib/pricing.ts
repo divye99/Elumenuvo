@@ -102,6 +102,7 @@ export const GST_RATES: Record<string, number> = {
   "Lighting": 0.18,  // Sch II 614 (luminaires) / 511 (lamps); solar overridden per product
   "Pumps": 0.18,     // Sch II 400(c): power driven pumps for handling water
   "Electrical Accessories": 0.18,
+  "Extension Boards": 0.18, // HSN 8536 boards/plugs/sockets
   "EV Charging": 0.05, // Sch I entry 438: chargers for electrically operated vehicles
   "Copper": 0.18,      // Metals family - HSN 7403/7407, Sch II standard rate
 };

@@ -414,12 +414,47 @@ function modular(text: string, attrs: Record<string, string>): Fingerprint | nul
   };
 }
 
+/* ── Extension Boards ── */
+function extboards(text: string, attrs: Record<string, string>): Fingerprint | null {
+  const sockRaw = attrs.Sockets
+    ?? rx(text, /(\d)\s*(?:universal\s*)?sockets?\b/)
+    ?? rx(text, /(\d)\s*way\b/)
+    ?? rx(text, /(\d)\s*[x×]\s*\d/)
+    ?? rx(text, /\b(\d)\s*\+\s*\d\b/);
+  const sockets = sockRaw ? String(Number(String(sockRaw).match(/\d/)?.[0])) : null;
+  if (!sockets || Number(sockets) < 2) return null;
+  const ampRaw = attrs.Rating ?? rx(text, /(\d{1,2})\s*a\b/) ?? "6";
+  const amps = String(Number(String(ampRaw).match(/\d+/)?.[0]));
+  const cord = attrs.Cord ? String(Number(attrs.Cord.match(/\d+(?:\.\d+)?/)?.[0])) : rx(text, /(\d+(?:\.\d+)?)\s*m(?:tr|etre)?\b(?!m)/);
+  // USB is two-sided: a 3-USB charging strip is a different product from a
+  // plain board, and absence genuinely means zero USB ports here.
+  const usb = attrs.USB ?? rx(text, /(\d)\s*usb/) ?? (/usb/.test(text) ? "1" : "0");
+  const surge = /surge|spike/.test(text);
+  return {
+    key: `extboard|${sockets}|${amps}a`,
+    conflicts: {
+      usb: String(Number(usb)),
+      ...(cord ? { cord } : {}),
+      ...(isSmart(text) ? { smart: "smart" } : {}),
+    },
+    display: [
+      ["Sockets", sockets],
+      ["Rating", `${amps} A`],
+      ["Cord", cord ? `${cord} m` : "-"],
+      ["USB ports", Number(usb) > 0 ? usb : "None"],
+      ["Surge protection", surge ? "Yes" : "-"],
+    ],
+    source: attrs.Sockets ? "structured" : "extracted",
+  };
+}
+
 const ENGINES: Record<string, (text: string, attrs: Record<string, string>) => Fingerprint | null> = {
   "Wires & Cables": wires,
   "Fans": fans,
   "Lighting": lighting,
   "Switchgear": switchgear,
   "Modular": modular,
+  "Extension Boards": extboards,
 };
 
 export const COMPARE_CATEGORIES = Object.keys(ENGINES);
