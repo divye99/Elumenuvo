@@ -10,6 +10,9 @@ import { makeDukaanAdapter } from "./dukaan";
 // ── Tier 1 - live (public JSON/GraphQL), verified working ──
 export const cromptonAdapter = makeShopifyAdapter({ key: "crompton", name: "Crompton", siteUrl: "https://www.crompton.co.in" });
 export const havellsAdapter = makeMagentoAdapter({ key: "havells", name: "Havells", siteUrl: "https://havells.com" });
+// ABB eMart - Magento behind a WAF that requires POSTed JSON, and a schema
+// with no sku filter: all lookups go through search (see makeMagentoAdapter).
+export const abbAdapter = makeMagentoAdapter({ key: "abb", name: "ABB eMart", siteUrl: "https://shop.in.abb.com", post: true, searchOnly: true });
 
 // Syska - Dukaan storefront (scrapes __DUKAAN_DATA__ on the product page).
 export const syskaAdapter = makeDukaanAdapter({ key: "syska", name: "Syska", siteUrl: "https://syska.co.in" });

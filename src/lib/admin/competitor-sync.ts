@@ -61,22 +61,24 @@ export async function runCompetitorSync(db: SupaLike, source: string, runSource:
   // guardrails: > 0 and >= 40% of our current price). Havells set the pattern;
   // Legrand follows the same rules. Auto-MAPPING by exact brand_sku remains
   // Havells-only - Legrand codes are page slugs, seeded at import time.
-  const AUTO = source === "havells" || source === "legrand";
-  // Auto-mapping by exact brand SKU. Havells: the SKU IS the fetch key.
-  // Legrand: the fetch key is a page URL, so the SKU resolves through the
-  // bundled crawl index (sku -> slug) and the mapping stores "slug#SKU".
+  // Own-brand stores: auto-map by exact brand SKU and auto-apply pricing.
+  // Havells set the pattern; Legrand and ABB follow the same rules. ABB's
+  // fetch key is its brand SKU too (order code or store sku - the search-only
+  // adapter resolves either).
+  const OWN_BRAND: Record<string, string> = { havells: "Havells", legrand: "Legrand", abb: "ABB" };
+  const AUTO = source in OWN_BRAND;
   if (AUTO) {
-    const brandName = source === "havells" ? "Havells" : "Legrand";
+    const brandName = OWN_BRAND[source];
     const mappedIds = new Set(rows.map((m: any) => m.product_id));
     const candidates = (products ?? []).filter(
       (p: any) => p.brand === brandName && p.brand_sku && !mappedIds.has(p.id)
     );
     for (const p of candidates) {
-      const code = source === "havells" ? p.brand_sku : legrandCodeFor(String(p.brand_sku));
+      const code = source === "legrand" ? legrandCodeFor(String(p.brand_sku)) : p.brand_sku;
       if (!code) continue; // Legrand SKU not in the crawl index - leave unmapped
       const { error } = await db.from("competitor_map").upsert({
         product_id: p.id, source, competitor_code: code, unit_factor: 1,
-        note: source === "havells" ? "auto: exact Havells brand SKU" : "auto: Legrand SKU via crawl index",
+        note: source === "legrand" ? "auto: Legrand SKU via crawl index" : `auto: exact ${brandName} brand SKU`,
       });
       if (!error) { rows.push({ product_id: p.id, competitor_code: code, unit_factor: 1 }); autoMapped++; }
     }

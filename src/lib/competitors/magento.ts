@@ -47,15 +47,29 @@ function itemFromVariant(base: string, par: Record<string, any>, hit: Record<str
   };
 }
 
-export function makeMagentoAdapter(cfg: { key: string; name: string; siteUrl: string }): CompetitorAdapter {
+export function makeMagentoAdapter(cfg: {
+  key: string; name: string; siteUrl: string;
+  /** POST the query as JSON instead of GET ?query= - ABB's WAF requires it. */
+  post?: boolean;
+  /** The store's ProductAttributeFilterInput has no `sku` field (ABB), so all
+   *  lookups go through full-text search with an exact-match check. */
+  searchOnly?: boolean;
+}): CompetitorAdapter {
   const base = cfg.siteUrl.replace(/\/+$/, "");
   const endpoint = `${base}/graphql`;
 
   const gql = async (query: string): Promise<any> => {
-    const res = await fetch(`${endpoint}?query=${encodeURIComponent(query)}`, {
-      headers: { "User-Agent": UA, Accept: "application/json", "Content-Type": "application/json", Store: "default" },
-      cache: "no-store",
-    });
+    const res = cfg.post
+      ? await fetch(endpoint, {
+          method: "POST",
+          headers: { "User-Agent": UA, Accept: "application/json", "Content-Type": "application/json" },
+          body: JSON.stringify({ query }),
+          cache: "no-store",
+        })
+      : await fetch(`${endpoint}?query=${encodeURIComponent(query)}`, {
+          headers: { "User-Agent": UA, Accept: "application/json", "Content-Type": "application/json", Store: "default" },
+          cache: "no-store",
+        });
     if (!res.ok) return null;
     return res.json();
   };
@@ -99,6 +113,9 @@ export function makeMagentoAdapter(cfg: { key: string; name: string; siteUrl: st
      *  mapped children at once. */
     async fetchBatch(codes) {
       const out = new Map<string, CompetitorItem>();
+      // searchOnly stores can't do sku:{in:[...]}; every code goes through
+      // the per-code search path instead.
+      if (cfg.searchOnly) return out;
       const plain: string[] = [];
       const byParent = new Map<string, string[]>(); // parent sku -> child skus
       for (const raw of codes) {
@@ -142,6 +159,20 @@ export function makeMagentoAdapter(cfg: { key: string; name: string; siteUrl: st
       const sku = code.trim();
       if (!sku) return null;
       try {
+        // searchOnly stores (ABB): the sku filter does not exist in their
+        // schema, but full-text search matches both the internal sku and the
+        // brand order code. Accept an exact sku match or a url_key that
+        // starts with the code (ABB url_keys begin with the order code).
+        if (cfg.searchOnly) {
+          const found = await gql(`query{products(search:${JSON.stringify(sku)},pageSize:5){${FIELDS}}}`);
+          const items: Record<string, any>[] = found?.data?.products?.items ?? [];
+          const low = sku.toLowerCase();
+          const hit =
+            items.find((it) => String(it.sku).toLowerCase() === low) ??
+            items.find((it) => String(it.url_key ?? "").toLowerCase().startsWith(low + "/")) ??
+            (items.length === 1 && sku.length >= 8 ? items[0] : null);
+          return hit ? toItem(hit) : null;
+        }
         // Composite "PARENT::CHILD" codes: some stores (Atomberg) don't expose
         // configurable children to direct sku queries at all - the child's
         // price only exists inside the parent's variant tree. Fetch the
