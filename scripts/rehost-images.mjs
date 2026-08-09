@@ -48,7 +48,10 @@ async function rehostOne(p) {
     const buf = Buffer.from(await res.arrayBuffer());
     if (buf.length < 200) return { id: p.id, ok: false, why: "empty" };
     const path = `rehosted/${p.id}.${ext(p.image_url)}`;
-    const up = await db.storage.from(BUCKET).upload(path, buf, { contentType: contentType(p.image_url), upsert: true });
+    // cacheControl is MANDATORY: without it Supabase serves no-cache and every
+    // view re-downloads the file - the Aug 2026 egress blowout. Product images
+    // are immutable (a new image gets a new path), so cache for a year.
+    const up = await db.storage.from(BUCKET).upload(path, buf, { contentType: contentType(p.image_url), upsert: true, cacheControl: "31536000" });
     if (up.error) return { id: p.id, ok: false, why: up.error.message };
     const url = db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
     const { error } = await db.from("products").update({ image_url: url }).eq("id", p.id);
