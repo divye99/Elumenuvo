@@ -71,30 +71,34 @@ for (const p of eligible) {
   );
 }
 
-const sql = `-- 0100: ABB eMart import - every in-stock SKU priced <= Rs 50,000.
+const PART = 450;
+const header = (part, total, count) => `-- 0100 part ${part}/${total}: ABB eMart import - in-stock SKUs priced <= Rs 50,000.
 -- Source: shop.in.abb.com Magento GraphQL, scraped ${new Date().toISOString().slice(0, 10)}.
--- ${rows.length} products. Pricing: eMart selling price -2%; MRP = list price.
--- Photos hotlink ABB's CDN (rehost pass later). Category mapping in
--- scripts/gen-abb-import.mjs. After running: "Rebuild mappings now" in
--- /admin/compare so ABB joins the like-to-like groups, then the IndexNow
--- full-site submit.
+-- ${count} products in this part (split because a single 2,567-row insert
+-- was too large for the SQL editor). Run parts IN ORDER. Pricing: eMart
+-- selling price -2%; MRP = list price. After the LAST part: "Rebuild
+-- mappings now" in /admin/compare, then the IndexNow full-site submit.
 insert into public.products
   (id, sku, brand_sku, name, brand, category, spec, mrp, elume_price, unit, image_url, is_active, in_stock, sort_order)
 values
-${rows.join(",\n")}
-on conflict (id) do nothing;
-
+`;
+const totalParts = Math.ceil(rows.length / PART);
+for (let part = 0; part < totalParts; part++) {
+  const chunk = rows.slice(part * PART, (part + 1) * PART);
+  let sql = header(part + 1, totalParts, chunk.length) + chunk.join(",\n") + "\non conflict (id) do nothing;\n";
+  if (part === totalParts - 1) {
+    sql += `
 -- ABB eMart as an own-brand price source: the GitHub competitor sync
 -- auto-maps every ABB product by its brand SKU and auto-applies our price
 -- at Rs 1 under the eMart selling price (same rules as Havells/Legrand).
--- Their price, our price and MRP all flow into the daily price-history
--- snapshots that power the PDP price chart.
 insert into public.competitor_sources (id, name, site_url, enabled, needs_login, sort_order)
   values ('abb', 'ABB eMart', 'https://shop.in.abb.com', true, false, 13)
   on conflict (id) do update set enabled = true, site_url = excluded.site_url;
 `;
-await writeFile("supabase/migrations/0100_abb-import.sql", sql);
+  }
+  await writeFile(`supabase/migrations/0100${String.fromCharCode(97 + part)}_abb-import-part${part + 1}.sql`, sql);
+}
 const cats = {};
 for (const p of eligible) cats[elumeCategory(p)] = (cats[elumeCategory(p)] || 0) + 1;
-console.log("rows:", rows.length, "| categories:", JSON.stringify(cats));
+console.log("rows:", rows.length, "in", totalParts, "part files | categories:", JSON.stringify(cats));
 console.log("with image:", rows.filter((r) => r.includes("media/catalog")).length);
