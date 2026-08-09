@@ -13,9 +13,10 @@ import { jsonLd as toJsonLd } from "@/lib/jsonld";
  * for ≤5 min; every admin catalogue write revalidates "/" instantly via
  * revalidateTag/revalidatePath, so price and stock edits are never stale.
  * Personalised shelves stay client-side (PersonalRails), so caching the
- * page costs no personalisation.
+ * page costs no personalisation. 1h window (was 5min - Vercel ISR-write
+ * blowout, Aug 2026); price/stock changes revalidate "/" on demand anyway.
  */
-export const revalidate = 300;
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Elume - Buy electrical goods online in India | Wires, MCBs, Switches, Fans, Lights",

@@ -9,7 +9,9 @@ import { WHOLESALE_MIN_QTY, WHOLESALE_DISCOUNT, wholesalePrice, wholesaleEligibl
 import ProductCard from "@/components/storefront/ProductCard";
 import { fmt } from "@/lib/format";
 
-export const revalidate = 300;
+// 1h window (was 5min - Vercel ISR-write blowout, Aug 2026); product changes
+// revalidate on demand via the products cache tag, so this is only a safety net.
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Buy more, save more - wholesale pricing",

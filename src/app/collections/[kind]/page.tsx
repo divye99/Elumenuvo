@@ -17,7 +17,9 @@ import type { Product } from "@/lib/data";
  * ISR like the catalogue: identical for everyone, cheap for Googlebot, and
  * the glance-view signal is read once per revalidation, not per visitor.
  */
-export const revalidate = 300;
+// 1h window (was 5min - Vercel ISR-write blowout, Aug 2026); product changes
+// revalidate on demand via the products cache tag, so this is only a safety net.
+export const revalidate = 3600;
 export const dynamicParams = false; // unknown kinds 404 at the router, pre-streaming
 export async function generateStaticParams() {
   return KINDS.map((kind) => ({ kind }));

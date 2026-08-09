@@ -27,11 +27,14 @@ import { fetchCompareRail } from "@/lib/compare/rail";
 
 // ISR, not dynamic. Product pages are the same for every visitor, so they are
 // generated once and served from cache: Googlebot gets bytes instead of a
-// database round-trip, which is what lets it work through 3,400+ URLs. Price
-// and stock edits call revalidatePath on the exact product, so a cached page
-// is replaced the moment it stops being true rather than waiting out the
-// window below.
-export const revalidate = 300;
+// database round-trip, which is what lets it work through 7,600+ URLs. Price
+// and stock edits call revalidatePath/revalidateTag on the exact product, so
+// a cached page is replaced the moment it stops being true - the window below
+// is only a safety net. It is set LONG deliberately (Vercel free-tier blowout,
+// Aug 2026): at 5 minutes, every crawler visit to an expired PDP was an ISR
+// write + a full render, 600K+ writes/month across the catalogue. Do not
+// shorten it - on-demand revalidation carries all freshness.
+export const revalidate = 86400;
 
 /** Empty on purpose. A dynamic segment with no generateStaticParams renders on
  *  demand EVERY time; declaring it (with dynamicParams left on) makes the route

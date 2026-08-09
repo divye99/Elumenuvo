@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { isAdmin } from "@/lib/admin/auth";
 import { rebuildCompareKeys } from "@/lib/compare/build";
+import { PRODUCTS_CACHE_TAG } from "@/lib/products";
 
 /**
  * Full compare-mapping rebuild, admin-triggered ("Rebuild mappings now").
@@ -16,5 +18,8 @@ export async function POST() {
   if (!(await isAdmin())) return NextResponse.json({ ok: false, error: "Not signed in." }, { status: 403 });
   const result = await rebuildCompareKeys();
   if ("error" in result) return NextResponse.json({ ok: false, ...result }, { status: 500 });
+  // PDP compare rails read compare keys through the products cache - without
+  // this, rebuilt groups would wait out the (now day-long) ISR window.
+  revalidateTag(PRODUCTS_CACHE_TAG, "max");
   return NextResponse.json({ ok: true, ...result });
 }

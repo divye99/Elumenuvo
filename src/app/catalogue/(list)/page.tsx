@@ -8,7 +8,9 @@ import { loadSearchSignals } from "@/lib/search-signals";
 // ISR: the catalogue data is shared by everyone; serving it cached makes
 // search navigations near-instant (the browser filters client-side anyway).
 // Reading URL params moved client-side so this page can stay static.
-export const revalidate = 300;
+// 1h window (was 5min - Vercel ISR-write blowout, Aug 2026); product changes
+// revalidate on demand via the products cache tag, so this is only a safety net.
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "FMEG Catalogue - wires, switchgear, fans & lighting (India)",

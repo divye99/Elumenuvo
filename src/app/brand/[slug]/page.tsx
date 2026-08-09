@@ -9,7 +9,9 @@ import { CAT_ICONS } from "@/lib/cat-icons";
 /** Brand hub: /brand/havells, /brand/rr-kabel ... Trending / Top rated /
  *  Best sellers rails for the brand, then its whole catalogue with the
  *  frozen filter rail (categories) and floating sort header. */
-export const revalidate = 300;
+// 1h window (was 5min - Vercel ISR-write blowout, Aug 2026); product changes
+// revalidate on demand via the products cache tag, so this is only a safety net.
+export const revalidate = 3600;
 /** All brand slugs are enumerated at build, and dynamicParams=false makes
  *  any unknown slug 404 at the ROUTER level - before streaming starts - so
  *  the loading skeleton cannot soft-404 a junk URL. New brands arrive via
