@@ -194,6 +194,10 @@ export default function CatalogueBrowser({
         // while imaged competitors exist.
         const trend = (p: Product) =>
           (p.image ? 1 : 0.5) *
+          // Elume house-brand dial (owner call, Aug 2026): visible but not
+          // pushed - halve its trend on featured surfaces until the brand
+          // earns organic pull. Search, compare and PDPs are untouched.
+          (p.brand === "Elume" ? 0.5 : 1) *
           (Math.min(searchBoost[p.id] ?? 0, 20) * 3 + Math.min(p.unitsSold ?? 0, 200) + (p.recommended ? 8 : 0));
         // With a query active, RELEVANCE leads and trend only breaks ties:
         // "havells wire" must show wires before Wi-Fi sockets whose specs
