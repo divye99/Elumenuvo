@@ -6,7 +6,7 @@ import { tileFor, type Product } from "@/lib/data";
 import { groupVariants, familyKey } from "@/lib/variants";
 import type { BlogPost } from "@/lib/blog";
 
-const CATS = ["Wires & Cables", "Switchgear", "Modular", "Lighting", "Fans", "DB & Panels", "Pumps", "Electrical Accessories", "EV Charging"];
+const CATS = ["Wires & Cables", "Switchgear", "Modular", "Lighting", "Fans", "Water Heaters", "DB & Panels", "Pumps", "Electrical Accessories", "EV Charging"];
 
 const CAT_ICONS: Record<string, string> = {
   "Wires & Cables": "〰️",
@@ -14,6 +14,7 @@ const CAT_ICONS: Record<string, string> = {
   Modular: "▣",
   Lighting: "💡",
   Fans: "🌀",
+  "Water Heaters": "♨️",
   "DB & Panels": "🗄️",
   Pumps: "🚰",
   "Electrical Accessories": "🔌",

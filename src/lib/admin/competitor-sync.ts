@@ -62,10 +62,11 @@ export async function runCompetitorSync(db: SupaLike, source: string, runSource:
   // Legrand follows the same rules. Auto-MAPPING by exact brand_sku remains
   // Havells-only - Legrand codes are page slugs, seeded at import time.
   // Own-brand stores: auto-map by exact brand SKU and auto-apply pricing.
-  // Havells set the pattern; Legrand and ABB follow the same rules. ABB's
-  // fetch key is its brand SKU too (order code or store sku - the search-only
-  // adapter resolves either).
-  const OWN_BRAND: Record<string, string> = { havells: "Havells", legrand: "Legrand", abb: "ABB" };
+  // Havells set the pattern; Legrand, ABB, Orient and Crompton follow the same
+  // rules. ABB's fetch key is its brand SKU (order code or store sku - the
+  // search-only adapter resolves either); Orient/Crompton imports store
+  // brand_sku as "handle::variantId" - the Shopify adapter's per-variant code.
+  const OWN_BRAND: Record<string, string> = { havells: "Havells", legrand: "Legrand", abb: "ABB", orient: "Orient", crompton: "Crompton" };
   const AUTO = source in OWN_BRAND;
   if (AUTO) {
     const brandName = OWN_BRAND[source];

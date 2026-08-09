@@ -414,6 +414,42 @@ function modular(text: string, attrs: Record<string, string>): Fingerprint | nul
   };
 }
 
+/* ── Water Heaters ── */
+function waterheaters(text: string, attrs: Record<string, string>): Fingerprint | null {
+  // Form factor first: storage geysers, instant heaters, immersion rods and
+  // gas geysers are four different purchases - never cross-matched.
+  let type: string | null = null;
+  if (/immersion/.test(text)) type = "immersion";
+  else if (/\bgas\b/.test(text)) type = "gas";
+  else if (/instant/.test(text)) type = "instant";
+  else if (/storage|geyser|water heater/.test(text)) type = "storage";
+  if (!type) return null;
+  const litresRaw = attrs.Size ?? rx(text, /(\d+(?:\.\d+)?)\s*-?\s*l(?:itres?|tr)?\b/);
+  const litres = litresRaw ? String(Number(String(litresRaw).match(/\d+(?:\.\d+)?/)?.[0])) : null;
+  // Capacity is the hard gate for tank types; immersion rods key on wattage.
+  const watts = rx(text, /(\d{3,4})\s*w\b/) ?? (rx(text, /(\d(?:\.\d)?)\s*kw\b/) ? String(Number(rx(text, /(\d(?:\.\d)?)\s*kw\b/)) * 1000) : null);
+  if (type !== "immersion" && !litres) return null;
+  if (type === "immersion" && !watts) return null;
+  const star = rx(text, /(\d)\s*star/);
+  const TYPE_LABEL: Record<string, string> = { storage: "Storage geyser", instant: "Instant heater", immersion: "Immersion rod", gas: "Gas geyser" };
+  return {
+    key: type === "immersion" ? `waterheater|immersion|${watts}w` : `waterheater|${type}|${litres}l`,
+    conflicts: {
+      ...(watts && type !== "immersion" ? { watts } : {}),
+      ...(star ? { star } : {}),
+      ...(isSmart(text) ? { smart: "smart" } : {}),
+    },
+    display: [
+      ["Type", TYPE_LABEL[type]],
+      ["Capacity", litres ? `${litres} L` : "-"],
+      ["Power", watts ? `${watts} W` : "-"],
+      ["BEE rating", star ? `${star}★` : "-"],
+      ["Warranty", rx(text, /(\d+)\s*year/) ? `${rx(text, /(\d+)\s*year/)} years` : "-"],
+    ],
+    source: attrs.Size ? "structured" : "extracted",
+  };
+}
+
 /* ── Extension Boards ── */
 function extboards(text: string, attrs: Record<string, string>): Fingerprint | null {
   const sockRaw = attrs.Sockets
@@ -455,6 +491,7 @@ const ENGINES: Record<string, (text: string, attrs: Record<string, string>) => F
   "Switchgear": switchgear,
   "Modular": modular,
   "Extension Boards": extboards,
+  "Water Heaters": waterheaters,
 };
 
 export const COMPARE_CATEGORIES = Object.keys(ENGINES);

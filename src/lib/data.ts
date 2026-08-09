@@ -92,9 +92,9 @@ export const HOME_CATALOGUE: ShowcaseItem[] = [
   { brand: "Crompton",  name: "Energion 1200mm Fan",     spec: "BLDC · 35 W · remote", sku: "CRM-EN-1200", cat: "Fans",           price: 2480, market: 2780, tile: "linear-gradient(135deg,#F3ECFB,#E6D9F6)" },
 ];
 
-export const CATS = ["All", "Wires & Cables", "Switchgear", "Modular", "DB & Panels", "Fans", "Lighting", "Pumps", "Electrical Accessories", "EV Charging"];
+export const CATS = ["All", "Wires & Cables", "Switchgear", "Modular", "DB & Panels", "Fans", "Lighting", "Water Heaters", "Pumps", "Electrical Accessories", "EV Charging"];
 
-export const HOME_CATS = ["All", "Wires & Cables", "Switchgear", "Modular", "Lighting", "Fans", "DB & Panels", "Pumps", "Electrical Accessories", "EV Charging"];
+export const HOME_CATS = ["All", "Wires & Cables", "Switchgear", "Modular", "Lighting", "Fans", "Water Heaters", "DB & Panels", "Pumps", "Electrical Accessories", "EV Charging"];
 
 export const HERO_CATS = ["Wires & Cables", "Switchgear", "Lighting", "Fans", "Modular", "DB & Panels"];
 
@@ -107,6 +107,7 @@ export const MENU_CATS: [string, string][] = [
   ["Lighting", "💡"],
   ["Fans", "🌀"],
   ["DB & Panels", "🗄️"],
+  ["Water Heaters", "♨️"],
   ["Pumps", "🚰"],
   ["Electrical Accessories", "🔌"],
   ["EV Charging", "🔋"],
@@ -153,6 +154,7 @@ export function tileFor(cat: string): string {
     Lighting: "linear-gradient(135deg,#E4F3EC,#D2EADD)",
     Fans: "linear-gradient(135deg,#F3ECFB,#E6D9F6)",
     "DB & Panels": "linear-gradient(135deg,#E7ECFB,#D9E2F4)",
+    "Water Heaters": "linear-gradient(135deg,#FBEDE4,#F6DFC9)",
   };
   return m[cat] || "linear-gradient(135deg,#F1F3F8,#E6E9F1)";
 }

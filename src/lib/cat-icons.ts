@@ -7,6 +7,7 @@ export const CAT_ICONS: Record<string, string> = {
   "DB & Panels": "🗄️",
   Lighting: "💡",
   Pumps: "🚰",
+  "Water Heaters": "♨️",
   "Electrical Accessories": "🔧",
   "EV Charging": "🔋",
   Copper: "🟠", // Metals family (see src/lib/metals.ts)

@@ -103,6 +103,15 @@ export function cardHighlights(p: Product): string[] {
       push(g("Warranty") ? `${g("Warranty")} warranty` : null);
       break;
     }
+    case "Water Heaters": {
+      const litres = attrs.Size ?? g("Capacity") ?? rx(/(\d+(?:\.\d+)?)\s*-?\s*l(?:itres?|tr)?\b/i);
+      push(litres ? `${String(litres).replace(/[^\d.]/g, "")} L` : /immersion/i.test(text) ? "Immersion rod" : null);
+      const watts = g("Wattage", "Power") ?? rx(/(\d{3,4})\s*w\b/i);
+      push(watts ? `${String(watts).replace(/[^\d]/g, "")} W` : null);
+      const star = g("Star Rating") ?? rx(/(\d)\s*star/i);
+      push(star ? `${String(star).replace(/[^\d]/g, "")}★ BEE rated` : /instant/i.test(text) ? "Instant" : /storage/i.test(text) ? "Storage" : null);
+      break;
+    }
   }
 
   // Fallback: reuse the legacy spec line's leading segments (curated rows have

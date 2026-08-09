@@ -126,6 +126,8 @@ export const CATEGORY_INTENT: Record<string, string> = {
   bulb: "Lighting", bulbs: "Lighting", led: "Lighting", downlight: "Lighting",
   downlighter: "Lighting", batten: "Lighting", lamp: "Lighting",
   pump: "Pumps", pumps: "Pumps",
+  geyser: "Water Heaters", geysers: "Water Heaters", heater: "Water Heaters",
+  heaters: "Water Heaters",
   copper: "Copper", ccr: "Copper", // Metals family (src/lib/metals.ts)
 };
 
