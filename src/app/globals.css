@@ -48,6 +48,26 @@ a {
   text-decoration: none;
 }
 
+/* ── Older-eyes mobile readability (owner, Aug 2026) ──
+   Our buyers skew older, so on phones EVERY piece of text renders ~12%
+   larger. text-size-adjust multiplies the rendered text size while all the
+   px hierarchy (13px body vs 22px headings vs 10.5px kickers) keeps its
+   exact proportions, so no component needs per-size edits. */
+@media (max-width: 640px) {
+  html {
+    -webkit-text-size-adjust: 112%;
+    text-size-adjust: 112%;
+  }
+  /* Form fields floor at 16px: below that iOS Safari force-zooms the page
+     on focus (disorienting for exactly the audience this is for), and the
+     bigger type helps everyone typing an address or a search. */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* Scrollbars */
 ::-webkit-scrollbar {
   width: 11px;
