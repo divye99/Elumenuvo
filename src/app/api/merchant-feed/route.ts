@@ -25,6 +25,23 @@ const esc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const abs = (u: string) => (u.startsWith("http") ? u : `${SITE}${u}`);
 
+/** Google product taxonomy per Elume category - exact path strings from
+ *  google.com/basepages/producttype/taxonomy.en-US.txt (verified Aug 2026).
+ *  Explicit classification beats Google's guess for approval + query matching.
+ *  EV Charging has no taxonomy node, so it stays unmapped (auto-classified). */
+const GOOGLE_CATEGORY: Record<string, string> = {
+  "Wires & Cables": "Hardware > Power & Electrical Supplies > Electrical Wires & Cable",
+  "Switchgear": "Hardware > Power & Electrical Supplies > Circuit Breaker Panels",
+  "Modular": "Hardware > Power & Electrical Supplies > Electrical Switches",
+  "DB & Panels": "Hardware > Power & Electrical Supplies > Circuit Breaker Panels",
+  "Fans": "Home & Garden > Household Appliances > Climate Control Appliances > Fans",
+  "Lighting": "Home & Garden > Lighting",
+  "Water Heaters": "Home & Garden > Household Appliances > Water Heaters",
+  "Pumps": "Hardware > Hardware Pumps",
+  "Extension Boards": "Electronics > Electronics Accessories > Power > Power Strips & Surge Suppressors",
+  "Electrical Accessories": "Hardware > Power & Electrical Supplies",
+};
+
 type Row = {
   id: string; name: string; brand: string; category: string; spec: string | null;
   elume_price: number; mrp: number | null; image_url: string | null; images: string[] | null;
@@ -75,6 +92,7 @@ ${gallery.map((u) => `      <g:additional_image_link>${esc(abs(u))}</g:additiona
       <g:brand>${esc(p.brand)}</g:brand>
 ${idPart}
       <g:product_type>${esc(p.category)}</g:product_type>
+${GOOGLE_CATEGORY[p.category] ? `      <g:google_product_category>${esc(GOOGLE_CATEGORY[p.category])}</g:google_product_category>` : ""}
       <g:shipping>
         <g:country>IN</g:country>
         <g:price>${shippingFeeFor(p.elume_price).toFixed(2)} INR</g:price>

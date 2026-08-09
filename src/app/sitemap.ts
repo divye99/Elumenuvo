@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { fetchProducts } from "@/lib/products";
 import { getSlugs } from "@/lib/blog";
 import { listPublicCompareSlugs } from "@/lib/compare/pages";
+import { slugify } from "@/lib/slug";
 
 const SITE = "https://elumenuvo.com";
 
@@ -33,6 +34,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE}/terms`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
   ];
 
+  // Category hub pages (trending/top-rated/best-seller rails) - derived from
+  // live products exactly like the routes themselves, so a new category
+  // (e.g. Water Heaters, Aug 2026) enters the sitemap on its first deploy.
+  const categoryPages: MetadataRoute.Sitemap = [...new Set(products.map((p) => p.cat))].map((cat) => ({
+    url: `${SITE}/category/${slugify(cat)}`,
+    lastModified: now,
+    changeFrequency: "daily",
+    priority: 0.8,
+  }));
+
   const productPages: MetadataRoute.Sitemap = products.map((p) => ({
     url: `${SITE}/catalogue/${p.id}`,
     lastModified: now,
@@ -47,5 +58,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...staticPages, ...productPages, ...blogPages];
+  return [...staticPages, ...categoryPages, ...productPages, ...blogPages];
 }
