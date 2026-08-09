@@ -158,15 +158,25 @@ export default function HomeStorefront({ products, posts }: { products: Product[
           brand's first variant family's parent: a 168-variant family or a
           six-colour wire cannot fill a shelf, and neither can one brand. */}
       {CATS.map((cat) => {
+        // HARD RULE (owner, Aug 2026): high-visibility surfaces never show an
+        // out-of-stock product. And the Elume house brand queues LAST on the
+        // homepage shelves - other brands get the front slots.
         const seenBrands = new Set<string>();
         const shelf: Product[] = [];
-        for (const p of products) {
-          if (p.cat !== cat || shelf.length >= 8) continue;
-          if (seenBrands.has(p.brand)) continue;
-          seenBrands.add(p.brand);
-          const fam = familyKey(p);
-          shelf.push(p.parentId ? groups[fam]?.find((s) => !s.parentId) ?? p : p);
-        }
+        const pass = (allowElume: boolean) => {
+          for (const p of products) {
+            if (p.cat !== cat || shelf.length >= 8) continue;
+            if (p.inStock === false) continue;
+            if ((p.brand === "Elume") !== allowElume) continue;
+            if (seenBrands.has(p.brand)) continue;
+            seenBrands.add(p.brand);
+            const fam = familyKey(p);
+            const rep = p.parentId ? groups[fam]?.find((s) => !s.parentId) ?? p : p;
+            shelf.push(rep.inStock === false ? p : rep);
+          }
+        };
+        pass(false); // every other brand first
+        pass(true);  // Elume only if slots remain
         return (
           <Shelf
             key={cat}
