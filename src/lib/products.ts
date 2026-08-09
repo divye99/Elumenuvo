@@ -120,36 +120,57 @@ async function selectCards(c: NonNullable<ReturnType<typeof client>>, applyFilte
  *  exact egress leak this exists to stop). The whole catalogue serializes
  *  past that line, so each 1500-row chunk is its own comfortably-small cache
  *  entry sharing the same tag and 5-minute window. */
-const ROW_CHUNK = 1500;
+// EXACTLY 1000: PostgREST hard-caps every response at 1000 rows no matter
+// what range is requested. A larger chunk silently comes back as 1000, the
+// "short chunk = last chunk" check fires early, and the whole storefront
+// loses every product past row 1000 - which is precisely the bug that once
+// made Atomberg and most wires vanish from the live site.
+const ROW_CHUNK = 1000;
 
 const cardRowsChunk = unstable_cache(
   async (page: number): Promise<Row[]> => {
     const c = client();
-    if (!c) return [];
-    try {
-      // Order by sort_order THEN id - sort_order values collide across import
-      // batches, and an unstable tie order differs between the HTML and RSC
-      // renders, causing a hydration mismatch on the home shelves.
-      const from = page * ROW_CHUNK;
-      const { data, error } = await selectCards(c, (q) => q.eq("is_active", true).order("sort_order").order("id").range(from, from + ROW_CHUNK - 1));
-      if (error || !data) return [];
-      return data as Row[];
-    } catch {
-      return [];
-    }
+    if (!c) throw new Error("no client");
+    // Order by sort_order THEN id - sort_order values collide across import
+    // batches, and an unstable tie order differs between the HTML and RSC
+    // renders, causing a hydration mismatch on the home shelves.
+    // THROW on failure - a thrown error is never cached, while returning []
+    // would cache "catalogue ends here" for 5 minutes.
+    const from = page * ROW_CHUNK;
+    const { data, error } = await selectCards(c, (q) => q.eq("is_active", true).order("sort_order").order("id").range(from, from + ROW_CHUNK - 1));
+    if (error) throw new Error(error.message);
+    return (data ?? []) as Row[];
   },
   ["products-card-chunk"],
   { tags: [PRODUCTS_CACHE_TAG], revalidate: 300 }
 );
 
 export async function fetchProducts(): Promise<Product[]> {
-  const all: Row[] = [];
-  for (let page = 0; ; page++) {
-    const rows = await cardRowsChunk(page);
-    all.push(...rows);
-    if (rows.length < ROW_CHUNK) break;
+  try {
+    const all: Row[] = [];
+    for (let page = 0; ; page++) {
+      const rows = await cardRowsChunk(page);
+      all.push(...rows);
+      if (rows.length < ROW_CHUNK) break;
+    }
+    return all.map(toProduct);
+  } catch {
+    // Cache layer unavailable: serve the catalogue uncached rather than empty.
+    const c = client();
+    if (!c) return [];
+    try {
+      const all: Row[] = [];
+      for (let from = 0; ; from += 1000) {
+        const { data, error } = await selectCards(c, (q) => q.eq("is_active", true).order("sort_order").order("id").range(from, from + 999));
+        if (error || !data?.length) break;
+        all.push(...(data as Row[]));
+        if (data.length < 1000) break;
+      }
+      return all.map(toProduct);
+    } catch {
+      return [];
+    }
   }
-  return all.map(toProduct);
 }
 
 /**
@@ -165,28 +186,44 @@ const LITE_COLS = "id, sku, name, brand, category, spec, mrp, elume_price, unit,
 const liteRowsChunk = unstable_cache(
   async (page: number): Promise<Row[]> => {
     const c = client();
-    if (!c) return [];
-    try {
-      const from = page * ROW_CHUNK;
-      const { data, error } = await c.from("products").select(LITE_COLS).eq("is_active", true).order("sort_order").order("id").range(from, from + ROW_CHUNK - 1);
-      if (error || !data) return [];
-      return data as unknown as Row[];
-    } catch {
-      return [];
-    }
+    if (!c) throw new Error("no client");
+    // Same contract as cardRowsChunk: 1000-row chunks (the PostgREST cap),
+    // and THROW on failure so an error is never cached as an empty chunk.
+    const from = page * ROW_CHUNK;
+    const { data, error } = await c.from("products").select(LITE_COLS).eq("is_active", true).order("sort_order").order("id").range(from, from + ROW_CHUNK - 1);
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as Row[];
   },
   ["products-lite-chunk"],
   { tags: [PRODUCTS_CACHE_TAG], revalidate: 300 }
 );
 
 export async function fetchProductsLite(): Promise<Product[]> {
-  const all: Row[] = [];
-  for (let page = 0; ; page++) {
-    const rows = await liteRowsChunk(page);
-    all.push(...rows);
-    if (rows.length < ROW_CHUNK) break;
+  try {
+    const all: Row[] = [];
+    for (let page = 0; ; page++) {
+      const rows = await liteRowsChunk(page);
+      all.push(...rows);
+      if (rows.length < ROW_CHUNK) break;
+    }
+    return all.map(toProduct);
+  } catch {
+    // Cache layer unavailable: serve uncached rather than empty.
+    const c = client();
+    if (!c) return [];
+    try {
+      const all: Row[] = [];
+      for (let from = 0; ; from += 1000) {
+        const { data, error } = await c.from("products").select(LITE_COLS).eq("is_active", true).order("sort_order").order("id").range(from, from + 999);
+        if (error || !data?.length) break;
+        all.push(...(data as unknown as Row[]));
+        if (data.length < 1000) break;
+      }
+      return all.map(toProduct);
+    } catch {
+      return [];
+    }
   }
-  return all.map(toProduct);
 }
 
 export async function fetchProduct(id: string): Promise<Product | null> {
