@@ -9,10 +9,13 @@
  *     and sink to the bottom of any list; curated top-10 rows exclude them
  *     outright. Nothing that cannot be bought may occupy a hero slot.
  *
- *  2. NO PHOTO = HALF VISIBILITY. A listing without an image converts far
- *     worse and drags the perceived quality of every row it appears in, so
- *     its whole score is multiplied by 0.5. The fastest way for a SKU to
- *     climb is giving it an image.
+ *  2. NO PHOTO = LEAST PRIORITY (owner rule, Aug 2026). A listing without an
+ *     image converts far worse and drags the perceived quality of every row
+ *     it appears in, so its whole score is multiplied by 0.2 - deep enough
+ *     that an imageless SKU practically never outranks a photographed one.
+ *     Surfaces with their own sort keys (best sellers, new releases, homepage
+ *     shelves) enforce the same rule as a hard partition: photographed first.
+ *     The fastest way for a SKU to climb is giving it an image.
  *
  *  3. PROOF BEATS PROMISE. Actual sales (units_sold) carry the largest
  *     positive weight, on a log scale so one viral SKU cannot monopolise
@@ -54,8 +57,8 @@ export type RankSignals = {
 export function visibilityScore(p: Product, s: RankSignals = {}): number {
   // Rule 1: gate.
   const stockGate = p.inStock === false ? 0.02 : 1;
-  // Rule 2: photo multiplier.
-  const photoMul = p.image ? 1 : 0.5;
+  // Rule 2: photo multiplier - imageless sinks to the bottom of any ranked list.
+  const photoMul = p.image ? 1 : 0.2;
 
   // Rule 3: demand.
   const units = Math.log1p(Math.min(p.unitsSold ?? 0, 500)) * 10;

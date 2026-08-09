@@ -29,8 +29,12 @@ export async function buildHub(scope: (p: Product) => boolean, spreadBrands: boo
   const trendingAll = rankProducts(scoped, signals); // OOS sinks via the score gate
   const buyable = trendingAll.filter((p) => p.inStock !== false);
   const spread = (l: Product[]) => (spreadBrands ? diversify(l, 10, 3) : l);
+  // Ranking rule 2 for rails with their own sort keys: a product without a
+  // photo NEVER outranks a photographed one, whatever its metric says.
+  const noImg = (p: Product) => (p.image ? 0 : 1);
 
   const bestSellers = [...buyable].sort((a, b) => {
+    if (noImg(a) !== noImg(b)) return noImg(a) - noImg(b);
     const ua = a.unitsSold ?? 0, ub = b.unitsSold ?? 0;
     if (ua !== ub) return ub - ua;
     return (gv[b.id] ?? 0) - (gv[a.id] ?? 0);
@@ -44,7 +48,7 @@ export async function buildHub(scope: (p: Product) => boolean, spreadBrands: boo
   const seenFam = new Set<string>();
   const topRated = buyable
     .filter((p) => rankOf(p) != null || (p.rating ?? 0) > 0)
-    .sort((a, b) => (rankOf(a) ?? 99) - (rankOf(b) ?? 99) || (b.rating ?? 0) - (a.rating ?? 0))
+    .sort((a, b) => noImg(a) - noImg(b) || (rankOf(a) ?? 99) - (rankOf(b) ?? 99) || (b.rating ?? 0) - (a.rating ?? 0))
     .filter((p) => {
       const k = famKey(p);
       if (seenFam.has(k)) return false;
@@ -52,10 +56,10 @@ export async function buildHub(scope: (p: Product) => boolean, spreadBrands: boo
       return true;
     });
 
-  const newReleases = [...buyable].sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
+  const newReleases = [...buyable].sort((a, b) => noImg(a) - noImg(b) || (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
   const bestPrices = buyable
     .filter((p) => p.market > p.price)
-    .sort((a, b) => (1 - b.price / b.market) - (1 - a.price / a.market));
+    .sort((a, b) => noImg(a) - noImg(b) || (1 - b.price / b.market) - (1 - a.price / a.market));
 
   return {
     products: trendingAll,

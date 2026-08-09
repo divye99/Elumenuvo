@@ -159,15 +159,18 @@ export default function HomeStorefront({ products, posts }: { products: Product[
           brand's first variant family's parent: a 168-variant family or a
           six-colour wire cannot fill a shelf, and neither can one brand. */}
       {CATS.map((cat) => {
-        // HARD RULE (owner, Aug 2026): high-visibility surfaces never show an
-        // out-of-stock product. And the Elume house brand queues LAST on the
-        // homepage shelves - other brands get the front slots.
+        // HARD RULES (owner, Aug 2026): high-visibility surfaces never show an
+        // out-of-stock product; products without a photo get the LEAST
+        // visibility (a photographed brand always beats an imageless one for a
+        // slot); and the Elume house brand queues LAST on the homepage
+        // shelves - other brands get the front slots.
         const seenBrands = new Set<string>();
         const shelf: Product[] = [];
-        const pass = (allowElume: boolean) => {
+        const pass = (allowElume: boolean, requirePhoto: boolean) => {
           for (const p of products) {
             if (p.cat !== cat || shelf.length >= 8) continue;
             if (p.inStock === false) continue;
+            if (requirePhoto && !p.image) continue;
             if ((p.brand === "Elume") !== allowElume) continue;
             if (seenBrands.has(p.brand)) continue;
             seenBrands.add(p.brand);
@@ -176,8 +179,10 @@ export default function HomeStorefront({ products, posts }: { products: Product[
             shelf.push(rep.inStock === false ? p : rep);
           }
         };
-        pass(false); // every other brand first
-        pass(true);  // Elume only if slots remain
+        pass(false, true);  // other brands, with photos
+        pass(true, true);   // Elume with photos, if slots remain
+        pass(false, false); // imageless fills only what photos could not
+        pass(true, false);
         return (
           <Shelf
             key={cat}

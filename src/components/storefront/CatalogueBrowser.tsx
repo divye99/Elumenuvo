@@ -190,10 +190,10 @@ export default function CatalogueBrowser({
         // all different brands, cycling through categories, so no single
         // brand (like our own) walls off the top of the catalogue.
         // Photo rule from the visibility ranking system: a listing without an
-        // image runs at half trend, so it cannot occupy the landing shelf
-        // while imaged competitors exist.
+        // image runs at a fifth of its trend, so it cannot occupy the landing
+        // shelf while imaged competitors exist.
         const trend = (p: Product) =>
-          (p.image ? 1 : 0.5) *
+          (p.image ? 1 : 0.2) *
           // Elume house-brand dial (owner call, Aug 2026): visible but not
           // pushed - halve its trend on featured surfaces until the brand
           // earns organic pull. Search, compare and PDPs are untouched.

@@ -80,7 +80,9 @@ export async function GET(request: Request) {
     for (const t of tokens) if (CATEGORY_INTENT[t] === r.category) { s += 40; break; }
     if (r.is_recommended) s += 5;
     s += Math.min(Number(r.units_sold) || 0, 50) / 10;
-    return s;
+    // Photo rule (ranking.ts rule 2): the dropdown renders thumbnails, so an
+    // imageless product only surfaces when nothing photographed matches.
+    return s * (r.image_url ? 1 : 0.3);
   };
   const products = [...rows]
     .sort((a, b) => score(b) - score(a) || a.id.localeCompare(b.id))
