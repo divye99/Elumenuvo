@@ -23,7 +23,11 @@ export async function submitIndexNow(paths: string[]): Promise<void> {
       .map((p) => (p.startsWith("http") ? p : `${SITE}${p.startsWith("/") ? p : `/${p}`}`))
       .slice(0, 10000); // protocol cap per submission
     if (urlList.length === 0) return;
-    await fetch("https://api.indexnow.org/indexnow", {
+    // bing.com/indexnow, not api.indexnow.org: the aggregator kept returning
+    // 403 SiteVerificationNotCompleted for this host (Aug 2026) while Bing's
+    // own endpoint accepted the same payload with a 200 - and every IndexNow
+    // engine shares submissions, so one working entry point covers them all.
+    await fetch("https://www.bing.com/indexnow", {
       method: "POST",
       headers: { "Content-Type": "application/json; charset=utf-8" },
       body: JSON.stringify({ host: HOST, key: KEY, keyLocation: `${SITE}/${KEY}.txt`, urlList }),
