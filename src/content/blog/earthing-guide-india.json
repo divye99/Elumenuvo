@@ -1,0 +1,91 @@
+{
+  "slug": "earthing-guide-india",
+  "title": "Earthing Explained: Why the Third Pin Matters (India Home Guide)",
+  "description": "What earthing actually does, why the third pin on Indian plugs saves lives, how home earthing works from the earth pit to the socket, the green wire rules, and how an RCCB completes the protection.",
+  "category": "Wires & Cables",
+  "date": "2026-08-10",
+  "author": "Elume Editorial",
+  "readMins": 8,
+  "tldr": [
+    "Earthing gives fault current a safe, low-resistance path into the ground so a leaking appliance's body never becomes the path through you.",
+    "The third pin connects an appliance's metal body to that path; never snap it off or use two-pin adaptors on metal-bodied appliances.",
+    "The green wire is the earth continuity conductor: it runs to every 3-pin socket and must never be used for anything else.",
+    "Earthing plus a 30 mA RCCB is the complete system: the earth path carries the fault, the RCCB cuts it off in milliseconds."
+  ],
+  "intro": [
+    "When a geyser element cracks or a washing machine wire chafes, the appliance's metal body can become live at 230 volts. Whether that ends as a tripped breaker or an electrocution depends on one thing: whether the body is earthed. Earthing gives that stray current an easy path into the ground, so the current that would have gone through the next person to touch the tap goes down a copper wire instead.",
+    "This guide walks the whole path: what happens at the earth pit, what the green wire does inside your walls, why the third pin exists, and why earthing alone is only half the system until an RCCB sits in the board."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "What earthing actually does",
+      "brand": "",
+      "body": "Electricity returns to its source through the easiest path available. Earthing deliberately builds an easy path: from every appliance body, through the green wire, to an electrode buried in the ground. When insulation fails, fault current pours down this path instead of waiting for a human bridge, and the sudden current surge is exactly what lets protective devices detect the fault and disconnect. No earth path, no detection: a faulty unearthed appliance just sits there, silently live.",
+      "bestFor": "The concept in one minute",
+      "productId": null
+    },
+    {
+      "rank": 2,
+      "name": "The third pin: why it is longer and fatter",
+      "brand": "",
+      "body": "The top pin on an Indian 3-pin plug is the earth pin, and its design is deliberate: it is longer so earth connects FIRST before the live pins touch, and disconnects last on removal. It is fatter so it physically cannot enter the live hole of a socket. Snapping off the earth pin, or forcing a 3-pin appliance into a 2-pin adaptor, disconnects the appliance body from the safety system while leaving it looking perfectly normal. Metal-bodied appliances (geyser, iron, fridge, microwave, mixer) must always run on their third pin.",
+      "bestFor": "The habit that saves lives",
+      "productId": null
+    },
+    {
+      "rank": 3,
+      "name": "The green wire: earth continuity through the house",
+      "brand": "APAR",
+      "body": "Inside the conduits, earth is the green (or green-yellow) conductor, running from the DB's earth bar to the third terminal of every socket and to every metal fitting. Convention matters here: green is ONLY earth, everywhere, always, so any electrician opening the wall decades later knows exactly what they are touching. Use the same size as the circuit's live wire on socket circuits: 2.5 sq mm green alongside 2.5 sq mm sockets, like this APAR HR FR-LSH coil.",
+      "bestFor": "Socket circuits: match the live conductor size",
+      "productId": "wire-apar-hrfrlsh-2p5-green"
+    },
+    {
+      "rank": 4,
+      "name": "From house to ground: the earth pit and terminals",
+      "brand": "ABB",
+      "body": "Everything green eventually gathers at the earth bar and runs to an earth electrode: traditionally a pipe-and-charcoal-salt pit, now often a maintenance-free chemical earthing rod. The joints on this path matter as much as the wire: corroded or loose earth connections quietly raise resistance until the path is useless. Proper earth terminals (like this ABB DIN-rail terminal for panel earth bars) and an occasional check of the pit connection keep the path honest. Target: a total earth resistance under 5 ohms for homes, lower for sensitive equipment.",
+      "bestFor": "Panels and DB earth bars",
+      "productId": "abb-0abebc6b"
+    },
+    {
+      "rank": 5,
+      "name": "The RCCB: earthing's essential partner",
+      "brand": "ABB",
+      "body": "Earthing carries the fault; the RCCB ends it. A 30 mA RCCB watches the balance between live and neutral, and the moment current leaks to earth (through the green wire or through a person) it disconnects in milliseconds. This is why the pair is non-negotiable: earthing without an RCCB clears only big faults slowly through fuses, and an RCCB without earthing only trips AFTER someone becomes the leakage path. Together, the fault trips instantly and nobody feels anything. A 40 A / 30 mA unit like this ABB FB202 covers a typical home board.",
+      "bestFor": "Completing the protection system",
+      "productId": "abb--11967"
+    }
+  ],
+  "buyingTips": [
+    "Buy green wire when you buy the rest: earth continuity uses roughly as much wire as any live conductor. For socket circuits use the same gauge as the live (2.5 sq mm with 2.5 sq mm); for light circuits 1 or 1.5 sq mm green suffices.",
+    "Never economise by sharing one thin earth wire across many circuits: the earth path must survive the biggest fault the circuit can produce, which is why it matches the live conductor.",
+    "Ask for the earth resistance number when an earth pit is made or serviced: under 5 ohms is the practical home target. If nobody has a meter, nobody measured it.",
+    "Metal switch boxes, fan hooks and geyser bodies all get earthed, not just sockets. Anything metal a person can touch should be on the green network.",
+    "Test the RCCB monthly with its test button, and test the earth path yearly. Both halves of the system fail silently; the buttons and meters exist because of that.",
+    "In rented homes, a plug-in socket tester (three neon lamps) reveals missing earth at any socket in seconds, no electrician needed."
+  ],
+  "faq": [
+    {
+      "q": "My sockets show earth but appliances still give small shocks. Why?",
+      "a": "A tingling body usually means high earth resistance: the path exists but is too weak to hold the body at ground potential, often from a dried-out pit or a corroded joint. It can also be induced leakage from long cable runs. Either way it is a warning: get the earth resistance measured, and confirm the RCCB trips on its test button."
+    },
+    {
+      "q": "What is the difference between earthing and grounding?",
+      "a": "Nothing: earthing is the Indian and British term, grounding the American one. The same third pin, green wire and buried electrode."
+    },
+    {
+      "q": "Can I use the neutral as earth? The voltage reads the same.",
+      "a": "Never. Neutral carries return current and its voltage rises under load and faults; bonding it to appliance bodies makes every body live the day a neutral joint fails upstream, which is a common failure. Earth must be an independent path all the way to the electrode."
+    },
+    {
+      "q": "Do plastic-bodied appliances need the third pin?",
+      "a": "Many double-insulated appliances (marked with a square-in-square symbol) legitimately ship with 2-pin plugs and need no earth. The rule is simple: if the manufacturer fitted a 3-pin plug, the appliance needs its earth; never downgrade the plug."
+    },
+    {
+      "q": "How much does proper earthing cost for a home?",
+      "a": "As a share of an electrical job, very little: a chemical earth electrode, the green wire for every circuit, and terminals typically add a few thousand rupees to a full-house wiring bill. It is the cheapest life-safety system in the house; the RCCB beside it costs about the same."
+    }
+  ]
+}
