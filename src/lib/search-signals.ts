@@ -107,6 +107,27 @@ export async function loadSearchSignals(): Promise<SearchSignals> {
       }
     }
 
+    /* ── Cross-learning from Smart BOM (owner, Aug 2026) ──
+       product_aliases holds phrasings a human CONFIRMED map to a product -
+       from BOQ review approvals and from suggest picks. Fold them in as
+       synthetic picks, weighted 3x: a deliberate line-by-line confirmation
+       carries more intent than a casual suggestion click. This one fold
+       feeds every consumer of these signals at once: the suggest dropdown,
+       the results-page ranking boost, and the visibility engine. Tolerated
+       to fail on DBs where migration 0108 has not run yet. */
+    try {
+      const { data: aliases } = await db
+        .from("product_aliases")
+        .select("alias_norm, product_id, hits")
+        .order("hits", { ascending: false })
+        .limit(4000);
+      for (const a of aliases ?? []) {
+        const w = Math.min(Number(a.hits) || 1, 20) * 3;
+        (picksByQuery[a.alias_norm] ??= {})[a.product_id] = (picksByQuery[a.alias_norm][a.product_id] ?? 0) + w;
+        pickTotals[a.product_id] = (pickTotals[a.product_id] ?? 0) + w;
+      }
+    } catch { /* pre-0108 database - BOQ cross-learning simply off */ }
+
     const popularQueries = [...queryCount.values()]
       .filter((x) => x.count >= 2) // one-off typos don't teach anything
       .sort((a, b) => b.count - a.count)

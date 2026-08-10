@@ -40,6 +40,9 @@ export default function BoqAssistant({ company }: { company?: string }) {
   const [result, setResult] = useState<MatchResponse | null>(null);
   const [decisions, setDecisions] = useState<Record<number, Decision>>({});
   const [added, setAdded] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [reviewed, setReviewed] = useState(false);
 
   const runMatch = useCallback(async (payload: { source: string; text?: string; rows?: string[][]; name?: string }) => {
     setBusy(true); setError(null); setResult(null); setAdded(false);
@@ -285,6 +288,37 @@ export default function BoqAssistant({ company }: { company?: string }) {
               </Link>
             )}
           </div>
+
+          {/* Post-use feedback (owner ask): the tool is self-learning and so
+              are we - ask for a rating right after the BOQ lands in the cart. */}
+          {added && !reviewed && (
+            <section style={{ marginTop: 20, background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "16px 20px", maxWidth: 560 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>How did Smart BOM do?</div>
+              <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button key={n} onClick={() => setRating(n)} aria-label={`${n} star`} style={{ fontSize: 22, background: "none", border: "none", cursor: "pointer", color: n <= rating ? "#F4B400" : "#D4D8E0" }}>★</button>
+                ))}
+              </div>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="What did it get wrong? What should it handle next? Every note trains it."
+                style={{ width: "100%", minHeight: 64, fontSize: 13, border: "1px solid #E8EBF1", borderRadius: 10, padding: 10, resize: "vertical" }}
+              />
+              <button
+                onClick={async () => {
+                  if (!rating) return;
+                  await fetch("/api/boq/review", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ rating, comment, uploadId: result?.uploadId }) }).catch(() => {});
+                  setReviewed(true);
+                }}
+                disabled={!rating}
+                style={{ marginTop: 10, background: rating ? "#4E5BDC" : "#C9CFDD", color: "#fff", fontSize: 13, fontWeight: 700, padding: "9px 18px", borderRadius: 9, border: "none", cursor: rating ? "pointer" : "default" }}
+              >
+                Send feedback
+              </button>
+            </section>
+          )}
+          {reviewed && <div style={{ marginTop: 16, fontSize: 13.5, fontWeight: 600, color: "#1F9D63" }}>Thank you - your feedback trains the matcher directly.</div>}
         </>
       )}
     </main>
