@@ -16,7 +16,7 @@ import { decodeEntities } from "@/lib/compare/fingerprint";
  * the design categories). Groups qualify with 2+ BRANDS - a single-brand
  * group is a variant list, not a comparison.
  */
-export const COMPARE_PAGE_CATEGORIES = ["Modular", "Switchgear", "Lighting", "Fans", "Extension Boards"];
+export const COMPARE_PAGE_CATEGORIES = ["Modular", "Switchgear", "Lighting", "Fans", "Extension Boards", "Water Heaters"];
 
 export type CompareGroupPage = {
   slug: string;
