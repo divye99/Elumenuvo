@@ -5,6 +5,7 @@ import { fetchProductsLite } from "@/lib/products";
 import { buildHub } from "@/lib/hub";
 import { resolveSlug, slugify } from "@/lib/slug";
 import { brandLogo } from "@/lib/brand-logos";
+import { CATEGORY_INTROS } from "@/lib/category-intros";
 
 /** Category hub: /category/fans, /category/wires-cables ... Trending /
  *  Top rated / Best sellers rails for the category (brand-spread so no one
@@ -58,10 +59,21 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
     href: `/brand/${slugify(b)}?facet=${encodeURIComponent(cat!)}`,
   }));
 
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://elumenuvo.com" },
+      { "@type": "ListItem", position: 2, name: cat },
+    ],
+  };
+
   return (
+    <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
     <HubBrowser
         title={cat}
-        subtitle={`All ${cat.toLowerCase()} across every brand we stock - trending picks first, the full range below.`}
+        subtitle={CATEGORY_INTROS[cat] ?? `All ${cat.toLowerCase()} across every brand we stock - trending picks first, the full range below.`}
         rails={hub.rails}
         strip={strip}
         stripTitle="Shop by brand"
@@ -69,5 +81,6 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
         facetLabel="Brand"
         facets={brands}
     />
+    </>
   );
 }

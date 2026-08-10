@@ -21,6 +21,7 @@ import ProductDeepDive from "@/components/storefront/ProductDeepDive";
 import ReviewsSection from "@/components/storefront/ReviewsSection";
 import ProductFaq from "@/components/storefront/ProductFaq";
 import { NEW_CONDITION, RETURN_POLICY, shippingDetailsFor, productFaqs } from "@/lib/seo";
+import { slugify } from "@/lib/slug";
 import CompareRail from "@/components/storefront/CompareRail";
 import PersonalRailsLazy from "@/components/storefront/PersonalRails";
 import { fetchCompareRail } from "@/lib/compare/rail";
@@ -59,7 +60,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   // now streams behind a loading skeleton. (The skeleton is exactly the
   // mechanism that caused the old soft-404 bug - this line is the guard.)
   if (!p) notFound();
-  const title = `${p.name} - ${p.brand}`;
+  // Buy-intent title with the live price (owner SEO push, Aug 2026): price in
+  // the SERP title is the single biggest CTR lever for product queries, and
+  // it re-renders with the page whenever the price changes.
+  const title = `${p.name} - Buy ${p.brand} Online at ₹${Math.round(p.price).toLocaleString("en-IN")}`;
   const description = productDescription(p);
   const url = `${SITE}/catalogue/${p.id}`;
   return {
@@ -123,9 +127,22 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   };
   const faqs = productFaqs({ name: product.name, brand: product.brand, unit: product.unit });
 
+  // Breadcrumb trail for the SERP (Home > Category > Product) - Google shows
+  // it under the title and it reinforces the category hub's authority.
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: SITE },
+      { "@type": "ListItem", position: 2, name: product.cat, item: `${SITE}/category/${slugify(product.cat)}` },
+      { "@type": "ListItem", position: 3, name: product.name },
+    ],
+  };
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLd(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLd(breadcrumbLd) }} />
       <PdpTelemetry pid={product.id} />
       <PublicProductView
         p={product}

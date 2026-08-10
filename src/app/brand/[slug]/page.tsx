@@ -56,10 +56,21 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
     href: `/category/${slugify(c)}?facet=${encodeURIComponent(brand!)}`,
   }));
 
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://elumenuvo.com" },
+      { "@type": "ListItem", position: 2, name: brand },
+    ],
+  };
+
   return (
+    <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
     <HubBrowser
         title={brand}
-        subtitle={`Every ${brand} product we stock - trending picks first, the full range below, all at our usual market-beating prices.`}
+        subtitle={`Buy genuine ${brand} ${cats.slice(0, 3).map((c) => c.toLowerCase()).join(", ")} and more online: trending picks first, the full range below, every price checked against the open market, with GST invoice and free pan-India delivery above ₹4,000.`}
         rails={hub.rails.filter((r) => ["trending", "top-rated", "best-sellers"].includes(r.key))}
         strip={strip}
         stripTitle="Shop by category"
@@ -67,5 +78,6 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
         facetLabel="Category"
         facets={cats}
     />
+    </>
   );
 }
