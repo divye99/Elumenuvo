@@ -6,6 +6,10 @@ export type Product = {
   name: string;
   spec: string;
   sku: string;
+  /** Manufacturer catalogue number (products.brand_sku) - contractor BOQs
+   *  quote these, so the Smart BOM matcher indexes them. Shopify-synced
+   *  brands carry "handle::variantId" here (not a real catalogue number). */
+  brandSku?: string;
   cat: string;
   price: number;
   market: number;

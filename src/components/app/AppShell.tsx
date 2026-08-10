@@ -30,8 +30,9 @@ import { WHOLESALE_MIN_QTY } from "@/lib/pricing";
 
 type Screen = "portfolio" | "projects" | "confirm" | "account";
 
-const NAV: { key: Screen | "catalogue" | "cart" | "foryou"; label: string }[] = [
+const NAV: { key: Screen | "catalogue" | "cart" | "foryou" | "boq"; label: string }[] = [
   { key: "portfolio", label: "Overview" },
+  { key: "boq", label: "Smart BOM" },
   { key: "projects", label: "Projects" },
   { key: "foryou", label: "For you" },
   { key: "catalogue", label: "Catalogue" },
@@ -76,6 +77,7 @@ export default function AppShell({ user, live }: { user?: { email: string; name?
     if (s === "catalogue") { router.push("/catalogue"); return; }
     if (s === "cart") { router.push("/cart"); return; }
     if (s === "foryou") { router.push("/for-you"); return; }
+    if (s === "boq") { router.push("/app/boq"); return; }
     setScreen(s);
     if (contentRef.current) contentRef.current.scrollTop = 0;
   };

@@ -13,6 +13,7 @@ import type { Product, TechSpecs } from "@/lib/data";
 type Row = {
   id: string;
   sku: string;
+  brand_sku?: string | null;
   name: string;
   brand: string;
   category: string;
@@ -40,6 +41,7 @@ const toProduct = (r: Row): Product => {
   return {
     id: r.id,
     sku: r.sku,
+    brandSku: r.brand_sku ?? undefined,
     name: r.name,
     brand: r.brand,
     cat: r.category,
