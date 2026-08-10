@@ -1,0 +1,91 @@
+{
+  "slug": "surge-protection-guide-india",
+  "title": "Surge Protection for Homes: SPDs, Spike Guards and What Actually Works",
+  "description": "Lightning and switching surges kill electronics silently. What a surge protection device (SPD) does, DB-level Type 2 SPDs vs plug-in spike guards, how the two layers work together, and what to buy for an Indian home.",
+  "category": "Switchgear",
+  "date": "2026-08-10",
+  "author": "Elume Editorial",
+  "readMins": 8,
+  "tldr": [
+    "Surges are microsecond voltage spikes from lightning and grid switching; they age electronics invisibly until something dies for no reason.",
+    "Real protection is layered: a Type 2 SPD in the distribution board absorbs the big hits, plug-in spike guards mop up what remains at sensitive devices.",
+    "A spike guard alone cannot absorb a serious surge; a DB-level SPD alone still lets small leftovers reach delicate electronics. Use both.",
+    "A stabilizer is not surge protection: it corrects slow voltage drift, not microsecond spikes."
+  ],
+  "intro": [
+    "Every monsoon, service centres fill with dead TV boards, router adapters and inverter AC PCBs that all failed for no visible reason. The reason is usually a surge: a spike of thousands of volts lasting microseconds, from lightning somewhere on the network or from the grid switching large loads. Nothing trips, nothing smells; the electronics just age in fast-forward until one spike too many ends them.",
+    "Protection against this is cheap and layered, and most Indian homes have only the weakest layer or none. This guide explains what a surge protection device does, why the distribution board is where real protection lives, and how plug-in spike guards fit as the second layer rather than the whole answer."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "What a surge is, and why breakers ignore it",
+      "brand": "",
+      "body": "An MCB trips on sustained overcurrent and an RCCB on earth leakage; both act in milliseconds. A surge is over in MICROseconds, a thousand times faster than any breaker mechanism can move, which is why a fully protected board full of breakers does nothing for surges. Surge protection works differently: an SPD contains metal-oxide varistors that are insulators at 230 V but become conductors at surge voltage, diverting the spike to earth before it travels further. This is also why good earthing is a prerequisite: the SPD needs somewhere to send the energy.",
+      "bestFor": "Understanding the gap in a normal DB",
+      "productId": null
+    },
+    {
+      "rank": 2,
+      "name": "Layer 1: the Type 2 SPD in your distribution board",
+      "brand": "ABB",
+      "body": "The workhorse of home surge protection is a Type 2 SPD mounted on the DIN rail right after the main breaker, protecting every circuit in the house at once. For single-phase homes, a unit like this ABB OVR T2 40-275 handles surge currents up to 40 kA and simply sits there for years; a status window shows when its varistors have sacrificed themselves and the cartridge needs replacing. Installation is an electrician's half hour: main switch, SPD, short fat earth connection.",
+      "bestFor": "Single-phase homes: whole-house protection",
+      "productId": "abb-67c8a5c4"
+    },
+    {
+      "rank": 3,
+      "name": "Three-phase homes and lift-irrigation of surges",
+      "brand": "ABB",
+      "body": "Three-phase supplies need an SPD across all phases and neutral: a 3-phase-plus-neutral unit like this ABB OVR T2 3N covers all four paths a surge can ride in on. Larger homes, homes with borewell pumps on long cable runs, and anywhere with rooftop solar are disproportionately exposed: long outdoor conductors are exactly what lightning-induced surges couple into. If the building has a lightning arrester on the roof, the DB still needs its own SPD; they protect different things.",
+      "bestFor": "Three-phase supplies, solar, borewell homes",
+      "productId": "abb-df27b87e"
+    },
+    {
+      "rank": 4,
+      "name": "Layer 2: the spike guard at the device",
+      "brand": "Havells",
+      "body": "Plug-in spike guards like this Havells Ecostar carry small varistors of their own. Alone, they are the last and weakest line: a serious surge overwhelms them. AFTER a DB-level SPD has absorbed the bulk, they are exactly right for mopping up the surviving remnant at your most sensitive loads: TV, router, PC, set-top box. Buy ones that state surge protection explicitly (plain extension boards have none) and treat a guard that has taken a known hit as spent.",
+      "bestFor": "TVs, routers and PCs as the second layer",
+      "productId": "hav-ahnkxxr000"
+    },
+    {
+      "rank": 5,
+      "name": "The niche layer: suppressors at the coil",
+      "brand": "ABB",
+      "body": "One more surge source lives INSIDE installations: every contactor coil and motor generates its own small spike each time it switches off. In pump panels and automation, a coil suppressor like this ABB RC5 clips that self-made noise at the source, protecting the timers and electronics sharing the panel. Homes rarely need this layer, but if your pump panel's timer keeps dying, this is why.",
+      "bestFor": "Pump panels and contactor circuits",
+      "productId": "abb-1sbn050100r1000-1"
+    }
+  ],
+  "buyingTips": [
+    "Buy the DB-level SPD first, the spike guards second; the order most homes shop in is exactly backwards.",
+    "Type 2 is the right class for homes fed by underground or short overhead lines; buildings with their own lightning rods or long rural overhead feeds should ask their electrician about a Type 1+2 combination at the origin.",
+    "An SPD is a consumable: varistors degrade with every hit. Check the status indicator after big storms and budget a cartridge change every few years in lightning-prone areas.",
+    "Surge protection is only as good as the earth it discharges into: if the house earthing is poor, fix that first (see our earthing guide).",
+    "On spike guards, ignore vague 'safety' claims and look for the word surge or spike with a joule or kA figure; a 6 A board with none of that is just sockets.",
+    "Do not run heaters or irons from surge-protected spike guards; heat loads belong on plain 16 A points and only waste the guard's capacity."
+  ],
+  "faq": [
+    {
+      "q": "I have a stabilizer. Am I protected against surges?",
+      "a": "No. A stabilizer corrects slow voltage drift over seconds and its own electronics are themselves surge victims. The two devices solve different problems and coexist happily: SPD in the board for spikes, stabilizer at the AC for sag."
+    },
+    {
+      "q": "Is surge protection worth it if I do not live in a lightning area?",
+      "a": "Lightning is only the dramatic source; grid switching, load shedding coming back, and big motors starting nearby all generate surges year-round everywhere. The DB-level SPD costs about as much as one dead router and adapter; it usually pays for itself the first monsoon."
+    },
+    {
+      "q": "Where exactly does the SPD go in my DB?",
+      "a": "On the DIN rail immediately downstream of the main isolator or MCB, wired across phase(s) and neutral to the earth bar with short, direct conductors; every extra centimetre of lead length weakens the clamping. It protects everything downstream, which is the whole board."
+    },
+    {
+      "q": "How do I know when an SPD or spike guard is used up?",
+      "a": "DB-level SPDs have a status window (green/red or similar) per cartridge: red means replace the cartridge, a five-minute job. Plug-in guards mostly have a protection LED; when it goes dark after a storm, the varistor has sacrificed itself and the board is now just sockets."
+    },
+    {
+      "q": "Does an SPD protect against sustained overvoltage, like a snapped neutral?",
+      "a": "No, and this matters: a broken neutral can put near-400 V on single-phase circuits for minutes, which cooks SPDs and appliances alike. That failure needs an overvoltage protection relay or MCB add-on; ask for neutral-failure protection specifically if your area has a history of it."
+    }
+  ]
+}

@@ -26,6 +26,8 @@ import plateSizes from "@/content/blog/modular-plate-sizes-guide.json";
 import waterHeaters from "@/content/blog/water-heater-geyser-buying-guide-india.json";
 import contactors from "@/content/blog/what-is-a-contactor-guide.json";
 import earthing from "@/content/blog/earthing-guide-india.json";
+import stabilizerInverter from "@/content/blog/stabilizer-vs-inverter-guide.json";
+import surgeProtection from "@/content/blog/surge-protection-guide-india.json";
 
 export type BlogPost = {
   slug: string;
@@ -56,7 +58,7 @@ export const CATEGORY_TO_CATALOGUE: Record<string, string> = {
   "Extension Boards": "Extension Boards",
 };
 
-const ALL = [wires, switchgear, modular, dbs, fans, lighting, bldcFans, battens, panels, mcbRccb, exhaust, floodLights, pumps, bulbs, wireSize, wireGrades, mcbRating, bldcSavings, coilLength, checklist, protection, colourTemp, extBoards, sixteenAmp, plateSizes, waterHeaters, contactors, earthing] as unknown as BlogPost[];
+const ALL = [wires, switchgear, modular, dbs, fans, lighting, bldcFans, battens, panels, mcbRccb, exhaust, floodLights, pumps, bulbs, wireSize, wireGrades, mcbRating, bldcSavings, coilLength, checklist, protection, colourTemp, extBoards, sixteenAmp, plateSizes, waterHeaters, contactors, earthing, stabilizerInverter, surgeProtection] as unknown as BlogPost[];
 
 export function getAllPosts(): BlogPost[] {
   return [...ALL].sort((a, b) => (a.date < b.date ? 1 : -1));

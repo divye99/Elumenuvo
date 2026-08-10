@@ -1,0 +1,78 @@
+{
+  "slug": "stabilizer-vs-inverter-guide",
+  "title": "Stabilizer vs Inverter: Which One Does Your Home Actually Need?",
+  "description": "Voltage stabilizers and inverters solve two different problems: bad power quality vs no power at all. What each device does, which appliances need which, what inverter bulbs are, and how to size a stabilizer.",
+  "category": "Electrical Accessories",
+  "date": "2026-08-10",
+  "author": "Elume Editorial",
+  "readMins": 7,
+  "tldr": [
+    "They solve different problems: a stabilizer fixes BAD voltage while the power is on; an inverter supplies power when it is OFF. Many Indian homes legitimately need both.",
+    "Stabilizers guard compressor appliances (AC, fridge) in areas where voltage sags or spikes; modern ACs with wide-range SMPS often no longer need one, check the spec plate first.",
+    "An inverter plus battery keeps essentials running through cuts; size it by the watts you actually want backed up.",
+    "Inverter bulbs are neither: they are emergency LED bulbs with a built-in battery that keep glowing when power fails, the cheapest backup there is."
+  ],
+  "intro": [
+    "Walk into any electrical shop and say the power in your area is bad, and you will be offered a stabilizer, an inverter, or both, sometimes for the same problem. They are not substitutes. One cleans up the electricity you are getting; the other replaces the electricity you are not getting.",
+    "This guide separates the two jobs, shows which appliances genuinely need a stabilizer in 2026 (fewer than shops claim), how to think about inverter sizing, and where the humble inverter bulb fits as the zero-installation backup."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "The stabilizer: bodyguard against bad voltage",
+      "brand": "Crompton",
+      "body": "India's nominal 230 V can sag to 170 V on summer evenings and spike past 260 V when load drops suddenly. Compressor motors (AC, fridge) hate both: low voltage overheats windings, spikes stress insulation. A stabilizer sits between the socket and the appliance and continuously corrects its output toward 230 V, tripping the load off entirely when the input goes beyond correction range. The Crompton EZ400 here is the classic AC stabilizer: sized for a 1.5-ton split unit, with high-low cutoff and time delay to protect the compressor on restart.",
+      "bestFor": "ACs and fridges in weak-grid areas",
+      "productId": "cro-stbacnawhwl170enze"
+    },
+    {
+      "rank": 2,
+      "name": "The inverter: power when there is none",
+      "brand": "",
+      "body": "An inverter does nothing about voltage quality. Its job begins when supply fails: it converts battery DC back to 230 V AC and carries your chosen circuits until mains returns, then recharges the battery. Sizing is simple arithmetic: add the watts you want backed up (fans 30-75 W each, LED lights 9-20 W, router 15 W, TV 60-100 W), pick an inverter with VA capacity comfortably above that total, and a battery sized for the hours of backup you need. What an inverter cannot economically do is run heat: geysers, irons and most ACs drain any sane battery in minutes.",
+      "bestFor": "Fans, lights, Wi-Fi and TV through outages",
+      "productId": null
+    },
+    {
+      "rank": 3,
+      "name": "The inverter bulb: backup without wiring",
+      "brand": "Havells",
+      "body": "The confusingly named inverter bulb is the smallest member of the backup family: a normal-looking LED bulb with a lithium cell inside. It charges while the light is on mains, and when power cuts, it keeps glowing for two to four hours from its own battery, even operated by the same wall switch. For a rented room, a shop counter or as a child's-room nightlight through cuts, it delivers the useful half of an inverter for a few hundred rupees and zero installation. This Havells 9 W version is the standard pick.",
+      "bestFor": "Renters and single-room backup",
+      "productId": "hav-lhldddhaic4n009"
+    },
+    {
+      "rank": 4,
+      "name": "Which appliances still need a stabilizer in 2026",
+      "brand": "",
+      "body": "Fewer than the shop says. Most modern inverter ACs and LED TVs ship with wide-range switching power supplies, typically rated 140-280 V or wider; check the spec plate, and if your area's voltage stays inside that band, a stabilizer adds nothing. Older fixed-speed ACs, fridges in areas with genuine sag below 180 V, and any appliance whose plate shows a narrow input range still benefit. The honest test: measure your actual socket voltage across a summer evening (any electrician's multimeter, or a plug-in voltmeter) before spending.",
+      "bestFor": "Deciding before you spend",
+      "productId": null
+    }
+  ],
+  "buyingTips": [
+    "Size a stabilizer by the appliance's rated power with headroom: a 1.5-ton AC wants a 4 kVA class stabilizer (like the EZ400 class), a fridge a 0.5-1 kVA one. Undersized stabilizers fail first.",
+    "Check the stabilizer's working range against your reality: a 170-270 V unit is pointless if your evenings dip to 150 V; wide-range models exist for weak-grid areas.",
+    "For inverters, count watts honestly and add 30% headroom; a 900 VA unit carries fans, lights, router and a TV in a typical 2BHK, not more.",
+    "Inverter bulbs charge only when the switch feeds them: on circuits controlled by the same switch as the bulb, leave the light on periodically to keep the cell topped up.",
+    "A stabilizer does not protect against lightning or switching surges; that is a surge protection device's job, a different guide entirely."
+  ],
+  "faq": [
+    {
+      "q": "Can one device do both jobs?",
+      "a": "Inverters with built-in stabilization exist for their own output, but nothing consumer-grade cleans mains voltage AND provides backup for the whole home in one box. Treat them as two purchases for two problems, and buy each only where the problem actually exists."
+    },
+    {
+      "q": "Does a fridge need a stabilizer?",
+      "a": "Check the plate first: most current models are rated 160-260 V or wider and explicitly say 'stabilizer-free operation'. If yours is older, or your area sags below the plate rating on summer evenings, a 0.5-1 kVA stabilizer is cheap insurance for the costliest motor in the kitchen."
+    },
+    {
+      "q": "Why does my AC trip during low voltage even with a stabilizer?",
+      "a": "That is the stabilizer doing its job: below its correction range it disconnects the load rather than feed it damaging voltage, and the time-delay relay holds the compressor off for a few minutes on recovery. If it happens nightly, your area needs a wider-range stabilizer, not a complaint to the AC company."
+    },
+    {
+      "q": "How long does an inverter bulb actually last in a cut?",
+      "a": "Two to four hours at full or reduced brightness depending on the model, and several hundred charge cycles before the cell fades. They are backup lighting, not backup power: nothing else runs from them."
+    }
+  ]
+}
