@@ -44,6 +44,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
+  // Brand hub pages - "buy <brand> online" queries land here; derived from
+  // live products exactly like the /brand routes themselves.
+  const brandPages: MetadataRoute.Sitemap = [...new Set(products.map((p) => p.brand))].map((brand) => ({
+    url: `${SITE}/brand/${slugify(brand)}`,
+    lastModified: now,
+    changeFrequency: "daily",
+    priority: 0.8,
+  }));
+
   const productPages: MetadataRoute.Sitemap = products.map((p) => ({
     url: `${SITE}/catalogue/${p.id}`,
     lastModified: now,
@@ -58,5 +67,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...staticPages, ...categoryPages, ...productPages, ...blogPages];
+  return [...staticPages, ...categoryPages, ...brandPages, ...productPages, ...blogPages];
 }

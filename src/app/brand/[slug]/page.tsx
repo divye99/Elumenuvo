@@ -27,9 +27,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const all = await fetchProductsLite();
   const brand = resolveSlug(slug, [...new Set(all.map((p) => p.brand))]);
   if (!brand) notFound(); // guard: streams behind a skeleton, so 404 must be decided in metadata
+  // Commercial SERP pattern (owner ask, Aug 2026): brand queries are buying
+  // queries - the title should read like a shop, not a directory entry, and
+  // carry the brand's real categories and count from live data.
+  const mine = all.filter((p) => p.brand === brand);
+  const cats = [...new Set(mine.map((p) => p.cat))].slice(0, 4);
   return {
-    title: `${brand} - all products, best prices`,
-    description: `Shop the full ${brand} range on Elume: trending products, top rated picks and best sellers, with transparent pricing and free pan-India delivery.`,
+    title: `Buy ${brand} Products Online at Best Prices in India (${mine.length}+ items)`,
+    description: `Shop ${brand} ${cats.map((c) => c.toLowerCase()).join(", ")} online at market-beating prices. Genuine ${brand} products with GST invoice, live price tracking and free pan-India delivery above ₹4,000.`,
     alternates: { canonical: `https://elumenuvo.com/brand/${slugify(brand)}` },
   };
 }
