@@ -1,11 +1,11 @@
 {
   "slug": "mcb-vs-rccb-vs-rcbo-guide",
-  "title": "MCB vs RCCB vs RCBO: What Protects What (and 30mA vs 100mA)",
-  "description": "MCB, RCCB and RCBO explained simply: which device protects wiring, which protects people, why 30mA matters for shock protection, and how a home DB uses both.",
+  "title": "MCB vs MCCB vs RCCB vs RCBO vs RCD: What Protects What (India Guide)",
+  "description": "Every breaker in the family explained simply: MCB for wiring, MCCB for heavy loads, RCCB for people, RCBO for both in one module, and what RCD, RCB and ELCB actually mean. With 30mA vs 100mA sensitivity and how a real Indian DB puts it together.",
   "category": "Switchgear",
-  "date": "2026-07-22",
+  "date": "2026-08-10",
   "author": "Elume Editorial",
-  "readMins": 8,
+  "readMins": 10,
   "intro": [
     "Open any modern distribution board and you will see a row of similar-looking switches doing very different jobs. One family protects your wiring from melting; another protects your family from electrocution. Confusing the two, or assuming one covers for the other, is the most common and most dangerous misunderstanding in home electricals.",
     "This guide separates the three devices cleanly: the MCB, which watches for too much current; the RCCB, which watches for current escaping to earth; and the RCBO, which does both in one module. Along the way we decode the 30mA versus 100mA sensitivity question, which is really a question about what you are protecting.",
@@ -59,6 +59,22 @@
       "body": "An RCCB that trips repeatedly is telling you something: usually a genuinely leaky appliance, often an ageing geyser element or a damp outdoor fitting, found quickly by switching circuits off one by one. Cumulative small leakages from many electronics can also add up near the 30 mA threshold. Separately, the type letter matters more as homes fill with electronics: Type AC devices sense standard AC leakage, while Type A also detects the pulsating DC leakage that inverter-driven appliances can produce. Test the board's trip button monthly; it exercises the mechanism and confirms the protection is alive.",
       "bestFor": "Trips are diagnostics, not defects; prefer Type A for electronics-heavy homes",
       "productId": null
+    },
+    {
+      "rank": 7,
+      "name": "The MCCB: when loads outgrow the MCB",
+      "brand": "ABB",
+      "body": "A Moulded Case Circuit Breaker does the same job as an MCB, protecting cables from overload and short circuit, but at ratings an MCB cannot reach: typically 100 A to 800 A and beyond, with adjustable trip settings and far higher breaking capacity (25 to 50 kA and up). Homes almost never need one; shops with heavy machinery, building mains, panel incomers and industrial feeders do. The ABB Formula A1N here is a classic 3-pole incomer for a commercial board: its thermal-magnetic trip unit is adjustable, so an electrician can tune the pickup to the installed load instead of accepting a fixed rating.",
+      "bestFor": "Mains incomers, panels and heavy commercial loads",
+      "productId": "abb-1sda066725r1-1"
+    },
+    {
+      "rank": 8,
+      "name": "RCD, RCB, ELCB: untangling the name soup",
+      "brand": "ABB",
+      "body": "RCD (Residual Current Device) is the umbrella term for any device that trips on earth-leakage current; RCCB and RCBO are both types of RCD, and RCB is just an informal shortening you will see in listings. ELCB is the term that trips people up: strictly it refers to the older voltage-operated earth-leakage breakers that needed an earth wire connection to work, and which the current-sensing RCCB replaced decades ago. If a shop or electrician says ELCB today, they almost always mean an RCCB like this ABB FB202. When comparing, ignore the label and read three numbers: poles, current rating and sensitivity in mA.",
+      "bestFor": "Decoding spec sheets and shop labels",
+      "productId": "abb--11966"
     }
   ],
   "buyingTips": [
@@ -93,6 +109,14 @@
     {
       "q": "Does an RCCB work without proper earthing?",
       "a": "An RCCB senses phase-neutral imbalance, so it can still trip during a shock even in a poorly earthed installation, and this makes it especially valuable there. But good earthing remains essential: it lets faults trip protection immediately rather than waiting for someone to touch a live surface. Treat RCCB plus sound earthing as one system."
+    },
+    {
+      "q": "MCB vs MCCB: which one do I need?",
+      "a": "By current: circuits up to 63 A (all normal home and shop circuits) use MCBs; above that, mains incomers and machinery feeders move to MCCBs. If you are asking for a house, the answer is an MCB; MCCBs belong in commercial and industrial boards where loads and fault currents are far higher."
+    },
+    {
+      "q": "Is an ELCB the same as an RCCB?",
+      "a": "In everyday shop talk, yes; technically, no. The original ELCBs were voltage-operated and are obsolete. Every earth-leakage device sold new today is current-operated, which is what RCCB means. If you are replacing an old ELCB, an RCCB of matching poles and rating is the correct modern substitute."
     }
   ]
 }
