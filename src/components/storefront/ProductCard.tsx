@@ -108,15 +108,6 @@ export default function ProductCard({
         >
           {shown.sku}
         </span>
-        {hasDiscount && (
-          <span
-            className="pc-save"
-            style={{ position: "absolute", right: 11, bottom: 11, zIndex: 2, pointerEvents: "none", fontSize: 11, fontWeight: 700, color: "#1F9D63", background: "#fff", padding: "4px 8px", borderRadius: 6 }}
-          >
-            ↓ {save}
-          </span>
-        )}
-
         {/* Hover variant swatches (Amazon-style) */}
         {showSwatches && (
           <div
@@ -239,6 +230,13 @@ export default function ProductCard({
           <div className="pc-price" style={{ fontFamily: GROTESK, fontSize: 19, fontWeight: 600, color: "#19202E", display: "flex", alignItems: "baseline", gap: 5 }}>
             {fmt(baseExGst(shown.price, shown.cat, shown.gstRate))}
             <span style={{ fontSize: 10, fontWeight: 600, color: "#8A93A6" }}>+GST</span>
+            {/* Save badge sits by the price (owner call, Aug 2026) - the
+                discount belongs to the money, not the photo. */}
+            {hasDiscount && (
+              <span className="pc-save" style={{ fontSize: 11, fontWeight: 700, color: "#1F9D63", background: "#EAF7F0", padding: "2px 7px", borderRadius: 6, flexShrink: 0 }}>
+                ↓ {save}
+              </span>
+            )}
           </div>
           <div className="pc-mrp" style={{ fontSize: 11.5, color: "#A0A7B5" }}>
             {hasDiscount ? (

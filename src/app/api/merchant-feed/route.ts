@@ -48,6 +48,19 @@ type Row = {
   brand_sku: string | null; in_stock: boolean | null; tech_specs: { description?: string } | null;
 };
 
+/** Products excluded from the feed for Google image-policy disapprovals
+ *  (Merchant Center CSV, 10 Aug 2026). They stay live on the site - their
+ *  images are useful there - but would only accumulate disapprovals here.
+ *  - ABB: technical line drawings ("image uses a single color")
+ *  - Orient Aeon/Aeroslim: every gallery image carries a BEE rosette or
+ *    marketing text ("promotional overlay") - verified, no clean shot exists */
+const MERCHANT_EXCLUDED = new Set([
+  "abb-1sda066980r1", "abb-1sda069058r1", "abb-1sda069060r1", "abb-2196402d",
+  "abb-36255128", "abb-5dd4401f", "abb-79613a47",
+  "ort-2133661211015", "ort-2133661211315", "ort-2134847810905",
+  "ort-2134847817215", "ort-2134848511315", "ort-2134850212015",
+]);
+
 export async function GET() {
   const url = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim();
   const key = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "").trim();
@@ -70,6 +83,7 @@ export async function GET() {
 
   const items = rows
     .filter((p) => p.image_url) // Google rejects imageless items; keep them out of the feed
+    .filter((p) => !MERCHANT_EXCLUDED.has(p.id))
     // Metals sell as lakh-scale commodity lots via a token + RTGS booking -
     // not a Shopping-feed purchase. Organic search still indexes their PDPs.
     .filter((p) => !isMetalCategory(p.category))

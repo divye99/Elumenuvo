@@ -392,7 +392,7 @@ input[type="range"].elume-range::-moz-range-thumb {
   .pc-spec > div > span:first-child { font-size: 7px !important; }
   .pc-price { font-size: 14px !important; }
   .pc-mrp { font-size: 9.5px !important; }
-  .pc-save { font-size: 9px !important; padding: 3px 6px !important; right: 7px !important; bottom: 7px !important; }
+  .pc-save { font-size: 9px !important; padding: 2px 5px !important; }
   .pc-cta { font-size: 10.5px !important; padding: 6px 8px !important; margin-top: 6px !important; border-radius: 8px !important; }
   .pc-rate { font-size: 10px !important; }
 }
