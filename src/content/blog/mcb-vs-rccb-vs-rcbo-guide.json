@@ -118,5 +118,11 @@
       "q": "Is an ELCB the same as an RCCB?",
       "a": "In everyday shop talk, yes; technically, no. The original ELCBs were voltage-operated and are obsolete. Every earth-leakage device sold new today is current-operated, which is what RCCB means. If you are replacing an old ELCB, an RCCB of matching poles and rating is the correct modern substitute."
     }
+  ],
+  "tldr": [
+    "MCB protects wiring from overload; RCCB protects people from shock; RCBO does both in one module.",
+    "MCCB is the MCB's big brother for 100 A+ mains and industrial panels; homes do not need one.",
+    "RCD is the umbrella term; ELCB is the obsolete ancestor: if a shop says ELCB, buy an RCCB.",
+    "Every home board needs both layers: MCBs per circuit plus one 30 mA RCCB (100 mA guards only wiring, not people)."
   ]
 }

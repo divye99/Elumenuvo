@@ -34,6 +34,9 @@ export type BlogPost = {
   author: string;
   readMins: number;
   intro: string[];
+  /** Quick-answer bullets shown in a TL;DR box above the intro (also a
+   *  featured-snippet target). Optional - older guides may not have one. */
+  tldr?: string[];
   items: { rank: number; name: string; brand: string; body: string; bestFor: string; productId?: string | null }[];
   buyingTips: string[];
   faq: { q: string; a: string }[];

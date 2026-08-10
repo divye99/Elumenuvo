@@ -119,5 +119,11 @@
       "q": "Does the DB brand need to match the MCB and RCCB brand?",
       "a": "It is strongly advised. DBs, busbars and DIN rails are designed around a brand's module dimensions and incomer compatibility, so using matching MCBs, RCCBs and isolators ensures correct fit, tested short-circuit coordination and warranty validity. Mixing brands can cause poor seating, busbar mismatch and voided guarantees - keep the panel single-brand where possible."
     }
+  ],
+  "tldr": [
+    "Count final circuits, then add 25-30% spare ways; a full board on day one is a mistake.",
+    "SPN boards for homes, TPN/VTPN for three-phase supplies and commercial use.",
+    "Top ranges: Havells double-door, Schneider Acti9, Legrand Ekinoxe; match the DB brand to your breaker range.",
+    "Double-door designs hide wiring and survive Indian dust; worth the small premium."
   ]
 }

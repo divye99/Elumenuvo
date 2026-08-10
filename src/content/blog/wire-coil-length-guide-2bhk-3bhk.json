@@ -102,5 +102,10 @@
       "q": "Do all rooms use the same wire size?",
       "a": "No, and that is why estimates are broken down by size. Lighting and fans run on 1 to 1.5 sq mm, power sockets and kitchens on 2.5 sq mm, geysers and ACs on dedicated 4 sq mm runs, and sub-mains on 6 sq mm. Each size is bought in its own coils and colours."
     }
+  ],
+  "tldr": [
+    "A 2BHK needs roughly 6-9 coils of 90 m; a 3BHK needs 10-14, split across sizes.",
+    "90 m is the standard coil; 180 m coils save money on big jobs but only for the volume sizes (1.5 and 2.5 sq mm).",
+    "Get the electrician's measured estimate first, then sanity-check against these ranges."
   ]
 }

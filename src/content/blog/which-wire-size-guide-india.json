@@ -102,5 +102,10 @@
       "q": "Does IS 732 specify exact wire sizes for each room?",
       "a": "No. IS 732 is the code of practice for electrical wiring installations; it sets out principles like proper circuit segregation, conductor protection and allowing for voltage drop rather than a fixed room-by-room size chart. The size ladder in this guide reflects standard Indian practice that follows those principles, with final sizing done for your actual loads and run lengths."
     }
+  ],
+  "tldr": [
+    "1 sq mm for light points, 1.5 for lighting and fans, 2.5 for sockets, 4-6 for geyser/AC, per-appliance.",
+    "Size for the circuit, not the house; each heavy appliance gets its own run.",
+    "When a run is long (15 m+) or hot, step up one size; voltage drop is real."
   ]
 }

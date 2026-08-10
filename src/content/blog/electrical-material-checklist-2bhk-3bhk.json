@@ -102,5 +102,11 @@
       "q": "Can I use this checklist instead of an electrician's estimate?",
       "a": "No, use it alongside one. These quantities are realistic for typical layouts, but your room count, duplex stairs, balconies and DB location all shift the numbers. The checklist's job is to make the electrician's quote easy to interrogate line by line, and to make sure nothing is forgotten before work begins."
     }
+  ],
+  "tldr": [
+    "Fix the complete point count on paper with your electrician before buying anything.",
+    "Big five: wire coils, DB with MCBs, one 30 mA RCCB (non-negotiable), modular switches and plates, fan and light fittings.",
+    "A 2BHK typically needs 6-9 wire coils; a 3BHK needs 10-14.",
+    "Buy 10-15% extra consumables (wire, tape, clips); returns cost more time than the surplus costs money."
   ]
 }

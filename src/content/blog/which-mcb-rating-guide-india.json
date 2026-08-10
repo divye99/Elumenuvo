@@ -102,5 +102,10 @@
       "q": "Single pole or double pole: which MCB should I buy?",
       "a": "Single-pole MCBs protecting the phase are standard for individual circuits in a single-phase home, while the board's incomer is usually a double-pole device so both phase and neutral disconnect together for safe isolation. Three-phase homes use TP or TPN devices upstream. Your electrician will match poles to your supply."
     }
+  ],
+  "tldr": [
+    "6A for lighting, 10A for fan circuits, 16A for sockets and most geysers, 20-32A for AC and kitchen feeds.",
+    "Pair the breaker to the WIRE first: 6-10A on 1.5 sq mm, 16-20A on 2.5 sq mm, 25-32A on 4 sq mm.",
+    "An oversized MCB is dangerous: it protects nothing if the wire burns before it trips."
   ]
 }

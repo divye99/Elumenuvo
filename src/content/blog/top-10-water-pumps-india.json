@@ -121,5 +121,10 @@
       "q": "How do I choose the right borewell submersible pump?",
       "a": "Start from the bore report: depth to the water table, bore diameter and tested yield. The stage count of the submersible must match the total head, and the flow must not exceed the bore's yield or the pump will run dry. Share these numbers with the Elume desk or a pump dealer before ordering, since the model code encodes these ratings."
     }
+  ],
+  "tldr": [
+    "Self-priming monoblock for sump-to-tank transfer (most homes); pressure booster for weak shower flow; submersible for borewells.",
+    "Crompton Zinnia and Grace mini monoblocks top the home rankings.",
+    "Match HP to head: 0.5 HP lifts to roughly 2-3 floors; 1 HP for higher or longer runs."
   ]
 }

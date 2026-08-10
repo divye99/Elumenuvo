@@ -119,5 +119,10 @@
       "q": "What warranty should I expect on LED lights for a project?",
       "a": "Reputable Indian brands like Philips, Havells, Crompton, Wipro, Polycab and Bajaj offer 2-year warranties on most LED bulbs, battens and panels, with some floodlights and street lights covered similarly. Standardising on a few branded SKUs makes warranty claims far simpler across a long-running project."
     }
+  ],
+  "tldr": [
+    "Buy on lumens per watt, not watts: a genuine 100 lm/W 9W bulb beats a cheap 12W.",
+    "Philips Ace Saver, Havells Adore and Syska Rocket lead the 9W class.",
+    "Warm (3000K) for living spaces, cool (6500K) for task areas."
   ]
 }

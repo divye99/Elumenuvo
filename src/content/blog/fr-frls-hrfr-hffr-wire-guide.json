@@ -94,5 +94,11 @@
       "q": "Which wire grade is mandatory in India?",
       "a": "For ordinary homes, BIS certification to IS 694 is the baseline requirement; no specific grade above FR is universally mandated. However, many high-rise approvals, institutional projects and fire NOCs specify low-smoke or halogen-free cabling. Check your society or project requirements, and when in doubt, FRLS is a safe, affordable default."
     }
+  ],
+  "tldr": [
+    "FR resists catching fire; FRLS/FR-LSH adds low smoke for safer escape; HR adds heat resistance for hot, loaded runs.",
+    "For homes, HR FR-LSH is the sweet spot in 2026; the price gap over plain FR is smaller than most buyers assume.",
+    "HFFR/EBXL is halogen-free, the premium choice for enclosed or high-occupancy spaces.",
+    "Same size and length, different grade: always compare per-coil prices before assuming premium is unaffordable."
   ]
 }

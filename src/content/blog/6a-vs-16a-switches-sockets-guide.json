@@ -11,11 +11,46 @@
     "The rule is simpler than most electricians explain it. 6 A points (up to roughly 1,400 W) are for lights, fans, TVs, routers, chargers and everything electronic. 16 A points (up to roughly 3,500 W) are for anything that heats or motors hard: geysers, ACs, room heaters, irons, microwaves, washing machines and kitchen counter appliances. This guide covers which to put where, what wire each demands, and the products worth buying."
   ],
   "items": [
-    { "rank": 1, "name": "Legrand Mylinc 16A Switch, 1 Way, 1 Module", "brand": "Legrand", "body": "The standard 16 A one-way switch for geyser and AC points, in Legrand's value Mylinc range. Rated for the full 16 A appliance load, so the switch is never the weak link on a heavy circuit.", "bestFor": "Geyser and AC switch points", "productId": "leg-675511" },
-    { "rank": 2, "name": "Legrand Arteor 6/16A Shuttered Socket, 3 Pin, 2 Module", "brand": "Legrand", "body": "The universal answer for bedrooms and living rooms: an Indian 3-pin socket that accepts both 6 A and 16 A plug tops, with child-safety shutters. One socket type for the whole wall means fewer wrong-plug moments.", "bestFor": "Bedrooms and living areas", "productId": "leg-573471" },
-    { "rank": 3, "name": "Norisys Cube 16A Two Way SP Palm Switch with Indicator", "brand": "Norisys", "body": "A 16 A two-way palm switch with an indicator lamp, so you can see from across the room that the geyser is still on. Two-way wiring also lets you switch the same point from inside and outside a bathroom.", "bestFor": "Bathroom geyser control with indicator", "productId": "boe1738" },
-    { "rank": 4, "name": "Norisys Cube 16A Two Way DP Palm Switch with Indicator", "brand": "Norisys", "body": "The double-pole version: it breaks both live and neutral, which is what a careful electrician specifies for water heaters. The extra pole is cheap insurance on a wet-area circuit.", "bestFor": "Double-pole safety on heater circuits", "productId": "boe5199" },
-    { "rank": 5, "name": "Norisys Cube 16A 1 Way + 1 Way Twin with Indicator", "brand": "Norisys", "body": "Two 16 A switches in a single module, for kitchen counters where the microwave and OTG sit side by side and wall space is scarce. Indicator included.", "bestFor": "Kitchen counters short on wall space", "productId": "boe7738" }
+    {
+      "rank": 1,
+      "name": "Legrand Mylinc 16A Switch, 1 Way, 1 Module",
+      "brand": "Legrand",
+      "body": "The standard 16 A one-way switch for geyser and AC points, in Legrand's value Mylinc range. Rated for the full 16 A appliance load, so the switch is never the weak link on a heavy circuit.",
+      "bestFor": "Geyser and AC switch points",
+      "productId": "leg-675511"
+    },
+    {
+      "rank": 2,
+      "name": "Legrand Arteor 6/16A Shuttered Socket, 3 Pin, 2 Module",
+      "brand": "Legrand",
+      "body": "The universal answer for bedrooms and living rooms: an Indian 3-pin socket that accepts both 6 A and 16 A plug tops, with child-safety shutters. One socket type for the whole wall means fewer wrong-plug moments.",
+      "bestFor": "Bedrooms and living areas",
+      "productId": "leg-573471"
+    },
+    {
+      "rank": 3,
+      "name": "Norisys Cube 16A Two Way SP Palm Switch with Indicator",
+      "brand": "Norisys",
+      "body": "A 16 A two-way palm switch with an indicator lamp, so you can see from across the room that the geyser is still on. Two-way wiring also lets you switch the same point from inside and outside a bathroom.",
+      "bestFor": "Bathroom geyser control with indicator",
+      "productId": "boe1738"
+    },
+    {
+      "rank": 4,
+      "name": "Norisys Cube 16A Two Way DP Palm Switch with Indicator",
+      "brand": "Norisys",
+      "body": "The double-pole version: it breaks both live and neutral, which is what a careful electrician specifies for water heaters. The extra pole is cheap insurance on a wet-area circuit.",
+      "bestFor": "Double-pole safety on heater circuits",
+      "productId": "boe5199"
+    },
+    {
+      "rank": 5,
+      "name": "Norisys Cube 16A 1 Way + 1 Way Twin with Indicator",
+      "brand": "Norisys",
+      "body": "Two 16 A switches in a single module, for kitchen counters where the microwave and OTG sit side by side and wall space is scarce. Indicator included.",
+      "bestFor": "Kitchen counters short on wall space",
+      "productId": "boe7738"
+    }
   ],
   "buyingTips": [
     "Kitchens are 16 A territory: mixer, microwave, OTG, kettle and induction plates all belong on 16 A points with 2.5 or 4 sq mm wiring. Plan at least three 16 A counter points in a new kitchen.",
@@ -25,10 +60,31 @@
     "Match the series across a room: switches, sockets and plates from one series (Mylinc, Arteor, Cube, TG9) align and mount cleanly; mixing series across brands on one plate does not work."
   ],
   "faq": [
-    { "q": "Can I plug a 6 A plug into a 16 A socket?", "a": "Into a combined 6/16 A universal socket, yes, that is exactly what it is for. A dedicated 16 A-only socket has larger pin holes, and small 6 A plugs will sit loose, which causes arcing; use a universal socket where both plug sizes are expected." },
-    { "q": "Does a 16 A switch need special wiring?", "a": "Yes. The full circuit must carry the load: 2.5 sq mm copper wire minimum, a matching 16 or 20 A MCB at the distribution board, and the 16 A switch and socket at the point. The rating on the switch is only honest when the wire behind it matches." },
-    { "q": "What happens if I run a heater on a 6 A socket?", "a": "A 2,000 W heater draws about 8.3 A, roughly 40 percent over the socket's rating. The contacts heat, the plastic discolours and softens, and over months the socket chars and can fail dangerously. Heaters, irons and kettles always go on 16 A points." },
-    { "q": "Why do some 16 A switches say DP (double pole)?", "a": "A DP switch disconnects both live and neutral, so the appliance is fully isolated when off. It is the safer choice for geysers and wet areas, where a fault to neutral could otherwise keep the appliance live even when switched off." },
-    { "q": "How many 16 A points does a 2BHK need?", "a": "Typical count: one per AC (2 or 3), one per geyser (2), three on the kitchen counter, one for the washing machine, and one spare in the living room for a heater or iron, so 9 to 10 points. Plan them at wiring time; adding 16 A points later means new 2.5 sq mm runs." }
+    {
+      "q": "Can I plug a 6 A plug into a 16 A socket?",
+      "a": "Into a combined 6/16 A universal socket, yes, that is exactly what it is for. A dedicated 16 A-only socket has larger pin holes, and small 6 A plugs will sit loose, which causes arcing; use a universal socket where both plug sizes are expected."
+    },
+    {
+      "q": "Does a 16 A switch need special wiring?",
+      "a": "Yes. The full circuit must carry the load: 2.5 sq mm copper wire minimum, a matching 16 or 20 A MCB at the distribution board, and the 16 A switch and socket at the point. The rating on the switch is only honest when the wire behind it matches."
+    },
+    {
+      "q": "What happens if I run a heater on a 6 A socket?",
+      "a": "A 2,000 W heater draws about 8.3 A, roughly 40 percent over the socket's rating. The contacts heat, the plastic discolours and softens, and over months the socket chars and can fail dangerously. Heaters, irons and kettles always go on 16 A points."
+    },
+    {
+      "q": "Why do some 16 A switches say DP (double pole)?",
+      "a": "A DP switch disconnects both live and neutral, so the appliance is fully isolated when off. It is the safer choice for geysers and wet areas, where a fault to neutral could otherwise keep the appliance live even when switched off."
+    },
+    {
+      "q": "How many 16 A points does a 2BHK need?",
+      "a": "Typical count: one per AC (2 or 3), one per geyser (2), three on the kitchen counter, one for the washing machine, and one spare in the living room for a heater or iron, so 9 to 10 points. Plan them at wiring time; adding 16 A points later means new 2.5 sq mm runs."
+    }
+  ],
+  "tldr": [
+    "6 A points run lights, fans and electronics; 16 A points run heat: geyser, AC, kitchen appliances, iron.",
+    "Kitchens need at least three 16 A counter points on 2.5 or 4 sq mm wiring.",
+    "Universal 6/16 A shuttered sockets accept both plug sizes and are the safe default for new work.",
+    "Never run a geyser or AC from a 6 A point; the switch becomes the weakest link on the circuit."
   ]
 }

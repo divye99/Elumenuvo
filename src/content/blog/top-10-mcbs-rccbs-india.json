@@ -120,5 +120,10 @@
       "q": "Do I really need a surge protection device at home?",
       "a": "If your home has inverter ACs, a router, TVs, computers or solar equipment, an SPD is worth fitting. MCBs and RCCBs do not stop voltage spikes from lightning or grid switching, and those spikes shorten the life of electronics even when nothing visibly fails. A residential Type 2+3 SPD like the Havells unit here is a one-time cost that protects everything downstream."
     }
+  ],
+  "tldr": [
+    "Never run a home without a 30 mA RCCB; MCBs protect wires, not people.",
+    "Top picks: Schneider Acti9 40A/30mA, Havells FP rotary, ABB 63A 4P for three-phase homes.",
+    "Size the RCCB at or above your main incomer rating; 40A suits most homes, 63A for large ones."
   ]
 }

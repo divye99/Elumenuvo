@@ -102,5 +102,11 @@
       "q": "Is a 5-star induction fan as good as a BLDC fan?",
       "a": "5-star induction fans, often around 50 W, sit between the old 75 W standard and 28 W BLDC. They narrow the gap but do not close it: against BLDC they still use nearly double the power and usually lack remotes and stable-speed electronics. For heavy daily use, BLDC remains the better buy."
     }
+  ],
+  "tldr": [
+    "A BLDC fan uses about 28 W against 70-75 W for a normal induction fan: roughly 60% less power.",
+    "At 12 hours a day and Rs 8 per unit, one fan saves about Rs 1,600 a year; the price gap pays back in 1-2 years.",
+    "Savings math: watts saved x daily hours x 365 / 1000 x your tariff.",
+    "The more hours a fan runs, the stronger the BLDC case; for a rarely used room, a normal fan is fine."
   ]
 }

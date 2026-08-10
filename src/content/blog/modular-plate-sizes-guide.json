@@ -11,11 +11,46 @@
     "Getting this right at wiring time matters because the gang box is buried in plaster: if the electrician fits a 4M box and you later want six switches there, that wall gets chased open again. This guide explains each size, what typically fits, and how to plan a room, with glass, acrylic and metal plate options from the ranges we stock."
   ],
   "items": [
-    { "rank": 1, "name": "Norisys Cube 1 Module Solid Glass Cover Plate", "brand": "Norisys", "body": "The smallest plate there is: one module, one device. Used for a lone bell push, a single 16 A switch beside a geyser, or a night-lamp point. In solid glass it turns the smallest switch into a detail worth noticing.", "bestFor": "Single switch or bell-push points", "productId": "boe8104" },
-    { "rank": 2, "name": "Norisys Cube 2 Module Solid Glass Cover Plate", "brand": "Norisys", "body": "Two slots: a switch plus indicator, a 2M socket alone, or two switches. The most common size for bedside points and bathroom geyser boards.", "bestFor": "Bedside and bathroom points", "productId": "boe8109" },
-    { "rank": 3, "name": "Norisys TG9 4M Plate with Socket Window", "brand": "Norisys", "body": "Four slots, the workhorse of living rooms: typically two switches, a socket and a fan regulator. This TG9 metal-finish version pairs a socket window with switch holes for a cleaner face.", "bestFor": "Standard living room boards", "productId": "boe7731" },
-    { "rank": 4, "name": "Norisys Cube 6 Module Vector Cover Plate", "brand": "Norisys", "body": "Six slots handle a full room from one board: three or four switches, a socket and a regulator. The Vector polycarbonate plate is the budget-friendly finish in the Cube range.", "bestFor": "One board for a full room", "productId": "boe7933" },
-    { "rank": 5, "name": "Norisys TG9 8M Plate with 4 Holes + Socket Window", "brand": "Norisys", "body": "Eight slots for master boards: main room lighting, two sockets, fan controls. At this size the plate dominates the wall, which is why 8M is where premium finishes like marble, wood and metal earn their keep.", "bestFor": "Master bedroom and hall boards", "productId": "boe4298" }
+    {
+      "rank": 1,
+      "name": "Norisys Cube 1 Module Solid Glass Cover Plate",
+      "brand": "Norisys",
+      "body": "The smallest plate there is: one module, one device. Used for a lone bell push, a single 16 A switch beside a geyser, or a night-lamp point. In solid glass it turns the smallest switch into a detail worth noticing.",
+      "bestFor": "Single switch or bell-push points",
+      "productId": "boe8104"
+    },
+    {
+      "rank": 2,
+      "name": "Norisys Cube 2 Module Solid Glass Cover Plate",
+      "brand": "Norisys",
+      "body": "Two slots: a switch plus indicator, a 2M socket alone, or two switches. The most common size for bedside points and bathroom geyser boards.",
+      "bestFor": "Bedside and bathroom points",
+      "productId": "boe8109"
+    },
+    {
+      "rank": 3,
+      "name": "Norisys TG9 4M Plate with Socket Window",
+      "brand": "Norisys",
+      "body": "Four slots, the workhorse of living rooms: typically two switches, a socket and a fan regulator. This TG9 metal-finish version pairs a socket window with switch holes for a cleaner face.",
+      "bestFor": "Standard living room boards",
+      "productId": "boe7731"
+    },
+    {
+      "rank": 4,
+      "name": "Norisys Cube 6 Module Vector Cover Plate",
+      "brand": "Norisys",
+      "body": "Six slots handle a full room from one board: three or four switches, a socket and a regulator. The Vector polycarbonate plate is the budget-friendly finish in the Cube range.",
+      "bestFor": "One board for a full room",
+      "productId": "boe7933"
+    },
+    {
+      "rank": 5,
+      "name": "Norisys TG9 8M Plate with 4 Holes + Socket Window",
+      "brand": "Norisys",
+      "body": "Eight slots for master boards: main room lighting, two sockets, fan controls. At this size the plate dominates the wall, which is why 8M is where premium finishes like marble, wood and metal earn their keep.",
+      "bestFor": "Master bedroom and hall boards",
+      "productId": "boe4298"
+    }
   ],
   "buyingTips": [
     "Count devices before the wall closes: each switch is 1M, most sockets are 2M, regulators and dimmers are usually 2M. Total the modules, then buy that gang box and plate size.",
@@ -25,10 +60,30 @@
     "Vertical plates exist for narrow walls: the same 4M or 8M module count arranged top-to-bottom instead of across; confirm orientation before ordering because the gang box mounts differently."
   ],
   "faq": [
-    { "q": "What does 1M, 2M or 8M actually mean on a plate?", "a": "M is modules, the standard width unit of modular wiring accessories. One switch occupies 1M; a standard 3-pin socket occupies 2M. A plate marked 8M has eight of those slots, fed by an 8M gang box inside the wall." },
-    { "q": "Can I put a 2M socket on a 4M plate with two switches?", "a": "Yes, that is the classic 4M layout: 2M socket plus two 1M switches. Any combination works as long as the module counts add up to the plate size and all devices are from the plate's own series." },
-    { "q": "Do all brands use the same module sizes?", "a": "The module concept is universal in India and the gang box cutouts are broadly standard, but plates and devices are series-specific: a Havells plate will not accept Legrand devices. Pick one series per home, or at least per room." },
-    { "q": "What is a gang box and does its size matter?", "a": "The gang box is the metal or PVC box buried in the wall that everything mounts on. Its module size must match the plate: a 6M plate needs a 6M box. Fitting the right size at wiring time avoids breaking plaster later." },
-    { "q": "Glass, acrylic or polycarbonate plates: which should I pick?", "a": "Polycarbonate is the tough, budget choice for service areas. Acrylic gives a glossy finish at mid price. Solid glass and metal plates cost the most and are chosen for the rooms guests see. All mount identically; this is purely a finish and budget decision." }
+    {
+      "q": "What does 1M, 2M or 8M actually mean on a plate?",
+      "a": "M is modules, the standard width unit of modular wiring accessories. One switch occupies 1M; a standard 3-pin socket occupies 2M. A plate marked 8M has eight of those slots, fed by an 8M gang box inside the wall."
+    },
+    {
+      "q": "Can I put a 2M socket on a 4M plate with two switches?",
+      "a": "Yes, that is the classic 4M layout: 2M socket plus two 1M switches. Any combination works as long as the module counts add up to the plate size and all devices are from the plate's own series."
+    },
+    {
+      "q": "Do all brands use the same module sizes?",
+      "a": "The module concept is universal in India and the gang box cutouts are broadly standard, but plates and devices are series-specific: a Havells plate will not accept Legrand devices. Pick one series per home, or at least per room."
+    },
+    {
+      "q": "What is a gang box and does its size matter?",
+      "a": "The gang box is the metal or PVC box buried in the wall that everything mounts on. Its module size must match the plate: a 6M plate needs a 6M box. Fitting the right size at wiring time avoids breaking plaster later."
+    },
+    {
+      "q": "Glass, acrylic or polycarbonate plates: which should I pick?",
+      "a": "Polycarbonate is the tough, budget choice for service areas. Acrylic gives a glossy finish at mid price. Solid glass and metal plates cost the most and are chosen for the rooms guests see. All mount identically; this is purely a finish and budget decision."
+    }
+  ],
+  "tldr": [
+    "Each switch is 1M, most sockets 2M, regulators and dimmers 2M; total the modules, then pick the plate.",
+    "Common plates: 1M/2M/3M/4M/6M/8M/12M; count devices before the wall closes, not after.",
+    "Leave one spare module per busy plate; future devices always arrive."
   ]
 }

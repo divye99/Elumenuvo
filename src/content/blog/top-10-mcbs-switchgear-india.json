@@ -119,5 +119,10 @@
       "q": "How do I know if a switchgear product is BIS-certified and genuine?",
       "a": "Look for the ISI mark with a valid licence number and the relevant IS/IEC standard printed on the body - IS/IEC 60898-1 for MCBs, IS/IEC 61009 for RCBOs. Buy only through authorised distributors, check holograms and packaging, and be wary of unusually cheap deals. Counterfeit breakers often fail their stated kA rating during a real fault."
     }
+  ],
+  "tldr": [
+    "Match the curve to the load: B-curve for heaters/geysers, C-curve for general household circuits.",
+    "Top ranges: Schneider Acti9 iC60N, Havells Euro-II, Legrand DX3, ABB System Pro.",
+    "Buy the DB, MCBs and RCCB from one range where possible; spacing and busbars line up cleanly."
   ]
 }

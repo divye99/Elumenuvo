@@ -104,6 +104,20 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           By {post.author} · {new Date(post.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} · {post.readMins} min read
         </div>
 
+        {/* TL;DR - the quick answer for skimmers (and a featured-snippet target) */}
+        {post.tldr && post.tldr.length > 0 && (
+          <div style={{ background: "#F4F6FE", border: "1px solid #DFE4FA", borderRadius: 14, padding: "18px 22px", margin: "0 0 22px" }}>
+            <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, letterSpacing: "1.2px", textTransform: "uppercase", color: "#4E5BDC", marginBottom: 10 }}>
+              TL;DR · The quick answer
+            </div>
+            <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 7 }}>
+              {post.tldr.map((line, i) => (
+                <li key={i} style={{ fontSize: 15, lineHeight: 1.55, color: "#2c3550" }}>{line}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {post.intro.map((para, i) => (
           <p key={i} style={{ fontSize: 16.5, lineHeight: 1.7, color: "#2c3550", margin: "0 0 16px" }}>{para}</p>
         ))}
