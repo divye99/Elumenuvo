@@ -1,7 +1,21 @@
 import { NextResponse } from "next/server";
+import { createHmac, timingSafeEqual } from "crypto";
 import { isAdmin } from "@/lib/admin/auth";
 import { adminClient } from "@/lib/supabase/admin";
 import { sendBoqInvite } from "@/lib/email";
+
+/** Second auth path beside the admin cookie: an HMAC over a fixed label keyed
+ *  by the Supabase service-role key. Both prod and the owner's tooling hold
+ *  that key already, so this adds no new secret; anyone who has it could
+ *  bypass this endpoint via the database anyway. */
+function serviceAuthOk(header: string | null): boolean {
+  const key = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
+  if (!key || !header) return false;
+  const expected = createHmac("sha256", key).update("boq-invite").digest("hex");
+  const a = Buffer.from(header);
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
 
 /**
  * One-shot Smart BOM launch email (owner-triggered, Aug 2026).
@@ -15,7 +29,8 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
-  if (!(await isAdmin())) return NextResponse.json({ ok: false, error: "Not signed in." }, { status: 403 });
+  const authed = (await isAdmin()) || serviceAuthOk(req.headers.get("x-invite-auth"));
+  if (!authed) return NextResponse.json({ ok: false, error: "Not signed in." }, { status: 403 });
   const db = adminClient();
   if (!db) return NextResponse.json({ ok: false, error: "Not configured." }, { status: 503 });
 
