@@ -79,10 +79,10 @@ export default function ProductCard({
       onMouseLeave={() => setHover(false)}
       style={{
         background: "#fff",
-        border: `1px solid ${hover ? "#C9CFF6" : "#E8EBF1"}`,
-        boxShadow: hover ? "0 10px 28px rgba(20,24,45,.10)" : "none",
+        border: `1px solid ${hover ? "#B9C2F0" : "#E4E7EF"}`,
+        boxShadow: hover ? "0 4px 14px rgba(20,24,45,.08)" : "none",
         transition: "border-color .15s, box-shadow .15s",
-        borderRadius: 14,
+        borderRadius: 10,
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
@@ -104,7 +104,7 @@ export default function ProductCard({
         <ImageSlot id={`img-${shown.sku}`} tile={tileFor(shown.cat)} imageUrl={shown.image} />
         <span
           className="pc-sku"
-          style={{ position: "absolute", left: 11, bottom: 11, zIndex: 2, pointerEvents: "none", fontFamily: MONO, fontSize: 9.5, color: "#6b748c", background: "rgba(255,255,255,0.88)", padding: "3px 6px", borderRadius: 5 }}
+          style={{ position: "absolute", left: 10, bottom: 10, zIndex: 2, pointerEvents: "none", fontFamily: MONO, fontSize: 9, color: "#8A93A6", background: "rgba(255,255,255,0.85)", padding: "2px 5px", borderRadius: 3 }}
         >
           {shown.sku}
         </span>

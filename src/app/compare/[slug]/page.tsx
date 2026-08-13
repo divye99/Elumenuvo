@@ -97,7 +97,7 @@ export default async function ComparePage({ params }: { params: Promise<{ slug: 
           Tap any product for photos, price history and reviews.
         </p>
 
-        <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflowX: "auto" }}>
+        <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 10, overflowX: "auto" }}>
           <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 680, fontSize: 13 }}>
             <thead>
               <tr style={{ textAlign: "left", color: "#8A93A6", fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.5px" }}>

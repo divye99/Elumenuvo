@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { GROTESK } from "@/lib/fonts";
+import CategoryIcon from "@/components/storefront/CategoryIcon";
 import type { Product } from "@/lib/data";
 import ProductCard from "./ProductCard";
 
@@ -21,7 +22,7 @@ import ProductCard from "./ProductCard";
  * the server computed for the chosen sort.
  */
 type Rail = { key: string; label: string; blurb: string; items: Product[] };
-export type StripItem = { label: string; href: string; img?: string | null; emoji?: string };
+export type StripItem = { label: string; href: string; img?: string | null; emoji?: string; cat?: string };
 type Sort = "featured" | "price-asc" | "price-desc" | "save-desc" | "top-sellers" | "new";
 
 export default function HubBrowser({ title, subtitle, rails, products, facetLabel, facets, strip, stripTitle }:
@@ -80,12 +81,12 @@ export default function HubBrowser({ title, subtitle, rails, products, facetLabe
           <div style={{ display: "flex", gap: 18, overflowX: "auto", paddingBottom: 8 }}>
             {strip.map((it) => (
               <Link key={it.label} href={it.href} style={{ flex: "0 0 auto", display: "flex", flexDirection: "column", alignItems: "center", gap: 7, width: 74 }}>
-                <span style={{ width: 58, height: 58, borderRadius: "50%", background: "#fff", border: "1px solid #E4E7EF", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", boxShadow: "0 1px 4px rgba(22,29,43,0.06)" }}>
+                <span style={{ width: 58, height: 58, borderRadius: 8, background: "#fff", border: "1px solid #E4E7EF", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
                   {it.img ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={it.img} alt={it.label} width={34} height={34} style={{ objectFit: "contain" }} />
-                  ) : it.emoji ? (
-                    <span style={{ fontSize: 24 }}>{it.emoji}</span>
+                  ) : it.cat ? (
+                    <span style={{ color: "#3A4358", display: "inline-flex" }}><CategoryIcon cat={it.cat} size={26} strokeWidth={1.5} /></span>
                   ) : (
                     <span style={{ fontFamily: GROTESK, fontSize: 19, fontWeight: 700, color: "#4E5BDC" }}>{it.label.slice(0, 1)}</span>
                   )}
@@ -99,7 +100,7 @@ export default function HubBrowser({ title, subtitle, rails, products, facetLabe
 
       <div className="col-shell" style={{ display: "grid", gridTemplateColumns: "230px 1fr", gap: 26, alignItems: "start" }}>
         {/* ── Frozen filter rail ── */}
-        <aside className="col-rail" style={{ position: "sticky", top: 86, maxHeight: "calc(100vh - 110px)", overflowY: "auto", background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "16px 16px 18px" }}>
+        <aside className="col-rail" style={{ position: "sticky", top: 86, maxHeight: "calc(100vh - 110px)", overflowY: "auto", background: "#fff", border: "1px solid #E8EBF1", borderRadius: 10, padding: "16px 16px 18px" }}>
           <div style={{ fontSize: 11.5, fontWeight: 700, color: "#8A93A6", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>On this page</div>
           <nav style={{ display: "flex", flexDirection: "column", gap: 2, marginBottom: 16 }}>
             {shownRails.map((r) => (
@@ -176,7 +177,7 @@ export default function HubBrowser({ title, subtitle, rails, products, facetLabe
               ))}
             </div>
             {list.length === 0 && (
-              <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "44px 20px", textAlign: "center", color: "#8A93A6", fontSize: 14 }}>
+              <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 10, padding: "44px 20px", textAlign: "center", color: "#8A93A6", fontSize: 14 }}>
                 Nothing matches those filters.
               </div>
             )}

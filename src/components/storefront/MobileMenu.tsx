@@ -6,6 +6,7 @@ import Link from "next/link";
 import { MENU_CATS, HOME_BRANDS } from "@/lib/data";
 import { METALS_TAXONOMY, METAL_ICONS, metalHref } from "@/lib/metals";
 import ForYouLink from "@/components/storefront/ForYouLink";
+import CategoryIcon from "@/components/storefront/CategoryIcon";
 import { slugify } from "@/lib/slug";
 
 /** Hamburger + LEFT slide-in drawer - a shopping-first menu (Amazon-style):
@@ -66,9 +67,9 @@ export default function MobileMenu() {
         {/* Categories */}
         <div className="drw-section">Top categories for you</div>
         <div className="drw-grid">
-          {MENU_CATS.map(([c, icon]) => (
+          {MENU_CATS.map(([c]) => (
             <Link key={c} href={`/category/${slugify(c)}`} onClick={close}>
-              <span style={{ fontSize: 13 }}>{icon}</span> {c}
+              <span style={{ display: "inline-flex", verticalAlign: "-3px", color: "#6B748C" }}><CategoryIcon cat={c} size={15} /></span> {c}
             </Link>
           ))}
         </div>

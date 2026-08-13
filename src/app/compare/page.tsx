@@ -35,7 +35,7 @@ export default async function CompareIndex() {
                 const cheapest = g.members[0];
                 const gb = gstBreakdown(cheapest.price, cheapest.cat, cheapest.gstRate);
                 return (
-                  <Link key={g.slug} href={`/compare/${g.slug}`} style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "14px 16px", display: "block" }}>
+                  <Link key={g.slug} href={`/compare/${g.slug}`} style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 10, padding: "14px 16px", display: "block" }}>
                     <div style={{ fontSize: 14, fontWeight: 700, color: "#19202E", textTransform: "capitalize" }}>{g.title}</div>
                     <div style={{ fontSize: 12, color: "#56627A", marginTop: 4 }}>{g.brands.join(" vs ")}</div>
                     <div style={{ fontSize: 12, color: "#8A93A6", marginTop: 6 }}>

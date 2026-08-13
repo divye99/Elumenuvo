@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { MENU_CATS, HOME_BRANDS } from "@/lib/data";
+import CategoryIcon from "@/components/storefront/CategoryIcon";
 import { METALS_TAXONOMY, METAL_ICONS, metalHref } from "@/lib/metals";
 import { slugify } from "@/lib/slug";
 
@@ -38,12 +39,12 @@ export default function CatalogueMegaMenu() {
 
           <div>
             <div style={head}>Categories</div>
-            {MENU_CATS.map(([c, icon]) => (
+            {MENU_CATS.map(([c]) => (
               <Link key={c} href={`/category/${slugify(c)}`} style={item} onClick={() => setOpen(false)}
                 onMouseEnter={(e) => (e.currentTarget.style.background = "#F5F6F9")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
               >
-                <span style={{ width: 18, textAlign: "center" }}>{icon}</span> {c}
+                <span style={{ width: 18, display: "inline-flex", justifyContent: "center", color: "#6B748C" }}><CategoryIcon cat={c} size={16} /></span> {c}
               </Link>
             ))}
           </div>

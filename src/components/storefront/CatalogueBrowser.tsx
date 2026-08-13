@@ -8,16 +8,10 @@ import { groupVariants, familyKey } from "@/lib/variants";
 import { logSearch } from "@/lib/search-log";
 import { useSearchParams } from "next/navigation";
 import { searchTokens, matchesAll, relevanceScore, buildSearchVocab, correctSearchTokens, editDistance, normalizeSearchText } from "@/lib/search-normalize";
+import CategoryIcon from "@/components/storefront/CategoryIcon";
 
-const CAT_ICONS: Record<string, string> = {
-  All: "◈",
-  "Wires & Cables": "〰️",
-  Switchgear: "⚡",
-  Modular: "▣",
-  Lighting: "💡",
-  Fans: "🌀",
-  "DB & Panels": "🗄️",
-};
+// Category icons come from the shared Elume icon system (CategoryIcon);
+// "All" gets no icon - text carries it.
 
 type Sort = "featured" | "recommended" | "top-sellers" | "top-rated" | "price-asc" | "price-desc" | "save-desc" | "new";
 const SORTS: { key: Sort; label: string }[] = [
@@ -395,7 +389,7 @@ export default function CatalogueBrowser({
         {/* Category popover */}
         <div className="cat-popover" style={{ position: "relative" }}>
           <button onClick={() => setOpen(open === "cat" ? null : "cat")} style={popBtn(cat !== "All" || open === "cat")}>
-            <span style={{ fontSize: 12 }}>{CAT_ICONS[cat]}</span>
+            {cat !== "All" && <span style={{ display: "inline-flex", color: "#6B748C" }}><CategoryIcon cat={cat} size={13} /></span>}
             {cat === "All" ? "Category" : cat}
             <span style={{ fontSize: 10, opacity: 0.7 }}>▾</span>
           </button>
@@ -428,7 +422,7 @@ export default function CatalogueBrowser({
                     }}
                   >
                     <span style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                      <span style={{ fontSize: 13, width: 18, textAlign: "center" }}>{CAT_ICONS[label]}</span>
+                      <span style={{ width: 18, display: "inline-flex", justifyContent: "center", color: "#6B748C" }}>{label !== "All" && <CategoryIcon cat={label} size={15} />}</span>
                       {label === "All" ? "All categories" : label}
                     </span>
                     <span style={{ fontSize: 11.5, color: on ? "#8A93F0" : "#A0A7B5", fontWeight: 500 }}>{catCount[label] ?? 0}</span>
@@ -565,7 +559,7 @@ export default function CatalogueBrowser({
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
               {CATS.map((label) => (
                 <button key={label} onClick={() => setCat(label)} style={chip(cat === label)}>
-                  {CAT_ICONS[label]} {label === "All" ? "All" : label} <span style={{ opacity: 0.6, fontWeight: 500 }}>{catCount[label] ?? 0}</span>
+                  {label === "All" ? "All" : label} <span style={{ opacity: 0.6, fontWeight: 500 }}>{catCount[label] ?? 0}</span>
                 </button>
               ))}
             </div>
@@ -597,7 +591,7 @@ export default function CatalogueBrowser({
       {hasFilters && (
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
           {cat !== "All" && (
-            <FilterChip label={`${CAT_ICONS[cat]} ${cat}`} onClear={() => setCat("All")} />
+            <FilterChip label={cat} onClear={() => setCat("All")} />
           )}
           {[...picked].map((b) => (
             <FilterChip key={b} label={b} onClear={() => toggleBrand(b)} />

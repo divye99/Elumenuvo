@@ -2,24 +2,12 @@ import Link from "next/link";
 import { slugify } from "@/lib/slug";
 import ProductCard from "@/components/storefront/ProductCard";
 import { GROTESK, MONO } from "@/lib/fonts";
-import { tileFor, type Product } from "@/lib/data";
+import { type Product } from "@/lib/data";
+import CategoryIcon from "@/components/storefront/CategoryIcon";
 import { groupVariants, familyKey } from "@/lib/variants";
 import type { BlogPost } from "@/lib/blog";
 
 const CATS = ["Wires & Cables", "Switchgear", "Modular", "Lighting", "Fans", "Water Heaters", "DB & Panels", "Pumps", "Electrical Accessories", "EV Charging"];
-
-const CAT_ICONS: Record<string, string> = {
-  "Wires & Cables": "〰️",
-  Switchgear: "⚡",
-  Modular: "▣",
-  Lighting: "💡",
-  Fans: "🌀",
-  "Water Heaters": "♨️",
-  "DB & Panels": "🗄️",
-  Pumps: "🚰",
-  "Electrical Accessories": "🔌",
-  "EV Charging": "🔋",
-};
 
 function Shelf({
   title,
@@ -81,65 +69,58 @@ export default function HomeStorefront({ products, posts }: { products: Product[
 
   return (
     <main style={{ maxWidth: 1280, margin: "0 auto", padding: "0 28px 64px" }}>
-      {/* ── Hero band ── */}
+      {/* ── Hero: flat, product-led, straight commercial language ── */}
       <section
         className="home-hero"
         style={{
-          marginTop: 24,
-          borderRadius: 20,
-          padding: "42px 44px",
-          background: "linear-gradient(120deg,#19202E 0%,#232E4A 55%,#4E5BDC 130%)",
+          marginTop: 20,
+          borderRadius: 10,
+          padding: "36px 40px 32px",
+          background: "#161D2B",
+          border: "1px solid #232C40",
           color: "#fff",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 32,
-          flexWrap: "wrap",
         }}
       >
-        <div style={{ maxWidth: 620 }}>
-          <div className="home-hero-kicker" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "1.6px", textTransform: "uppercase", color: "#9DB0FF", marginBottom: 12 }}>
-            India&apos;s FMEG store · {products.length} products · {brands.length} brands
-          </div>
-          <h1 style={{ fontFamily: GROTESK, fontSize: "clamp(28px, 7vw, 38px)", fontWeight: 600, letterSpacing: "-1px", lineHeight: 1.12, margin: 0 }}>
-            Every electrical brand.
-            <br />
-            One transparent price list.
+        <div style={{ maxWidth: 640 }}>
+          <h1 style={{ fontFamily: GROTESK, fontSize: "clamp(26px, 5vw, 32px)", fontWeight: 600, letterSpacing: "-0.7px", lineHeight: 1.16, margin: 0 }}>
+            India&apos;s premier FMEG marketplace
           </h1>
-          <div className="home-hero-ctawrap" style={{ marginTop: 22 }}>
+          <div className="home-hero-ctawrap" style={{ marginTop: 18, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
             <Link
               href="/catalogue"
               className="home-hero-cta"
-              style={{ display: "inline-block", background: "#fff", color: "#19202E", fontSize: 14, fontWeight: 700, padding: "12px 22px", borderRadius: 11 }}
+              style={{ display: "inline-block", background: "#fff", color: "#161D2B", fontSize: 14, fontWeight: 700, padding: "10px 20px", borderRadius: 8 }}
             >
               Shop the catalogue
+            </Link>
+            <Link href="/app/boq" style={{ display: "inline-block", border: "1px solid #3A4763", color: "#C8D2E8", fontSize: 13.5, fontWeight: 600, padding: "10px 18px", borderRadius: 8 }}>
+              Price a BOQ
             </Link>
           </div>
         </div>
       </section>
 
-      {/* ── Category tiles ── */}
-      <section style={{ marginTop: 28 }}>
-        <div className="home-cats" style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 14 }}>
+      {/* ── Category index: dense, quiet, icon-led ── */}
+      <section style={{ marginTop: 20 }}>
+        <div className="home-cats" style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8 }}>
           {CATS.map((cat) => (
             <Link
               key={cat}
               href={`/category/${slugify(cat)}`}
+              className="home-cat-tile"
               style={{
                 background: "#fff",
                 border: "1px solid #E8EBF1",
-                borderRadius: 14,
-                overflow: "hidden",
+                borderRadius: 8,
+                padding: "11px 13px",
                 display: "flex",
-                flexDirection: "column",
+                alignItems: "center",
+                gap: 10,
+                minWidth: 0,
               }}
             >
-              <div className="home-cat-img" style={{ height: 84, background: tileFor(cat), display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30 }}>
-                {CAT_ICONS[cat]}
-              </div>
-              <div className="home-cat-pad" style={{ padding: "12px 14px" }}>
-                <div className="home-cat-label" style={{ fontSize: 13, fontWeight: 700, color: "#19202E" }}>{cat}</div>
-              </div>
+              <span style={{ color: "#4E5BDC", display: "inline-flex", flexShrink: 0 }}><CategoryIcon cat={cat} size={19} /></span>
+              <span className="home-cat-label" style={{ fontSize: 13, fontWeight: 600, color: "#19202E", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{cat}</span>
             </Link>
           ))}
         </div>
@@ -194,17 +175,17 @@ export default function HomeStorefront({ products, posts }: { products: Product[
         );
       })}
 
-      {/* ── Brand strip ── */}
-      <section className="home-brands" style={{ marginTop: 44, background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "22px 26px" }}>
-        <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "1.4px", textTransform: "uppercase", color: "#8A93A6", marginBottom: 14 }}>
+      {/* ── Brand index: deliberately quiet - a text row, not a feature ── */}
+      <section className="home-brands" style={{ marginTop: 40, borderTop: "1px solid #E8EBF1", paddingTop: 18 }}>
+        <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "1.4px", textTransform: "uppercase", color: "#8A93A6", marginBottom: 10 }}>
           Brands we stock
         </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", columnGap: 22, rowGap: 8 }}>
           {brands.map((b) => (
             <Link
               key={b}
-              href={`/catalogue?q=${encodeURIComponent(b)}`}
-              style={{ fontFamily: GROTESK, fontSize: 14, fontWeight: 600, color: "#3A4358", background: "#F3F5F9", border: "1px solid #E8EBF1", padding: "9px 18px", borderRadius: 10 }}
+              href={`/brand/${slugify(b)}`}
+              style={{ fontSize: 13.5, fontWeight: 600, color: "#3A4358", textDecoration: "none" }}
             >
               {b}
             </Link>
@@ -212,62 +193,49 @@ export default function HomeStorefront({ products, posts }: { products: Product[
         </div>
       </section>
 
-      {/* ── Buying guides ── */}
-      <section style={{ marginTop: 44 }}>
-        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 14 }}>
-          <h2 style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 600, letterSpacing: "-0.4px", margin: 0 }}>Buying guides</h2>
+      {/* ── Buying guides: compact editorial list, visually quiet ── */}
+      <section style={{ marginTop: 36, borderTop: "1px solid #E8EBF1", paddingTop: 18 }}>
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 10 }}>
+          <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "1.4px", textTransform: "uppercase", color: "#8A93A6" }}>Buying guides</div>
           <Link href="/blog" style={{ fontSize: 13, fontWeight: 600, color: "#4E5BDC" }}>
             All guides →
           </Link>
         </div>
-        <div className="home-guides" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+        <div className="home-guides" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px 28px" }}>
           {posts.slice(0, 3).map((post) => (
-            <Link
-              key={post.slug}
-              href={`/blog/${post.slug}`}
-              className="guide-card"
-              style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "20px 22px" }}
-            >
-              <div className="guide-kicker" style={{ fontFamily: MONO, fontSize: 10.5, color: "#4E5BDC", letterSpacing: "1px", textTransform: "uppercase", marginBottom: 8 }}>
+            <Link key={post.slug} href={`/blog/${post.slug}`} className="guide-card" style={{ padding: "6px 0" }}>
+              <div className="guide-title" style={{ fontSize: 14.5, fontWeight: 600, color: "#19202E", lineHeight: 1.4 }}>{post.title}</div>
+              <div className="guide-kicker" style={{ fontSize: 12, color: "#8A93A6", marginTop: 3 }}>
                 {post.category} · {post.readMins} min read
               </div>
-              <div className="guide-title" style={{ fontFamily: GROTESK, fontSize: 16.5, fontWeight: 600, color: "#19202E", lineHeight: 1.3 }}>{post.title}</div>
-              <p className="guide-desc" style={{ fontSize: 13, color: "#56627A", margin: "8px 0 0", lineHeight: 1.5 }}>{post.description}</p>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* ── Business + workspace band ── */}
+      {/* ── Business band: one quiet row ── */}
       <section
         style={{
-          marginTop: 44,
-          borderRadius: 18,
-          border: "1px solid #E8EBF1",
-          background: "#fff",
-          padding: "30px 34px",
+          marginTop: 36,
+          borderTop: "1px solid #E8EBF1",
+          paddingTop: 20,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          gap: 24,
+          gap: 20,
           flexWrap: "wrap",
         }}
       >
-        <div style={{ maxWidth: 560 }}>
-          <h2 style={{ fontFamily: GROTESK, fontSize: 21, fontWeight: 600, letterSpacing: "-0.4px", margin: 0 }}>
-            Buying for a project or a business?
-          </h2>
-          <p style={{ fontSize: 14, color: "#56627A", margin: "8px 0 0", lineHeight: 1.55 }}>
-            The Elume workspace turns your BOQ into a priced BOM, compares every brand, and tracks
-            orders to site - open to everyone, no sign-up needed.
-          </p>
-        </div>
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <Link href="/app" style={{ background: "#4E5BDC", color: "#fff", fontSize: 14, fontWeight: 700, padding: "12px 22px", borderRadius: 11 }}>
+        <p style={{ fontSize: 14, color: "#3A4358", margin: 0, lineHeight: 1.55, maxWidth: 620 }}>
+          <strong style={{ color: "#19202E" }}>Buying for a project?</strong>{" "}
+          The workspace turns your BOQ into a priced, brand-compared BOM and tracks orders to site.
+        </p>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <Link href="/app" style={{ background: "#4E5BDC", color: "#fff", fontSize: 13.5, fontWeight: 700, padding: "10px 18px", borderRadius: 8 }}>
             Open the workspace
           </Link>
-          <Link href="/business" style={{ border: "1px solid #E8EBF1", color: "#19202E", fontSize: 14, fontWeight: 600, padding: "12px 22px", borderRadius: 11 }}>
-            How Elume works for business
+          <Link href="/business" style={{ border: "1px solid #D8DCE6", color: "#19202E", fontSize: 13.5, fontWeight: 600, padding: "10px 18px", borderRadius: 8 }}>
+            Elume for business
           </Link>
         </div>
       </section>

@@ -69,7 +69,7 @@ export default function CompareRail({ current, items, pageSlug }: { current: Com
             </Link>
           )}
         </div>
-        <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflowX: "auto" }}>
+        <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 10, overflowX: "auto" }}>
           <div style={{ display: "flex", minWidth: "max-content" }}>
             {/* Frozen label column */}
             <div className="cmp-labels" style={{ display: "flex", flexDirection: "column", position: "sticky", left: 0, zIndex: 3, background: "#fff", flex: "none" }}>

@@ -50,7 +50,7 @@ export default function CollectionBrowser({ kind, title, blurb, rails, brands }:
 
       <div className="col-shell" style={{ display: "grid", gridTemplateColumns: "230px 1fr", gap: 26, alignItems: "start" }}>
         {/* ── Frozen filter rail ── */}
-        <aside className="col-rail" style={{ position: "sticky", top: 86, maxHeight: "calc(100vh - 110px)", overflowY: "auto", background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "16px 16px 18px" }}>
+        <aside className="col-rail" style={{ position: "sticky", top: 86, maxHeight: "calc(100vh - 110px)", overflowY: "auto", background: "#fff", border: "1px solid #E8EBF1", borderRadius: 10, padding: "16px 16px 18px" }}>
           <div style={{ fontSize: 11.5, fontWeight: 700, color: "#8A93A6", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>Jump to category</div>
           <nav style={{ display: "flex", flexDirection: "column", gap: 2, marginBottom: 16 }}>
             {shown.map((r) => (
@@ -79,7 +79,7 @@ export default function CollectionBrowser({ kind, title, blurb, rails, brands }:
         {/* ── Category rails ── */}
         <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 26 }}>
           {shown.length === 0 && (
-            <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "44px 20px", textAlign: "center", color: "#8A93A6", fontSize: 14 }}>
+            <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 10, padding: "44px 20px", textAlign: "center", color: "#8A93A6", fontSize: 14 }}>
               No products match those brands here yet.
             </div>
           )}

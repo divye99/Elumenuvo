@@ -98,7 +98,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       </nav>
 
       <article>
-        <div style={{ display: "inline-flex", fontSize: 11, fontWeight: 700, letterSpacing: "0.4px", textTransform: "uppercase", color: "#4E5BDC", background: "#EEF0FD", padding: "4px 10px", borderRadius: 20, marginBottom: 14 }}>{post.category}</div>
+        <div style={{ display: "inline-flex", fontSize: 11, fontWeight: 700, letterSpacing: "0.4px", textTransform: "uppercase", color: "#4E5BDC", background: "#EEF0FD", padding: "4px 10px", borderRadius: 5, marginBottom: 14 }}>{post.category}</div>
         <h1 style={{ fontFamily: GROTESK, fontSize: 34, fontWeight: 600, letterSpacing: "-1px", lineHeight: 1.12, margin: "0 0 12px" }}>{post.title}</h1>
         <div style={{ fontFamily: MONO, fontSize: 12, color: "#A0A7B5", marginBottom: 24 }}>
           By {post.author} · {new Date(post.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} · {post.readMins} min read
@@ -106,7 +106,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
         {/* TL;DR - the quick answer for skimmers (and a featured-snippet target) */}
         {post.tldr && post.tldr.length > 0 && (
-          <div style={{ background: "#F4F6FE", border: "1px solid #DFE4FA", borderRadius: 14, padding: "18px 22px", margin: "0 0 22px" }}>
+          <div style={{ background: "#F4F6FE", border: "1px solid #DFE4FA", borderRadius: 10, padding: "18px 22px", margin: "0 0 22px" }}>
             <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, letterSpacing: "1.2px", textTransform: "uppercase", color: "#4E5BDC", marginBottom: 10 }}>
               TL;DR · The quick answer
             </div>
@@ -142,7 +142,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
         {/* Buying tips */}
         {post.buyingTips?.length > 0 && (
-          <div style={{ marginTop: 30, background: "#F7F8FB", border: "1px solid #E8EBF1", borderRadius: 14, padding: "22px 24px" }}>
+          <div style={{ marginTop: 30, background: "#F7F8FB", border: "1px solid #E8EBF1", borderRadius: 10, padding: "22px 24px" }}>
             <h2 style={{ fontFamily: GROTESK, fontSize: 18, fontWeight: 600, margin: "0 0 12px" }}>Buying tips</h2>
             <ul style={{ margin: 0, paddingLeft: 18 }}>
               {post.buyingTips.map((t, i) => (
@@ -164,7 +164,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         </div>
 
         {/* CTA */}
-        <div style={{ marginTop: 36, background: "linear-gradient(135deg,#4E5BDC,#1f9d63)", borderRadius: 16, padding: "26px 28px", color: "#fff" }}>
+        <div style={{ marginTop: 36, background: "#161D2B", border: "1px solid #232C40", borderRadius: 10, padding: "26px 28px", color: "#fff" }}>
           <div style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600 }}>Source these on Elume - at transparent prices.</div>
           <p style={{ fontSize: 14.5, opacity: 0.9, margin: "6px 0 16px", maxWidth: 520 }}>
             Compare MRP vs the Elume price across brands, with an extra 5% wholesale rate on 15+ units.

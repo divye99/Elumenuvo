@@ -4,7 +4,6 @@ import HubBrowser from "@/components/storefront/HubBrowser";
 import { fetchProductsLite } from "@/lib/products";
 import { buildHub } from "@/lib/hub";
 import { resolveSlug, slugify } from "@/lib/slug";
-import { CAT_ICONS } from "@/lib/cat-icons";
 
 /** Brand hub: /brand/havells, /brand/rr-kabel ... Trending / Top rated /
  *  Best sellers rails for the brand, then its whole catalogue with the
@@ -52,7 +51,7 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
   // category's hub pre-filtered to THIS brand.
   const strip = cats.map((c) => ({
     label: c,
-    emoji: CAT_ICONS[c] ?? "•",
+    cat: c,
     href: `/category/${slugify(c)}?facet=${encodeURIComponent(brand!)}`,
   }));
 
