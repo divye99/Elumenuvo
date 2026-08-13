@@ -131,7 +131,7 @@ export default function CompareRail({ current, items, pageSlug }: { current: Com
                     ) : (
                       <button
                         onClick={() => addToCart(p)}
-                        style={{ width: "100%", background: "#EEF0FE", color: "#4E5BDC", border: "none", fontWeight: 700, fontSize: 12, padding: "8px 10px", borderRadius: 8, cursor: "pointer" }}
+                        style={{ width: "100%", background: "#4E5BDC", color: "#fff", border: "none", fontWeight: 700, fontSize: 12, padding: "8px 10px", borderRadius: 8, cursor: "pointer" }}
                       >
                         Add to cart
                       </button>

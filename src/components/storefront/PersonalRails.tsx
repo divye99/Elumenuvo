@@ -68,7 +68,7 @@ export default function PersonalRails({ ctx, heading }: { ctx: string; heading?:
                     {added.has(p.id) ? (
                       <Link href="/cart" style={{ display: "block", textAlign: "center", fontSize: 12, fontWeight: 700, color: "#137a4b", padding: "7px 0 0" }}>✓ In cart →</Link>
                     ) : (
-                      <button onClick={() => add(rail, p)} style={{ display: "block", width: "100%", marginTop: 7, background: "#EEF0FE", color: "#4E5BDC", border: "none", fontWeight: 700, fontSize: 12, padding: "7px 0", borderRadius: 8, cursor: "pointer" }}>
+                      <button onClick={() => add(rail, p)} style={{ display: "block", width: "100%", marginTop: 7, background: "#4E5BDC", color: "#fff", border: "none", fontWeight: 700, fontSize: 12, padding: "7px 0", borderRadius: 8, cursor: "pointer" }}>
                         Add to cart
                       </button>
                     )}

@@ -253,7 +253,7 @@ export default function ProductCard({
           ) : isMetalCategory(shown.cat) ? (
             // Metals book via the token flow, never the cart - the card's CTA
             // walks through to the PDP's "Book at today's rate".
-            <div className="pc-cta" style={{ width: "100%", marginTop: 10, background: "#EEF0FE", color: "#4E5BDC", fontWeight: 700, fontSize: 12.5, padding: "8px 10px", borderRadius: 9, textAlign: "center" }}>
+            <div className="pc-cta" style={{ width: "100%", marginTop: 10, background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 12.5, padding: "8px 10px", borderRadius: 9, textAlign: "center" }}>
               Book at today's rate →
             </div>
           ) : (
@@ -266,7 +266,7 @@ export default function ProductCard({
                 setTimeout(() => setAdded(false), 1200);
               }}
               className="pc-cta"
-              style={{ width: "100%", marginTop: 10, background: added ? "#1F9D63" : "#EEF0FE", color: added ? "#fff" : "#4E5BDC", fontWeight: 700, fontSize: 12.5, border: "none", padding: "8px 10px", borderRadius: 9, cursor: "pointer" }}
+              style={{ width: "100%", marginTop: 10, background: added ? "#1F9D63" : "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 12.5, border: "none", padding: "8px 10px", borderRadius: 9, cursor: "pointer" }}
             >
               {added ? "✓ Added" : "Add to cart"}
             </button>
