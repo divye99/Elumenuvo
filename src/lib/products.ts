@@ -14,6 +14,7 @@ type Row = {
   id: string;
   sku: string;
   brand_sku?: string | null;
+  ship_weight_kg?: number | string | null;
   name: string;
   brand: string;
   category: string;
@@ -42,6 +43,7 @@ const toProduct = (r: Row): Product => {
     id: r.id,
     sku: r.sku,
     brandSku: r.brand_sku ?? undefined,
+    shipWeightKg: r.ship_weight_kg != null ? Number(r.ship_weight_kg) : undefined,
     name: r.name,
     brand: r.brand,
     cat: r.category,
@@ -106,13 +108,19 @@ export const PRODUCTS_CACHE_TAG = "products";
  *     full record via fetchProduct and shows all of it, unchanged.
  * Measured: full row set ≈ 1.9 MB, this set ≈ ⅓ of that.
  */
-const CARD_COLS = `${"id, sku, brand_sku, name, brand, category, spec, mrp, elume_price, unit, image_url, units_sold, is_recommended, parent_id, market_low, gst_rate, in_stock, created_at"}, attrs`;
+const CARD_COLS = `${"id, sku, brand_sku, ship_weight_kg, name, brand, category, spec, mrp, elume_price, unit, image_url, units_sold, is_recommended, parent_id, market_low, gst_rate, in_stock, created_at"}, attrs`;
+// Pre-0110 databases have no ship_weight_kg; selecting a missing column is a
+// PostgREST error, and an erroring catalogue fetch would blank the store.
+const CARD_COLS_LEGACY = CARD_COLS.replace("ship_weight_kg, ", "");
 
 async function selectCards(c: NonNullable<ReturnType<typeof client>>, applyFilter: (q: any) => any) {
   // Ratings come from the reviews join (cards show stars); fall back without
-  // the join if the relationship is unavailable rather than losing the grid.
+  // the join if the relationship is unavailable rather than losing the grid,
+  // then without ship_weight_kg on pre-0110 databases.
   let res = await applyFilter(c.from("products").select(`${CARD_COLS}, reviews(rating)`));
   if (res.error) res = await applyFilter(c.from("products").select(CARD_COLS));
+  if (res.error) res = await applyFilter(c.from("products").select(`${CARD_COLS_LEGACY}, reviews(rating)`));
+  if (res.error) res = await applyFilter(c.from("products").select(CARD_COLS_LEGACY));
   return res;
 }
 

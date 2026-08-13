@@ -14,7 +14,7 @@ import { fmt } from "@/lib/format";
 import { identify } from "@/lib/analytics";
 
 type Item = {
-  gstRate?: number; id: string; name: string; brand: string; cat: string; price: number; mrp: number; unit: string; image: string | null };
+  gstRate?: number; id: string; name: string; brand: string; cat: string; price: number; mrp: number; unit: string; image: string | null; shipWeightKg?: number };
 
 export default function BuyAgainShelf() {
   const { add } = useCart();
@@ -55,7 +55,7 @@ export default function BuyAgainShelf() {
             </Link>
             <div style={{ fontSize: 13.5, fontWeight: 700, color: "#19202E", margin: "6px 0 8px" }}>{fmt(p.price)}</div>
             <button
-              onClick={() => { add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.mrp, unit: p.unit, cat: p.cat, gstRate: p.gstRate, image: p.image ?? undefined }); setAdded(p.id); setTimeout(() => setAdded(null), 1800); }}
+              onClick={() => { add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.mrp, unit: p.unit, cat: p.cat, gstRate: p.gstRate, image: p.image ?? undefined, shipWeightKg: p.shipWeightKg }); setAdded(p.id); setTimeout(() => setAdded(null), 1800); }}
               style={{ marginTop: "auto", background: added === p.id ? "#1F9D63" : "#EEF0FD", color: added === p.id ? "#fff" : "#4E5BDC", border: "none", borderRadius: 8, padding: "8px 0", fontSize: 12, fontWeight: 700, cursor: "pointer", transition: "all .15s" }}
             >
               {added === p.id ? "✓ Added" : "Add to cart"}

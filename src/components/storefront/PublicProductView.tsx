@@ -35,13 +35,13 @@ export default function PublicProductView({ p, siblings = [], business = false, 
   // so the generic click listener never sees it - without these the PDP
   // funnel's final step would read zero.
   const toCart = (src = "pdp") => {
-    cart.add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.market, unit: p.unit, cat: p.cat, gstRate: p.gstRate, image: p.image }, qty);
+    cart.add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.market, unit: p.unit, cat: p.cat, gstRate: p.gstRate, image: p.image, shipWeightKg: p.shipWeightKg }, qty);
     track("add_to_cart", { detail: { pid: p.id, src, qty } });
   };
   // Adds the qualifying wholesale quantity directly; must NOT read the qty
   // state (a stale closure would add the stepper's count instead of 15).
   const wholesaleToCart = () => {
-    cart.add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.market, unit: p.unit, cat: p.cat, gstRate: p.gstRate, image: p.image }, WHOLESALE_MIN_QTY);
+    cart.add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.market, unit: p.unit, cat: p.cat, gstRate: p.gstRate, image: p.image, shipWeightKg: p.shipWeightKg }, WHOLESALE_MIN_QTY);
     track("add_to_cart", { detail: { pid: p.id, src: "wholesale", qty: WHOLESALE_MIN_QTY } });
   };
 

@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { shippingFeeFor } from "@/lib/pricing";
+import { shippingFeeFor, isHeavy, HEAVY_FREIGHT_FEE } from "@/lib/pricing";
 import { isMetalCategory } from "@/lib/metals";
 
 /**
@@ -46,6 +46,7 @@ type Row = {
   id: string; name: string; brand: string; category: string; spec: string | null;
   elume_price: number; mrp: number | null; image_url: string | null; images: string[] | null;
   brand_sku: string | null; in_stock: boolean | null; tech_specs: { description?: string } | null;
+  ship_weight_kg?: number | string | null;
 };
 
 /** Products excluded from the feed for Google image-policy disapprovals
@@ -69,13 +70,21 @@ export async function GET() {
 
   const rows: Row[] = [];
   for (let from = 0; ; from += 1000) {
-    const { data, error } = await db
+    let { data, error } = await db
+      .from("products")
+      .select("id,name,brand,category,spec,elume_price,mrp,image_url,images,brand_sku,in_stock,tech_specs,ship_weight_kg")
+      .eq("is_active", true)
+      .gte("elume_price", 1)
+      .order("id")
+      .range(from, from + 999);
+    // Pre-0110 databases have no ship_weight_kg - retry without it.
+    if (error) ({ data, error } = (await db
       .from("products")
       .select("id,name,brand,category,spec,elume_price,mrp,image_url,images,brand_sku,in_stock,tech_specs")
       .eq("is_active", true)
       .gte("elume_price", 1)
       .order("id")
-      .range(from, from + 999);
+      .range(from, from + 999)) as unknown as { data: typeof data; error: typeof error });
     if (error) return new Response("feed unavailable", { status: 503 });
     rows.push(...((data ?? []) as Row[]));
     if (!data || data.length < 1000) break;
@@ -109,7 +118,7 @@ ${idPart}
 ${GOOGLE_CATEGORY[p.category] ? `      <g:google_product_category>${esc(GOOGLE_CATEGORY[p.category])}</g:google_product_category>` : ""}
       <g:shipping>
         <g:country>IN</g:country>
-        <g:price>${shippingFeeFor(p.elume_price).toFixed(2)} INR</g:price>
+        <g:price>${(shippingFeeFor(p.elume_price) + (isHeavy(p.ship_weight_kg != null ? Number(p.ship_weight_kg) : null) ? HEAVY_FREIGHT_FEE : 0)).toFixed(2)} INR</g:price>
       </g:shipping>
     </item>`;
     });

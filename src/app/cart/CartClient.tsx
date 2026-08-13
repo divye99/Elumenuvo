@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import ImageSlot from "@/components/ImageSlot";
 import { GROTESK } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
-import { baseExGst, unitPriceFor, wholesaleEligible, WHOLESALE_MIN_QTY, shippingFeeFor, amountToFreeShipping } from "@/lib/pricing";
+import { baseExGst, unitPriceFor, wholesaleEligible, WHOLESALE_MIN_QTY, shippingFeeFor, amountToFreeShipping, heavyFreightFor, HEAVY_WEIGHT_KG } from "@/lib/pricing";
 import { tileFor } from "@/lib/data";
 import { useCart } from "@/lib/cart";
 
@@ -77,9 +77,15 @@ export default function CartClient() {
               Add {fmt(amountToFreeShipping(total))} more for free delivery
             </div>
           )}
+          {heavyFreightFor(items) > 0 && (
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13.5, marginBottom: 8 }}>
+              <span style={{ color: "#56627A" }}>Heavy-item freight <span style={{ fontSize: 11, color: "#8A93A6" }}>(over {HEAVY_WEIGHT_KG} kg)</span></span>
+              <span style={{ fontFamily: GROTESK, fontWeight: 600 }}>{fmt(heavyFreightFor(items))}</span>
+            </div>
+          )}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", borderTop: "1px solid #F0F2F6", paddingTop: 12, marginBottom: 14 }}>
             <span style={{ fontWeight: 600, fontSize: 14 }}>Total <span style={{ fontSize: 11, color: "#8A93A6", fontWeight: 500 }}>(incl. GST)</span></span>
-            <span style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 700 }}>{fmt(total + shippingFeeFor(total))}</span>
+            <span style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 700 }}>{fmt(total + shippingFeeFor(total) + heavyFreightFor(items))}</span>
           </div>
           <button onClick={() => router.push("/checkout")} style={{ width: "100%", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14.5, border: "none", padding: 13, borderRadius: 11, cursor: "pointer" }}>
             Checkout

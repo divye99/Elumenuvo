@@ -17,7 +17,7 @@ export default function BlogBuyButton({ product }: { product: Product }) {
   const off = product.market > product.price ? Math.round(((product.market - product.price) / product.market) * 100) : 0;
 
   const onAdd = () => {
-    add({ id: product.id, name: product.name, brand: product.brand, price: product.price, mrp: product.market, unit: product.unit, cat: product.cat, gstRate: product.gstRate, image: product.image });
+    add({ id: product.id, name: product.name, brand: product.brand, price: product.price, mrp: product.market, unit: product.unit, cat: product.cat, gstRate: product.gstRate, image: product.image, shipWeightKg: product.shipWeightKg });
     setAdded(true);
     setTimeout(() => setAdded(false), 2600);
   };

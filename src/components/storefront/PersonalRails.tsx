@@ -35,7 +35,7 @@ export default function PersonalRails({ ctx, heading }: { ctx: string; heading?:
   if (!rails) return null;
 
   const add = (rail: Rail, p: RailItem) => {
-    cart.add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.market, unit: p.unit, cat: p.cat, gstRate: p.gstRate, image: p.image }, 1);
+    cart.add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.market, unit: p.unit, cat: p.cat, gstRate: p.gstRate, image: p.image, shipWeightKg: p.shipWeightKg }, 1);
     setAdded((prev) => new Set(prev).add(p.id));
     track("reco_add", { detail: { rail: rail.key, to: p.id, ctx } });
   };

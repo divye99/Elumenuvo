@@ -64,6 +64,7 @@ export type ManagerRow = {
   attrs: Record<string, string> | null;
   gst_rate: number | null;
   hsn: string | null;
+  ship_weight_kg?: number | null;
   sort_order: number;
   image_url: string | null;
   suggestedFactor: number;
@@ -426,6 +427,7 @@ function DetailsTab({ row, onClose }: { row: ManagerRow; onClose: () => void }) 
     is_active: row.is_active, is_recommended: row.is_recommended, in_stock: row.in_stock !== false,
     gst_pct: row.gst_rate != null ? String(Math.round(row.gst_rate * 10000) / 100) : "",
     hsn: row.hsn ?? "",
+    ship_weight_kg: row.ship_weight_kg != null ? String(row.ship_weight_kg) : "",
     Size: row.attrs?.Size ?? "", Length: row.attrs?.Length ?? "", Colour: row.attrs?.Colour ?? "", Quality: row.attrs?.Quality ?? "", Pack: row.attrs?.Pack ?? "",
   });
   const [busy, start] = useTransition();
@@ -442,6 +444,7 @@ function DetailsTab({ row, onClose }: { row: ManagerRow; onClose: () => void }) 
         is_active: f.is_active, is_recommended: f.is_recommended, in_stock: f.in_stock,
         gst_rate: f.gst_pct.trim() === "" ? null : Number(f.gst_pct) / 100,
         hsn: f.hsn,
+        ship_weight_kg: f.ship_weight_kg.trim() === "" ? null : Number(f.ship_weight_kg),
         attrs: { Size: f.Size, Length: f.Length, Colour: f.Colour, Quality: f.Quality, Pack: f.Pack },
       });
       setMsg(res.ok ? { ok: true, t: "Saved." } : { ok: false, t: res.error ?? "Failed." });
@@ -469,6 +472,7 @@ function DetailsTab({ row, onClose }: { row: ManagerRow; onClose: () => void }) 
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2fr", gap: 12, marginBottom: 12 }}>
         <Field label="HSN code"><input value={f.hsn} onChange={set("hsn")} style={inp} placeholder="e.g. 8544" /></Field>
+        <Field label="Ship weight (kg)"><input type="number" step="any" value={f.ship_weight_kg} onChange={set("ship_weight_kg")} style={inp} placeholder="over 10 adds ₹1,000 freight" /></Field>
         <Field label="GST % (blank = category)"><input type="number" step="any" value={f.gst_pct} onChange={set("gst_pct")} style={inp} placeholder={`${Math.round(gstRateFor(row.category) * 100)}`} /></Field>
         <div style={{ alignSelf: "end", fontSize: 11.5, color: "#8A93A6", paddingBottom: 8 }}>
           Leave GST blank to use the {row.category} rate ({Math.round(gstRateFor(row.category) * 100)}%). Set it only when the product&apos;s HSN is taxed differently, e.g. solar lanterns at 5%.

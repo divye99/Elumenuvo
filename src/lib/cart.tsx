@@ -10,6 +10,8 @@ import { baseExGst, unitPriceFor } from "@/lib/pricing";
 import { mergeCart, pushCart } from "@/lib/cart-sync";
 
 export type CartItem = {
+  /** Shipping weight in kg - heavy units (>10 kg) add flat freight. */
+  shipWeightKg?: number;
   id: string;
   name: string;
   brand: string;

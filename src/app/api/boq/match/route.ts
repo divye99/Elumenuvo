@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProfile, isBusiness } from "@/lib/profile";
+import { getProfile, isBusiness, hasPurchases } from "@/lib/profile";
 import { adminClient } from "@/lib/supabase/admin";
 import { fetchProducts } from "@/lib/products";
 import { parseBoqText, parseBoqRows } from "@/lib/boq/parse";
@@ -24,6 +24,9 @@ export async function POST(req: Request) {
   const profile = await getProfile();
   if (!profile) return NextResponse.json({ ok: false, error: "Sign in to use Smart BOM." }, { status: 401 });
   if (!isBusiness(profile)) return NextResponse.json({ ok: false, error: "Smart BOM is available on business accounts." }, { status: 403 });
+  // Owner gate (Aug 2026): early access for business customers WITH a record
+  // of purchase - the tool is not public yet.
+  if (!(await hasPurchases(profile.email))) return NextResponse.json({ ok: false, error: "Smart BOM unlocks after your first order." }, { status: 403 });
 
   let body: Body;
   try { body = await req.json(); } catch { return NextResponse.json({ ok: false, error: "Bad request." }, { status: 400 }); }

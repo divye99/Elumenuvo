@@ -2,7 +2,7 @@
 
 import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { exGst, gstPart, baseExGst, unitPriceFor, shippingFeeFor } from "@/lib/pricing";
+import { exGst, gstPart, baseExGst, unitPriceFor, shippingFeeFor, heavyFreightFor } from "@/lib/pricing";
 import { isMetalCategory } from "@/lib/metals";
 import { DEFAULT_COUNTRY, phoneError, normalisePhoneE164 } from "@/lib/phone";
 import { sendAdminNewOrder, sendCustomerOrderConfirmation } from "@/lib/email";
@@ -14,7 +14,7 @@ import { createRazorpayOrder, verifyPaymentSignature, razorpayConfigured, razorp
  *  Shares one implementation with the rest of the app (lib/phone). */
 const normalisePhone = normalisePhoneE164;
 
-export type CheckoutItem = { id: string; name: string; qty: number; price: number; cat?: string; gstRate?: number; hsn?: string };
+export type CheckoutItem = { id: string; name: string; qty: number; price: number; cat?: string; gstRate?: number; hsn?: string; shipWeightKg?: number };
 export type StructuredOrderAddress = { line1: string; line2: string; line3: string; city: string; district: string; state: string; pin: string; country: string };
 export type PlaceOrderInput = {
   name: string;
@@ -63,7 +63,10 @@ async function validate(
   if (!input.shipping_address.trim()) return { ok: false, error: "Please enter a shipping address." };
 
   const ids = [...new Set(raw.map((i) => i.id))];
-  const { data, error } = await db.from("products").select("id,name,category,elume_price,is_active,gst_rate,hsn,in_stock").in("id", ids);
+  let { data, error } = await db.from("products").select("id,name,category,elume_price,is_active,gst_rate,hsn,in_stock,ship_weight_kg").in("id", ids);
+  // Pre-0110 databases have no ship_weight_kg - retry without it rather than
+  // failing every checkout during the deploy/migration gap.
+  if (error) ({ data, error } = (await db.from("products").select("id,name,category,elume_price,is_active,gst_rate,hsn,in_stock").in("id", ids)) as unknown as { data: typeof data; error: typeof error });
   if (error) return { ok: false, error: "We could not verify prices just now. Please try again." };
   const byId = new Map((data ?? []).map((p) => [p.id, p]));
 
@@ -88,7 +91,7 @@ async function validate(
     const qty = Math.min(Math.floor(i.qty), 9999);
     // The GST rate comes from the product row, never the browser - a per-product
     // rate (solar etc.) overrides the category rate at invoicing time.
-    const meta = p as { gst_rate?: number | string | null; hsn?: string | null };
+    const meta = p as { gst_rate?: number | string | null; hsn?: string | null; ship_weight_kg?: number | string | null };
     const gstRate = meta.gst_rate;
     items.push({
       id: i.id, name: p.name, qty,
@@ -96,6 +99,7 @@ async function validate(
       cat: p.category,
       ...(gstRate != null ? { gstRate: Number(gstRate) } : {}),
       ...(meta.hsn ? { hsn: meta.hsn } : {}),
+      ...(meta.ship_weight_kg != null ? { shipWeightKg: Number(meta.ship_weight_kg) } : {}),
     });
   }
   const total = Math.round(items.reduce((s, i) => s + i.price * i.qty, 0) * 100) / 100;
@@ -372,7 +376,9 @@ export async function startOnlinePayment(input: PlaceOrderInput): Promise<StartP
   // Shipping is tiered on the goods total AFTER the discount - the fee follows
   // what the customer actually pays for the goods, and a code that lifts an
   // order past 4,000 still earns free delivery.
-  const shipping = shippingFeeFor(goodsPayable);
+  // Value-tiered delivery PLUS heavy-item freight (owner rule, Aug 2026):
+  // every unit over 10 kg adds a flat fee; free delivery never waives it.
+  const shipping = shippingFeeFor(goodsPayable) + heavyFreightFor(v.items);
   const payable = Math.round((goodsPayable + shipping) * 100) / 100;
 
   const id = orderId();

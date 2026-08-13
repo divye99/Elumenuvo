@@ -66,6 +66,26 @@ export function amountToFreeShipping(goodsTotal: number): number {
   return Math.max(0, FREE_SHIPPING_MIN - Math.max(0, goodsTotal));
 }
 
+/* ── Heavy-item freight (owner rule, Aug 2026) ──
+ * Courier surcharges on bulky parcels are real: a 17.8 kg pedestal fan cost
+ * ₹1,800 extra to ship. Products carry ship_weight_kg (from brand spec
+ * sheets, class heuristics, or set by hand in admin - migration 0110); any
+ * unit over the threshold adds a flat per-unit freight fee ON TOP of the
+ * value-tiered delivery fee, and free-delivery thresholds never waive it. */
+export const HEAVY_WEIGHT_KG = 10;
+export const HEAVY_FREIGHT_FEE = 1000;
+
+export function isHeavy(shipWeightKg?: number | null): boolean {
+  return shipWeightKg != null && shipWeightKg > HEAVY_WEIGHT_KG;
+}
+
+/** Total heavy-item freight for a set of lines (per unit, per heavy item). */
+export function heavyFreightFor(items: Array<{ shipWeightKg?: number | null; qty: number }>): number {
+  let units = 0;
+  for (const i of items) if (isHeavy(i.shipWeightKg)) units += Math.max(1, Math.floor(i.qty) || 1);
+  return units * HEAVY_FREIGHT_FEE;
+}
+
 /** Discount of the Elume price vs MRP, as a rounded whole percent. */
 export function offMrpPct(elumePrice: number, mrp: number): number {
   if (!mrp || mrp <= 0) return 0;

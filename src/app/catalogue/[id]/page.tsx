@@ -122,7 +122,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       areaServed: { "@type": "Country", name: "India" },
       seller: { "@type": "Organization", name: "Elume Nuvotech Private Limited" },
       hasMerchantReturnPolicy: RETURN_POLICY,
-      shippingDetails: shippingDetailsFor(product.price),
+      shippingDetails: shippingDetailsFor(product.price, product.shipWeightKg),
     },
   };
   const faqs = productFaqs({ name: product.name, brand: product.brand, unit: product.unit });
@@ -148,7 +148,10 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         p={product}
         siblings={siblings}
         abovePrice={pick ? (
-          <a href={`/blog/${pick.slug}`} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12.5, fontWeight: 700, color: "#137a4b", margin: "0 0 10px", borderBottom: "1px dashed #9ECBB1", paddingBottom: 2, width: "fit-content", maxWidth: "100%" }}>
+          // Explicit key: this element is passed as a PROP and rendered inside
+          // an array in ProductDetail - without a key React logs the unique-key
+          // warning on every PDP that has an editorial pick.
+          <a key="editorial-pick" href={`/blog/${pick.slug}`} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12.5, fontWeight: 700, color: "#137a4b", margin: "0 0 10px", borderBottom: "1px dashed #9ECBB1", paddingBottom: 2, width: "fit-content", maxWidth: "100%" }}>
             ⚡ Ranked #{pick.rank} in {pick.postTitle.replace(/ \(2026\).*$/, "")} · {pick.bestFor.replace(/^Best for:?\s*/i, "")} →
           </a>
         ) : undefined}

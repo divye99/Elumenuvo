@@ -4,7 +4,7 @@ import RangeRail from "@/components/storefront/RangeRail";
 import PdpCollapse from "@/components/storefront/PdpCollapse";
 import { GROTESK, MONO } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
-import { wholesalePrice, wholesaleEligible, offMrpPct, WHOLESALE_MIN_QTY, baseExGst } from "@/lib/pricing";
+import { wholesalePrice, wholesaleEligible, offMrpPct, WHOLESALE_MIN_QTY, baseExGst, isHeavy, HEAVY_FREIGHT_FEE } from "@/lib/pricing";
 import { dimsOf } from "@/lib/variants";
 import type { Product, TechSpecs } from "@/lib/data";
 import type { BlogPost } from "@/lib/blog";
@@ -41,7 +41,9 @@ export default function ProductDeepDive({
         {[
           ["🏷️", "100% genuine", "Brand-authorised stock with full manufacturer warranty"],
           ["🧾", "GST invoice", "Tax invoice on every order · GST billing with tax split"],
-          ["🚚", "Pan-India delivery", "3–7 working days to any site in India"],
+          isHeavy(p.shipWeightKg)
+            ? ["🚚", "Heavy item", `${p.shipWeightKg} kg unit - ₹${HEAVY_FREIGHT_FEE.toLocaleString("en-IN")} freight per unit applies at checkout · 3-7 working days`]
+            : ["🚚", "Pan-India delivery", "3–7 working days to any site in India"],
           wholesaleEligible(p.cat)
             ? [
                 "📦",
@@ -50,7 +52,7 @@ export default function ProductDeepDive({
               ]
             : ["📈", "Transparent pricing", "Rates updated against the market through the day - what you see is the live trade rate"],
         ].map(([icon, title, body]) => (
-          <div key={title} className="pdp-trust-card" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "14px 16px" }}>
+          <div key={title} className="pdp-trust-card" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 10, padding: "14px 16px" }}>
             <div style={{ fontSize: 18, marginBottom: 6 }}>{icon}</div>
             <div style={{ fontSize: 13, fontWeight: 700, color: "#19202E" }}>{title}</div>
             <div style={{ fontSize: 11.5, color: "#56627A", lineHeight: 1.45, marginTop: 3 }}>{body}</div>
@@ -200,7 +202,7 @@ function TechSpecsBlock({ t }: { t: TechSpecs }) {
   if (rows.length === 0 && !t.fire_tests?.length) return null;
 
   return (
-    <div className="pdp-card" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
+    <div className="pdp-card" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 10, padding: "24px 28px" }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", margin: "0 0 14px" }}>
         <h3 style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600, letterSpacing: "-0.4px", margin: 0 }}>
           Technical data{t.line ? ` · ${t.line}` : ""}

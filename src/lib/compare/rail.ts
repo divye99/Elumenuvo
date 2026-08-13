@@ -29,6 +29,7 @@ export type CompareItem = {
   cat: string;
   gstRate?: number;
   image?: string;
+  shipWeightKg?: number;
   display: [string, string][];
 };
 

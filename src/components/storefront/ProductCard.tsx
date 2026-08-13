@@ -261,7 +261,7 @@ export default function ProductCard({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                add({ id: shown.id, name: shown.name, brand: shown.brand, price: shown.price, mrp: shown.market, unit: shown.unit, cat: shown.cat, gstRate: shown.gstRate, image: shown.image });
+                add({ id: shown.id, name: shown.name, brand: shown.brand, price: shown.price, mrp: shown.market, unit: shown.unit, cat: shown.cat, gstRate: shown.gstRate, image: shown.image, shipWeightKg: shown.shipWeightKg });
                 setAdded(true);
                 setTimeout(() => setAdded(false), 1200);
               }}

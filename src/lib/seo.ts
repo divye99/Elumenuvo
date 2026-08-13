@@ -6,7 +6,7 @@
 export const SITE = "https://elumenuvo.com";
 
 import { COMPANY, postalAddress, postalAddressOf } from "./company";
-import { shippingFeeFor } from "./pricing";
+import { shippingFeeFor, isHeavy, HEAVY_FREIGHT_FEE } from "./pricing";
 
 /** Organization / publisher identity (add @context where embedded).
  *  A postal address and an identifier (CIN) are what turn this from a name
@@ -92,10 +92,10 @@ export const RETURN_POLICY = {
  * worst case) or understating (still claiming 0) both invite price-mismatch
  * disapprovals.
  */
-export function shippingDetailsFor(inclusivePrice: number) {
+export function shippingDetailsFor(inclusivePrice: number, shipWeightKg?: number | null) {
   return {
     "@type": "OfferShippingDetails",
-    shippingRate: { "@type": "MonetaryAmount", value: shippingFeeFor(inclusivePrice), currency: "INR" },
+    shippingRate: { "@type": "MonetaryAmount", value: shippingFeeFor(inclusivePrice) + (isHeavy(shipWeightKg) ? HEAVY_FREIGHT_FEE : 0), currency: "INR" },
     shippingDestination: { "@type": "DefinedRegion", addressCountry: "IN" },
     deliveryTime: {
       "@type": "ShippingDeliveryTime",

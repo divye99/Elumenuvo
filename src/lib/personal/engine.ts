@@ -131,12 +131,12 @@ export async function sessionTaste(sidToken: string | null): Promise<Taste> {
 
 /* ── rails ── */
 
-export type RailItem = Pick<Product, "id" | "name" | "brand" | "price" | "market" | "unit" | "cat" | "gstRate" | "image" | "inStock"> & { note?: string };
+export type RailItem = Pick<Product, "id" | "name" | "brand" | "price" | "market" | "unit" | "cat" | "gstRate" | "image" | "inStock" | "shipWeightKg"> & { note?: string };
 export type Rail = { key: string; title: string; reason: string; items: RailItem[] };
 
 const toItem = (p: Product, note?: string): RailItem => ({
   id: p.id, name: p.name, brand: p.brand, price: p.price, market: p.market, unit: p.unit,
-  cat: p.cat, gstRate: p.gstRate, image: p.image, inStock: p.inStock, note,
+  cat: p.cat, gstRate: p.gstRate, image: p.image, inStock: p.inStock, shipWeightKg: p.shipWeightKg, note,
 });
 
 function trendLite(p: Product): number {

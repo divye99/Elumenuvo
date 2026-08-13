@@ -102,7 +102,7 @@ export default function CompetitorPriceChart({ series, mrp }: { series: MarketPo
   const tipFlip = tipLeftPct > 62;
 
   return (
-    <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
+    <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 10, padding: "24px 28px" }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
         <div>
           <div style={{ fontFamily: GROTESK, fontWeight: 600, fontSize: 18, letterSpacing: "-0.4px" }}>Price history</div>

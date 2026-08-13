@@ -7,7 +7,7 @@ import SavedPicker, { type PickerOption } from "@/app/checkout/SavedPicker";
 import Link from "next/link";
 import { GROTESK } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
-import { unitPriceFor, baseExGst, shippingFeeFor, amountToFreeShipping } from "@/lib/pricing";
+import { unitPriceFor, baseExGst, shippingFeeFor, amountToFreeShipping, heavyFreightFor } from "@/lib/pricing";
 import { COUNTRIES, DEFAULT_COUNTRY, countryByIso, maxDigits, nationalDigits, normalisePhoneE164, phoneError, toE164 } from "@/lib/phone";
 import { useCart } from "@/lib/cart";
 import { startOnlinePayment, confirmOnlinePayment } from "@/lib/order-actions";
@@ -229,7 +229,7 @@ export default function CheckoutClient({
   // function on the same post-discount goods total), so the figure shown is
   // the figure charged.
   const goodsPayable = Math.round((total - discount) * 100) / 100;
-  const shipping = shippingFeeFor(goodsPayable);
+  const shipping = shippingFeeFor(goodsPayable) + heavyFreightFor(items);
   const toFree = amountToFreeShipping(goodsPayable);
   const payable = Math.round((goodsPayable + shipping) * 100) / 100;
 
@@ -547,7 +547,7 @@ export default function CheckoutClient({
 
           {/* Pay CTA at the natural end of the form, so nobody has to scroll
               back up to the summary after filling everything in. */}
-          <div ref={errRef} style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "16px 18px" }}>
+          <div ref={errRef} style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 10, padding: "16px 18px" }}>
             {err && <div style={{ background: "#FBE9E4", color: "#9a3b16", fontSize: 13, fontWeight: 600, padding: "10px 12px", borderRadius: 9, marginBottom: 12 }}>{err}</div>}
             <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
               <div>
@@ -565,7 +565,7 @@ export default function CheckoutClient({
         </div>
 
         {/* Order summary (sticky beside the form on desktop) */}
-        <div className="co-summary" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "18px 20px", position: "sticky", top: 84 }}>
+        <div className="co-summary" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 10, padding: "18px 20px", position: "sticky", top: 84 }}>
           <div style={{ fontFamily: GROTESK, fontWeight: 600, fontSize: 15, marginBottom: 12 }}>Order summary</div>
           {items.map((it) => (
             <div key={it.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12.5, marginBottom: 7 }}>
@@ -578,7 +578,7 @@ export default function CheckoutClient({
             <SumRow label="Subtotal (excl. GST)" value={fmt(gst.base)} muted />
             <SumRow label="GST" value={fmt(gst.tax)} muted />
             {discount > 0 && <SumRow label={`Discount (${codeState.percent}% · ${code.trim().toUpperCase()})`} value={`− ${fmt(discount)}`} green />}
-            <SumRow label="Delivery" value={shipping > 0 ? fmt(shipping) : "Free"} muted={shipping > 0} green={shipping === 0} />
+            <SumRow label={heavyFreightFor(items) > 0 ? "Delivery + heavy-item freight" : "Delivery"} value={shipping > 0 ? fmt(shipping) : "Free"} muted={shipping > 0} green={shipping === 0} />
             {shipping > 0 && (
               <div style={{ fontSize: 11.5, color: "#137a4b", background: "#F2FBF6", border: "1px solid #DCEDE3", borderRadius: 8, padding: "7px 10px", margin: "2px 0 4px" }}>
                 Add {fmt(toFree)} more for free delivery
@@ -612,7 +612,7 @@ export default function CheckoutClient({
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "16px 18px" }}>
+    <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 10, padding: "16px 18px" }}>
       <div style={{ fontFamily: GROTESK, fontWeight: 600, fontSize: 14, marginBottom: 12 }}>{title}</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>{children}</div>
     </div>

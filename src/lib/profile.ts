@@ -44,3 +44,17 @@ export function isBusiness(p: Profile | null): boolean {
 export function hasGstOnFile(p: Profile | null): boolean {
   return isBusiness(p) && !!p?.gstin;
 }
+
+/** Has this email ever placed an order? The Smart BOM gate (owner, Aug 2026):
+ *  business account + record of purchase. Service-role lookup, fail closed. */
+export async function hasPurchases(email: string): Promise<boolean> {
+  try {
+    const { adminClient } = await import("@/lib/supabase/admin");
+    const db = adminClient();
+    if (!db || !email) return false;
+    const { count } = await db.from("orders").select("id", { count: "exact", head: true }).eq("email", email.toLowerCase());
+    return (count ?? 0) > 0;
+  } catch {
+    return false;
+  }
+}

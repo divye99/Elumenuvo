@@ -85,16 +85,13 @@ export default function HomeStorefront({ products, posts }: { products: Product[
           <h1 style={{ fontFamily: GROTESK, fontSize: "clamp(26px, 5vw, 32px)", fontWeight: 600, letterSpacing: "-0.7px", lineHeight: 1.16, margin: 0 }}>
             India&apos;s premier FMEG marketplace
           </h1>
-          <div className="home-hero-ctawrap" style={{ marginTop: 18, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+          <div className="home-hero-ctawrap" style={{ marginTop: 18 }}>
             <Link
               href="/catalogue"
               className="home-hero-cta"
               style={{ display: "inline-block", background: "#fff", color: "#161D2B", fontSize: 14, fontWeight: 700, padding: "10px 20px", borderRadius: 8 }}
             >
               Shop the catalogue
-            </Link>
-            <Link href="/app/boq" style={{ display: "inline-block", border: "1px solid #3A4763", color: "#C8D2E8", fontSize: 13.5, fontWeight: 600, padding: "10px 18px", borderRadius: 8 }}>
-              Price a BOQ
             </Link>
           </div>
         </div>

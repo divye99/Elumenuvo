@@ -59,7 +59,7 @@ export default function PdpCollapse({
   }, [openOnHash]);
 
   return (
-    <div className="pdp-card pdp-collapse" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: "24px 28px" }}>
+    <div className="pdp-card pdp-collapse" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 10, padding: "24px 28px" }}>
       <button
         className="pdp-collapse-head"
         onClick={() => setOpen((v) => !v)}

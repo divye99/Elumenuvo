@@ -49,7 +49,7 @@ export default function CompareRail({ current, items, pageSlug }: { current: Com
   const specOf = (p: CompareItem, label: string) => p.display.find(([l]) => l === label)?.[1] ?? "-";
 
   const addToCart = (p: CompareItem) => {
-    cart.add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.mrp, unit: p.unit, cat: p.cat, gstRate: p.gstRate, image: p.image }, 1);
+    cart.add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.mrp, unit: p.unit, cat: p.cat, gstRate: p.gstRate, image: p.image, shipWeightKg: p.shipWeightKg }, 1);
     setAdded((prev) => new Set(prev).add(p.id));
     track("compare_add", { detail: { from: current.id, to: p.id } });
   };

@@ -27,6 +27,8 @@ export type Product = {
   marketLow?: number;
   /** false = browsable and price-tracked, but not orderable (migration 0067). */
   inStock?: boolean;
+  /** Shipping weight in kg (migration 0110); > 10 kg adds heavy-item freight. */
+  shipWeightKg?: number;
   /** Row creation time; powers the New releases collection. */
   createdAt?: string;
   /** Variant family - variations point at their parent product via parentId

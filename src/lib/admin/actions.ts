@@ -148,6 +148,8 @@ export async function updateProductDetails(input: {
   /** Per-product GST rate (0.05 = 5%); null clears it back to the category rate. */
   gst_rate?: number | null;
   hsn?: string;
+  /** Shipping weight in kg; > 10 adds heavy-item freight. Null clears. */
+  ship_weight_kg?: number | null;
   attrs: Record<string, string>;
 }): Promise<ActionResult> {
   if (!(await isAdmin())) return { ok: false, error: "Not signed in." };
@@ -172,6 +174,7 @@ export async function updateProductDetails(input: {
     in_stock: input.in_stock,
     gst_rate: gstRate ?? null,
     hsn: input.hsn?.trim() || null,
+    ...(input.ship_weight_kg !== undefined ? { ship_weight_kg: input.ship_weight_kg } : {}),
     attrs: Object.keys(attrs).length ? attrs : null,
   }).eq("id", input.id);
   if (error) return { ok: false, error: error.message };
