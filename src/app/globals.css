@@ -260,7 +260,15 @@ input[type="range"].elume-range::-moz-range-thumb {
      size keeps the scrollbar honest while they are skipped. */
   content-visibility: auto;
   contain-intrinsic-size: auto 340px;
+  /* Equal-height cards: the grid cell stretches to the tallest card in the
+     row, but the card link inside kept its natural height - short cards
+     looked smaller than their row neighbours. Flex the wrapper and let the
+     card fill it; the card's own marginTop:auto price block keeps the price
+     and CTA pinned to the bottom, so the slack lands mid-card. */
+  display: flex;
+  flex-direction: column;
 }
+.pgrid-in > a { flex: 1 1 auto; }
 @media (prefers-reduced-motion: reduce) {
   .pgrid-in { animation: none; }
 }
