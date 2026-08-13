@@ -225,7 +225,7 @@ export default function HomeStorefront({ products, posts }: { products: Product[
       >
         <p style={{ fontSize: 14, color: "#3A4358", margin: 0, lineHeight: 1.55, maxWidth: 620 }}>
           <strong style={{ color: "#19202E" }}>Buying for a project?</strong>{" "}
-          The workspace turns your BOQ into a priced, brand-compared BOM and tracks orders to site.
+          Business accounts get wholesale rates, GST invoicing and order tracking to site.
         </p>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <Link href="/app" style={{ background: "#4E5BDC", color: "#fff", fontSize: 13.5, fontWeight: 700, padding: "10px 18px", borderRadius: 8 }}>
