@@ -47,8 +47,8 @@ export const COMPANY = {
   } as Office,
   /** Corporate Identity Number from the certificate of incorporation. */
   cin: "U27320UP2026PTC243960",
-  /** GST registration number - add once available. */
-  gstin: "",
+  /** GST registration number (certificate: "GST Certificate Elume.pdf"). */
+  gstin: "09AAJCE4953C1ZL",
   country: "India",
 } as const;
 

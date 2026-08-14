@@ -4,6 +4,12 @@ import React, { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { fmt } from "@/lib/format";
+import { gstRateFor } from "@/lib/pricing";
+
+/** Line total ex-GST, exact paise (prices are stored GST-inclusive). */
+const exGstOf = (it: { price?: number; qty: number; cat?: string; gstRate?: number }) =>
+  (it.price ?? 0) * it.qty / (1 + gstRateFor(it.cat, it.gstRate));
+const fmt2 = (n: number) => "₹" + n.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 import OrderStatusBadge, { STATUS_LABEL } from "@/components/admin/OrderStatusBadge";
 import type { OrderRow, Shipment, OrderEvent, OrderItem } from "@/lib/admin/data";
 import type { OrderStatus } from "@/lib/admin/order-actions";
@@ -109,6 +115,13 @@ export default function OrderDetailClient({ order, shipments, events, customer }
                   </span>
                   <span style={{ textAlign: "right", whiteSpace: "nowrap" }}>
                     {it.price != null && <span style={{ fontFamily: "var(--space-grotesk)", fontWeight: 600 }}>{fmt(it.price * it.qty)}</span>}
+                    {it.price != null && (
+                      // Ex-GST alongside inclusive - the paise matter for accounting,
+                      // so this line keeps 2 decimals instead of fmt()'s whole rupees.
+                      <span style={{ display: "block", fontSize: 10.5, color: "#A0A7B5", fontWeight: 600 }}>
+                        {fmt2(exGstOf(it))} ex-GST · {fmt(it.price * it.qty)} incl.
+                      </span>
+                    )}
                     {(it.hsn || it.gstRate != null) && (
                       <span style={{ display: "block", fontSize: 10.5, color: "#A0A7B5", fontWeight: 600 }}>
                         {it.hsn ? `HSN ${it.hsn}` : ""}{it.hsn && it.gstRate != null ? " · " : ""}{it.gstRate != null ? `${Math.round(it.gstRate * 100)}% GST` : ""}
@@ -193,6 +206,29 @@ export default function OrderDetailClient({ order, shipments, events, customer }
 
         {/* ── Right: actions ── */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16, position: "sticky", top: 20 }}>
+          <Card title="Invoices">
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              <a
+                href={`/api/admin/orders/${encodeURIComponent(order.id)}/invoice?type=proforma`}
+                target="_blank"
+                rel="noreferrer"
+                style={{ background: "#fff", border: "1.5px solid #4E5BDC", color: "#4E5BDC", fontWeight: 700, fontSize: 12.5, padding: "9px 14px", borderRadius: 9 }}
+              >
+                Proforma invoice (PDF)
+              </a>
+              <a
+                href={`/api/admin/orders/${encodeURIComponent(order.id)}/invoice?type=tax`}
+                target="_blank"
+                rel="noreferrer"
+                style={{ background: "#4E5BDC", border: "1.5px solid #4E5BDC", color: "#fff", fontWeight: 700, fontSize: 12.5, padding: "9px 14px", borderRadius: 9 }}
+              >
+                Tax invoice (PDF)
+              </a>
+            </div>
+            <p style={{ fontSize: 11.5, color: "#A0A7B5", margin: "10px 0 0" }}>
+              GST format for accounting. The tax invoice gets a sequential FY number on first generation and keeps it forever; the proforma is marked "not a tax invoice" and safe to share before payment.
+            </p>
+          </Card>
           {!isClosed && (
             <Card title="Advance status">
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>

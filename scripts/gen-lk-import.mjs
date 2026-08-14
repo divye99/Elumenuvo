@@ -9,7 +9,7 @@
  * MRP = regular price. brand_sku = exact L&K SKU (the own-store sync
  * auto-maps + auto-applies from it). Photos hotlink L&K's media CDN.
  *
- * Output: supabase/migrations/0111a..N_lk-import-partX.sql (split, PART=450).
+ * Output: supabase/migrations/0112a..N_lk-import-partX.sql (split, PART=450).
  */
 import { readFile, writeFile } from "node:fs/promises";
 
@@ -69,7 +69,7 @@ for (const p of eligible) {
 
 const PART = 450;
 const totalParts = Math.ceil(rows.length / PART);
-const header = (part, count) => `-- 0111 part ${part}/${totalParts}: Lauritz Knudsen (L&K) import - in-stock SKUs Rs 300-50,000.
+const header = (part, count) => `-- 0112 part ${part}/${totalParts}: Lauritz Knudsen (L&K) import - in-stock SKUs Rs 300-50,000.
 -- Source: smartshop.lk-ea.com Magento GraphQL, scraped ${new Date().toISOString().slice(0, 10)} (browser
 -- session; the endpoint WAF-blocks server-side fetches). ${count} rows in this
 -- part. Run parts IN ORDER. Pricing: store selling price -2%; MRP = regular.
@@ -91,6 +91,6 @@ insert into public.competitor_sources (id, name, site_url, enabled, needs_login,
 `;
   }
   const suffix = totalParts > 1 ? String.fromCharCode(97 + part) : "";
-  await writeFile(`supabase/migrations/0111${suffix}_lk-import${totalParts > 1 ? `-part${part + 1}` : ""}.sql`, sql);
+  await writeFile(`supabase/migrations/0112${suffix}_lk-import${totalParts > 1 ? `-part${part + 1}` : ""}.sql`, sql);
 }
 console.log(JSON.stringify({ eligible: eligible.length, rows: rows.length, parts: totalParts, cats: catCount, withImage: rows.filter((r) => r.includes("http")).length }));
