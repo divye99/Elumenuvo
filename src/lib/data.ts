@@ -167,11 +167,14 @@ export function tileFor(cat: string): string {
   return m[cat] || "linear-gradient(135deg,#F1F3F8,#E6E9F1)";
 }
 
+// First 16 fill the desktop mega menu (CatalogueMegaMenu slices 0..16); the
+// full list feeds the mobile drawer and landing page. New own-catalogue
+// brands (Lauritz Knudsen, Rajdhani) sit inside the menu cut on purpose.
 export const HOME_BRANDS = [
   "Havells", "Polycab", "KEI", "RR Kabel", "Finolex", "Anchor",
   "Atomberg", "Crompton", "Orient", "Usha",
-  "Legrand", "Schneider", "ABB", "Norisys", "APAR",
-  "Philips", "Syska", "Wipro", "CMI", "Elume",
+  "Legrand", "Lauritz Knudsen", "Schneider", "ABB", "Rajdhani", "Syska",
+  "Norisys", "APAR", "Philips", "Wipro", "CMI", "Elume",
 ];
 
 export const STEPS = [

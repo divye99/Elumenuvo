@@ -41,7 +41,7 @@ export default function AboutPage() {
           body: (
             <>
               We are a multi-brand retailer. We list genuine, branded products from manufacturers including Havells,
-              Polycab, Finolex, Crompton, Schneider, Legrand, ABB, Orient, Atomberg and Syska, alongside our own
+              Polycab, Finolex, Crompton, Schneider, Legrand, Lauritz Knudsen, ABB, Rajdhani, Orient, Atomberg and Syska, alongside our own
               Elume-branded house wires. We are not the manufacturer of third-party brands and we do not claim to be
               their authorised distributor unless stated on the product page. Goods are sourced through the trade and
               sold new, in original packaging, with the manufacturer&apos;s warranty intact.

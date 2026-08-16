@@ -67,7 +67,7 @@ export default function CatalogueMegaMenu() {
 
           <div>
             <div style={head}>Brands</div>
-            {HOME_BRANDS.slice(0, 14).map((b) => (
+            {HOME_BRANDS.slice(0, 16).map((b) => (
               <Link key={b} href={`/brand/${slugify(b)}`} style={item} onClick={() => setOpen(false)}
                 onMouseEnter={(e) => (e.currentTarget.style.background = "#F5F6F9")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
