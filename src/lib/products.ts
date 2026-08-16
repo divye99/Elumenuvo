@@ -14,6 +14,7 @@ type Row = {
   id: string;
   sku: string;
   brand_sku?: string | null;
+  elin?: string | null;
   ship_weight_kg?: number | string | null;
   name: string;
   brand: string;
@@ -43,6 +44,7 @@ const toProduct = (r: Row): Product => {
     id: r.id,
     sku: r.sku,
     brandSku: r.brand_sku ?? undefined,
+    elin: r.elin ?? undefined,
     shipWeightKg: r.ship_weight_kg != null ? Number(r.ship_weight_kg) : undefined,
     name: r.name,
     brand: r.brand,
@@ -108,10 +110,13 @@ export const PRODUCTS_CACHE_TAG = "products";
  *     full record via fetchProduct and shows all of it, unchanged.
  * Measured: full row set ≈ 1.9 MB, this set ≈ ⅓ of that.
  */
-const CARD_COLS = `${"id, sku, brand_sku, ship_weight_kg, name, brand, category, spec, mrp, elume_price, unit, image_url, units_sold, is_recommended, parent_id, market_low, gst_rate, in_stock, created_at"}, attrs`;
-// Pre-0110 databases have no ship_weight_kg; selecting a missing column is a
+const CARD_COLS = `${"id, sku, brand_sku, elin, ship_weight_kg, name, brand, category, spec, mrp, elume_price, unit, image_url, units_sold, is_recommended, parent_id, market_low, gst_rate, in_stock, created_at"}, attrs`;
+// Pre-migration databases miss columns; selecting a missing column is a
 // PostgREST error, and an erroring catalogue fetch would blank the store.
-const CARD_COLS_LEGACY = CARD_COLS.replace("ship_weight_kg, ", "");
+// Fallback ladder: no elin (pre-0116), then neither elin nor ship_weight_kg
+// (pre-0110).
+const CARD_COLS_NO_ELIN = CARD_COLS.replace("elin, ", "");
+const CARD_COLS_LEGACY = CARD_COLS_NO_ELIN.replace("ship_weight_kg, ", "");
 
 async function selectCards(c: NonNullable<ReturnType<typeof client>>, applyFilter: (q: any) => any) {
   // Ratings come from the reviews join (cards show stars); fall back without
@@ -119,9 +124,26 @@ async function selectCards(c: NonNullable<ReturnType<typeof client>>, applyFilte
   // then without ship_weight_kg on pre-0110 databases.
   let res = await applyFilter(c.from("products").select(`${CARD_COLS}, reviews(rating)`));
   if (res.error) res = await applyFilter(c.from("products").select(CARD_COLS));
+  if (res.error) res = await applyFilter(c.from("products").select(`${CARD_COLS_NO_ELIN}, reviews(rating)`));
+  if (res.error) res = await applyFilter(c.from("products").select(CARD_COLS_NO_ELIN));
   if (res.error) res = await applyFilter(c.from("products").select(`${CARD_COLS_LEGACY}, reviews(rating)`));
   if (res.error) res = await applyFilter(c.from("products").select(CARD_COLS_LEGACY));
   return res;
+}
+
+/** Look a product up by its ELIN (migration 0116). Used by the /catalogue
+ *  route to 301 an ELIN URL to the product's canonical address, and by admin
+ *  tooling. Returns null pre-0116 (missing column) instead of erroring. */
+export async function fetchProductByElin(elin: string): Promise<Product | null> {
+  const c = client();
+  if (!c) return null;
+  try {
+    const { data, error } = await selectProducts(c, (q) => q.eq("elin", elin.trim().toUpperCase()).maybeSingle());
+    if (error || !data) return null;
+    return toProduct(data as Row);
+  } catch {
+    return null;
+  }
 }
 
 /** The catalogue is cached in CHUNKS of raw rows, mapped after retrieval:

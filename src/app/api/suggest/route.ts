@@ -39,6 +39,31 @@ export async function GET(request: Request) {
 
   const words = q.split(/\s+/).map(safe).filter((w) => w.length >= 1).slice(0, 6);
   if (!words.length) return NextResponse.json({ terms: [], products: [] }, { status: 200 });
+
+  // Exact-code fast path (ASIN behaviour): a pasted ELIN / our SKU / brand
+  // SKU resolves straight to its product, ahead of any word matching. Two
+  // spellings tried: as typed, and whitespace-stripped ("r-fs 001" and
+  // "rfs001" both reach "R-FS 001"). Pre-0116 databases (no elin column)
+  // fall through silently to normal matching.
+  const codeRaw = q.replace(/[^A-Za-z0-9 ._\/-]/g, "").trim();
+  if (codeRaw.length >= 4 && /\d/.test(codeRaw)) {
+    for (const cand of [...new Set([codeRaw, codeRaw.replace(/\s+/g, "")])]) {
+      try {
+        const cu = `${URL_}/rest/v1/products?select=id,name,brand,category,elume_price,image_url,units_sold,is_recommended,gst_rate&or=(elin.ilike.${encodeURIComponent(cand)},sku.ilike.${encodeURIComponent(cand)},brand_sku.ilike.${encodeURIComponent(cand)})&is_active=eq.true&limit=3`;
+        const cr = await fetch(cu, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` }, next: { revalidate: 300 } });
+        if (cr.ok) {
+          const hits = (await cr.json()) as Row[];
+          if (hits.length) {
+            return NextResponse.json({
+              terms: [],
+              products: hits.map((r) => ({ id: r.id, name: r.name, brand: r.brand, cat: r.category, price: Number(r.elume_price), gstRate: r.gst_rate != null ? Number(r.gst_rate) : undefined, image: r.image_url })),
+              exact: true,
+            });
+          }
+        }
+      } catch { /* fall through to word matching */ }
+    }
+  }
   // Learned signals from the query log (cached 10 min; empty when cold).
   const signals = await loadSearchSignals();
   const normQ = normalizeSearchText(q);

@@ -342,7 +342,11 @@ function techSpecs(p: Product): [string, string][] {
   }
 
   add("Brand", p.brand);
-  add("SKU", p.sku);
+  // Identity rows: our permanent ELIN alongside the manufacturer's code.
+  // Older products show their legacy SKU until 0116's elin backfill is live.
+  add("Elume SKU (ELIN)", p.elin ?? p.sku);
+  if (p.brandSku && p.brandSku !== p.elin) add("Brand SKU", p.brandSku);
+  else if (!p.elin && p.sku !== p.brandSku) add("SKU", p.sku);
   add("Sold as", `Per ${p.unit}`);
 
   // Manufacturer spec table (brand-site imports): append rows the category

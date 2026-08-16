@@ -10,6 +10,8 @@ export type Product = {
    *  quote these, so the Smart BOM matcher indexes them. Shopify-synced
    *  brands carry "handle::variantId" here (not a real catalogue number). */
   brandSku?: string;
+  /** ELIN - our permanent ASIN-style identifier (migration 0116). */
+  elin?: string;
   cat: string;
   price: number;
   market: number;

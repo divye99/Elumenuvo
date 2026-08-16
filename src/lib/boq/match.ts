@@ -77,7 +77,7 @@ export function buildBoqIndex(products: Product[]): BoqIndex {
     if (isMetalCategory(p.cat)) continue;
     byId.set(p.id, p);
     const codes: string[] = [];
-    for (const c of [p.sku, p.brandSku]) {
+    for (const c of [p.sku, p.brandSku, p.elin]) {
       if (!c) continue;
       // Shopify brands store brand_sku as "handle::variantId" - not a code a
       // contractor would ever write; only index real catalogue numbers.

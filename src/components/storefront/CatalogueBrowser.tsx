@@ -106,17 +106,30 @@ export default function CatalogueBrowser({
 
   const { filtered, correctedTo, partial } = useMemo(() => {
     // Word-based matching, same rule as the header's suggest API: EVERY word
-    // must appear somewhere in brand/name/spec/sku/category. A whole-string
-    // substring test made "hav mcb" (a suggestion the search bar itself
-    // offers) return zero results, since no single field contains it.
+    // must appear somewhere in brand/name/spec/sku/elin/brand-sku/category.
+    // A whole-string substring test made "hav mcb" (a suggestion the search
+    // bar itself offers) return zero results, since no single field contains it.
     let tokens = searchTokens(dq);
     const match = (toks: string[]) =>
       products.filter((p) => {
         const inCat = cat === "All" || p.cat === cat;
         const inBrand = picked.size === 0 || picked.has(p.brand);
-        const inSearch = toks.length === 0 || matchesAll(`${p.brand} ${p.name} ${p.spec} ${p.sku} ${p.cat}`, toks);
+        const inSearch = toks.length === 0 || matchesAll(`${p.brand} ${p.name} ${p.spec} ${p.sku} ${p.elin ?? ""} ${p.brandSku ?? ""} ${p.cat}`, toks);
         return inCat && inBrand && inSearch;
       });
+
+    // Exact-code short-circuit (ASIN behaviour): a query that IS an ELIN,
+    // our SKU or a manufacturer SKU returns exactly that product, ahead of
+    // any word matching. Whitespace-insensitive so "r-fs 001" hits "R-FS 001".
+    const codeQ = dq.replace(/\s+/g, "").toUpperCase();
+    if (codeQ.length >= 4) {
+      const exact = products.filter((p) =>
+        [p.elin, p.sku, p.brandSku].some((v) => v && v.replace(/\s+/g, "").toUpperCase() === codeQ)
+      );
+      if (exact.length > 0) {
+        return { filtered: exact, correctedTo: null, partial: null };
+      }
+    }
 
     let list = match(tokens);
     let correctedTo: string | null = null;

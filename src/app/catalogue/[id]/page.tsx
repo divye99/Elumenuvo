@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { jsonLd as toJsonLd } from "@/lib/jsonld";
-import { notFound } from "next/navigation";
-import { fetchProduct, fetchFamily } from "@/lib/products";
+import { notFound, permanentRedirect } from "next/navigation";
+import { fetchProduct, fetchFamily, fetchProductByElin } from "@/lib/products";
+import { isElin, normalizeElin } from "@/lib/elin";
 import { getEditorialPicks } from "@/lib/blog";
 import Link from "next/link";
 import { fetchReviews } from "@/lib/reviews";
@@ -52,9 +53,22 @@ const SITE = "https://elumenuvo.com";
  *  prefixed for OG tags and JSON-LD. */
 const absImage = (u?: string) => (u ? (u.startsWith("http") ? u : `${SITE}${u}`) : undefined);
 
+/** ELIN URLs resolve for every product: new imports use the ELIN AS the id,
+ *  and for older products /catalogue/<ELIN> 301s to the canonical slug URL
+ *  (existing URLs stay indexed - no re-crawl churn, owner decision Aug 2026). */
+async function resolveOrRedirect(id: string) {
+  const p = await fetchProduct(id);
+  if (p) return p;
+  if (isElin(id)) {
+    const byElin = await fetchProductByElin(normalizeElin(id));
+    if (byElin) permanentRedirect(`/catalogue/${encodeURIComponent(byElin.id)}`);
+  }
+  return null;
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  const p = await fetchProduct(id);
+  const p = await resolveOrRedirect(id);
   // notFound() HERE, not only in the page: metadata resolves before the
   // response streams, so a missing product 404s even though the page body
   // now streams behind a loading skeleton. (The skeleton is exactly the
@@ -78,7 +92,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const product = await fetchProduct(id);
+  const product = await resolveOrRedirect(id);
   const pick = product ? getEditorialPicks()[product.id] ?? null : null;
   if (!product) notFound();
 
