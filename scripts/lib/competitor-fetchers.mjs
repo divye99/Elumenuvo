@@ -69,6 +69,40 @@ function magentoFetch(base) {
   };
 }
 
+/** ABB eMart (shop.in.abb.com): Magento GraphQL, but GET lookups are blocked
+ *  and the sku-filter index is empty - only POST + full-text search works
+ *  (mirrors abbAdapter in src/lib/competitors/brands.ts). We search the SKU
+ *  and take the exact-sku hit from the results. */
+async function abbFetch(sku) {
+  const b = "https://shop.in.abb.com";
+  const FIELDS = "items{sku name url_key canonical_url stock_status price_range{minimum_price{regular_price{value} final_price{value}}}}";
+  try {
+    const q = `query{products(search:${JSON.stringify(String(sku))},pageSize:10){${FIELDS}}}`;
+    const r = await fetch(`${b}/graphql`, {
+      method: "POST",
+      headers: { "User-Agent": UA, "Content-Type": "application/json", Accept: "application/json", Store: "default" },
+      body: JSON.stringify({ query: q }),
+    });
+    if (!r.ok) return null;
+    const items = (await r.json())?.data?.products?.items ?? [];
+    const want = String(sku).replace(/\s+/g, "").toUpperCase();
+    const norm = (x) => String(x?.sku ?? "").replace(/\s+/g, "").toUpperCase();
+    // Exact hit first; else accept a lone "-N"-suffixed listing (the store
+    // carries some catalogue numbers as 1SDA066515R1-1) when unambiguous.
+    let it = items.find((x) => norm(x) === want) ?? null;
+    if (!it) {
+      const suffixed = items.filter((x) => /^-\d+$/.test(norm(x).slice(want.length)) && norm(x).startsWith(want));
+      if (suffixed.length === 1) it = suffixed[0];
+    }
+    if (!it) return null;
+    const mp = it.price_range?.minimum_price ?? {};
+    const regular = num(mp.regular_price?.value);
+    const final = num(mp.final_price?.value);
+    const rel = it.canonical_url ? String(it.canonical_url).replace(/^\/+/, "") : it.url_key ?? null;
+    return { code: String(it.sku ?? sku), name: String(it.name ?? ""), listPrice: regular ?? final, netPrice: final, url: rel ? `${b}/${rel}` : null, inStock: it.stock_status ? it.stock_status === "IN_STOCK" : null };
+  } catch { return null; }
+}
+
 function dukaanFetch(base) {
   const b = base.replace(/\/+$/, "");
   return async (slug) => {
@@ -119,6 +153,7 @@ export const FETCHERS = {
   orient: shopifyFetch("https://orientelectric.com"),
   legrand: magentoFetch("https://shop.legrand.co.in"),
   havells: magentoFetch("https://havells.com"),
+  abb: abbFetch,
   atomberg: magentoFetch("https://atomberg.com"),
   syska: dukaanFetch("https://syska.co.in"),
   handypanda: handypandaFetch,
