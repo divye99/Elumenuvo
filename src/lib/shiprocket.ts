@@ -98,6 +98,10 @@ export type CourierOption = {
   chargeWeightKg: number | null;
   /** Days until the courier can pick up (0 = today, 1 = tomorrow, ...). */
   pickupInDays: number | null;
+  /** The AUTHORITATIVE next-possible-pickup date ("Aug 18, 2026") - the
+   *  API's suppress_date. pickup_availability says "0" even past the daily
+   *  cutoff, so this date is what the UI must show. */
+  pickupDate: string | null;
   /** Same-day pickup order cutoff, e.g. "11:00". */
   cutoffTime: string | null;
   mode: "Surface" | "Air";
@@ -135,6 +139,7 @@ export async function getRates(input: {
       cod: Number(c.cod) === 1,
       chargeWeightKg: c.charge_weight != null ? Number(c.charge_weight) : null,
       pickupInDays: c.pickup_availability != null && c.pickup_availability !== "" ? Number(c.pickup_availability) : null,
+      pickupDate: c.suppress_date ? String(c.suppress_date) : null,
       cutoffTime: c.cutoff_time ? String(c.cutoff_time) : null,
       mode: (c.is_surface === true || c.is_surface === "true" ? "Surface" : "Air") as "Surface" | "Air",
       pickupRating: c.pickup_performance != null ? Number(c.pickup_performance) : null,
@@ -143,6 +148,17 @@ export async function getRates(input: {
       callBeforeDelivery: /avail/i.test(String(c.call_before_delivery ?? "")),
     }))
     .sort((a, b) => a.rate - b.rate);
+}
+
+/** Current Shiprocket wallet balance in Rs, or null if unavailable. */
+export async function walletBalance(): Promise<number | null> {
+  try {
+    const j = await api<any>("/account/details/wallet-balance");
+    const b = Number(j?.data?.balance_amount);
+    return Number.isFinite(b) ? b : null;
+  } catch {
+    return null;
+  }
 }
 
 /* ── Booking ──────────────────────────────────────────────────────── */

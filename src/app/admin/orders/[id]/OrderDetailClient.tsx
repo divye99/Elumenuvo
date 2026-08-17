@@ -206,6 +206,8 @@ export default function OrderDetailClient({ order, shipments, events, customer }
 
         {/* ── Right: actions ── */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16, position: "sticky", top: 20 }}>
+          {/* Shipping first (owner): it is the most-used action on an open order. */}
+          {!isClosed && anyRemaining && <ShipmentForm orderId={order.id} remaining={remaining} pending={pending} run={run} />}
           <Card title="Invoices">
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               <a
@@ -324,8 +326,6 @@ export default function OrderDetailClient({ order, shipments, events, customer }
             <RefundPanel order={order} run={run} pending={pending} />
           )}
 
-          {!isClosed && anyRemaining && <ShipmentForm orderId={order.id} remaining={remaining} pending={pending} run={run} />}
-
           {!isClosed && (
             <CancelBox orderId={order.id} pending={pending} run={run} />
           )}
@@ -344,11 +344,11 @@ export default function OrderDetailClient({ order, shipments, events, customer }
 
 type SrCourier = {
   courierId: number; name: string; rate: number; etd: string; estimatedDays: number; rating: number | null;
-  chargeWeightKg: number | null; pickupInDays: number | null; cutoffTime: string | null;
+  chargeWeightKg: number | null; pickupInDays: number | null; pickupDate: string | null; cutoffTime: string | null;
   mode: "Surface" | "Air"; pickupRating: number | null; deliveryRating: number | null;
   realtimeTracking: boolean; callBeforeDelivery: boolean;
 };
-type SrRates = { ok: true; couriers: SrCourier[]; pickups: { name: string; city: string; pin: string }[]; pickup: string; deliveryPin: string } | { ok: false; error: string };
+type SrRates = { ok: true; couriers: SrCourier[]; pickups: { name: string; city: string; pin: string }[]; pickup: string; deliveryPin: string; balance: number | null } | { ok: false; error: string };
 type SrShip = { ok: true; awb: string; courierName: string; freight: number | null; labelUrl: string | null; pickupScheduled: boolean } | { ok: false; error: string };
 
 function ShipmentForm({ orderId, remaining, pending, run }: { orderId: string; remaining: (OrderItem & { remaining: number })[]; pending: boolean; run: (fn: () => Promise<any>) => void }) {
@@ -495,14 +495,25 @@ function ShipmentForm({ orderId, remaining, pending, run }: { orderId: string; r
             </div>
             <p style={{ fontSize: 12, color: "#8A93A6", margin: "0 0 12px" }}>
               {rates.pickup} → {rates.deliveryPin} · entered {Number(weight).toFixed(2)} kg dead · {((Number(dims.l) * Number(dims.b) * Number(dims.h)) / 5000 || 0).toFixed(2)} kg volumetric ({dims.l}×{dims.b}×{dims.h} cm ÷ 5000). Couriers bill the higher "chargeable" weight shown per row.
+              {rates.balance != null && (
+                <span style={{ display: "inline-block", marginLeft: 8, fontWeight: 700, color: rates.balance < 500 ? "#C2410C" : "#1F9D63" }}>
+                  Shiprocket wallet: ₹{rates.balance.toLocaleString("en-IN")}{rates.balance < 500 ? " - low, recharge before booking" : ""}
+                </span>
+              )}
             </p>
             {rates.couriers.length === 0 && <p style={{ fontSize: 13, color: "#B4690E" }}>No courier serves this route at this weight.</p>}
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {rates.couriers.slice(0, 10).map((c) => {
-                const pickupLabel = c.pickupInDays == null ? "-"
-                  : c.pickupInDays === 0 ? `Today${c.cutoffTime ? ` (order by ${c.cutoffTime})` : ""}`
-                  : c.pickupInDays === 1 ? "Tomorrow"
-                  : new Date(Date.now() + c.pickupInDays * 86400000).toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+                // suppress_date is the courier's real next-pickup date - the
+                // bare pickup_availability flag claims "today" even past the
+                // daily cutoff, which mislabelled evening bookings.
+                const pd = c.pickupDate ? new Date(c.pickupDate) : null;
+                const sameDay = pd && pd.toDateString() === new Date().toDateString();
+                const pickupLabel = pd
+                  ? sameDay
+                    ? `Today${c.cutoffTime ? ` (by ${c.cutoffTime})` : ""}`
+                    : pd.toLocaleDateString("en-IN", { day: "2-digit", month: "short" })
+                  : "-";
                 const sel = courierId === c.courierId;
                 return (
                   <label key={c.courierId} style={{ display: "grid", gridTemplateColumns: "18px 1.4fr 1fr 1fr 0.9fr 0.7fr", alignItems: "center", gap: 10, border: `1.5px solid ${sel ? "#4E5BDC" : "#E8EBF1"}`, borderRadius: 11, padding: "10px 12px", cursor: "pointer", background: sel ? "#F6F7FE" : "#fff" }}>

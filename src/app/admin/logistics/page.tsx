@@ -1,5 +1,6 @@
 import { requireAdmin } from "@/lib/admin/auth";
 import { adminClient } from "@/lib/supabase/admin";
+import { walletBalance } from "@/lib/shiprocket";
 import Link from "next/link";
 
 /**
@@ -43,9 +44,15 @@ export default async function LogisticsPage() {
   const db = adminClient();
   if (!db) return <p style={{ color: "#8A93A6" }}>Service key missing.</p>;
 
-  let { data: ships, error } = await db.from("order_shipments").select("*").not("awb", "is", null).order("created_at", { ascending: false }).limit(1000);
-  if (error) ({ data: ships } = await db.from("order_shipments").select("*").order("created_at", { ascending: false }).limit(1000));
+  const [shipsRes, balance, quotesRes] = await Promise.all([
+    db.from("order_shipments").select("*").not("awb", "is", null).order("created_at", { ascending: false }).limit(1000),
+    walletBalance().catch(() => null),
+    db.from("courier_quotes").select("courier_name, delivery_state, mode, rate, est_days, charge_weight_kg, chosen").order("created_at", { ascending: false }).limit(5000),
+  ]);
+  let ships = shipsRes.data;
+  if (shipsRes.error) ({ data: ships } = await db.from("order_shipments").select("*").order("created_at", { ascending: false }).limit(1000));
   const all = (ships ?? []) as Ship[];
+  const quotes = (quotesRes.data ?? []) as { courier_name: string; delivery_state: string | null; mode: string | null; rate: number; est_days: number | null; charge_weight_kg: number | null; chosen: boolean }[];
 
   const orderIds = [...new Set(all.map((s) => s.order_id))];
   const { data: orderRows } = orderIds.length
@@ -119,11 +126,33 @@ export default async function LogisticsPage() {
   const h2: React.CSSProperties = { fontSize: 14, fontWeight: 800, margin: "0 0 4px", color: "#19202E" };
   const sub: React.CSSProperties = { fontSize: 12, color: "#8A93A6", margin: "0 0 10px" };
 
+  /* Rate intelligence: per lane (destination state x weight band), how each
+     courier PRICES and PROMISES. Every rate check in the ship panel logs all
+     options here, so this sharpens with every quote - the foundation for a
+     learned "best partner" recommendation once outcomes accumulate. */
+  const band = (kg: number | null) => (kg == null ? "?" : kg < 2 ? "<2 kg" : kg < 5 ? "2-5 kg" : kg < 10 ? "5-10 kg" : "10+ kg");
+  const lanes = new Map<string, Map<string, { rates: number[]; days: number[]; n: number; chosen: number }>>();
+  for (const q of quotes) {
+    const laneKey = `${q.delivery_state ?? "Unknown"} · ${band(q.charge_weight_kg)}`;
+    if (!lanes.has(laneKey)) lanes.set(laneKey, new Map());
+    const l = lanes.get(laneKey)!;
+    if (!l.has(q.courier_name)) l.set(q.courier_name, { rates: [], days: [], n: 0, chosen: 0 });
+    const e = l.get(q.courier_name)!;
+    e.rates.push(Number(q.rate)); if (q.est_days) e.days.push(q.est_days); e.n++; if (q.chosen) e.chosen++;
+  }
+
   return (
     <div>
-      <h1 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 2px" }}>Logistics</h1>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 2px" }}>Logistics</h1>
+        {balance != null && (
+          <span style={{ fontSize: 13, fontWeight: 700, color: balance < 500 ? "#C2410C" : "#1F9D63", background: balance < 500 ? "#FBE9E4" : "#E6F5EE", borderRadius: 9, padding: "6px 12px" }}>
+            Shiprocket wallet: ₹{balance.toLocaleString("en-IN")}{balance < 500 ? " · low - recharge" : ""}
+          </span>
+        )}
+      </div>
       <p style={{ fontSize: 12.5, color: "#8A93A6", margin: "0 0 16px" }}>
-        Telemetry from Shiprocket bookings. Parcels shipped manually (no AWB telemetry) appear with blank cost/promise columns.
+        Telemetry from Shiprocket bookings. Parcels shipped manually (no AWB telemetry) appear with blank cost/promise columns - those fill from your first Shiprocket booking onward.
       </p>
 
       {/* Funnel strip */}
@@ -203,6 +232,51 @@ export default async function LogisticsPage() {
               </tbody>
             </table>
           </>
+        )}
+      </div>
+
+      {/* Rate intelligence */}
+      <div style={card}>
+        <h2 style={h2}>Rate intelligence {quotes.length > 0 && <span style={{ fontWeight: 600, color: "#8A93A6", fontSize: 12 }}>· {quotes.length} quotes logged</span>}</h2>
+        <p style={sub}>
+          Every rate check logs every courier option (price, promised days, chargeable weight) per lane - destination state × weight band. The cheapest and the most-picked courier per lane emerge from your own data; as delivery outcomes accumulate, promised-vs-actual joins this to score true best partners.
+        </p>
+        {quotes.length === 0 ? (
+          <p style={{ ...td, borderBottom: "none" }}>No quotes yet - run "Compare couriers" on any order and every option shown lands here (migration 0119).</p>
+        ) : (
+          [...lanes.entries()].map(([laneKey, l]) => {
+            const rows = [...l.entries()].map(([name, e]) => ({
+              name, n: e.n, chosen: e.chosen,
+              avgRate: e.rates.reduce((a, b) => a + b, 0) / e.rates.length,
+              minRate: Math.min(...e.rates),
+              avgDays: e.days.length ? e.days.reduce((a, b) => a + b, 0) / e.days.length : null,
+            })).sort((a, b) => a.avgRate - b.avgRate);
+            const fastest = rows.filter((r) => r.avgDays != null).sort((a, b) => (a.avgDays! - b.avgDays!))[0]?.name;
+            return (
+              <div key={laneKey} style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: "#3A4358", margin: "4px 0 6px" }}>{laneKey}</div>
+                <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 560 }}>
+                  <thead><tr>{["Courier", "Quotes", "Avg price", "Best price", "Avg promised d", "Picked"].map((h) => <th key={h} style={th}>{h}</th>)}</tr></thead>
+                  <tbody>
+                    {rows.map((r, i) => (
+                      <tr key={r.name}>
+                        <td style={{ ...td, fontWeight: 700 }}>
+                          {r.name}
+                          {i === 0 && <span style={{ marginLeft: 6, fontSize: 9.5, fontWeight: 800, color: "#1F9D63", background: "#E6F5EE", borderRadius: 6, padding: "1px 6px" }}>CHEAPEST</span>}
+                          {r.name === fastest && <span style={{ marginLeft: 6, fontSize: 9.5, fontWeight: 800, color: "#4E5BDC", background: "#EEF0FE", borderRadius: 6, padding: "1px 6px" }}>FASTEST</span>}
+                        </td>
+                        <td style={td}>{r.n}</td>
+                        <td style={td}>{rs(r.avgRate)}</td>
+                        <td style={td}>{rs(r.minRate)}</td>
+                        <td style={td}>{r.avgDays != null ? r.avgDays.toFixed(1) : "-"}</td>
+                        <td style={td}>{r.chosen > 0 ? `${r.chosen}×` : "-"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          })
         )}
       </div>
 
