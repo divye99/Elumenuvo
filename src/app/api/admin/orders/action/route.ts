@@ -105,6 +105,9 @@ export async function POST(request: Request) {
       const { data: order } = await db.from("orders").select("*").eq("id", String(body.orderId)).maybeSingle();
       if (!order?.email) return NextResponse.json({ ok: false, error: "Order or email not found." }, { status: 400 });
       const sent = await sendCustomerStatusUpdate(order, order.status);
+      // Event log = the send history the admin buttons display. The phrasing
+      // is load-bearing: OrderDetailClient matches on "Status email re-sent".
+      if (sent.ok) { try { await db.from("order_events").insert({ order_id: order.id, status: order.status, note: `✉️ Status email re-sent (${order.status})` }); } catch { /* optional table */ } }
       res = sent.ok ? { ok: true } : { ok: false, error: "Email failed - check Resend logs." };
       break;
     }
@@ -124,6 +127,8 @@ export async function POST(request: Request) {
       });
       if (insErr) return NextResponse.json({ ok: false, error: `Couldn't create the code: ${insErr.message} (run migration 0056?)` }, { status: 400 });
       const sent = await sendWelcomeOffer(order, code, percent, expires);
+      // Send history (matched by OrderDetailClient on "Welcome offer emailed").
+      if (sent.ok) { try { await db.from("order_events").insert({ order_id: order.id, status: order.status, note: `🎁 Welcome offer emailed · code ${code} (10%, 30 days)` }); } catch { /* optional table */ } }
       res = sent.ok ? { ok: true } : { ok: false, error: `Code ${code} created but the email failed - check Resend logs.` };
       break;
     }
@@ -131,9 +136,11 @@ export async function POST(request: Request) {
       // Invite a guest-checkout customer to create an account for tracking.
       const db = adminClient();
       if (!db) return NextResponse.json({ ok: false, error: "Server not configured." }, { status: 500 });
-      const { data: order } = await db.from("orders").select("id, name, email").eq("id", String(body.orderId)).maybeSingle();
+      const { data: order } = await db.from("orders").select("id, name, email, status").eq("id", String(body.orderId)).maybeSingle();
       if (!order?.email) return NextResponse.json({ ok: false, error: "Order or email not found." }, { status: 400 });
       const sent = await sendAccountInvite(order);
+      // Send history (matched by OrderDetailClient on "Signup invite emailed").
+      if (sent.ok) { try { await db.from("order_events").insert({ order_id: order.id, status: order.status ?? "placed", note: `✉️ Signup invite emailed` }); } catch { /* optional table */ } }
       res = sent.ok ? { ok: true } : { ok: false, error: "Email failed to send - check RESEND_API_KEY / logs." };
       break;
     }

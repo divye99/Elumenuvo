@@ -250,24 +250,37 @@ export default function OrderDetailClient({ order, shipments, events, customer }
                       👤 Has an account · all their orders ({customer.orderCount})
                     </Link>
                   )}
+                  {/* Each button carries its send history, derived from the
+                      order_events log (the route inserts a marker event on
+                      every successful send - the phrases below must match). */}
                   {([
-                    ...(customer.hasAccount ? [] : [["✉️ Invite to create an account", () => inviteAccount(order.id), "Invite sent"] as const]),
-                    ["🔁 Resend status email", () => resendStatusEmail(order.id), "Status email re-sent"],
-                    ["🎁 Send 10% welcome offer", () => sendWelcomeOfferEmail(order.id), "Welcome offer sent"],
-                  ] as [string, () => Promise<{ ok: boolean; error?: string }>, string][]).map(([label, fn, okMsg]) => (
-                    <button
-                      key={label}
-                      disabled={pending}
-                      onClick={() => {
-                        setInviteMsg(null);
-                        fn().then((r) => setInviteMsg(r.ok ? `${okMsg} to ${order.email}.` : r.error || "Failed."))
-                          .catch(() => setInviteMsg("Network hiccup - try again."));
-                      }}
-                      style={{ background: "#fff", border: "1.5px solid #4E5BDC", color: "#4E5BDC", fontWeight: 700, fontSize: 12.5, padding: "9px 14px", borderRadius: 9, cursor: "pointer" }}
-                    >
-                      {label}
-                    </button>
-                  ))}
+                    ...(customer.hasAccount ? [] : [["✉️ Invite to create an account", () => inviteAccount(order.id), "Invite sent", "Signup invite emailed"] as const]),
+                    ["🔁 Resend status email", () => resendStatusEmail(order.id), "Status email re-sent", "Status email re-sent"],
+                    ["🎁 Send 10% welcome offer", () => sendWelcomeOfferEmail(order.id), "Welcome offer sent", "Welcome offer emailed"],
+                  ] as [string, () => Promise<{ ok: boolean; error?: string }>, string, string][]).map(([label, fn, okMsg, phrase]) => {
+                    const sends = events.filter((e) => e.note?.includes(phrase));
+                    const last = sends.length ? sends.map((e) => new Date(e.created_at)).sort((a, b) => b.getTime() - a.getTime())[0] : null;
+                    return (
+                      <div key={label} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                        <button
+                          disabled={pending}
+                          onClick={() => {
+                            setInviteMsg(null);
+                            fn().then((r) => setInviteMsg(r.ok ? `${okMsg} to ${order.email}.` : r.error || "Failed."))
+                              .catch(() => setInviteMsg("Network hiccup - try again."));
+                          }}
+                          style={{ background: "#fff", border: "1.5px solid #4E5BDC", color: "#4E5BDC", fontWeight: 700, fontSize: 12.5, padding: "9px 14px", borderRadius: 9, cursor: "pointer" }}
+                        >
+                          {label}
+                        </button>
+                        <span style={{ fontSize: 10.5, fontWeight: 600, textAlign: "center", color: last ? "#1F9D63" : "#B0B7C3" }}>
+                          {last
+                            ? `Sent ${sends.length}× · last ${last.toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}`
+                            : "Not sent yet"}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
                 <p style={{ fontSize: 11.5, color: inviteMsg && !inviteMsg.includes("ailed") && !inviteMsg.includes("hiccup") ? "#1F9D63" : "#A0A7B5", margin: "8px 0 0" }}>
                   {inviteMsg ?? (customer.hasAccount
