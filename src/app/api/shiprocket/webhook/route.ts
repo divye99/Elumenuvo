@@ -4,8 +4,10 @@ import { syncAwb } from "@/lib/shiprocket-sync";
 /**
  * Shiprocket status webhook - register in Shiprocket panel:
  *   Settings -> API -> Webhooks -> Add
- *   URL:   https://elumenuvo.com/api/shiprocket/webhook
+ *   URL:   https://elumenuvo.com/api/logistics/webhook
  *   Token: the SHIPROCKET_WEBHOOK_TOKEN env value (sent as x-api-key)
+ * NOTE: Shiprocket's panel blocks URLs containing "shiprocket"/"sr"/"kr",
+ * so registration must use the /api/logistics/webhook alias route.
  *
  * The payload is used ONLY to learn which AWB moved; the actual state is
  * re-fetched from the tracking API (see shiprocket-sync.ts), so a spoofed
