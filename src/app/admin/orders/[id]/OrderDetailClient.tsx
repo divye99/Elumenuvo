@@ -348,7 +348,7 @@ type SrCourier = {
   mode: "Surface" | "Air"; pickupRating: number | null; deliveryRating: number | null;
   realtimeTracking: boolean; callBeforeDelivery: boolean;
 };
-type SrRates = { ok: true; couriers: SrCourier[]; pickups: { name: string; city: string; pin: string }[]; pickup: string; deliveryPin: string; balance: number | null } | { ok: false; error: string };
+type SrRates = { ok: true; couriers: SrCourier[]; pickups: { name: string; city: string; pin: string }[]; pickup: string; deliveryPin: string; balance: number | null; distanceKm: number | null } | { ok: false; error: string };
 type SrShip = { ok: true; awb: string; courierName: string; freight: number | null; labelUrl: string | null; pickupScheduled: boolean } | { ok: false; error: string };
 
 function ShipmentForm({ orderId, remaining, pending, run }: { orderId: string; remaining: (OrderItem & { remaining: number })[]; pending: boolean; run: (fn: () => Promise<any>) => void }) {
@@ -494,7 +494,7 @@ function ShipmentForm({ orderId, remaining, pending, run }: { orderId: string; r
               <button onClick={() => setShowRates(false)} style={{ border: "none", background: "#F3F5F9", borderRadius: 8, width: 30, height: 30, cursor: "pointer", fontSize: 15 }}>×</button>
             </div>
             <p style={{ fontSize: 12, color: "#8A93A6", margin: "0 0 12px" }}>
-              {rates.pickup} → {rates.deliveryPin} · entered {Number(weight).toFixed(2)} kg dead · {((Number(dims.l) * Number(dims.b) * Number(dims.h)) / 5000 || 0).toFixed(2)} kg volumetric ({dims.l}×{dims.b}×{dims.h} cm ÷ 5000). Couriers bill the higher "chargeable" weight shown per row.
+              {rates.pickup} → {rates.deliveryPin}{rates.distanceKm != null ? ` (~${rates.distanceKm.toLocaleString("en-IN")} km)` : ""} · entered {Number(weight).toFixed(2)} kg dead · {((Number(dims.l) * Number(dims.b) * Number(dims.h)) / 5000 || 0).toFixed(2)} kg volumetric ({dims.l}×{dims.b}×{dims.h} cm ÷ 5000). Couriers bill the higher "chargeable" weight shown per row.
               {rates.balance != null && (
                 <span style={{ display: "inline-block", marginLeft: 8, fontWeight: 700, color: rates.balance < 500 ? "#C2410C" : "#1F9D63" }}>
                   Shiprocket wallet: ₹{rates.balance.toLocaleString("en-IN")}{rates.balance < 500 ? " - low, recharge before booking" : ""}

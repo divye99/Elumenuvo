@@ -47,12 +47,12 @@ export default async function LogisticsPage() {
   const [shipsRes, balance, quotesRes] = await Promise.all([
     db.from("order_shipments").select("*").not("awb", "is", null).order("created_at", { ascending: false }).limit(1000),
     walletBalance().catch(() => null),
-    db.from("courier_quotes").select("courier_name, delivery_state, mode, rate, est_days, charge_weight_kg, chosen").order("created_at", { ascending: false }).limit(5000),
+    db.from("courier_quotes").select("courier_name, delivery_state, mode, rate, est_days, charge_weight_kg, distance_km, chosen").order("created_at", { ascending: false }).limit(5000),
   ]);
   let ships = shipsRes.data;
   if (shipsRes.error) ({ data: ships } = await db.from("order_shipments").select("*").order("created_at", { ascending: false }).limit(1000));
   const all = (ships ?? []) as Ship[];
-  const quotes = (quotesRes.data ?? []) as { courier_name: string; delivery_state: string | null; mode: string | null; rate: number; est_days: number | null; charge_weight_kg: number | null; chosen: boolean }[];
+  const quotes = (quotesRes.data ?? []) as { courier_name: string; delivery_state: string | null; mode: string | null; rate: number; est_days: number | null; charge_weight_kg: number | null; distance_km: number | null; chosen: boolean }[];
 
   const orderIds = [...new Set(all.map((s) => s.order_id))];
   const { data: orderRows } = orderIds.length
@@ -132,14 +132,17 @@ export default async function LogisticsPage() {
      learned "best partner" recommendation once outcomes accumulate. */
   const band = (kg: number | null) => (kg == null ? "?" : kg < 2 ? "<2 kg" : kg < 5 ? "2-5 kg" : kg < 10 ? "5-10 kg" : "10+ kg");
   const lanes = new Map<string, Map<string, { rates: number[]; days: number[]; n: number; chosen: number }>>();
+  const laneKm = new Map<string, number[]>();
   for (const q of quotes) {
     const laneKey = `${q.delivery_state ?? "Unknown"} · ${band(q.charge_weight_kg)}`;
     if (!lanes.has(laneKey)) lanes.set(laneKey, new Map());
+    if (q.distance_km != null) { if (!laneKm.has(laneKey)) laneKm.set(laneKey, []); laneKm.get(laneKey)!.push(Number(q.distance_km)); }
     const l = lanes.get(laneKey)!;
     if (!l.has(q.courier_name)) l.set(q.courier_name, { rates: [], days: [], n: 0, chosen: 0 });
     const e = l.get(q.courier_name)!;
     e.rates.push(Number(q.rate)); if (q.est_days) e.days.push(q.est_days); e.n++; if (q.chosen) e.chosen++;
   }
+  const laneDist = (key: string) => { const d = laneKm.get(key); return d?.length ? Math.round(d.reduce((a, b) => a + b, 0) / d.length) : null; };
 
   return (
     <div>
@@ -254,7 +257,9 @@ export default async function LogisticsPage() {
             const fastest = rows.filter((r) => r.avgDays != null).sort((a, b) => (a.avgDays! - b.avgDays!))[0]?.name;
             return (
               <div key={laneKey} style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: "#3A4358", margin: "4px 0 6px" }}>{laneKey}</div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: "#3A4358", margin: "4px 0 6px" }}>
+                  {laneKey}{laneDist(laneKey) != null ? <span style={{ fontWeight: 600, color: "#8A93A6" }}> · ~{laneDist(laneKey)!.toLocaleString("en-IN")} km from warehouse</span> : null}
+                </div>
                 <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 560 }}>
                   <thead><tr>{["Courier", "Quotes", "Avg price", "Best price", "Avg promised d", "Picked"].map((h) => <th key={h} style={th}>{h}</th>)}</tr></thead>
                   <tbody>

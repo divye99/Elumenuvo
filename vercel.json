@@ -21,7 +21,7 @@
     },
     {
       "path": "/api/cron/shiprocket-sync",
-      "schedule": "15 */3 * * *"
+      "schedule": "45 3 * * *"
     }
   ]
 }

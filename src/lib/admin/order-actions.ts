@@ -205,9 +205,10 @@ export async function addShipment(input: ShipmentInput): Promise<ActionResult> {
 /* ── Shiprocket booking (lib/shiprocket.ts does the API legwork) ── */
 
 import { getRates, shipOrder, pickupLocations, parseAddress, walletBalance, type CourierOption, type PickupLocation } from "@/lib/shiprocket";
+import { pinDistanceKm } from "@/lib/geo";
 
 export type SrRatesResult =
-  | { ok: true; couriers: CourierOption[]; pickups: PickupLocation[]; pickup: string; deliveryPin: string; balance: number | null }
+  | { ok: true; couriers: CourierOption[]; pickups: PickupLocation[]; pickup: string; deliveryPin: string; balance: number | null; distanceKm: number | null }
   | { ok: false; error: string };
 
 /** Live courier options for one order at the entered weight/dimensions. */
@@ -242,6 +243,7 @@ export async function getShiprocketRates(input: {
     // This is the raw dataset for per-lane courier analysis - who is really
     // cheapest/fastest to which state at which weight - and later, learned
     // recommendations scored against actual delivery outcomes.
+    const distanceKm = pinDistanceKm(pickup.pin, deliveryPin);
     try {
       const state = s?.state?.trim() || parseAddress(order.shipping_address ?? "").state || null;
       const vol = input.lengthCm && input.breadthCm && input.heightCm
@@ -249,15 +251,15 @@ export async function getShiprocketRates(input: {
       const toDate = (d: string | null) => { const t = d ? new Date(d) : null; return t && !isNaN(t.getTime()) ? t.toISOString().slice(0, 10) : null; };
       await db.from("courier_quotes").insert(couriers.map((c) => ({
         order_id: input.orderId, pickup_location: pickup.name, pickup_pin: pickup.pin,
-        delivery_pin: deliveryPin, delivery_state: state,
+        delivery_pin: deliveryPin, delivery_state: state, distance_km: distanceKm,
         dead_weight_kg: input.weightKg, vol_weight_kg: vol, charge_weight_kg: c.chargeWeightKg,
         courier_id: c.courierId, courier_name: c.name, mode: c.mode,
         rate: c.rate, etd: toDate(c.etd), est_days: c.estimatedDays || null, pickup_date: toDate(c.pickupDate),
         rating: c.rating, pickup_rating: c.pickupRating, delivery_rating: c.deliveryRating,
       })));
-    } catch { /* pre-0119 or transient - never block the panel */ }
+    } catch { /* pre-0119/0120 or transient - never block the panel */ }
 
-    return { ok: true, couriers, pickups, pickup: pickup.name, deliveryPin, balance };
+    return { ok: true, couriers, pickups, pickup: pickup.name, deliveryPin, balance, distanceKm };
   } catch (e) {
     console.error("[order-action:sr-rates]", e);
     return { ok: false, error: e instanceof Error ? e.message : String(e) };
