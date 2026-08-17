@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
-import { countProducts, listContentRows, hasServiceRole, countPendingSuggestions, countOpenOrders } from "@/lib/admin/data";
+import { countProducts, listContentRows, hasServiceRole, countPendingSuggestions, countOpenOrders, countInFlightShipments } from "@/lib/admin/data";
 import { countPendingReviews } from "@/lib/admin/review-actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminHome() {
   await requireAdmin();
-  const [productCount, content, pending, openOrders, pendingReviews] = await Promise.all([countProducts(), listContentRows(), countPendingSuggestions(), countOpenOrders(), countPendingReviews()]);
+  const [productCount, content, pending, openOrders, pendingReviews, inFlight] = await Promise.all([countProducts(), listContentRows(), countPendingSuggestions(), countOpenOrders(), countPendingReviews(), countInFlightShipments()]);
 
   return (
     <div>
@@ -20,7 +20,7 @@ export default async function AdminHome() {
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 16 }}>
         <Link href="/admin/orders" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: 20, position: "relative" }}>
           {openOrders > 0 && <span style={{ position: "absolute", top: 14, right: 14, fontSize: 12, fontWeight: 700, color: "#fff", background: "#E0612A", borderRadius: 20, padding: "2px 9px" }}>{openOrders}</span>}
           <div style={{ fontSize: 13, color: "#8A93A6" }}>Orders</div>
@@ -31,6 +31,12 @@ export default async function AdminHome() {
           <div style={{ fontSize: 13, color: "#8A93A6" }}>Catalogue</div>
           <div style={{ fontSize: 28, fontWeight: 700 }}>{productCount}</div>
           <div style={{ fontSize: 13, color: "#4E5BDC", fontWeight: 600, marginTop: 6 }}>Manage products & pricing →</div>
+        </Link>
+        <Link href="/admin/logistics" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: 20, position: "relative" }}>
+          {inFlight > 0 && <span style={{ position: "absolute", top: 14, right: 14, fontSize: 12, fontWeight: 700, color: "#fff", background: "#4E5BDC", borderRadius: 20, padding: "2px 9px" }}>{inFlight}</span>}
+          <div style={{ fontSize: 13, color: "#8A93A6" }}>Logistics</div>
+          <div style={{ fontSize: 28, fontWeight: 700 }}>{inFlight}</div>
+          <div style={{ fontSize: 13, color: "#4E5BDC", fontWeight: 600, marginTop: 6 }}>{inFlight > 0 ? "Parcels in transit - courier scorecard →" : "Courier scorecard & freight costs →"}</div>
         </Link>
       </div>
 

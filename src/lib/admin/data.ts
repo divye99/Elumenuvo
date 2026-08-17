@@ -253,6 +253,15 @@ export async function countOpenOrders(): Promise<number> {
   return count ?? 0;
 }
 
+/** Parcels currently in transit (booked, not yet delivered) - the Logistics
+ *  card's headline number on the admin dashboard. */
+export async function countInFlightShipments(): Promise<number> {
+  const db = reader();
+  if (!db) return 0;
+  const { count } = await db.from("order_shipments").select("id", { count: "exact", head: true }).not("awb", "is", null).neq("status", "delivered");
+  return count ?? 0;
+}
+
 export async function getOrderDetail(id: string): Promise<{ order: OrderRow; shipments: Shipment[]; events: OrderEvent[] } | null> {
   const db = reader();
   if (!db) return null;
