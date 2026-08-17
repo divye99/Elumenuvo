@@ -337,10 +337,13 @@ export default function CatalogueBrowser({
       {personalShelf}
 
       {/* ── Command bar ── */}
+      {/* top comes from .cat-cmdbar (globals.css): it must clear the FULL
+          sticky header stack (promo strip + nav row) or it tucks under the
+          translucent header and ghosts through the blur. */}
       <div
+        className="cat-cmdbar"
         style={{
           position: "sticky",
-          top: 74,
           zIndex: 30,
           display: "flex",
           alignItems: "center",
@@ -356,8 +359,10 @@ export default function CatalogueBrowser({
           marginBottom: 18,
         }}
       >
-        {/* Search */}
+        {/* Search - hidden on phones (.cat-cmdsearch): the header's pinned
+            search bar is the single query box there. */}
         <div
+          className="cat-cmdsearch"
           onClick={() => searchRef.current?.focus()}
           style={{
             display: "flex",

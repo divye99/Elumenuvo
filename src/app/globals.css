@@ -257,9 +257,13 @@ input[type="range"].elume-range::-moz-range-thumb {
   animation-delay: calc(var(--gi, 0) * 22ms);
   /* Low-end phones: skip layout/paint work for cards below the fold - the
      browser renders them only as they approach the viewport. The intrinsic
-     size keeps the scrollbar honest while they are skipped. */
+     size keeps the scrollbar honest while they are skipped.
+     WIDTH is a separate small placeholder ON PURPOSE: the one-value form
+     (auto 340px) also declared a 340px intrinsic WIDTH, which inflated the
+     mobile grid's 1fr track minimums to 340px and pushed column 2 off-screen
+     (the width never matters - the grid track sizes the card). */
   content-visibility: auto;
-  contain-intrinsic-size: auto 340px;
+  contain-intrinsic-size: auto 100px auto 340px;
   /* Equal-height cards: the grid cell stretches to the tallest card in the
      row, but the card link inside kept its natural height - short cards
      looked smaller than their row neighbours. Flex the wrapper and let the
@@ -385,7 +389,10 @@ input[type="range"].elume-range::-moz-range-thumb {
 
 /* ── Mobile catalogue: 2-up grid + compact product cards ── */
 @media (max-width: 760px) {
-  .cat-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+  /* minmax(0, 1fr), not bare 1fr: bare 1fr's min is the content's min size,
+     so any wide card content (or intrinsic-size placeholder) could expand
+     the tracks past the viewport. minmax(0,1fr) makes overflow impossible. */
+  .cat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px !important; }
   .pc-img { height: 96px !important; }
   .pc-sku { display: none !important; }
   .pc-body { padding: 8px 10px 10px !important; }
@@ -405,6 +412,25 @@ input[type="range"].elume-range::-moz-range-thumb {
 .pc-deliv { display: none; }
 @media (max-width: 760px) {
   .pc-deliv { display: block; font-size: 8.5px; font-weight: 600; color: #1F9D63; margin-top: 3px; }
+}
+
+/* ── Catalogue command bar: sit BELOW the sticky header stack ──
+   The header is promo strip (~35px) + nav row (~67px) = ~102px of sticky
+   chrome; a bar pinned higher tucks under the translucent header and its
+   input ghosts through the blur over the nav (the landscape-phone bug). */
+.cat-cmdbar { top: 108px; }
+@media (max-width: 820px) {
+  /* The mobile header's height varies with its scroll-collapse state, so no
+     fixed sticky offset is safe - pinning under the translucent header is
+     exactly the ghosting bug. The bar simply scrolls with the page; the
+     pinned header search + scroll-to-top button cover mid-list needs. */
+  .cat-cmdbar { position: static !important; top: auto !important; }
+}
+@media (max-width: 760px) {
+  /* One search bar on phones: the header's pinned search owns the query;
+     the command bar shrinks to a compact filter pill on the right. */
+  .cat-cmdsearch { display: none !important; }
+  .cat-cmdbar { width: fit-content; margin-left: auto; border-radius: 13px !important; }
 }
 
 /* ── Mobile catalogue filter button + bottom sheet ── */
