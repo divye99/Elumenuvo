@@ -201,6 +201,111 @@ export async function saveAdminNote(orderId: string, note: string): Promise<Acti
 export async function addShipment(input: ShipmentInput): Promise<ActionResult> {
   return safely("Adding the shipment", () => _addShipment(input));
 }
+
+/* ── Shiprocket booking (lib/shiprocket.ts does the API legwork) ── */
+
+import { getRates, shipOrder, pickupLocations, parseAddress, type CourierOption, type PickupLocation } from "@/lib/shiprocket";
+
+export type SrRatesResult =
+  | { ok: true; couriers: CourierOption[]; pickups: PickupLocation[]; pickup: string; deliveryPin: string }
+  | { ok: false; error: string };
+
+/** Live courier options for one order at the entered weight/dimensions. */
+export async function getShiprocketRates(input: {
+  orderId: string; pickup?: string; weightKg: number;
+  lengthCm?: number; breadthCm?: number; heightCm?: number;
+}): Promise<SrRatesResult> {
+  try {
+    const { db, err } = await guard();
+    if (!db) return { ok: false, error: err };
+    const order = await loadOrder(db, input.orderId);
+    if (!order) return { ok: false, error: "Order not found." };
+
+    const s = order.address_details?.shipping;
+    const deliveryPin: string = s?.pin?.trim() || parseAddress(order.shipping_address ?? "").pincode;
+    if (!/^\d{6}$/.test(deliveryPin)) return { ok: false, error: "No 6-digit delivery PIN on this order - fix the address first." };
+
+    const pickups = await pickupLocations();
+    if (!pickups.length) return { ok: false, error: "No pickup locations registered in Shiprocket." };
+    const pickup = pickups.find((p) => p.name === input.pickup) ?? pickups.find((p) => /warehouse/i.test(p.name)) ?? pickups[0];
+
+    const couriers = await getRates({
+      pickupPin: pickup.pin, deliveryPin, weightKg: input.weightKg,
+      lengthCm: input.lengthCm, breadthCm: input.breadthCm, heightCm: input.heightCm,
+      cod: false, declaredValue: Number(order.total ?? 0) || undefined,
+    });
+    return { ok: true, couriers, pickups, pickup: pickup.name, deliveryPin };
+  } catch (e) {
+    console.error("[order-action:sr-rates]", e);
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+export type SrShipResult =
+  | { ok: true; awb: string; courierName: string; freight: number | null; labelUrl: string | null; pickupScheduled: boolean }
+  | { ok: false; error: string };
+
+/** Book the parcel on Shiprocket (order -> AWB -> pickup -> label), record the
+ *  shipment with full telemetry, roll the order status and email the customer -
+ *  the automated twin of _addShipment. */
+export async function shipViaShiprocket(input: {
+  orderId: string;
+  items: { id: string; name: string; qty: number }[];
+  pickup: string; courierId: number; courierName: string;
+  weightKg: number; lengthCm: number; breadthCm: number; heightCm: number;
+}): Promise<SrShipResult> {
+  try {
+    const { db, err } = await guard();
+    if (!db) return { ok: false, error: err };
+    const order = await loadOrder(db, input.orderId);
+    if (!order) return { ok: false, error: "Order not found." };
+    if (!input.items.length) return { ok: false, error: "Pick at least one item for the parcel." };
+
+    const booked = await shipOrder({
+      order, items: input.items, pickupLocation: input.pickup, courierId: input.courierId,
+      weightKg: input.weightKg, lengthCm: input.lengthCm, breadthCm: input.breadthCm, heightCm: input.heightCm,
+    });
+
+    const nowIso = new Date().toISOString();
+    const trackingUrl = `https://shiprocket.co/tracking/${booked.awb}`;
+    const courier = booked.courierName || input.courierName;
+    const row: Record<string, unknown> = {
+      order_id: input.orderId, courier, awb: booked.awb, tracking_url: trackingUrl,
+      items: input.items, status: "shipped", shipped_at: nowIso,
+      // Telemetry (migration 0113) - stripped on retry for pre-0113 databases.
+      sr_order_id: booked.srOrderId, sr_shipment_id: booked.srShipmentId, courier_id: input.courierId,
+      freight_charge: booked.freight, entered_weight_kg: input.weightKg,
+      dims_cm: `${input.lengthCm}x${input.breadthCm}x${input.heightCm}`,
+      manifest_at: nowIso, sr_status: "manifested", label_url: booked.labelUrl, pickup_location: input.pickup,
+    };
+    let { error } = await db.from("order_shipments").insert(row);
+    if (error && error.code === "42703") {
+      for (const k of ["sr_order_id", "sr_shipment_id", "courier_id", "freight_charge", "entered_weight_kg", "dims_cm", "manifest_at", "sr_status", "label_url", "pickup_location"]) delete row[k];
+      ({ error } = await db.from("order_shipments").insert(row));
+    }
+    if (error) return { ok: false, error: `Booked on Shiprocket (AWB ${booked.awb}) but recording failed: ${error.message}` };
+
+    const { data: shipments } = await db.from("order_shipments").select("items").eq("order_id", input.orderId);
+    const shippedQty = sumQty((shipments ?? []).flatMap((s: any) => s.items ?? []));
+    const orderedQty = sumQty(order.items ?? []);
+    const status = orderedQty > 0 && shippedQty >= orderedQty ? "shipped" : "partially_shipped";
+    await db.from("orders").update({ status, updated_at: nowIso }).eq("id", input.orderId);
+    try {
+      await db.from("order_events").insert({
+        order_id: input.orderId, status,
+        note: `Shipped via ${courier} · AWB ${booked.awb}${booked.freight != null ? ` · freight ₹${booked.freight}` : ""} (Shiprocket)`,
+      });
+    } catch { /* optional table */ }
+    try { await sendCustomerStatusUpdate(order, status, { courier, awb: booked.awb, tracking_url: trackingUrl }); } catch (e) { console.warn("[sr-ship email]", e); }
+
+    revalidatePath(`/admin/orders/${input.orderId}`);
+    revalidatePath("/admin/orders");
+    return { ok: true, awb: booked.awb, courierName: courier, freight: booked.freight, labelUrl: booked.labelUrl, pickupScheduled: booked.pickupScheduled };
+  } catch (e) {
+    console.error("[order-action:sr-ship]", e);
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
+}
 export async function markShipmentDelivered(shipmentId: string, orderId: string, proofUrl?: string): Promise<ActionResult> {
   return safely("Marking delivered", () => _markShipmentDelivered(shipmentId, orderId, proofUrl));
 }

@@ -342,15 +342,82 @@ export default function OrderDetailClient({ order, shipments, events, customer }
 
 /* ── Sub-components ── */
 
+type SrCourier = { courierId: number; name: string; rate: number; etd: string; estimatedDays: number; rating: number | null };
+type SrRates = { ok: true; couriers: SrCourier[]; pickups: { name: string; city: string; pin: string }[]; pickup: string; deliveryPin: string } | { ok: false; error: string };
+type SrShip = { ok: true; awb: string; courierName: string; freight: number | null; labelUrl: string | null; pickupScheduled: boolean } | { ok: false; error: string };
+
 function ShipmentForm({ orderId, remaining, pending, run }: { orderId: string; remaining: (OrderItem & { remaining: number })[]; pending: boolean; run: (fn: () => Promise<any>) => void }) {
   const shippable = remaining.filter((r) => r.remaining > 0);
   const [sel, setSel] = useState<Record<string, boolean>>(() => Object.fromEntries(shippable.map((r) => [r.id, true])));
+  const chosen = shippable.filter((r) => sel[r.id]);
+
+  // Shiprocket flow state. Weight/dims are what the admin ACTUALLY measured at
+  // packing - rates and the courier's billing both ride on these numbers.
+  const [weight, setWeight] = useState("1");
+  const [dims, setDims] = useState({ l: "30", b: "25", h: "15" });
+  const [pickup, setPickup] = useState<string>("");
+  const [rates, setRates] = useState<SrRates | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [courierId, setCourierId] = useState<number | null>(null);
+  const [booked, setBooked] = useState<Extract<SrShip, { ok: true }> | null>(null);
+  const [srErr, setSrErr] = useState<string | null>(null);
+  const [manual, setManual] = useState(false);
+
+  // Manual fallback fields (the pre-Shiprocket form, kept for edge cases).
   const [courier, setCourier] = useState("");
   const [awb, setAwb] = useState("");
   const [url, setUrl] = useState("");
 
-  const chosen = shippable.filter((r) => sel[r.id]);
-  const submit = () => run(() => addShipment({ order_id: orderId, courier, awb, tracking_url: url, items: chosen.map((r) => ({ id: r.id, name: r.name, qty: r.remaining })) }));
+  const fetchRates = async (pickupName?: string) => {
+    setBusy(true); setSrErr(null); setCourierId(null);
+    try {
+      const r = await callAdmin({
+        op: "sr-rates", orderId, pickup: pickupName || pickup || undefined,
+        weightKg: Number(weight) || 1, lengthCm: Number(dims.l), breadthCm: Number(dims.b), heightCm: Number(dims.h),
+      }) as unknown as SrRates;
+      setRates(r);
+      if (r.ok) setPickup(r.pickup);
+      else setSrErr(r.error);
+    } catch { setSrErr("Network hiccup - try again."); }
+    setBusy(false);
+  };
+
+  const book = async () => {
+    const opt = rates?.ok ? rates.couriers.find((c) => c.courierId === courierId) : null;
+    if (!opt) return;
+    if (!window.confirm(`Book ${chosen.length} item(s) with ${opt.name} for ₹${opt.rate}? Pickup: ${pickup}. The customer is emailed the tracking link.`)) return;
+    setBusy(true); setSrErr(null);
+    try {
+      const r = await callAdmin({
+        op: "sr-ship", orderId, items: chosen.map((c) => ({ id: c.id, name: c.name, qty: c.remaining })),
+        pickup, courierId: opt.courierId, courierName: opt.name,
+        weightKg: Number(weight) || 1, lengthCm: Number(dims.l), breadthCm: Number(dims.b), heightCm: Number(dims.h),
+      }) as unknown as SrShip;
+      if (r.ok) { setBooked(r); run(async () => ({ ok: true })); /* refresh page data */ }
+      else setSrErr(r.error);
+    } catch { setSrErr("Network hiccup - try again."); }
+    setBusy(false);
+  };
+
+  const submitManual = () => run(() => addShipment({ order_id: orderId, courier, awb, tracking_url: url, items: chosen.map((r) => ({ id: r.id, name: r.name, qty: r.remaining })) }));
+
+  if (booked) {
+    return (
+      <Card title="Ship a parcel">
+        <div style={{ background: "#E6F5EE", borderRadius: 10, padding: "12px 14px", fontSize: 13, color: "#137a4b" }}>
+          <b>✓ Booked with {booked.courierName}</b>
+          <div style={{ fontFamily: "var(--space-mono)", fontSize: 12.5, margin: "4px 0" }}>AWB {booked.awb}</div>
+          {booked.freight != null && <div>Freight: ₹{booked.freight}</div>}
+          <div style={{ fontSize: 12 }}>{booked.pickupScheduled ? "Pickup scheduled." : "⚠ Pickup NOT scheduled - request it from the Shiprocket panel."}</div>
+          {booked.labelUrl && (
+            <a href={booked.labelUrl} target="_blank" rel="noreferrer" style={{ display: "inline-block", marginTop: 8, background: "#1F9D63", color: "#fff", fontWeight: 700, fontSize: 12.5, padding: "8px 14px", borderRadius: 8 }}>
+              Print label (PDF)
+            </a>
+          )}
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card title="Ship a parcel">
@@ -363,15 +430,72 @@ function ShipmentForm({ orderId, remaining, pending, run }: { orderId: string; r
           </label>
         ))}
       </div>
-      <label style={lbl}>Courier</label>
-      <input value={courier} onChange={(e) => setCourier(e.target.value)} placeholder="Delhivery, Blue Dart…" style={inp} />
-      <label style={lbl}>AWB / tracking no.</label>
-      <input value={awb} onChange={(e) => setAwb(e.target.value)} placeholder="e.g. 1234567890" style={inp} />
-      <label style={lbl}>Tracking URL (optional)</label>
-      <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" style={inp} />
-      <button disabled={pending || !courier.trim() || !awb.trim() || chosen.length === 0} onClick={submit} style={{ ...primaryBtn(pending), width: "100%", marginTop: 10, opacity: pending || !courier.trim() || !awb.trim() || chosen.length === 0 ? 0.5 : 1 }}>
-        {pending ? "Saving…" : `Mark ${chosen.length} item${chosen.length === 1 ? "" : "s"} shipped`}
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+        <div>
+          <label style={lbl}>Weighed (kg)</label>
+          <input value={weight} onChange={(e) => setWeight(e.target.value)} inputMode="decimal" style={inp} />
+        </div>
+        <div>
+          <label style={lbl}>Box L×B×H (cm)</label>
+          <div style={{ display: "flex", gap: 4 }}>
+            {(["l", "b", "h"] as const).map((k) => (
+              <input key={k} value={dims[k]} onChange={(e) => setDims((p) => ({ ...p, [k]: e.target.value }))} inputMode="numeric" style={{ ...inp, padding: "8px 6px", textAlign: "center" }} />
+            ))}
+          </div>
+        </div>
+      </div>
+      <p style={{ fontSize: 11, color: "#A0A7B5", margin: "2px 0 8px" }}>
+        Couriers bill max(weight, L×B×H÷5000) - enter what the scale and tape say, not the listing.
+      </p>
+
+      {rates?.ok && rates.pickups.length > 1 && (
+        <>
+          <label style={lbl}>Pickup from</label>
+          <select value={pickup} onChange={(e) => { setPickup(e.target.value); fetchRates(e.target.value); }} style={{ ...inp, appearance: "auto" as const }}>
+            {rates.pickups.map((p) => <option key={p.name} value={p.name}>{p.name} · {p.city} {p.pin}</option>)}
+          </select>
+        </>
+      )}
+
+      <button disabled={busy || chosen.length === 0} onClick={() => fetchRates()} style={{ ...primaryBtn(busy), width: "100%", marginTop: 4, opacity: busy || chosen.length === 0 ? 0.6 : 1 }}>
+        {busy && !rates ? "Fetching rates…" : rates ? "Refresh courier rates" : "Get courier rates"}
       </button>
+
+      {rates?.ok && (
+        <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
+          {rates.couriers.length === 0 && <p style={{ fontSize: 12.5, color: "#B4690E", margin: 0 }}>No courier serves this route at this weight.</p>}
+          {rates.couriers.slice(0, 6).map((c) => (
+            <label key={c.courierId} style={{ display: "flex", alignItems: "center", gap: 8, border: `1.5px solid ${courierId === c.courierId ? "#4E5BDC" : "#E8EBF1"}`, borderRadius: 9, padding: "8px 10px", cursor: "pointer", background: courierId === c.courierId ? "#F6F7FE" : "#fff" }}>
+              <input type="radio" name="sr-courier" checked={courierId === c.courierId} onChange={() => setCourierId(c.courierId)} />
+              <span style={{ fontSize: 12.5, fontWeight: 700, flex: 1 }}>{c.name}</span>
+              <span style={{ fontSize: 11.5, color: "#56627A", whiteSpace: "nowrap" }}>{c.estimatedDays ? `${c.estimatedDays}d` : c.etd}{c.rating ? ` · ★${c.rating.toFixed(1)}` : ""}</span>
+              <span style={{ fontFamily: "var(--space-grotesk)", fontWeight: 700, fontSize: 13 }}>₹{Math.round(c.rate)}</span>
+            </label>
+          ))}
+          <button disabled={busy || courierId == null} onClick={book} style={{ ...primaryBtn(busy), width: "100%", opacity: busy || courierId == null ? 0.5 : 1 }}>
+            {busy ? "Booking…" : "Book shipment + schedule pickup"}
+          </button>
+        </div>
+      )}
+      {srErr && <p style={{ fontSize: 12.5, color: "#C2410C", margin: "8px 0 0" }}>{srErr}</p>}
+
+      <button onClick={() => setManual((m) => !m)} style={{ background: "none", border: "none", color: "#8A93A6", fontSize: 11.5, fontWeight: 600, padding: 0, marginTop: 12, cursor: "pointer" }}>
+        {manual ? "Hide manual entry" : "Shipped outside Shiprocket? Manual entry →"}
+      </button>
+      {manual && (
+        <div style={{ marginTop: 8 }}>
+          <label style={lbl}>Courier</label>
+          <input value={courier} onChange={(e) => setCourier(e.target.value)} placeholder="Delhivery, Blue Dart…" style={inp} />
+          <label style={lbl}>AWB / tracking no.</label>
+          <input value={awb} onChange={(e) => setAwb(e.target.value)} placeholder="e.g. 1234567890" style={inp} />
+          <label style={lbl}>Tracking URL (optional)</label>
+          <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" style={inp} />
+          <button disabled={pending || !courier.trim() || !awb.trim() || chosen.length === 0} onClick={submitManual} style={{ ...primaryBtn(pending), width: "100%", marginTop: 10, opacity: pending || !courier.trim() || !awb.trim() || chosen.length === 0 ? 0.5 : 1 }}>
+            {pending ? "Saving…" : `Mark ${chosen.length} item${chosen.length === 1 ? "" : "s"} shipped`}
+          </button>
+        </div>
+      )}
     </Card>
   );
 }

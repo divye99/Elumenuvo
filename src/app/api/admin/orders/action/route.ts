@@ -26,6 +26,8 @@ import {
   addShipment,
   markShipmentDelivered,
   uploadDeliveryProof,
+  getShiprocketRates,
+  shipViaShiprocket,
   type OrderStatus,
 } from "@/lib/admin/order-actions";
 
@@ -87,6 +89,31 @@ export async function POST(request: Request) {
       await sendCustomerStatusUpdate(order, "confirmed", { note: "Your RTGS balance is received in full. The material is being scheduled for dispatch with the GST tax invoice." });
       res = { ok: true };
       break;
+    }
+    case "sr-rates": {
+      const out = await getShiprocketRates({
+        orderId: String(body.orderId),
+        pickup: body.pickup ? String(body.pickup) : undefined,
+        weightKg: Number(body.weightKg) || 1,
+        lengthCm: Number(body.lengthCm) || undefined,
+        breadthCm: Number(body.breadthCm) || undefined,
+        heightCm: Number(body.heightCm) || undefined,
+      });
+      return NextResponse.json(out, { status: out.ok ? 200 : 400 });
+    }
+    case "sr-ship": {
+      const out = await shipViaShiprocket({
+        orderId: String(body.orderId),
+        items: Array.isArray(body.items) ? body.items : [],
+        pickup: String(body.pickup ?? ""),
+        courierId: Number(body.courierId),
+        courierName: String(body.courierName ?? ""),
+        weightKg: Number(body.weightKg) || 1,
+        lengthCm: Number(body.lengthCm) || 30,
+        breadthCm: Number(body.breadthCm) || 25,
+        heightCm: Number(body.heightCm) || 15,
+      });
+      return NextResponse.json(out, { status: out.ok ? 200 : 400 });
     }
     case "shipment":
       res = await addShipment({
