@@ -94,6 +94,17 @@ export type CourierOption = {
   estimatedDays: number;
   rating: number | null;
   cod: boolean;
+  /** Weight the courier will BILL: max(dead weight, volumetric L*B*H/5000). */
+  chargeWeightKg: number | null;
+  /** Days until the courier can pick up (0 = today, 1 = tomorrow, ...). */
+  pickupInDays: number | null;
+  /** Same-day pickup order cutoff, e.g. "11:00". */
+  cutoffTime: string | null;
+  mode: "Surface" | "Air";
+  pickupRating: number | null;
+  deliveryRating: number | null;
+  realtimeTracking: boolean;
+  callBeforeDelivery: boolean;
 };
 
 export async function getRates(input: {
@@ -122,6 +133,14 @@ export async function getRates(input: {
       estimatedDays: Number(c.estimated_delivery_days) || 0,
       rating: c.rating != null ? Number(c.rating) : null,
       cod: Number(c.cod) === 1,
+      chargeWeightKg: c.charge_weight != null ? Number(c.charge_weight) : null,
+      pickupInDays: c.pickup_availability != null && c.pickup_availability !== "" ? Number(c.pickup_availability) : null,
+      cutoffTime: c.cutoff_time ? String(c.cutoff_time) : null,
+      mode: (c.is_surface === true || c.is_surface === "true" ? "Surface" : "Air") as "Surface" | "Air",
+      pickupRating: c.pickup_performance != null ? Number(c.pickup_performance) : null,
+      deliveryRating: c.delivery_performance != null ? Number(c.delivery_performance) : null,
+      realtimeTracking: /real/i.test(String(c.realtime_tracking ?? "")),
+      callBeforeDelivery: /avail/i.test(String(c.call_before_delivery ?? "")),
     }))
     .sort((a, b) => a.rate - b.rate);
 }

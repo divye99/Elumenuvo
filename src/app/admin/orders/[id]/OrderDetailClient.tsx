@@ -342,7 +342,12 @@ export default function OrderDetailClient({ order, shipments, events, customer }
 
 /* ── Sub-components ── */
 
-type SrCourier = { courierId: number; name: string; rate: number; etd: string; estimatedDays: number; rating: number | null };
+type SrCourier = {
+  courierId: number; name: string; rate: number; etd: string; estimatedDays: number; rating: number | null;
+  chargeWeightKg: number | null; pickupInDays: number | null; cutoffTime: string | null;
+  mode: "Surface" | "Air"; pickupRating: number | null; deliveryRating: number | null;
+  realtimeTracking: boolean; callBeforeDelivery: boolean;
+};
 type SrRates = { ok: true; couriers: SrCourier[]; pickups: { name: string; city: string; pin: string }[]; pickup: string; deliveryPin: string } | { ok: false; error: string };
 type SrShip = { ok: true; awb: string; courierName: string; freight: number | null; labelUrl: string | null; pickupScheduled: boolean } | { ok: false; error: string };
 
@@ -357,6 +362,7 @@ function ShipmentForm({ orderId, remaining, pending, run }: { orderId: string; r
   const [dims, setDims] = useState({ l: "30", b: "25", h: "15" });
   const [pickup, setPickup] = useState<string>("");
   const [rates, setRates] = useState<SrRates | null>(null);
+  const [showRates, setShowRates] = useState(false);
   const [busy, setBusy] = useState(false);
   const [courierId, setCourierId] = useState<number | null>(null);
   const [booked, setBooked] = useState<Extract<SrShip, { ok: true }> | null>(null);
@@ -376,7 +382,7 @@ function ShipmentForm({ orderId, remaining, pending, run }: { orderId: string; r
         weightKg: Number(weight) || 1, lengthCm: Number(dims.l), breadthCm: Number(dims.b), heightCm: Number(dims.h),
       }) as unknown as SrRates;
       setRates(r);
-      if (r.ok) setPickup(r.pickup);
+      if (r.ok) { setPickup(r.pickup); setShowRates(true); }
       else setSrErr(r.error);
     } catch { setSrErr("Network hiccup - try again."); }
     setBusy(false);
@@ -445,9 +451,20 @@ function ShipmentForm({ orderId, remaining, pending, run }: { orderId: string; r
           </div>
         </div>
       </div>
-      <p style={{ fontSize: 11, color: "#A0A7B5", margin: "2px 0 8px" }}>
-        Couriers bill max(weight, L×B×H÷5000) - enter what the scale and tape say, not the listing.
-      </p>
+      {/* Live weight maths: couriers bill the HIGHER of dead and volumetric. */}
+      {(() => {
+        const dead = Number(weight) || 0;
+        const vol = (Number(dims.l) * Number(dims.b) * Number(dims.h)) / 5000 || 0;
+        const chargeable = Math.max(dead, vol);
+        const volWins = vol > dead;
+        return (
+          <div style={{ background: "#F3F5F9", borderRadius: 9, padding: "7px 10px", margin: "2px 0 8px", fontSize: 11, color: "#56627A", display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <span>Dead: <b>{dead.toFixed(2)} kg</b></span>
+            <span>Volumetric (÷5000): <b>{vol.toFixed(2)} kg</b></span>
+            <span style={{ color: volWins ? "#B4690E" : "#1F9D63" }}>Chargeable: <b>{chargeable.toFixed(2)} kg</b>{volWins ? " (volumetric wins - smaller box saves money)" : ""}</span>
+          </div>
+        );
+      })()}
 
       {rates?.ok && rates.pickups.length > 1 && (
         <>
@@ -458,24 +475,70 @@ function ShipmentForm({ orderId, remaining, pending, run }: { orderId: string; r
         </>
       )}
 
-      <button disabled={busy || chosen.length === 0} onClick={() => fetchRates()} style={{ ...primaryBtn(busy), width: "100%", marginTop: 4, opacity: busy || chosen.length === 0 ? 0.6 : 1 }}>
-        {busy && !rates ? "Fetching rates…" : rates ? "Refresh courier rates" : "Get courier rates"}
+      <button disabled={busy || chosen.length === 0} onClick={() => (rates?.ok && !busy ? setShowRates(true) : fetchRates())} style={{ ...primaryBtn(busy), width: "100%", marginTop: 4, opacity: busy || chosen.length === 0 ? 0.6 : 1 }}>
+        {busy ? "Fetching rates…" : rates?.ok ? "Choose courier →" : "Compare couriers & book"}
       </button>
+      {rates?.ok && !busy && (
+        <button onClick={() => fetchRates()} style={{ background: "none", border: "none", color: "#4E5BDC", fontSize: 11, fontWeight: 700, padding: 0, marginTop: 6, cursor: "pointer" }}>
+          ↻ Refresh rates (after changing weight/box)
+        </button>
+      )}
 
-      {rates?.ok && (
-        <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
-          {rates.couriers.length === 0 && <p style={{ fontSize: 12.5, color: "#B4690E", margin: 0 }}>No courier serves this route at this weight.</p>}
-          {rates.couriers.slice(0, 6).map((c) => (
-            <label key={c.courierId} style={{ display: "flex", alignItems: "center", gap: 8, border: `1.5px solid ${courierId === c.courierId ? "#4E5BDC" : "#E8EBF1"}`, borderRadius: 9, padding: "8px 10px", cursor: "pointer", background: courierId === c.courierId ? "#F6F7FE" : "#fff" }}>
-              <input type="radio" name="sr-courier" checked={courierId === c.courierId} onChange={() => setCourierId(c.courierId)} />
-              <span style={{ fontSize: 12.5, fontWeight: 700, flex: 1 }}>{c.name}</span>
-              <span style={{ fontSize: 11.5, color: "#56627A", whiteSpace: "nowrap" }}>{c.estimatedDays ? `${c.estimatedDays}d` : c.etd}{c.rating ? ` · ★${c.rating.toFixed(1)}` : ""}</span>
-              <span style={{ fontFamily: "var(--space-grotesk)", fontWeight: 700, fontSize: 13 }}>₹{Math.round(c.rate)}</span>
-            </label>
-          ))}
-          <button disabled={busy || courierId == null} onClick={book} style={{ ...primaryBtn(busy), width: "100%", opacity: busy || courierId == null ? 0.5 : 1 }}>
-            {busy ? "Booking…" : "Book shipment + schedule pickup"}
-          </button>
+      {/* Courier picker MODAL - a proper window with the full decision data:
+          pickup date, estimated delivery date, chargeable weight, ratings. */}
+      {rates?.ok && showRates && (
+        <div onClick={() => setShowRates(false)} style={{ position: "fixed", inset: 0, background: "rgba(20,24,45,.5)", zIndex: 120, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "#fff", borderRadius: 16, width: 700, maxWidth: "96vw", maxHeight: "88vh", overflowY: "auto", padding: "20px 22px", boxShadow: "0 30px 80px rgba(20,24,45,.3)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+              <div style={{ fontSize: 16, fontWeight: 800 }}>Choose a courier</div>
+              <button onClick={() => setShowRates(false)} style={{ border: "none", background: "#F3F5F9", borderRadius: 8, width: 30, height: 30, cursor: "pointer", fontSize: 15 }}>×</button>
+            </div>
+            <p style={{ fontSize: 12, color: "#8A93A6", margin: "0 0 12px" }}>
+              {rates.pickup} → {rates.deliveryPin} · entered {Number(weight).toFixed(2)} kg dead · {((Number(dims.l) * Number(dims.b) * Number(dims.h)) / 5000 || 0).toFixed(2)} kg volumetric ({dims.l}×{dims.b}×{dims.h} cm ÷ 5000). Couriers bill the higher "chargeable" weight shown per row.
+            </p>
+            {rates.couriers.length === 0 && <p style={{ fontSize: 13, color: "#B4690E" }}>No courier serves this route at this weight.</p>}
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {rates.couriers.slice(0, 10).map((c) => {
+                const pickupLabel = c.pickupInDays == null ? "-"
+                  : c.pickupInDays === 0 ? `Today${c.cutoffTime ? ` (order by ${c.cutoffTime})` : ""}`
+                  : c.pickupInDays === 1 ? "Tomorrow"
+                  : new Date(Date.now() + c.pickupInDays * 86400000).toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+                const sel = courierId === c.courierId;
+                return (
+                  <label key={c.courierId} style={{ display: "grid", gridTemplateColumns: "18px 1.4fr 1fr 1fr 0.9fr 0.7fr", alignItems: "center", gap: 10, border: `1.5px solid ${sel ? "#4E5BDC" : "#E8EBF1"}`, borderRadius: 11, padding: "10px 12px", cursor: "pointer", background: sel ? "#F6F7FE" : "#fff" }}>
+                    <input type="radio" name="sr-courier" checked={sel} onChange={() => setCourierId(c.courierId)} />
+                    <span>
+                      <span style={{ fontSize: 13, fontWeight: 700, display: "block" }}>{c.name}</span>
+                      <span style={{ fontSize: 10.5, color: "#8A93A6" }}>
+                        {c.mode}{c.rating ? ` · ★${c.rating.toFixed(2)} overall` : ""}
+                        {c.pickupRating ? ` · pickup ★${c.pickupRating.toFixed(1)}` : ""}{c.deliveryRating ? ` · delivery ★${c.deliveryRating.toFixed(1)}` : ""}
+                      </span>
+                      <span style={{ fontSize: 10, color: "#A0A7B5" }}>{[c.realtimeTracking ? "live tracking" : null, c.callBeforeDelivery ? "calls before delivery" : null].filter(Boolean).join(" · ")}</span>
+                    </span>
+                    <span style={{ fontSize: 11.5 }}>
+                      <span style={{ color: "#8A93A6", display: "block", fontSize: 10 }}>Pickup</span>
+                      <b>{pickupLabel}</b>
+                    </span>
+                    <span style={{ fontSize: 11.5 }}>
+                      <span style={{ color: "#8A93A6", display: "block", fontSize: 10 }}>Est. delivery</span>
+                      <b>{c.etd || "-"}</b>{c.estimatedDays ? <span style={{ color: "#8A93A6" }}> ({c.estimatedDays}d)</span> : null}
+                    </span>
+                    <span style={{ fontSize: 11.5 }}>
+                      <span style={{ color: "#8A93A6", display: "block", fontSize: 10 }}>Chargeable wt</span>
+                      <b>{c.chargeWeightKg != null ? `${c.chargeWeightKg.toFixed(2)} kg` : "-"}</b>
+                    </span>
+                    <span style={{ fontFamily: "var(--space-grotesk)", fontWeight: 700, fontSize: 15, textAlign: "right" }}>₹{Math.round(c.rate).toLocaleString("en-IN")}</span>
+                  </label>
+                );
+              })}
+            </div>
+            <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+              <button onClick={() => setShowRates(false)} style={{ flex: "0 0 auto", background: "#fff", border: "1.5px solid #D8DCE6", color: "#19202E", fontWeight: 700, fontSize: 12.5, padding: "10px 16px", borderRadius: 9, cursor: "pointer" }}>Cancel</button>
+              <button disabled={busy || courierId == null} onClick={book} style={{ ...primaryBtn(busy), flex: 1, opacity: busy || courierId == null ? 0.5 : 1 }}>
+                {busy ? "Booking…" : courierId != null ? `Book with ${rates.couriers.find((c) => c.courierId === courierId)?.name} · ₹${Math.round(rates.couriers.find((c) => c.courierId === courierId)?.rate ?? 0).toLocaleString("en-IN")}` : "Select a courier to book"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
       {srErr && <p style={{ fontSize: 12.5, color: "#C2410C", margin: "8px 0 0" }}>{srErr}</p>}
