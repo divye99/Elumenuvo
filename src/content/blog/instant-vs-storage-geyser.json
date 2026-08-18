@@ -1,0 +1,104 @@
+{
+  "slug": "instant-vs-storage-geyser",
+  "title": "Instant vs Storage Geyser: Which Water Heater Actually Suits You?",
+  "description": "Instant and storage water heaters compared honestly: heating speed, running cost, bathing comfort, electrical load, lifespan in hard water, and the right choice per bathroom and kitchen.",
+  "category": "Water Heaters",
+  "date": "2026-08-18",
+  "author": "Elume Editorial",
+  "readMins": 7,
+  "tldr": [
+    "Storage geysers suit bathing: they deliver large volumes at steady temperature for buckets and showers.",
+    "Instant geysers suit points of use: kitchens, basins, quick rinses, where hot water is needed in seconds and in small amounts.",
+    "Instant units draw high power (3 to 4.5 kW) for short bursts; storage draws 2 kW for longer. Wiring must match either way.",
+    "Neither is cheaper per litre of hot water; physics is physics. The saving comes from not keeping water hot you never use.",
+    "Most homes end up with both: storage in bathrooms, instant in the kitchen. That combination is usually correct."
+  ],
+  "intro": [
+    "The instant versus storage debate is usually argued as if one type must win, but they are point solutions for different jobs. A storage geyser is a hot water reservoir: slow to charge, generous to spend. An instant geyser is a high-power heat exchanger: nothing stored, everything heated on demand in a thin stream. Map those properties onto how each tap in your home is actually used and the 'debate' resolves itself room by room.",
+    "This guide compares the two on the dimensions that matter in Indian homes: bathing comfort, electricity, wiring load, space, hard-water lifespan, and safety, and ends with the per-room verdict most households converge on anyway."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "How each one actually works",
+      "brand": "",
+      "body": "A storage geyser heats 6 to 35 litres with a 2 kW element over 10 to 30 minutes, holds it at temperature behind insulation, and delivers it at full flow whenever asked. An instant geyser holds 1 to 6 litres and hits incoming water with 3 to 4.5 kW as it passes, delivering hot water within seconds but only at a modest flow rate; ask for more flow than the element can heat and the temperature sags. That single difference, reservoir versus flow-through, explains every practical trade-off that follows: bathing volumes favour storage, waiting time and idle losses favour instant.",
+      "bestFor": "Understanding the trade-off",
+      "productId": null
+    },
+    {
+      "rank": 2,
+      "name": "Bathing: storage wins, and it is not close",
+      "brand": "",
+      "body": "A bucket bath wants 10 to 15 litres of properly hot water quickly; a shower wants 6 to 8 litres of mixed warm water per minute, sustained. Storage delivers both effortlessly from its reservoir. An instant unit backing a shower must heat at the full draw rate in real time, which at Indian supply and 3 kW means a thin or lukewarm stream in winter, exactly when you care. Households that bought instant units for bathrooms in the name of speed usually end up running them like tiny storage heaters, filling buckets in instalments. For any bathroom used for full baths, choose storage sized to the family.",
+      "bestFor": "Bathrooms and showers",
+      "productId": "ort-swat15vpg8i2-ws"
+    },
+    {
+      "rank": 3,
+      "name": "Kitchens and basins: instant wins just as clearly",
+      "brand": "",
+      "body": "Kitchen hot water is bursts of a few litres, many times a day: rinsing grease, warming a sink of dishes, winter hand-washing. A storage geyser serving that pattern keeps litres hot around the clock for seconds of daily use, pure standing loss. A 3 litre instant unit heats exactly when the tap opens, fits inside the sink cabinet, and its modest flow is irrelevant at a sink. The same logic covers wash basins and quick morning rinses. This is the instant category's home turf and the reason it exists.",
+      "bestFor": "Kitchens, wash basins, rinse points",
+      "productId": "cro-aiwh-5lsolneo3kw5y"
+    },
+    {
+      "rank": 4,
+      "name": "Electricity and wiring: the loads differ in shape",
+      "brand": "",
+      "body": "Per litre heated, both consume nearly the same energy; there is no free lunch in thermodynamics. The bills differ through standing losses (storage keeps water warm; a 5-star rating minimises exactly this) and through behaviour (a reservoir invites longer showers). Wiring differs in shape: a 2 kW storage geyser is a sustained 8 to 9 A load, happy on a dedicated 16 A point; a 4.5 kW instant unit spikes to nearly 20 A, demanding its own adequately sized circuit and breaker. Whichever you fit, geysers belong on dedicated circuits behind an RCCB; a water heater is the classic earth-leakage appliance as elements age.",
+      "bestFor": "Running cost and circuit planning",
+      "productId": "ort-swat06vpg8k2-ws"
+    },
+    {
+      "rank": 5,
+      "name": "Space, lifespan and hard water",
+      "brand": "",
+      "body": "Instant units win on space everywhere: a fraction of the size, no heavy wall load, at home inside cabinets and tight utility corners. Lifespan is governed less by type than by water: scale from hard water attacks elements and tanks alike, and the small tanks of instant units scale up proportionally faster at their higher element temperatures. In hard-water cities, favour models with coated or polymer tanks and treat descaling as scheduled maintenance rather than repair. Storage units carry the additional structural note: a filled 25L unit is a permanent 40 kg load that needs a solid masonry wall.",
+      "bestFor": "Tight spaces and hard-water cities",
+      "productId": "ort-swcs10vmp8m2-ww"
+    },
+    {
+      "rank": 6,
+      "name": "The per-room verdict",
+      "brand": "",
+      "body": "Master and family bathrooms: storage, 15 to 25 litres by household size, 5-star, on a dedicated 16 A circuit. Guest bathroom used occasionally: 6 to 10 litre storage, or instant if it only ever hosts quick rinses. Kitchen: 1 to 6 litre instant, full stop. Basins: share the nearest unit or add a small instant one. This split is not a compromise; it is each technology deployed where its physics is the right physics. Buying one type for the whole house is how people end up either waiting on lukewarm shower water or paying to keep kitchen litres hot all night.",
+      "bestFor": "Making the final calls",
+      "productId": "cro-aswh-3315"
+    }
+  ],
+  "buyingTips": [
+    "Choose by tap, not by house: storage for bathing points, instant for kitchens and basins. Mixed installations are the norm in well-planned homes.",
+    "For storage, buy 5-star for anything in daily use; the rating targets standing loss, which is where the running-cost difference actually lives.",
+    "Match wiring to the unit: 2 kW storage on a dedicated 16 A point; 3 to 4.5 kW instant units need their own appropriately rated circuit and breaker.",
+    "Every geyser circuit belongs behind a 30 mA RCCB; ageing elements leaking to earth are the textbook case it exists for.",
+    "In hard-water areas, prefer protected tanks and budget for periodic descaling; scale, not electronics, is what usually ends a geyser's life.",
+    "Check the pressure rating if you live in a high-rise with pumped supply; standard units have limits that rooftop pressure systems can exceed."
+  ],
+  "faq": [
+    {
+      "q": "Which is better, an instant or a storage geyser?",
+      "a": "For bathing, storage; for kitchens and basins, instant. They are different tools: storage delivers volume for baths and showers, instant delivers immediate small quantities without standing losses. Most homes correctly end up with both."
+    },
+    {
+      "q": "Does an instant geyser save electricity compared to storage?",
+      "a": "Heating the same water costs the same energy. Instant units avoid standing losses, so they win at low-use points like kitchens; a 5-star storage unit at a bathing point loses little enough that its volume advantage dominates. Savings come from matching type to usage."
+    },
+    {
+      "q": "Can an instant geyser support a shower?",
+      "a": "Only weakly. At 3 kW and winter inlet temperatures, the flow an instant unit can heat in real time is a thin stream well below a comfortable shower's draw. Shower bathrooms should have storage geysers sized for the household."
+    },
+    {
+      "q": "What wattage do instant and storage geysers draw?",
+      "a": "Storage models are typically 2 kW sustained. Instant models run 3 kW for small units and up to 4.5 kW for larger ones, a near-20 A draw that needs its own properly sized circuit, wiring and breaker."
+    },
+    {
+      "q": "Which lasts longer, instant or storage?",
+      "a": "Water quality decides more than type. In hard-water cities, scale degrades elements and tanks of both; protected tanks and scheduled descaling extend either. In soft water, both types routinely serve 8 to 12 years from reputable brands."
+    },
+    {
+      "q": "What size instant geyser is right for a kitchen?",
+      "a": "1 to 3 litres for a standard sink, up to 6 litres if the kitchen also feeds a utility point. The job is short bursts of hot water on demand, so small capacity with a capable element is exactly right."
+    }
+  ]
+}

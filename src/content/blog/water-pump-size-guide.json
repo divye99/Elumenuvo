@@ -1,0 +1,104 @@
+{
+  "slug": "water-pump-size-guide",
+  "title": "Which Water Pump for Your Home? 0.5 HP vs 1 HP, Monoblock vs Submersible",
+  "description": "Choosing a domestic water pump in India: head and flow explained simply, 0.5 HP vs 1 HP sizing by building height, monoblock vs self-priming vs borewell submersible vs sewage pumps, and buying checks.",
+  "category": "Pumps",
+  "date": "2026-08-18",
+  "author": "Elume Editorial",
+  "readMins": 8,
+  "tldr": [
+    "Size by head: total vertical lift in metres from water source to overhead tank, plus pipe-friction allowance.",
+    "Ground floor to a 1 to 2 storey tank from a sump: 0.5 HP self-priming monoblock covers most homes.",
+    "3 to 4 storeys, long pipe runs or low municipal pressure: step to 1 HP.",
+    "Borewells need submersible or jet pumps matched to bore depth and diameter; surface pumps cannot suck beyond about 7 to 8 metres.",
+    "Buy on head-flow curves, not HP alone; two 1 HP pumps can behave completely differently at your building's head."
+  ],
+  "intro": [
+    "Pump buying goes wrong because people shop by horsepower when the machine is actually specified by two other numbers: head, the vertical distance it must lift water, and flow, how many litres per minute arrive at that height. HP is just the engine size; a poorly matched 1 HP pump can deliver less water to a fourth-floor tank than a well-chosen 0.5 HP delivers to a second-floor one.",
+    "This guide explains head and flow in plain terms, gives the sizing bands for typical Indian homes, and sorts the pump families, monoblock, self-priming, borewell submersible, sewage, so you buy the right type before debating the right size."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "Head and flow: the two numbers that matter",
+      "brand": "",
+      "body": "Total head is the vertical metres from the water surface at the source to the discharge into your overhead tank, plus an allowance (add roughly 10 to 20 percent) for pipe friction across long or bent runs. Flow, in litres per minute, tells you how fast the tank fills at that head; pumps deliver less flow as head rises, which the head-flow curve on every honest datasheet shows. A typical need: a 1,000 litre rooftop tank filled in 20 to 30 minutes wants 35 to 50 LPM at your building's head. Read the curve at YOUR head; the headline 'max flow' is measured at near-zero lift and is marketing, not planning.",
+      "bestFor": "Reading a pump datasheet properly",
+      "productId": null
+    },
+    {
+      "rank": 2,
+      "name": "0.5 HP: the standard for 1 to 2 storey homes",
+      "brand": "",
+      "body": "Lifting from a ground sump or municipal line to a tank one or two storeys up, total head around 10 to 15 metres, is squarely 0.5 HP territory: expect roughly 30 to 40 LPM there from a decent machine, filling the family tank inside half an hour. Self-priming monoblocks are the default choice at this size because they tolerate the air that enters suction lines when sumps run low or municipal supply is intermittent, re-priming themselves instead of needing a manual refill of the casing. For most independent homes and low-rise flats pumping their own supply, this is the answer.",
+      "bestFor": "Ground sump to 1st or 2nd floor tank",
+      "productId": "hav-mhpaaj1x50"
+    },
+    {
+      "rank": 3,
+      "name": "1 HP: three storeys, long runs, pressure problems",
+      "brand": "",
+      "body": "Push head to 20 to 30 metres, a third or fourth storey tank, a basement sump, or a long horizontal run to a rear service shaft, and 0.5 HP flow drops to a trickle; 1 HP restores practical fill times at these heights. Centrifugal monoblocks shine where suction is flooded (an underground tank beside the pump) and duty is regular; choose self-priming variants where suction lift and air ingestion are facts of life. Signs you undersized: tank fills stretching past an hour, the pump running hot, or upper-floor outlets starving while the pump labours. Oversizing has quieter costs, heavier starting load and wasted energy, so match the curve rather than defaulting to 'bigger is safer'.",
+      "bestFor": "3 to 4 storey lifts and long pipe runs",
+      "productId": "hav-mhpocm1x00"
+    },
+    {
+      "rank": 4,
+      "name": "Borewells: submersibles matched to the bore",
+      "brand": "",
+      "body": "Surface pumps cannot suck water up more than about 7 to 8 metres; physics caps suction lift. Water deeper than that means a borewell pump: a submersible lowered into the bore (specified by bore diameter, 3 or 4 inch commonly, and stages matched to depth) or, for moderate depths, a jet pump at the surface. Sizing starts from the borewell report: standing water level, drawdown under pumping and yield decide the stages and HP; a pump stronger than the bore's yield simply pumps the well dry and burns itself. Oil-filled and water-filled motor variants both serve; what matters more is dry-run protection, since a submersible running without water is the most common cause of early death.",
+      "bestFor": "Borewell and deep-water supply",
+      "productId": "cro-3w10ap1d"
+    },
+    {
+      "rank": 5,
+      "name": "Sewage and drainage pumps: the dirty-water specialists",
+      "brand": "",
+      "body": "Basements, stilt parking, sump pits collecting seepage, and waterlogged plots during monsoon need pumps designed to swallow what clean-water pumps cannot: solids, silt and fibrous muck that would jam a domestic monoblock in minutes. Sewage and drainage submersibles use open or vortex impellers with defined solid-handling sizes, sit in the pit, and increasingly pair with float switches that start them automatically as the level rises, which is exactly what you want for a basement that floods at 3 a.m. If your need is moving dirty water rather than lifting clean supply, buy from this family; using a clean-water pump for drainage duty is a warranty claim waiting to be denied.",
+      "bestFor": "Basements, pits and monsoon drainage",
+      "productId": "hav-mhpjdj1x00"
+    },
+    {
+      "rank": 6,
+      "name": "The buying checks that outlast the purchase",
+      "brand": "",
+      "body": "Beyond type and size: confirm the head-flow curve covers your duty point with margin; check the motor's voltage tolerance (rural and peri-urban supply sags exactly when everyone pumps in the morning, and wide-tolerance motors survive it); insist on ISI-marked machines from brands with service networks, because pumps are repaired, not discarded; and wire it right, a dedicated circuit with a correctly rated breaker, an earthed metal body, and dry-run protection or a float switch where the source can run empty. An automatic pump controller or timer stops overflow waste and the burnt windings that come from a pump left running against a full tank's closed ball valve.",
+      "bestFor": "Specification checklist before paying",
+      "productId": "hav-mhpbdk1x00"
+    }
+  ],
+  "buyingTips": [
+    "Compute total head first: vertical lift plus 10 to 20 percent for pipe friction. Then read each candidate's flow at that head; ignore 'max flow' claims.",
+    "0.5 HP self-priming for 1 to 2 storey lifts from sumps; 1 HP for 3 to 4 storeys or long runs; borewell submersibles sized from the borewell report.",
+    "Prefer self-priming designs wherever suction can gulp air (intermittent municipal supply, sumps that run low).",
+    "Fit dry-run protection or a float switch on any pump whose source can empty; it is the single biggest life-extender.",
+    "Give the pump a dedicated circuit with a C-curve breaker sized to its start-up, an earthed body, and a controller or timer against overflow running.",
+    "Buy brands with real service networks and available spares; a pump is a 10-year machine that will want a seal or capacitor at some point."
+  ],
+  "faq": [
+    {
+      "q": "Is a 0.5 HP pump enough for a 2 storey house?",
+      "a": "In most cases yes: lifting from a ground-level sump to a tank two storeys up (10 to 15 metres of head), a good 0.5 HP self-priming monoblock delivers 30 to 40 LPM, filling a 1,000 litre tank in about half an hour."
+    },
+    {
+      "q": "When do I need a 1 HP pump?",
+      "a": "When head reaches 20 to 30 metres: third or fourth storey tanks, basement sumps, or long friction-heavy pipe runs. At those heights a 0.5 HP machine slows to a trickle while a 1 HP maintains practical fill times."
+    },
+    {
+      "q": "What is the difference between monoblock and submersible pumps?",
+      "a": "A monoblock sits outside the water, pump and motor in one casing, and suits sumps and surface sources within suction reach. A submersible operates underwater, in borewells or pits, pushing water up rather than sucking, which is mandatory beyond 7 to 8 metres of depth."
+    },
+    {
+      "q": "Why does my pump not lift water from my deep borewell?",
+      "a": "Suction lift is physically capped near 7 to 8 metres at best. Water standing deeper than that cannot be pulled by any surface pump; it must be pushed from below by a submersible or reached with a jet pump designed for moderate depths."
+    },
+    {
+      "q": "What does self-priming mean and do I need it?",
+      "a": "A self-priming pump can expel air from its suction line and restart pumping on its own after air enters, which happens whenever sumps run low or municipal supply is intermittent. For typical Indian domestic duty, it is worth choosing by default."
+    },
+    {
+      "q": "What kills domestic pumps early?",
+      "a": "Dry running (pumping air when the source empties), voltage sag stressing the motor, and running against closed valves for hours. Dry-run protection, wide-voltage-tolerance motors and an automatic controller address all three cheaply."
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "slug": "ip-ratings-outdoor-lighting-guide",
+  "title": "IP Ratings Explained: What IP44, IP65 and IP66 Mean for Outdoor Lights",
+  "description": "IP ratings decoded for Indian buyers: what the two digits mean, which rating balconies, bathrooms, gates and facades need, monsoon-proofing outdoor lighting, and why IP65 is the outdoor default.",
+  "category": "Lighting",
+  "date": "2026-08-18",
+  "author": "Elume Editorial",
+  "readMins": 7,
+  "tldr": [
+    "IP is two digits: first is protection against solids and dust (0 to 6), second against water (0 to 9). IP65 = dust-tight + rain-jet proof.",
+    "Covered balconies and porches: IP44 suffices. Anything rain can touch directly: IP65. Facades and floodlit signage in driving monsoon: IP66.",
+    "Bathrooms have zones: fittings near the shower spray want IP44 or better; inside the spray path, IP65.",
+    "The rating is only as good as installation: a cracked gasket or open cable gland turns IP65 into IP nothing.",
+    "For India, treat IP65 as the outdoor default; the price gap over lower ratings has become trivial."
+  ],
+  "intro": [
+    "Every outdoor light, and many bathroom fittings, carries an IP number that most buyers skim past, yet it is the specification that decides whether the fitting survives its first monsoon. IP stands for Ingress Protection, and its two digits are a precise code: how well the enclosure keeps out solids like dust and insects, and how well it keeps out water, from drips to jets to immersion.",
+    "This guide decodes the digits, maps each location around an Indian home to the rating it needs, and adds the installation realities, gaskets, glands, drainage, that decide whether the number on the box survives contact with the weather."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "Reading the code: what each digit promises",
+      "brand": "",
+      "body": "First digit, solids: 4 keeps out objects above 1 mm (most insects), 5 is dust-protected, 6 is dust-tight. Second digit, water: 4 resists splashes from any direction, 5 resists low-pressure jets (rain driven by wind qualifies), 6 resists powerful jets, 7 tolerates temporary immersion, 8 continuous immersion. So IP44 shrugs off splashes and bugs, IP65 is sealed against dust and hosed water, and IP67 survives a flooded landing. There is no meaningful 'waterproof' outside this code; a listing that says weatherproof without an IP number is asking you to take the monsoon on faith.",
+      "bestFor": "Decoding any lighting spec sheet",
+      "productId": null
+    },
+    {
+      "rank": 2,
+      "name": "IP44: covered outdoors and bathroom splash zones",
+      "brand": "",
+      "body": "Under a roof, rain arrives only as splash and spray, and IP44 is engineered for exactly that: covered balconies, porches, verandas and entrance canopies, plus bathroom fittings outside the direct shower path. It is the workhorse rating for wall lights and ceiling fittings in these protected spots and usually costs no more than indoor-only hardware. Its limit is direct water: an IP44 fitting on an unprotected wall facing the monsoon's driving rain is under-specified, and the first windy storm will find the gap. When in doubt about whether a spot is truly 'covered', it is not; step up.",
+      "bestFor": "Balconies, porches, bathroom fittings",
+      "productId": null
+    },
+    {
+      "rank": 3,
+      "name": "IP65: the Indian outdoor default",
+      "brand": "",
+      "body": "Dust-tight and proof against water jets from any direction describes exactly what an exposed Indian installation endures: pre-monsoon dust storms followed by three months of wind-driven rain. Gate lights, open facades, garden fixtures, exposed wall washers and general flood lighting should all be IP65 as a baseline, and the market has obliged, with IP65 floods and battens now priced within touching distance of lesser-rated stock. This is also the honest minimum for anything a cleaning hose might reach. The premium over IP44 is small enough that for any ambiguous location, IP65 is simply the correct default purchase.",
+      "bestFor": "Gates, facades, gardens, flood lights",
+      "productId": "ort-led30wfl-6kip65rz"
+    },
+    {
+      "rank": 4,
+      "name": "IP66 and beyond: driving rain, washdowns, immersion",
+      "brand": "",
+      "body": "IP66 steps up to powerful jets: coastal homes taking cyclonic rain broadside, high facades where wind pressurises water against seals, signage floods that get pressure-washed, and industrial canopies. IP67 and 68 add immersion, relevant for in-ground uplighters that sit in waterlogged lawns every monsoon, fountain and pool fittings, and landscape lighting in flood-prone plots. Buy these where the exposure genuinely demands them; the money otherwise does more good spent on optics and driver quality. In-ground fittings deserve special scepticism: an uplighter in Indian monsoon soil lives underwater for weeks, so IP67 is its floor, not its ceiling.",
+      "bestFor": "Coastal, in-ground and washdown fittings",
+      "productId": "hav-lhexbbp7in7j030"
+    },
+    {
+      "rank": 5,
+      "name": "Installation: where IP ratings go to die",
+      "brand": "",
+      "body": "The rating certifies the enclosure as manufactured; the installation decides what you actually get. The classic failures: cable glands left loose or unsealed (water follows the cable in), gaskets pinched or lost during fitting, mounting screws through the housing without sealant, junction boxes of a lower rating feeding an IP65 fitting, and fittings aimed so water pools on seals instead of draining. Give every outdoor run a drip loop so water cannot track along the cable into the gland, use IP-rated junction boxes, and after the first heavy rain, look for fogging inside lenses, the early sign a seal is compromised while warranty still applies.",
+      "bestFor": "Making the rating real on the wall",
+      "productId": "hav-lheecnp7pb6j010"
+    },
+    {
+      "rank": 6,
+      "name": "Beyond IP: the other outdoor survival specs",
+      "brand": "",
+      "body": "IP covers ingress, not everything else the outdoors throws. Check surge protection on outdoor LEDs (2.5 kV minimum, more in lightning belts; storm surges kill more outdoor drivers than water does), operating temperature range for west-facing walls that bake at 50 degrees, corrosion-resistant housings near the coast (powder-coated aluminium over mild steel), and UV-stable lenses that will not yellow in two summers. Impact rating (IK numbers) matters for gate and boundary fittings within reach of the street. A fitting that scores well on all of these plus IP65 is what 'outdoor light' should mean; each spec missing is a season subtracted from its life.",
+      "bestFor": "Complete outdoor buying checklist",
+      "productId": "cro-ldfl30cdl"
+    }
+  ],
+  "buyingTips": [
+    "Map the location honestly: truly covered takes IP44; anything rain or a hose can touch takes IP65; driving coastal rain or washdown duty takes IP66; in-ground takes IP67 minimum.",
+    "Refuse 'weatherproof' claims without an IP number; the code exists precisely so marketing cannot substitute for sealing.",
+    "Check the surge rating alongside IP; monsoon lightning kills outdoor LED drivers through the wiring, not the rain.",
+    "Use IP-rated junction boxes and glands on the supply side; the circuit is only as sealed as its weakest enclosure.",
+    "Install with drip loops and drainage in mind, and inspect for lens fogging after the first storms while warranty is live.",
+    "Near the sea, prioritise corrosion-resistant housings and stainless fasteners; salt air defeats mild steel long before water defeats an IP65 seal."
+  ],
+  "faq": [
+    {
+      "q": "What does IP65 actually mean?",
+      "a": "Dust-tight (6) and protected against water jets from any direction (5). In practice: sealed against Indian dust storms and wind-driven monsoon rain, which is why it is the sensible default for any exposed outdoor fitting."
+    },
+    {
+      "q": "Is IP44 enough for a balcony light?",
+      "a": "For a covered balcony where rain arrives only as splash, yes. For an open balcony or a wall that driving rain reaches directly, step up to IP65; the price difference is now small."
+    },
+    {
+      "q": "Which IP rating do bathroom lights need?",
+      "a": "Fittings outside the direct spray need IP44; anything inside the shower's spray path should be IP65. Ceiling fittings in a steamy bathroom benefit from IP44 or better even away from the shower."
+    },
+    {
+      "q": "What is the difference between IP65, IP66 and IP67?",
+      "a": "All are dust-tight; the water digit climbs: 5 resists low-pressure jets (wind-driven rain), 6 resists powerful jets (cyclonic rain, pressure washing), 7 tolerates temporary immersion (waterlogged ground). Match the digit to the worst water event the fitting will meet."
+    },
+    {
+      "q": "Why did my IP65 light still fill with water?",
+      "a": "Almost always installation: a loose or unsealed cable gland, a pinched gasket, screws through the housing, or water tracking along the cable without a drip loop. The rating certifies the sealed enclosure; assembly errors bypass the seals entirely."
+    },
+    {
+      "q": "Do higher IP ratings use more electricity or give less light?",
+      "a": "No. IP describes the enclosure's sealing, independent of the LED's efficiency or output. Any differences in lumens per watt between two fittings are product design, not the rating."
+    }
+  ]
+}

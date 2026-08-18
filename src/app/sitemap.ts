@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { fetchProducts } from "@/lib/products";
 import { getSlugs } from "@/lib/blog";
 import { listPublicCompareSlugs } from "@/lib/compare/pages";
+import { listPriceListCombos } from "@/lib/price-list";
 import { slugify } from "@/lib/slug";
 
 const SITE = "https://elumenuvo.com";
@@ -67,5 +68,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...staticPages, ...categoryPages, ...brandPages, ...productPages, ...blogPages];
+  // Brand x category price lists - live selling prices reorganised to match
+  // "brand category price list" queries; derived from the same product data.
+  const priceListPages: MetadataRoute.Sitemap = [
+    { url: `${SITE}/price-list`, lastModified: now, changeFrequency: "weekly" as const, priority: 0.8 },
+    ...listPriceListCombos(products).map((c) => ({
+      url: `${SITE}/price-list/${c.slug}`,
+      lastModified: now,
+      changeFrequency: "daily" as const,
+      priority: 0.8,
+    })),
+  ];
+
+  return [...staticPages, ...categoryPages, ...brandPages, ...productPages, ...blogPages, ...priceListPages];
 }

@@ -1,0 +1,104 @@
+{
+  "slug": "ac-mcb-wire-size-guide",
+  "title": "Which MCB and Wire Size for Your AC? 1 Ton, 1.5 Ton and 2 Ton Answered",
+  "description": "The correct wire size and MCB rating for air conditioners in India: 1 ton to 2 ton, inverter vs fixed speed, C-curve breakers for compressor inrush, dedicated circuits, and stabiliser questions.",
+  "category": "Switchgear",
+  "date": "2026-08-18",
+  "author": "Elume Editorial",
+  "readMins": 8,
+  "tldr": [
+    "1 to 1.5 ton AC: 2.5 sq mm copper minimum, 4 sq mm preferred for long runs; 16 to 20 A C-curve MCB on a dedicated circuit.",
+    "2 ton AC: 4 sq mm copper and a 20 to 25 A C-curve MCB, its own circuit, no exceptions.",
+    "Every AC gets a dedicated circuit from the DB with its own breaker; sharing with sockets is the classic nuisance-trip setup.",
+    "C-curve handles compressor inrush; a B-curve breaker on an AC will trip at start-up even when everything is healthy.",
+    "Inverter ACs start softly but still deserve the same sizing; their sustained summer draw is what heats undersized wire."
+  ],
+  "intro": [
+    "Air conditioners are the heaviest plug-in loads in most Indian homes, and the wiring questions arrive every summer with the first heat wave: what wire, which MCB, why does the breaker trip when the compressor kicks in, and does the AC really need its own circuit. The answers are settled electrical practice, and getting them right at installation costs a few hundred rupees; getting them wrong costs nuisance trips at best and overheated concealed wiring at worst.",
+    "This guide gives the sizing per tonnage, explains why the breaker's curve letter matters as much as its amps for compressor loads, and covers the inverter-versus-fixed-speed differences that change the answers less than most people assume."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "The load maths: what a ton of cooling draws",
+      "brand": "",
+      "body": "A 1 ton AC draws roughly 900 to 1,300 W running (4 to 6 A), a 1.5 ton about 1,300 to 1,900 W (6 to 8.5 A), and a 2 ton about 1,900 to 2,400 W (8.5 to 11 A), with fixed-speed compressors additionally pulling 3 to 6 times their running current for a moment at every start. Wiring is sized for sustained summer-afternoon current with headroom, and protection for both that and the start surge. These numbers are why the standard answers land where they do: the wire must never be the hottest component on the circuit, and the breaker must ride through starts while still catching genuine faults.",
+      "bestFor": "Understanding the sizing logic",
+      "productId": null
+    },
+    {
+      "rank": 2,
+      "name": "Wire: 2.5 sq mm minimum, 4 sq mm as the smart default",
+      "brand": "",
+      "body": "For 1 and 1.5 ton units, 2.5 sq mm copper is electrically adequate on short runs; 4 sq mm is the better specification once the run from DB to AC point exceeds about 15 metres, and for any 2 ton unit it is mandatory territory. The incremental cost of 4 over 2.5 sq mm for one circuit is a few hundred rupees; the payoff is lower voltage drop (compressors dislike sag, especially at start), cooler conductors through 45 degree summers, and headroom if the next AC is bigger. Use FR-grade copper as elsewhere in the house, and carry a proper earth with the run; an AC's metal chassis must be earthed.",
+      "bestFor": "Specifying the run per tonnage",
+      "productId": "wire-kei-fr-4-blue"
+    },
+    {
+      "rank": 3,
+      "name": "MCB: 16 to 25 A, and the curve letter is C",
+      "brand": "",
+      "body": "Match the breaker to tonnage and wire: 16 A for a 1 ton on 2.5 sq mm, 20 A for a 1.5 ton (2.5 or 4 sq mm), 25 A for a 2 ton on 4 sq mm. The letter before the number matters as much: C-curve devices trip magnetically at 5 to 10 times rating, riding through compressor inrush; a B-curve device (3 to 5 times) can trip at every start of a healthy fixed-speed AC. Do not solve start-up tripping by fitting a bigger breaker; that removes overload protection from the wire. The correct fix is the correct curve at the correct rating, and a DP (double pole) breaker is good practice so service isolates phase and neutral together.",
+      "bestFor": "Choosing the breaker",
+      "productId": "hav-dhmxcdpz020"
+    },
+    {
+      "rank": 4,
+      "name": "One AC, one circuit: why sharing always ends badly",
+      "brand": "",
+      "body": "Every AC deserves its own run from the distribution board with its own breaker. Shared with a socket circuit, the AC's summer draw plus an iron or kettle exceeds the shared breaker routinely, producing the mid-June afternoon trips that get misdiagnosed as 'weak MCB'. Sharing also means a fault anywhere on the circuit takes the bedroom's cooling down with it, and vice versa. A dedicated circuit isolates faults, lets the breaker be sized precisely for the appliance, and makes future service safe and simple. If you are wiring a home now, run one AC circuit per bedroom regardless of whether the AC exists yet; conduit is cheap while walls are open.",
+      "bestFor": "Circuit planning",
+      "productId": "hav-dhmgcsnf020"
+    },
+    {
+      "rank": 5,
+      "name": "Inverter ACs: softer starts, same wiring discipline",
+      "brand": "",
+      "body": "Inverter compressors ramp up gradually, largely eliminating the start surge, and they modulate rather than cycle, which is gentler on both the grid and your lights. None of that relaxes the wiring: an inverter 1.5 ton still draws its full rated current through a 45 degree afternoon, and at low mains voltage a constant-power inverter drive draws MORE current, not less. Size wire and breaker exactly as for fixed speed. One genuine difference: inverter electronics are sensitive to voltage events, so in areas with poor supply a stabiliser (or a model with a wide operating voltage range, which most modern inverters advertise) protects real money.",
+      "bestFor": "Modern AC installations",
+      "productId": null
+    },
+    {
+      "rank": 6,
+      "name": "Protection beyond the MCB: leakage and surges",
+      "brand": "",
+      "body": "The MCB protects wire; two other devices protect people and the AC itself. The bathroom-adjacent logic applies to ACs too: the circuit should sit behind the home's 30 mA RCCB, since an ageing compressor or damp outdoor unit can leak to earth. And because outdoor units live on walls through storm season, a surge protection device at the board is a wise addition in lightning-prone regions; inverter drive boards are the costliest domestic casualty of monsoon surges. Neither device replaces the other, and together with a correctly curved MCB they make the AC circuit boring, which is exactly what an electrical circuit should be.",
+      "bestFor": "Complete protection for the priciest appliance",
+      "productId": "hav-dhracmdf030040"
+    }
+  ],
+  "buyingTips": [
+    "Standard combinations: 1 ton on 2.5 sq mm with 16 A C-curve; 1.5 ton on 2.5 or 4 sq mm with 20 A C-curve; 2 ton on 4 sq mm with 25 A C-curve. Long runs push wire up a size.",
+    "Always C-curve for compressor loads; start-up trips on a healthy AC are a curve problem, not an amperage problem.",
+    "One AC per circuit, one circuit per AC, from the DB. Wire spare AC circuits into bedrooms during construction even before buying the machines.",
+    "Prefer DP breakers for AC circuits so phase and neutral isolate together during service.",
+    "Use a 16 A switch or industrial socket rated for the load at the AC point, not a 6 A accessory pushed past its rating.",
+    "In surge-prone or outage-prone areas, add an SPD at the board; the inverter drive card it saves costs more than the SPD by an order of magnitude."
+  ],
+  "faq": [
+    {
+      "q": "Which MCB rating is right for a 1.5 ton AC?",
+      "a": "A 20 A C-curve MCB on a dedicated circuit is the standard answer, paired with 2.5 sq mm copper on short runs or 4 sq mm on longer ones. The C-curve rides through compressor start-up while protecting the wire."
+    },
+    {
+      "q": "What wire size does a 2 ton AC need?",
+      "a": "4 sq mm copper on its own circuit with a 20 to 25 A C-curve breaker. A 2 ton unit's sustained summer draw plus start surge is beyond what a shared or 2.5 sq mm circuit should carry."
+    },
+    {
+      "q": "Why does my MCB trip when the AC compressor starts?",
+      "a": "Usually a B-curve breaker (or an undersized one) reacting to normal start inrush, or a genuinely shared, overloaded circuit. The fix is a correctly rated C-curve breaker on a dedicated AC circuit, never simply a bigger breaker on the same thin wire."
+    },
+    {
+      "q": "Do inverter ACs need smaller wire or breakers?",
+      "a": "No. They start softly but draw full rated current through hot afternoons, and at low mains voltage they draw more current to deliver the same cooling. Size exactly as for a fixed-speed unit of the same tonnage."
+    },
+    {
+      "q": "Does an AC need a stabiliser?",
+      "a": "Modern inverter ACs with wide operating ranges (often 140 to 280 V) handle most Indian supply without one. In areas with severe fluctuation, or for fixed-speed units with narrow ranges, a stabiliser sized to the AC's wattage remains cheap insurance."
+    },
+    {
+      "q": "Can two ACs share one 32 A circuit?",
+      "a": "Poor practice. Both trip together on any fault, the shared wire must be oversized anyway, and staggered starts still stack loads. Two dedicated circuits cost marginally more and behave properly for decades."
+    }
+  ]
+}

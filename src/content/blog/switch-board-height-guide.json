@@ -1,0 +1,104 @@
+{
+  "slug": "switch-board-height-guide",
+  "title": "Switch Board and Socket Heights: The Standard Measurements for Indian Homes",
+  "description": "Standard mounting heights for switchboards, sockets, AC points, TV units, kitchen counters, bathrooms and the DB in Indian homes, with the accessibility and safety logic behind each number.",
+  "category": "Modular",
+  "date": "2026-08-18",
+  "author": "Elume Editorial",
+  "readMins": 7,
+  "tldr": [
+    "Light switchboards: 1,200 to 1,350 mm from finished floor, the universal comfortable reach.",
+    "General sockets: 300 to 450 mm for floor-level appliances and vacuuming; mid-height 900 to 1,100 mm where daily plugging happens.",
+    "Kitchen counter sockets: 150 to 200 mm above the counter, clear of the hob and sink splash.",
+    "AC points around 2,100 to 2,300 mm near the indoor unit; DB at 1,500 to 1,800 mm at the entrance.",
+    "Measure from FINISHED floor level; tiles and stone raise floors 50 to 100 mm and ruin unadjusted heights."
+  ],
+  "intro": [
+    "Point heights are decided once, in an afternoon of marking walls, and lived with for decades, which is why the standard measurements matter. They exist for reasons: reach from standing and sitting, safety distance from water and children, furniture that will one day stand against the wall, and the vacuum cleaner cord that must reach a socket in every room. Indian practice has converged on a set of numbers that work, and deviating from them is fine only when done deliberately.",
+    "This guide lists the standards room by room, flags the two systematic mistakes (measuring from bare slab instead of finished floor, and forgetting furniture), and covers the newer points, chargers, TV walls, kitchen appliances, that older height charts never anticipated."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "Switchboards: 1,200 to 1,350 mm, the universal reach",
+      "brand": "",
+      "body": "Light and fan switchboards across the house sit at 1,200 to 1,350 mm from finished floor: comfortable for a standing adult, reachable for older children and seated users, above most furniture backs, and consistent enough that hands find switches in the dark by habit. Beside each room's entry door, on the latch side, is the position; nothing frustrates like a switch behind the opening door. Keep the height identical throughout the home; a house where every board sits at one height feels professionally built in a way visitors sense without knowing why. Accessibility guidance for wheelchair users trims this to 900 to 1,200 mm; adopt it where it matters to your household.",
+      "bestFor": "Every room's main boards",
+      "productId": "hav-acvsxiw161"
+    },
+    {
+      "rank": 2,
+      "name": "Sockets: low for appliances, mid-height for daily use",
+      "brand": "",
+      "body": "The classic 300 to 450 mm socket height serves loads that live at the floor: TVs on low units, fridges, washing machines, floor lamps and the vacuum cleaner's room-by-room needs. But daily plug-and-unplug at ankle height is a chore, so modern practice adds mid-height sockets, 900 to 1,100 mm, wherever hands visit often: bedside boards, study desks, the phone-charging spot in the living room. The planning method is to walk each wall asking what will stand against it and what will be plugged weekly versus permanently; permanent loads take low sockets behind furniture, frequent ones take mid-height boards you can reach without bending.",
+      "bestFor": "Living rooms, bedrooms, studies",
+      "productId": "hav-atamxig161"
+    },
+    {
+      "rank": 3,
+      "name": "Kitchens: above the counter, clear of flame and splash",
+      "brand": "",
+      "body": "Kitchen sockets belong 150 to 200 mm above the finished counter (roughly 1,000 to 1,100 mm from floor with the standard 850 mm counter), spaced along the working run for mixer, kettle, OTG and induction plate, each heavy appliance on a 16 A point. Keep sockets at least 300 mm horizontally from the hob's edge and clear of the sink's splash arc; water and flame each get their exclusion zone. The chimney takes a point near the ceiling above the hob, the fridge a dedicated socket behind it, and under-cabinet lighting a concealed feed. Count generously: kitchens grow appliances yearly, and a spare 16 A point costs pennies at wiring time.",
+      "bestFor": "Counter runs and appliance planning",
+      "productId": null
+    },
+    {
+      "rank": 4,
+      "name": "Bathrooms, AC points and the DB: the special heights",
+      "brand": "",
+      "body": "Bathrooms follow safety zones: the geyser's 16 A point sits high, 1,800 to 2,100 mm near the unit and out of spray; a shaver or grooming socket stays at least 600 mm horizontally from shower and basin splash, at 1,200 to 1,400 mm; and every bathroom circuit sits behind the RCCB. AC points go high near the indoor unit, 2,100 to 2,300 mm, so the cord never dangles across the wall, with the drain path and outdoor unit position agreed before the point is fixed. The distribution board itself belongs near the main entrance at 1,500 to 1,800 mm to its centre: adult eye level, above small children's reach, and never inside a wardrobe.",
+      "bestFor": "Wet areas and fixed heavy loads",
+      "productId": null
+    },
+    {
+      "rank": 5,
+      "name": "The two mistakes that ruin correct plans",
+      "brand": "",
+      "body": "First: heights are from FINISHED floor level, and wiring happens before flooring. Tile, stone and bedding raise the floor 50 to 100 mm, so points marked from bare slab all end up low by exactly that much, the classic reason a whole flat's switches sit oddly. Confirm the flooring stack-up with the contractor and mark accordingly. Second: furniture. A socket centred on a wall that will carry a 2,100 mm wardrobe, a bed's headboard over the bedside board, a TV point behind where the panel actually hangs; each is a point wasted. Do the furniture walk with masking tape on the walls before conduiting; it is the highest-value hour of the whole electrical job.",
+      "bestFor": "Getting the plan onto the wall correctly",
+      "productId": null
+    },
+    {
+      "rank": 6,
+      "name": "The modern points old charts forgot",
+      "brand": "",
+      "body": "TV walls now want a cluster at panel height, 1,000 to 1,200 mm to the panel's centre for a wall-mounted screen, with power, HDMI conduit and network behind the panel where wires vanish. Bedsides deserve full boards (two-way switch, regulator, socket, USB) at 600 to 700 mm, just above mattress height. Study desks take boards at 750 to 900 mm above the desk surface. Add the wardrobe-interior light feed, the router's dedicated mid-height socket where signal is central, a porch point for festival lighting at 2,400 mm, and an inverter's changeover wiring path. None of these are in old height charts, and all of them are why new homes deserve a fresh point plan rather than a copied one.",
+      "bestFor": "Future-proofing the point plan",
+      "productId": "EDHF7R29JC"
+    }
+  ],
+  "buyingTips": [
+    "Fix the finished-floor level with your contractor in writing before marking a single point; every height in this guide assumes it.",
+    "Walk each room with masking tape marking furniture positions, then place sockets for the real layout, low behind permanent appliances, mid-height where hands visit daily.",
+    "Keep switchboard height identical across the home (1,200 to 1,350 mm) and always on the latch side of doors.",
+    "In kitchens and bathrooms, respect the exclusion zones around hob, sink, shower and basin; water and flame trump convenience.",
+    "Specify 16 A points for every heavy appliance position, present and probable: geyser, AC, kitchen counter runs, washing machine.",
+    "Photograph every wall after conduiting and before plastering; that photo set answers every future 'can we add a point here' in seconds."
+  ],
+  "faq": [
+    {
+      "q": "What is the standard switchboard height in India?",
+      "a": "1,200 to 1,350 mm from finished floor level, beside the door on the latch side. Kept consistent through the house, it suits standing adults, older children and most seated users."
+    },
+    {
+      "q": "At what height should sockets be installed?",
+      "a": "300 to 450 mm for floor-level and permanent appliances, 900 to 1,100 mm where plugging happens daily (bedsides, desks, charging spots), and 150 to 200 mm above counters in kitchens. Placement follows use, not one universal number."
+    },
+    {
+      "q": "What height should the AC point be?",
+      "a": "2,100 to 2,300 mm, close to the indoor unit's planned position so the cord stays short and hidden. Agree the unit's exact location, and the outdoor unit and drain path, before fixing the point."
+    },
+    {
+      "q": "Where and how high should the distribution board be?",
+      "a": "Near the main entrance at 1,500 to 1,800 mm to its centre: reachable at eye level in an emergency, above small children, never hidden inside wardrobes or behind the refrigerator."
+    },
+    {
+      "q": "Why do all my switches feel too low after flooring?",
+      "a": "The points were measured from the bare slab, and the tile or stone stack-up raised the floor 50 to 100 mm. Heights must be set from the finished floor level, which is why the flooring specification must be fixed before wiring marks go on walls."
+    },
+    {
+      "q": "What height for bedside switchboards?",
+      "a": "600 to 700 mm from finished floor, just above mattress level, so switches and sockets are reachable while lying down. A two-way switch for the main light, a regulator, a socket and USB make the board genuinely useful."
+    }
+  ]
+}

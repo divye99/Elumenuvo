@@ -1,0 +1,104 @@
+{
+  "slug": "reduce-electricity-bill-guide",
+  "title": "How to Actually Reduce Your Electricity Bill: The Upgrades Ranked by Payback",
+  "description": "The home electrical upgrades that genuinely cut Indian power bills, ranked by payback period: BLDC fans, LED conversion, 5-star geysers, AC discipline, standby losses and what to ignore.",
+  "category": "Fans",
+  "date": "2026-08-18",
+  "author": "Elume Editorial",
+  "readMins": 8,
+  "tldr": [
+    "Cooling and heating dominate the bill: fans, AC and the geyser typically account for 60 to 80 percent of an Indian home's units.",
+    "Fastest paybacks: swap high-use ceiling fans to BLDC (roughly 2 summers) and any remaining old bulbs or tubes to LED (under a year).",
+    "The geyser's fix is a 5-star tank, a timer habit and a lower thermostat, not a smaller family.",
+    "AC savings come from 26 degrees, clean filters, sealed rooms and dedicated wiring, not from magic gadgets.",
+    "Ignore 'power saver' boxes; residential meters bill real energy, and the physics of those devices saves none of it."
+  ],
+  "intro": [
+    "Electricity bills are cut by arithmetic, not tips: find the appliances that run the most watts for the most hours, and attack those first. In a typical Indian home, that shortlist is brutally short: the AC, the ceiling fans that run all day, the geyser that heats water every morning, and lighting's long evening hours. Everything else, the TV, router, chargers, mixer, is decoration on the bill.",
+    "This guide ranks the interventions by payback period, the months until the saving repays the spend, using Indian tariffs of roughly 6 to 9 rupees per unit. It ends with the popular non-solutions, so your money goes into copper and compressors rather than plastic boxes with LEDs on them."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "BLDC fans: the highest-return swap in the house",
+      "brand": "",
+      "body": "A conventional induction ceiling fan draws 70 to 80 W; a BLDC fan delivers the same breeze at 28 to 35 W. For a fan running 12 to 16 hours daily through an Indian year, that difference is 150 to 250 units annually, 1,200 to 2,000 rupees per fan at typical tariffs. The BLDC premium recovers in roughly two summers, after which it pays you every year for a decade. Prioritise the fans that actually run longest, bedrooms and the living room, rather than swapping everything ceremonially; the guest room fan that spins ten hours a month can wait. The remote and smooth speed control come free with the savings.",
+      "bestFor": "Fans running 8+ hours daily",
+      "productId": "ort-2134873711010"
+    },
+    {
+      "rank": 2,
+      "name": "Finish the LED conversion, properly",
+      "brand": "",
+      "body": "Most homes are 'mostly LED' with profitable stragglers: the old 36 W tubes in the kitchen, filament or CFL bulbs in lofts and bathrooms, and halogen spots nobody replaced. A 20 W LED batten replaces a 36 to 40 W tube one-for-one; a 9 W LED replaces a 60 W filament bulb. Each high-use swap pays back in months, not years, the fastest payback in home energy. While converting, buy quality (100 lumens per watt, 2.5 kV surge rating) so drivers survive monsoon voltage events, and use sensor fittings for staircases and corridors, where the cheapest unit of electricity is the one a motion sensor never spends.",
+      "bestFor": "Any remaining non-LED lighting",
+      "productId": "hav-lhexazp7pn1w030"
+    },
+    {
+      "rank": 3,
+      "name": "The geyser: star rating, thermostat and timing",
+      "brand": "",
+      "body": "Water heating is the winter bill's biggest line, and three levers cut it without a colder bath. First, the 5-star tank: standing losses are where geyser money quietly leaks, and the rating measures exactly that; upgrading an old 2-star tank saves 15 to 25 percent of its consumption outright. Second, the thermostat: 50 to 55 degrees instead of the factory 65 heats less water you were only going to dilute anyway. Third, timing: heat shortly before use rather than holding water hot all day; a plug-in timer or an IoT geyser's schedule automates the discipline. Together these routinely trim a heavy-use geyser's cost by a third.",
+      "bestFor": "Every storage geyser household",
+      "productId": "ort-swat06vpg8k2-ws"
+    },
+    {
+      "rank": 4,
+      "name": "AC discipline: degrees, filters and sealed rooms",
+      "brand": "",
+      "body": "Each degree below 24 on the setpoint costs roughly 6 percent more energy; 26 degrees with a ceiling fan feels like 24 without one and bills like neither. Clean filters monthly in season (a choked filter makes the compressor labour for the same cooling), seal the room's leaks (door gaps and the classic un-plugged AC installation hole), and service the outdoor unit's coils annually. If buying new, a 5-star inverter over a 3-star fixed-speed saves 25 to 35 percent for the same tonnage, the difference compounding every summer. And wire it right: a dedicated circuit protects the machine, and a healthy supply voltage keeps an inverter drive from drawing extra current to compensate.",
+      "bestFor": "AC households, which is the biggest lever of all",
+      "productId": null
+    },
+    {
+      "rank": 5,
+      "name": "Standby and the long tail: worth one evening, not a crusade",
+      "brand": "",
+      "body": "Set-top boxes, routers, TVs, chargers and standby electronics together draw 10 to 30 W around the clock in a typical home, 90 to 260 units a year. Worth killing where it is convenient: switchable extension boards let one flick cut the entertainment cluster at night, and smart plugs schedule the rest. But keep proportion; the entire standby tail often equals one ceiling fan's inefficiency, so this is the garnish, not the meal. The exception worth hunting: an old second refrigerator in the utility area, often the third-biggest load in the house and the easiest 1,000 rupees a year most families can save by retiring it.",
+      "bestFor": "The finishing pass after the big four",
+      "productId": null
+    },
+    {
+      "rank": 6,
+      "name": "What not to buy: the power-saver box and friends",
+      "brand": "",
+      "body": "The plug-in 'power saver' promising 30 to 40 percent off your bill is physics-free: residential meters bill real (active) energy, and the capacitor inside those boxes at best nudges a quantity households are not billed for. Voltage 'optimisers' for homes, fuel-catalyst-style gadgets, and mystery stickers belong in the same bin. Spend that money on measurement instead: a plug-in energy meter that tells you what each appliance truly draws, or a smart meter's app if your utility offers one. Measurement finds your actual top loads in an evening, and every rupee thereafter goes to interventions with arithmetic behind them, which is the entire method of this guide.",
+      "bestFor": "Protecting your wallet from folklore",
+      "productId": "cro-ldsens20-cdl"
+    }
+  ],
+  "buyingTips": [
+    "Attack watts times hours: list your five longest-running appliances and upgrade those first; ignore the rarely used regardless of their rating.",
+    "Swap the highest-use ceiling fans to BLDC first; two-summer payback, then pure saving for a decade.",
+    "Complete the LED conversion with quality fittings (100 lm/W, surge-protected); the stragglers pay back in months.",
+    "Choose 5-star for anything that runs daily: geyser, refrigerator, AC. The rating premium is smallest exactly where the savings are largest.",
+    "Put the geyser on a timer or schedule and drop its thermostat to 50 to 55 degrees; comfort is unchanged, the bill is not.",
+    "Buy a plug-in energy meter before buying any 'saver' gadget; measurement is the only device in that aisle that actually works."
+  ],
+  "faq": [
+    {
+      "q": "What consumes the most electricity in an Indian home?",
+      "a": "Cooling and heating: the AC in summer, ceiling fans year-round, and the geyser in winter typically account for 60 to 80 percent of units. Lighting's long hours follow; everything else is a small tail."
+    },
+    {
+      "q": "Do BLDC fans really save money?",
+      "a": "Yes, and predictably: about 40 to 50 W saved per fan versus an induction model, which at 12+ daily hours and Indian tariffs is 1,200 to 2,000 rupees per fan per year. The purchase premium typically recovers within two summers."
+    },
+    {
+      "q": "Does running the AC at 26 degrees really matter?",
+      "a": "Each degree of deeper cooling costs roughly 6 percent more energy. 26 with a ceiling fan matches the comfort of 24 without, cutting AC energy by 10 to 15 percent, and pairing the two is the cheapest comfort trick in summer."
+    },
+    {
+      "q": "How much does a geyser timer save?",
+      "a": "Heating just before use instead of holding water hot all day eliminates most standing losses, commonly 10 to 20 percent of the geyser's consumption, more for older low-star tanks. Combined with a 50 to 55 degree thermostat, savings of a third are realistic."
+    },
+    {
+      "q": "Do plug-in power savers work?",
+      "a": "No. Home meters bill active energy; the capacitor in those boxes addresses reactive power, which households are not billed for. No credible test has shown meaningful residential savings; put the money into a BLDC fan or LED fittings instead."
+    },
+    {
+      "q": "Is standby power worth worrying about?",
+      "a": "It is worth one organised evening: switchable boards for the TV cluster, schedules for what can sleep. At 10 to 30 W total it costs 90 to 260 units a year, real but small next to fans, AC and the geyser. The old spare refrigerator is the exception; retire it."
+    }
+  ]
+}
