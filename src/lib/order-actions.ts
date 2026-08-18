@@ -122,6 +122,11 @@ export async function checkDiscountCode(
   if (!d) return { ok: false, error: "That code doesn't exist." };
   if (new Date(d.expires_at).getTime() < Date.now()) return { ok: false, error: "That code has expired." };
   if (d.used_count >= d.max_uses) return { ok: false, error: "That code has already been used." };
+  if (d.email_lock && !email.trim()) {
+    // Confirmed drop-off pattern (Aug 2026): buyers hit Apply before filling
+    // the email field, and the mismatch message reads like the code is dead.
+    return { ok: false, error: "Enter your email above first, then apply the code." };
+  }
   if (d.email_lock && d.email_lock.toLowerCase() !== email.trim().toLowerCase()) {
     return { ok: false, error: "That code belongs to a different email address." };
   }
