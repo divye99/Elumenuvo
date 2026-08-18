@@ -65,6 +65,23 @@ const ORG_JSONLD = {
   areaServed: "IN",
 };
 
+// Google reads the site name shown in search results ("Elume" instead of
+// "elumenuvo.com") from WebSite structured data on the homepage - the
+// Organization block alone does not set it. SearchAction additionally makes
+// the catalogue search eligible for a sitelinks search box.
+const WEBSITE_JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Elume",
+  alternateName: ["Elume Nuvotech", "Elumenuvo"],
+  url: SITE,
+  potentialAction: {
+    "@type": "SearchAction",
+    target: { "@type": "EntryPoint", urlTemplate: `${SITE}/catalogue?q={search_term_string}` },
+    "query-input": "required name=search_term_string",
+  },
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -82,6 +99,7 @@ export default function RootLayout({
         <Analytics />
         <GoogleTag />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLd(ORG_JSONLD) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLd(WEBSITE_JSONLD) }} />
         {children}
         <Toaster richColors position="top-center" />
       </body>
