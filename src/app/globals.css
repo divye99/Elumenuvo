@@ -494,6 +494,7 @@ input[type="range"].elume-range::-moz-range-thumb {
 @media (max-width: 760px) {
   .metals-charts { grid-template-columns: 1fr !important; }
   .metals-grid { grid-template-columns: 1fr 1fr !important; }
+  .metals-data-grid { grid-template-columns: 1fr !important; }
 }
 @media (max-width: 480px) {
   .metals-grid { grid-template-columns: 1fr !important; }

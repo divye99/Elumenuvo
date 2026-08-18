@@ -137,7 +137,7 @@ export async function joinWaitlist(_prev: FormState, form: FormData): Promise<Fo
 
 /** Shared insert for the public lead forms (Sell on Elume / product requests).
  *  Core fields go to columns; everything else lands in `details` jsonb. */
-export async function submitPartnerLead(kind: "seller" | "product-request", _prev: FormState, form: FormData): Promise<FormState> {
+export async function submitPartnerLead(kind: "seller" | "product-request" | "metals-data", _prev: FormState, form: FormData): Promise<FormState> {
   const email = String(form.get("email") ?? "").trim();
   const name = String(form.get("name") ?? "").trim();
   const phone = String(form.get("phone") ?? "").trim();
@@ -166,7 +166,7 @@ export async function submitPartnerLead(kind: "seller" | "product-request", _pre
     details,
   });
   if (error) return { ok: false, message: "Couldn't submit right now - please try again, or email info@elumenuvo.com." };
-  return kind === "seller"
-    ? { ok: true, message: "Thanks - our partnerships team will reach out within 2 working days." }
-    : { ok: true, message: "Got it - we'll try to source this product and email you a price." };
+  if (kind === "seller") return { ok: true, message: "Thanks - our partnerships team will reach out within 2 working days." };
+  if (kind === "metals-data") return { ok: true, message: "Noted - we'll reach out as always-on metals data access rolls out." };
+  return { ok: true, message: "Got it - we'll try to source this product and email you a price." };
 }

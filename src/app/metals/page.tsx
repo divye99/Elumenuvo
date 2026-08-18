@@ -7,6 +7,8 @@ import { fmt } from "@/lib/format";
 import { GROTESK } from "@/lib/fonts";
 import { jsonLd as toJsonLd } from "@/lib/jsonld";
 import MetalsMarketCharts from "@/components/metals/MetalsMarketCharts";
+import LeadForm from "@/components/storefront/LeadForm";
+import { submitPartnerLead } from "@/lib/actions";
 
 /** The questions copper buyers actually type into Google - shown on the page
  *  AND emitted as FAQPage JSON-LD so the hub can win those queries. */
@@ -74,7 +76,10 @@ export default async function MetalsHub() {
       {listLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLd(listLd) }} />}
       {/* ── Hero ── */}
       <section style={{ background: "linear-gradient(120deg,#19202E,#232B47)", borderRadius: 20, padding: "42px 40px", color: "#fff" }}>
-        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "1.2px", textTransform: "uppercase", color: "#9DB0FF" }}>Elume Metals</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "1.2px", textTransform: "uppercase", color: "#9DB0FF" }}>Elume Metals</span>
+          <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: "0.8px", color: "#19202E", background: "#F5C64F", borderRadius: 7, padding: "3px 9px" }}>BETA</span>
+        </div>
         <h1 style={{ fontFamily: GROTESK, fontSize: 34, fontWeight: 600, letterSpacing: "-1px", margin: "10px 0 12px", maxWidth: 640, lineHeight: 1.15 }}>
           Metals, priced the way the market prices them
         </h1>
@@ -87,6 +92,17 @@ export default async function MetalsHub() {
           <span>🧾 GST invoice on every order</span>
           <span>🏦 Book online · balance by RTGS</span>
         </div>
+      </section>
+
+      {/* ── Beta disclaimer ── */}
+      <section style={{ background: "#FFF8E7", border: "1px solid #F0DFAE", borderRadius: 14, padding: "14px 20px", display: "flex", gap: 12, alignItems: "flex-start" }}>
+        <span style={{ fontSize: 16, lineHeight: "22px" }}>🚧</span>
+        <p style={{ fontSize: 13, color: "#6B5A20", lineHeight: 1.6, margin: 0 }}>
+          <strong>Elume Metals is in beta and under active development.</strong> Rates, charts and market data on
+          this page are indicative: they can lag the exchange and may not always be accurate or complete. Please
+          confirm the applicable rate with us before transacting. Feeds, coverage and tooling are improving week
+          by week.
+        </p>
       </section>
 
       {/* ── Live copper ── */}
@@ -143,6 +159,33 @@ export default async function MetalsHub() {
 
       {/* ── Exchange context ── */}
       <MetalsMarketCharts />
+
+      {/* ── Always-on data access (beta interest capture) ── */}
+      <section style={{ ...card, padding: "28px 30px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 28 }} className="metals-data-grid">
+        <div>
+          <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: "1px", textTransform: "uppercase", color: "#8A93A6" }}>Data access</div>
+          <h2 style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 600, letterSpacing: "-0.5px", margin: "4px 0 10px", color: "#19202E" }}>
+            Need this data reliably, all the time?
+          </h2>
+          <p style={{ fontSize: 13.5, color: "#56627A", lineHeight: 1.6, margin: 0 }}>
+            We are building always-on access to our metals rates and market data: dependable feeds, alerts and
+            history beyond what this beta page shows. If steady access matters to your business, tell us who you
+            are and what you need. Your requirements shape what we build first, and you get access as it rolls out.
+          </p>
+        </div>
+        <LeadForm
+          action={submitPartnerLead.bind(null, "metals-data")}
+          fields={[
+            { name: "name", label: "Your name", required: true, half: true },
+            { name: "company", label: "Company", half: true },
+            { name: "email", label: "Email", type: "email", required: true, half: true },
+            { name: "phone", label: "Phone", type: "tel", half: true },
+            { name: "message", label: "What data do you need, and how often?", type: "textarea", placeholder: "e.g. Copper CCR rod rate every morning, LME trend history, alerts on ±2% moves…" },
+          ]}
+          submitLabel="Request data access"
+          footnote="We'll only use this to reach you about metals data access."
+        />
+      </section>
 
       {/* ── Enquiry metals ── */}
       <section>

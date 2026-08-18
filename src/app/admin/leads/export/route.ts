@@ -25,7 +25,10 @@ export async function GET(request: Request) {
   else if (tab === "survey") rows = (await db.from("trade_survey").select("*").order("created_at", { ascending: false }).limit(5000)).data ?? [];
   else {
     const all = (await db.from("partner_leads").select("*").order("created_at", { ascending: false }).limit(5000)).data ?? [];
-    rows = tab === "sellers" ? all.filter((l: any) => l.kind === "seller") : all.filter((l: any) => l.kind !== "seller");
+    rows =
+      tab === "sellers" ? all.filter((l: any) => l.kind === "seller")
+      : tab === "metalsdata" ? all.filter((l: any) => l.kind === "metals-data")
+      : all.filter((l: any) => l.kind !== "seller" && l.kind !== "metals-data");
   }
 
   const cols = Array.from(new Set(rows.flatMap((r) => Object.keys(r))));

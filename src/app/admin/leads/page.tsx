@@ -69,7 +69,7 @@ const PAID_STATES = new Set(["placed", "confirmed", "packed", "shipped", "partia
 
 async function load() {
   const db = adminClient();
-  if (!db) return { credit: [], sellers: [], requests: [], business: [], survey: [], guestbiz: [] as GuestBiz[] };
+  if (!db) return { credit: [], sellers: [], requests: [], metalsdata: [], business: [], survey: [], guestbiz: [] as GuestBiz[] };
   const [w, p, b, ts] = await Promise.all([
     db.from("waitlist").select("*").order("created_at", { ascending: false }).limit(500),
     db.from("partner_leads").select("*").order("created_at", { ascending: false }).limit(500),
@@ -80,7 +80,8 @@ async function load() {
   return {
     credit: (w.data ?? []) as Row[],
     sellers: leads.filter((l) => l.kind === "seller"),
-    requests: leads.filter((l) => l.kind !== "seller"),
+    requests: leads.filter((l) => l.kind !== "seller" && l.kind !== "metals-data"),
+    metalsdata: leads.filter((l) => l.kind === "metals-data"),
     business: (b.data ?? []) as Row[],
     survey: ((ts as { data?: Row[] | null }).data ?? []) as Row[],
     guestbiz: await guestBusinesses(db),
@@ -98,6 +99,7 @@ export default async function AdminLeads({ searchParams }: { searchParams: Promi
     ["business", "Business accounts", data.business.length],
     ["sellers", "Sell on Elume", data.sellers.length],
     ["requests", "Product requests", data.requests.length],
+    ["metalsdata", "Metals data", data.metalsdata.length],
     ["survey", "Trade survey", data.survey.length],
     ["guestbiz", "Business, no account", data.guestbiz.length],
   ];
