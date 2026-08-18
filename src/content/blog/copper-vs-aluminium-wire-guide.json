@@ -1,0 +1,99 @@
+{
+  "slug": "copper-vs-aluminium-wire-guide",
+  "title": "Copper vs Aluminium Wire: Which Should You Use for House Wiring?",
+  "description": "Copper vs aluminium wiring compared honestly for Indian homes: conductivity, safety, cost per point, where aluminium still makes sense, and why house wiring is copper-only today.",
+  "category": "Wires & Cables",
+  "date": "2026-08-16",
+  "author": "Elume Editorial",
+  "readMins": 8,
+  "tldr": [
+    "For in-house wiring the debate is settled: use copper. Every reputable house-wire brand sells only copper for internal circuits.",
+    "Aluminium needs roughly 1.6 times the cross-section to carry the same current as copper, and its terminations loosen over time.",
+    "Most house fires blamed on 'aluminium wiring' actually start at a loose aluminium termination, not in the run of the cable.",
+    "Aluminium still earns its place in service cables and long outdoor feeder runs, where its lightness and cost win.",
+    "If your older house has aluminium circuits, do not mix copper extensions onto them with a simple twist joint; use proper bimetallic connectors."
+  ],
+  "intro": [
+    "Fifty years ago aluminium wiring was common in Indian homes because copper was expensive and often scarce. Today every serious brand, Havells, Polycab, KEI, Finolex, Anchor, makes its FR and FR-LSH house wire exclusively in electrolytic-grade copper, and the wiring code treats copper as the default for fixed internal wiring. Yet the question keeps coming up, usually from someone comparing a copper quotation against a suspiciously cheap alternative, or maintaining an older aluminium-wired property.",
+    "The honest comparison is not close for house wiring, but aluminium is not a villain either; it still dominates overhead lines and building service cables for good engineering reasons. Here is where each metal genuinely belongs, and what to do if your existing installation is aluminium."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "Conductivity and size: the 1.6x rule",
+      "brand": "",
+      "body": "Copper conducts about 60 percent better than aluminium by cross-section. In practice, an aluminium conductor must be around 1.6 times the area of copper to carry the same current: where 2.5 sq mm copper feeds a socket circuit, you would need roughly 4 sq mm aluminium. That eats into any price advantage, needs bigger conduits, and still leaves you with aluminium's termination problems. By weight aluminium actually wins (it is a third the density), which is exactly why it rules long overhead spans where cables hang from towers, and why it loses indoors where space in the conduit is the constraint.",
+      "bestFor": "Understanding the core physics",
+      "productId": "poly25"
+    },
+    {
+      "rank": 2,
+      "name": "Terminations: where aluminium fails in homes",
+      "brand": "",
+      "body": "Aluminium's real weakness is not the run of wire, it is every screw terminal. Aluminium creeps (slowly deforms under contact pressure) and expands more with heat than brass or copper terminals do, so connections that were tight at installation loosen over years of load cycles. A loose joint arcs, oxidises (aluminium oxide is an insulator), heats further and eventually chars the switchboard. Copper terminations stay tight for decades. This is why insurance investigators and electricians find most 'wiring fires' at aluminium terminals in old boards, and why modern accessories are simply not designed or rated for aluminium conductors.",
+      "bestFor": "Understanding the fire risk",
+      "productId": null
+    },
+    {
+      "rank": 3,
+      "name": "Cost per point, honestly calculated",
+      "brand": "",
+      "body": "Aluminium wire is cheaper per kilogram, but the honest comparison is cost per wired point at equal safety. Upsizing aluminium 1.6x, using larger conduits, aluminium-rated terminals and more frequent maintenance narrows the gap sharply; for internal wiring the all-in saving is small on day one and negative over the installation's life. Copper house wire for a full 2 BHK typically costs 25,000 to 40,000 rupees at market prices depending on brand and grade, perhaps 15 percent of the electrical budget. Saving a few thousand rupees on the one component expected to last 40 years inside your walls is the wrong place to economise.",
+      "bestFor": "Budgeting a wiring job",
+      "productId": "anchor-copapro-1-90"
+    },
+    {
+      "rank": 4,
+      "name": "Where aluminium is still the right choice",
+      "brand": "",
+      "body": "Aluminium remains excellent engineering in the right place: utility overhead lines, the service cable from the pole or meter to your main board, risers and long feeder runs in apartment buildings, and armoured underground feeds to a farmhouse or borewell. Over long distances its lightness and price per ampere-metre beat copper decisively, and these cables terminate in proper aluminium-rated lugs crimped by people who do it daily. If you are getting a new connection, an aluminium service cable specified by the utility is completely normal; insist on copper only from the meter board inward.",
+      "bestFor": "Service cables and long feeders",
+      "productId": null
+    },
+    {
+      "rank": 5,
+      "name": "Living with an existing aluminium-wired house",
+      "brand": "",
+      "body": "If your pre-1990s house is wired in aluminium, it is not an emergency, but it needs discipline. Have an electrician inspect and re-torque every accessible termination, watch for warm switch plates or a fishy smell (overheating insulation), and upgrade protection with an RCCB if the board predates one. The dangerous shortcut is joining new copper extensions to old aluminium runs with a twisted joint: the two metals form a galvanic couple that corrodes and loosens. Use bimetallic (Cu-Al) connectors made for the purpose. The better plan for any renovation is a full rewire of the affected circuits in copper.",
+      "bestFor": "Older properties",
+      "productId": null
+    },
+    {
+      "rank": 6,
+      "name": "What the standards and brands have decided",
+      "brand": "",
+      "body": "House wire sold in India as FR, FR-LSH or HFFR to IS 694 is copper-conductor wire; the aluminium equivalents survive mainly in bare feeder and service-cable categories. Modular sockets, switches and MCB terminals from mainstream brands are designed and type-tested around copper conductors. In other words, the industry has already made this decision for you: if a contractor's quotation for internal wiring mentions aluminium, treat it as a red flag for the rest of the quotation too. Specify the brand, grade and size of copper wire circuit by circuit and check the coils on delivery.",
+      "bestFor": "Writing a wiring specification",
+      "productId": "wire-kei-fr-4-blue"
+    }
+  ],
+  "buyingTips": [
+    "Specify copper explicitly in any wiring contract, per circuit: 1.5 sq mm copper FR for lighting, 2.5 sq mm for sockets, 4 to 6 sq mm for AC and geyser runs.",
+    "Check the print on the insulation on delivery: brand, size, grade and ISI mark. Coils priced well below the market rate for 'the same' copper wire usually have fewer or thinner strands than marked.",
+    "For long outdoor runs (gate lights, borewell, outhouse), an armoured aluminium cable sized 1.6x is a legitimate money-saver; terminate it with proper lugs at both ends.",
+    "Never join copper to aluminium with a twisted taped joint; use bimetallic connectors or a junction box with a proper terminal strip.",
+    "If you are renovating one room of an aluminium-wired house, rewire that room fully in copper back to the DB rather than extending the old aluminium."
+  ],
+  "faq": [
+    {
+      "q": "Is aluminium wiring illegal in India?",
+      "a": "No. Aluminium conductors remain legal and are widely used by utilities and for service cables. But the code of practice, accessory manufacturers and every mainstream house-wire brand have standardised on copper for internal fixed wiring, so new internal wiring in aluminium is effectively obsolete."
+    },
+    {
+      "q": "How much bigger does aluminium wire need to be than copper?",
+      "a": "Roughly 1.6 times the cross-sectional area for the same current rating. A circuit that needs 2.5 sq mm copper needs about 4 sq mm aluminium, and a 4 sq mm copper run needs 6 sq mm aluminium."
+    },
+    {
+      "q": "My electrician says copper-clad aluminium (CCA) is as good as copper. Is it?",
+      "a": "No. CCA is an aluminium conductor with a thin copper skin, sold cheap and sometimes passed off as copper. It has aluminium's ampacity and termination problems with copper's appearance. Reputable brands do not use it in ISI-marked house wire; its presence usually means counterfeit material."
+    },
+    {
+      "q": "Do copper and aluminium wires cost very different amounts?",
+      "a": "Per kilogram, yes; copper is several times the price of aluminium. Per safely wired point indoors, the gap shrinks dramatically once you upsize aluminium and use rated terminations, and it disappears over the installation's lifetime through maintenance and risk."
+    },
+    {
+      "q": "How do I know if my old house is wired in aluminium?",
+      "a": "Turn off the main, open a switchboard and look at a conductor end: aluminium is dull silver-grey, copper is reddish. Houses wired before the late 1980s in India frequently used aluminium. If you find it, have the terminations inspected and plan copper rewiring during the next renovation."
+    }
+  ]
+}

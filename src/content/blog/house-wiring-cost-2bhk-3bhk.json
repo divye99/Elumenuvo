@@ -1,0 +1,104 @@
+{
+  "slug": "house-wiring-cost-2bhk-3bhk",
+  "title": "House Wiring Cost in India: Realistic 2BHK and 3BHK Budgets",
+  "description": "What electrical wiring actually costs for a 2BHK and 3BHK in India: material versus labour split, per-point rates decoded, where quotations hide margin, and where cutting costs is safe versus dangerous.",
+  "category": "Wires & Cables",
+  "date": "2026-08-18",
+  "author": "Elume Editorial",
+  "readMins": 9,
+  "tldr": [
+    "Working budgets: roughly 60,000 to 1,00,000 rupees for a 2BHK and 90,000 to 1,50,000 for a 3BHK, complete with materials and labour at mid-range brands.",
+    "Materials are typically 60 to 70 percent of the total; wire alone is about a quarter of materials.",
+    "Per-point labour rates of 350 to 600 rupees are normal in most cities; 'point' definitions vary, so get the count and definition in writing.",
+    "Safe savings: buy materials yourself, standardise on mid-range modular series, skip decorative extras. Never save on wire grade, earthing or the RCCB.",
+    "Get itemised quotations with brand, grade and size per line. A lump-sum figure is where the margin hides."
+  ],
+  "intro": [
+    "Electrical work is 8 to 12 percent of a typical Indian home interior budget, yet it is the item owners find hardest to sanity-check because quotations arrive as lump sums or cryptic per-point rates. The cost structure is actually simple: conductors, protection and accessories on the material side; conduiting, drawing, termination and testing on the labour side. Once you see the split, you can tell a fair quotation from a padded one in minutes.",
+    "The figures below reflect 2026 market prices for a standard city job: concealed conduit wiring, mid-range branded materials, single-phase supply. Metros with high labour rates land at the top of each range, smaller cities near the bottom. Every material category here links into our catalogue, where current market prices per item replace the guesswork with numbers."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "The big picture: what a full job costs",
+      "brand": "",
+      "body": "A 2BHK of around 900 to 1,100 sq ft, wired fresh with mid-range branded materials, lands between 60,000 and 1,00,000 rupees all-in. A 3BHK of 1,300 to 1,600 sq ft runs 90,000 to 1,50,000. The spread within each band comes from point count (how many switches, sockets and outlets you actually want), brand tier, and city labour rates. Rewiring an occupied older flat costs 15 to 25 percent more than wiring during construction because of chasing, patching and working around finished surfaces. Treat any quotation dramatically below these bands as a specification problem waiting to be discovered: fewer points, thinner wire, or unbranded protection.",
+      "bestFor": "Setting the overall budget",
+      "productId": null
+    },
+    {
+      "rank": 2,
+      "name": "Wire: a quarter of materials, zero place to economise",
+      "brand": "",
+      "body": "Expect 18,000 to 30,000 rupees of house wire for a 2BHK and 28,000 to 45,000 for a 3BHK at branded FR to FR-LSH grades: a mix of 1 and 1.5 sq mm for lighting, 2.5 sq mm for socket circuits, and 4 to 6 sq mm dedicated runs for ACs and geysers, plus earth wire throughout. This is the one category where cutting quality is genuinely dangerous, because wire is buried in walls for decades and carries every fault the future throws at it. The good news: the price gap between adequate and excellent is small. Upgrading a whole 2BHK from basic FR to FR-LSH in bedrooms costs roughly a thousand rupees, the cheapest meaningful safety upgrade in the entire project.",
+      "bestFor": "The non-negotiable core",
+      "productId": "poly25"
+    },
+    {
+      "rank": 3,
+      "name": "Switchgear and the DB: 8,000 to 18,000 rupees",
+      "brand": "",
+      "body": "The distribution board with its MCBs and RCCB is the house's safety system: budget 8,000 to 14,000 rupees for a 2BHK (an 8 to 12 way DB, 10 to 12 MCBs, one 40 A 30 mA RCCB, main isolator) and 12,000 to 18,000 for a 3BHK, more if three-phase. Branded switchgear from Havells, Lauritz Knudsen, ABB or Legrand costs a few hundred rupees more per module than unbranded stock and is another line where economising is false: an MCB that fails to trip has no second chance. The RCCB specifically is the device that protects people rather than wiring; a home quotation without one should be corrected, not negotiated.",
+      "bestFor": "Protection that must not be value-engineered",
+      "productId": "hav-dhracmdf030040"
+    },
+    {
+      "rank": 4,
+      "name": "Switches, sockets and plates: the biggest style lever",
+      "brand": "",
+      "body": "Modular accessories are where budgets swing wildly by choice, not necessity: 12,000 to 25,000 rupees covers a 2BHK in a solid mid-range series, while designer glass-plate ranges can double that for pure aesthetics. Count roughly 60 to 90 modules for a 2BHK and 90 to 130 for a 3BHK once you include regulators, USB sockets and 16 A points for heavy appliances. The practical advice: pick one series with a deep module range so additions years later still match, put 16 A sockets wherever a kitchen appliance, geyser or AC might ever live, and spend the style budget on the rooms guests see rather than uniformly everywhere.",
+      "bestFor": "Where taste sets the price",
+      "productId": "anc-roma-reg"
+    },
+    {
+      "rank": 5,
+      "name": "Labour and the per-point rate, decoded",
+      "brand": "",
+      "body": "Electrician labour runs 350 to 600 rupees per point in most cities, and a typical 2BHK carries 70 to 100 points, a 3BHK 100 to 140. The trap is the word 'point': for some contractors a point is each switch or socket module; for others it is each switchboard; light, fan, plug and power points may carry different rates. Always get the point definition and the counted list in writing, and insist conduiting, DB dressing, earthing runs and testing are explicitly included rather than 'extra as actuals'. A fair labour quotation for a 2BHK totals 25,000 to 40,000 rupees; a suspiciously low per-point rate usually returns as extras for exactly those excluded items.",
+      "bestFor": "Comparing contractor quotations",
+      "productId": null
+    },
+    {
+      "rank": 6,
+      "name": "Safe savings versus dangerous ones",
+      "brand": "",
+      "body": "Safe ways to save 15 to 25 percent: buy all materials yourself against our market prices instead of accepting contractor-supplied lots (contractors legitimately margin materials 10 to 20 percent), standardise on one mid-range modular series, prune decorative dimmers and smart modules to the rooms that use them, and phase non-essential circuits like garden or accent lighting. Dangerous savings that surface as tragedies or teardowns: thinner wire than the circuit calculation demands, skipping the RCCB, unbranded MCBs, omitting earth wire to 'two-pin' rooms, undersized DBs with no spare ways, and unconduited runs buried directly in plaster. The rule: cut visible luxury freely, never cut the invisible infrastructure.",
+      "bestFor": "Trimming the budget intelligently",
+      "productId": "hav-dhmycfpm016"
+    }
+  ],
+  "buyingTips": [
+    "Demand an itemised quotation: every line with brand, grade, size and quantity. Lump sums and 'standard material' clauses are where specification quietly degrades.",
+    "Buy materials yourself if you can manage delivery timing; it typically saves 10 to 20 percent and guarantees genuine branded stock.",
+    "Fix the point count from a room-by-room walkthrough before comparing rates; two quotations with different implicit point counts cannot be compared.",
+    "Order 10 percent extra wire per size; shortfalls mid-job get filled by whatever the nearest shop stocks, breaking brand and grade consistency.",
+    "Insist testing is included and documented: insulation resistance, earth continuity and RCCB trip test on handover, not 'switch it on and see'.",
+    "Keep the final circuit map and material invoices with your property papers; they add real resale value and make every future repair cheaper."
+  ],
+  "faq": [
+    {
+      "q": "What is the cost of electrical wiring for a 2BHK flat in India?",
+      "a": "With mid-range branded materials and concealed conduit work, 60,000 to 1,00,000 rupees complete, of which materials are typically 60 to 70 percent. Point count, brand tier and city labour rates set where you land in the band."
+    },
+    {
+      "q": "How much does 3BHK house wiring cost?",
+      "a": "Typically 90,000 to 1,50,000 rupees all-inclusive for a 1,300 to 1,600 sq ft 3BHK at mid-range brands, rising with premium modular series, three-phase distribution, smart-home additions or metro labour rates."
+    },
+    {
+      "q": "What is the per-point rate for house wiring?",
+      "a": "Labour of 350 to 600 rupees per point is typical in cities, but 'point' definitions vary between contractors. Fix the definition and the counted point list in writing before comparing anyone's rate."
+    },
+    {
+      "q": "Is rewiring an old house costlier than wiring a new one?",
+      "a": "Yes, by roughly 15 to 25 percent, because of wall chasing, repair and repainting, and working around occupied rooms. If the old wiring is aluminium or pre-RCCB, rewiring during any renovation is worth prioritising."
+    },
+    {
+      "q": "Where should I absolutely not cut costs in wiring?",
+      "a": "Wire size and grade, earthing, the RCCB, and branded MCBs. These are invisible until the day they matter and unaffordable to retrofit. Save instead on decorative plates, smart modules and by procuring materials yourself."
+    },
+    {
+      "q": "Should I buy wiring materials myself or let the contractor supply them?",
+      "a": "Buying yourself saves the contractor's 10 to 20 percent material margin and guarantees authenticity, at the cost of managing quantities and delivery. A good middle path: you buy wire, switchgear and modular accessories against an agreed list; the contractor supplies conduit and consumables."
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "slug": "rccb-30ma-vs-100ma-guide",
+  "title": "RCCB 30mA vs 100mA vs 300mA: Which Sensitivity Does Your Home Need?",
+  "description": "What RCCB sensitivity ratings mean, why 30mA is the human-protection standard for homes, where 100mA and 300mA belong, and how to choose the current rating and pole count to match your board.",
+  "category": "Switchgear",
+  "date": "2026-08-17",
+  "author": "Elume Editorial",
+  "readMins": 8,
+  "tldr": [
+    "30 mA is the sensitivity that protects people from fatal shock. It is the correct choice for homes.",
+    "100 mA and 300 mA devices protect equipment and against fire, not reliably against electrocution; they belong upstream in larger installations.",
+    "The amp rating (25 A, 40 A, 63 A) is separate from sensitivity; it must match or exceed your incomer load.",
+    "DP (2-pole) RCCBs suit single-phase homes; FP (4-pole) for three-phase supplies.",
+    "If a 30 mA device nuisance-trips, find the leakage; do not 'fix' it by fitting a 100 mA in a home."
+  ],
+  "intro": [
+    "Every RCCB carries two numbers, and buyers routinely confuse them. The current rating, 25 A, 40 A or 63 A, says how much load the device can carry. The residual sensitivity, 30 mA, 100 mA or 300 mA, says how much current leaking to earth will trip it, and this second number is the one your life depends on. A shock through the human body becomes potentially fatal around 40 to 50 mA sustained; only a 30 mA device opens below that threshold.",
+    "This guide explains what each sensitivity is for, how to pick both numbers for a typical Indian home, when a four-pole device is required, and what it means if your RCCB starts tripping, because the answer is never to downgrade the protection."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "30 mA: the life-safety standard for homes",
+      "brand": "",
+      "body": "A 30 mA RCCB disconnects when the difference between current going out on phase and returning on neutral exceeds 30 milliamps, meaning that much is escaping, possibly through a person. It opens in tens of milliseconds, below the threshold and duration where ventricular fibrillation becomes likely. This is why wiring codes worldwide, and every credible electrician in India, specify 30 mA for final circuits in homes: bathrooms, kitchens, sockets, geysers. When you buy one device to protect a family, this is it. Fit it at the incomer of your distribution board so every circuit downstream is covered.",
+      "bestFor": "Whole-home protection at the DB incomer",
+      "productId": "hav-dhracmdf030040"
+    },
+    {
+      "rank": 2,
+      "name": "100 mA: upstream and equipment protection",
+      "brand": "",
+      "body": "A 100 mA device trips at more than double the current that can kill, so it is not a substitute for 30 mA where people are the concern. Its legitimate roles: as an upstream device in larger installations where a 300 mA or 100 mA incomer provides fire protection and discrimination while 30 mA devices sit on final circuits, and in commercial or industrial settings where aggregate standing leakage from many machines would hold a 30 mA device permanently tripped. In a normal home there is no position where 100 mA is the right choice; if a seller offers it because it 'trips less', that is precisely the problem with it.",
+      "bestFor": "Upstream tiers in large installations",
+      "productId": "EDCD9JFGCP"
+    },
+    {
+      "rank": 3,
+      "name": "300 mA: fire protection, not shock protection",
+      "brand": "",
+      "body": "At 300 mA sensitivity, the device's job is to catch insulation breakdown before the leaking current starts a fire; roughly 300 mA of leakage through a carbonised path dissipates enough heat to ignite surroundings. It offers no meaningful shock protection. You will meet 300 mA at the origin of commercial buildings, panel incomers, and installations with long cable runs whose natural capacitive leakage would trouble finer devices. Some larger homes with three-phase supply use a 300 mA four-pole at the main incomer plus 30 mA devices per phase or per floor downstream, a layout that gives both discrimination and life safety.",
+      "bestFor": "Building incomers and fire risk coverage",
+      "productId": "hav-dhracmdf300040"
+    },
+    {
+      "rank": 4,
+      "name": "The amp rating: 25 A, 40 A or 63 A",
+      "brand": "",
+      "body": "Sensitivity chosen, the current rating must simply carry your maximum load, and importantly, an RCCB does not protect against overload; it must be backed by an MCB or sized above the upstream protection. For a typical single-phase home with a 5 to 8 kW sanctioned load, 40 A DP is the workhorse; compact homes can use 25 A, and larger all-electric homes with multiple ACs and geysers should fit 63 A. Buying one size up costs little and removes the risk of the RCCB itself becoming the bottleneck. Match poles to supply: DP for single phase, FP for three phase.",
+      "bestFor": "Sizing the device to your load",
+      "productId": "hav-dhracmdf030025"
+    },
+    {
+      "rank": 5,
+      "name": "Type AC vs Type A: what the letters add",
+      "brand": "",
+      "body": "Beyond sensitivity, RCCBs come in types describing what waveform of leakage they detect. Type AC handles pure sinusoidal leakage, historically the Indian default. Type A also catches pulsating DC leakage, which modern electronics, inverter ACs, VFD washing machines, EV chargers and laptop supplies, can produce; a Type AC device can be blinded by DC components exactly when you need it. Prices have converged, so for a new purchase in an electronics-heavy home, Type A is the better default, and an EV charging point specifically should have Type A protection at minimum on its circuit.",
+      "bestFor": "Homes full of inverter appliances, EV charging",
+      "productId": "hav-dhrxctde030040"
+    },
+    {
+      "rank": 6,
+      "name": "Nuisance tripping: diagnose, never downgrade",
+      "brand": "",
+      "body": "A 30 mA device that trips periodically is reporting genuine leakage: a geyser element beginning to perforate, moisture in an outdoor fitting, a fridge or washing machine with tired insulation, or accumulated standing leakage from many appliances (each contributes a little; more than about 10 mA total leaves scant headroom). The correct response is the elimination method, circuit by circuit and then appliance by appliance, to find the contributor. Swapping in a 100 mA device silences the alarm by removing the protection, the electrical equivalent of taking the battery out of a smoke detector. If standing leakage is genuinely high in a large home, split circuits across two 30 mA devices instead.",
+      "bestFor": "Fixing frequent trips the right way",
+      "productId": "hav-dhracmff030025"
+    }
+  ],
+  "buyingTips": [
+    "For a standard single-phase Indian home: one 40 A, 30 mA, DP RCCB at the DB incomer. That one line covers most buyers reading this.",
+    "Three-phase supply needs a four-pole (FP) device; 40 A FP 30 mA for most homes, 63 A if the connected load is heavy.",
+    "Prefer Type A over Type AC when the price gap is small; inverter appliances and chargers are now the majority of home loads.",
+    "Press the test button monthly. It is the only routine check that confirms the tripping mechanism still works; a device that fails the test needs replacement, not patience.",
+    "Buy RCCBs only from authorised channels with the brand's packaging intact. Counterfeit switchgear looks identical and fails exactly once.",
+    "An RCCB complements MCBs, it does not replace them: MCBs catch overload and short circuit, the RCCB catches leakage. A safe board has both, or RCBOs combining the two per circuit."
+  ],
+  "faq": [
+    {
+      "q": "Which RCCB is best for home use, 30 mA or 100 mA?",
+      "a": "30 mA. It is the sensitivity that disconnects before a shock through the human body reaches dangerous levels. 100 mA devices are upstream and equipment-protection devices for larger installations, not human protection for final circuits."
+    },
+    {
+      "q": "What is the difference between 40 A and 30 mA on the same RCCB?",
+      "a": "40 A is the load current the device can carry continuously; 30 mA is the leakage current that trips it. The first must match your home's load, the second is the safety function. They are independent choices printed together on the faceplate."
+    },
+    {
+      "q": "Does an RCCB protect against short circuits and overload?",
+      "a": "No. An RCCB only detects earth leakage. Short circuits and overloads are the MCB's job, which is why every board needs both, and why the RCCB must be backed by appropriately rated MCBs or fuses."
+    },
+    {
+      "q": "My RCCB trips every few days. Should I fit a less sensitive one?",
+      "a": "No. Recurring trips mean real leakage somewhere: commonly a geyser element, washing machine, fridge, or a damp outdoor point. Isolate circuits one by one to find it. Downgrading to 100 mA in a home removes the very protection that is currently warning you."
+    },
+    {
+      "q": "RCCB, RCB, RCD, ELCB: are these different devices?",
+      "a": "RCD is the umbrella term; RCCB is the standard current-operated residual device sold today, and RCB is a loose abbreviation for the same thing. Old voltage-operated ELCBs are obsolete and should be replaced with a 30 mA RCCB during any board upgrade. An RCBO is an RCCB and MCB combined in one module."
+    },
+    {
+      "q": "Where should the RCCB sit in my distribution board?",
+      "a": "At the incomer, after the main isolator or main MCB, so all final circuits pass through it. In larger or three-phase homes, a common layout is a less sensitive four-pole at the origin and 30 mA devices covering final-circuit groups downstream."
+    }
+  ]
+}

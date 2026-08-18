@@ -1,0 +1,104 @@
+{
+  "slug": "havells-vs-polycab-vs-kei-wires",
+  "title": "Havells vs Polycab vs KEI House Wire: An Honest Comparison",
+  "description": "The three biggest names in Indian house wire compared on conductor quality, insulation grades, coil honesty, price per metre and warranty, and how to choose between them for a wiring job.",
+  "category": "Wires & Cables",
+  "date": "2026-08-18",
+  "author": "Elume Editorial",
+  "readMins": 9,
+  "tldr": [
+    "All three are genuinely good: ISI-marked electrolytic copper, honest coil lengths, proper FR and FR-LSH grades. You are choosing between shades of excellent.",
+    "Polycab is India's largest wire maker and usually the sharpest price for equal grade; distribution is unmatched.",
+    "Havells commands a small premium on brand and finish; its Life Line and Life Guard ranges are electrician favourites for ease of drawing through conduit.",
+    "KEI brings institutional cable pedigree to house wire; its FR-LSH pricing is often the value pick of the premium tier.",
+    "Grade matters more than brand: any of the three in FR-LSH beats any of them in plain PVC. Decide grade first, then compare prices at that grade."
+  ],
+  "intro": [
+    "Wire is the one component you cannot easily change after the house is finished, which is why the brand question gets asked with such intensity, and why the answer disappoints partisans: Havells, Polycab and KEI all make excellent house wire to IS 694, with 99.97 percent pure electrolytic copper, flame-retardant compounds and printed, honest lengths. Failures traced to any of the three almost always turn out to be counterfeit stock or an undersized circuit, not the factory's copper.",
+    "The differences that do exist are in price positioning, range depth, availability and small handling details. This comparison walks through them grade by grade so you can put your money where it changes outcomes: in the insulation grade and correct sizing, not in brand mythology. All three brands are stocked in our catalogue with per-coil market comparisons, so the price check that used to take three phone calls is a search away."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "Polycab: the volume leader and price benchmark",
+      "brand": "Polycab",
+      "body": "Polycab is India's largest wire and cable manufacturer, and that scale shows up as the sharpest shelf price for equal specification and near-universal availability, from metro dealers to tehsil hardware shops. The Maxima+ and Green Wire ranges cover FR, FR-LSH and HFFR (its low-halogen Green Wire line is among the most accessible eco-grade wires in the market). Copper quality and coil-length honesty are consistently solid. If your electrician quotes Polycab, the practical question is only whether the grade quoted matches the specification you wanted; as the price benchmark, it is also the number to beat when comparing the other two.",
+      "bestFor": "Best price at equal grade, easiest availability",
+      "productId": "poly25"
+    },
+    {
+      "rank": 2,
+      "name": "Havells: the premium habit with electrician loyalty",
+      "brand": "Havells",
+      "body": "Havells sells its house wire on the same brand trust that moves its fans and switchgear, and charges a modest premium for it. The ranges are well differentiated: Life Line Plus S3 HRFR as the mainstream heat-resistant grade and Life Guard FR-LSH as the low-smoke step-up. Electricians consistently praise the insulation's flexibility, which makes drawing through congested conduit noticeably easier, a real labour saving on a full house job. Sizes, colours and coil lengths are exactly as printed. You pay a little more per coil; you get top-tier consistency and the widest genuine-stock retail network of the premium tier.",
+      "bestFor": "Premium consistency, easy conduit drawing",
+      "productId": "wire-havells-frlsh-1-red"
+    },
+    {
+      "rank": 3,
+      "name": "KEI: institutional pedigree, value in the premium tier",
+      "brand": "KEI",
+      "body": "KEI made its name in industrial and infrastructure cabling, EHV lines, refineries, metro projects, and brought that pedigree downmarket into house wire with the Homecab FR and Conflame FR-LSH ranges. The engineering DNA shows in conservative ratings and robust insulation compounds. Because its consumer brand is younger than its industrial reputation, KEI frequently prices its FR-LSH below the equivalent Havells and close to Polycab, making it the quiet value pick of the premium grades. Retail availability is thinner in smaller towns, so confirm stock before committing a whole project to it, or order online where stock is visible.",
+      "bestFor": "FR-LSH at keen prices, engineering-led build",
+      "productId": "wire-kei-fr-4-blue"
+    },
+    {
+      "rank": 4,
+      "name": "Grades matter more than brands: FR, HRFR, FR-LSH, HFFR",
+      "brand": "",
+      "body": "The insulation grade determines how wire behaves in a fire, and it swamps brand differences. Plain PVC is obsolete for new work. FR (flame retardant) self-extinguishes and is the sensible minimum. HRFR adds heat resistance for hot conduits and high ambient temperatures. FR-LSH (low smoke and halogen) dramatically cuts the choking smoke and acid gas that actually kill in building fires, and is worth its premium in bedrooms and any enclosed sleeping areas. HFFR/ZHFR goes further with halogen-free compounds. Every brand here offers the full ladder; decide the grade per room first, then compare the three brands' prices at that grade. That order of decisions is the entire secret of buying wire well.",
+      "bestFor": "Getting the specification right",
+      "productId": "wire-kei-frlsh-0p5-yellow"
+    },
+    {
+      "rank": 5,
+      "name": "Price per metre, warranty and the counterfeit problem",
+      "brand": "",
+      "body": "Compare per metre, not per coil: 90 m is the standard Indian coil and all three print length honestly, but market discounting differs by size and region, so the ranking between Polycab, KEI and Havells can swap on a given size and week. Expect roughly 10 to 20 percent spread between the cheapest and dearest of the three at equal grade. All three offer warranty on manufacturing defects; keep the invoice and the coil label. The bigger financial risk is counterfeiting, most prevalent exactly where trust is highest: verify holograms or QR authentication marks, buy from authorised channels, and treat a price well below every listed market rate as the warning it is.",
+      "bestFor": "Paying the fair price for genuine stock",
+      "productId": "anchor-copapro-1-90"
+    },
+    {
+      "rank": 6,
+      "name": "The verdict by buyer type",
+      "brand": "",
+      "body": "Wiring a full house on a managed budget: Polycab at your chosen grade, sized correctly, is the rational default and frees money for an extra circuit or better switchgear. Premium build where the owner wants every component from a marquee name, or a job where conduit runs are long and congested: Havells earns its margin. Value-hunting within the premium grades, especially FR-LSH throughout: price KEI first and be pleasantly surprised. Mixed strategies are legitimate too, one brand for power circuits and another for lighting is electrically harmless as long as each circuit is single-brand for consistent drawing behaviour. Whatever you choose, write brand, grade and size into the contract circuit by circuit.",
+      "bestFor": "Making the final call",
+      "productId": null
+    }
+  ],
+  "buyingTips": [
+    "Fix the grade before the brand: FR minimum everywhere, FR-LSH for bedrooms and closed sleeping areas. Then get quotes for all three brands at that exact grade and size.",
+    "Compare per metre across the standard 90 m coil, and check our per-coil market price comparison; the three brands swap price positions by size and season.",
+    "Verify authenticity on delivery: hologram or QR check, brand printing along the insulation every metre, and size marking matching the invoice.",
+    "Buy the whole job's wire in one lot per brand so colour shades and drawing feel stay uniform across circuits.",
+    "Do not let the wire brand carry the safety load alone: correct sizing (1.5 sq mm lighting, 2.5 sq mm sockets, 4 to 6 sq mm AC and geyser) matters more than any brand choice.",
+    "Keep leftover coil ends labelled by circuit; matching brand and grade during future repairs preserves the installation's integrity."
+  ],
+  "faq": [
+    {
+      "q": "Which wire is best: Havells, Polycab or KEI?",
+      "a": "At equal grade and size, all three are excellent and code-compliant; real-world failures overwhelmingly trace to counterfeits or wrong sizing. Polycab usually wins on price and availability, Havells on premium consistency and conduit-friendly flexibility, KEI on value within the FR-LSH tier."
+    },
+    {
+      "q": "Is Polycab wire cheaper because it is lower quality?",
+      "a": "No. Polycab's prices reflect the scale of India's largest wire manufacturer, not thinner copper. Its ISI-marked ranges use the same electrolytic-grade conductor purity as its premium-priced rivals."
+    },
+    {
+      "q": "What does FR-LSH mean and is it worth the extra cost?",
+      "a": "Flame Retardant, Low Smoke and Halogen. In a fire it emits far less of the dense, acidic smoke that causes most fire deaths. For bedrooms, children's rooms and any enclosed sleeping space, the premium of a few hundred rupees per coil is among the cheapest life-safety upgrades in construction."
+    },
+    {
+      "q": "Can I mix wire brands in one house?",
+      "a": "Electrically yes, and it is common when availability forces it. Keep each individual circuit to a single brand and grade so behaviour in the conduit and at terminations stays uniform, and record which circuit uses what."
+    },
+    {
+      "q": "How do I spot fake Havells, Polycab or KEI wire?",
+      "a": "Check the brand's hologram or QR authentication on the coil, insist on continuous brand and size printing along the wire, buy from authorised dealers or platforms that source from them, and be suspicious of prices well under the published market rate. Counterfeiters target exactly the trust these three names carry."
+    },
+    {
+      "q": "Are 90 m coils really 90 m?",
+      "a": "From these three brands, yes, length printing is honest and verifiable against the metre markings on the insulation. Short coils are a hallmark of unbranded and counterfeit stock, which is one more reason the brand premium pays for itself."
+    }
+  ]
+}

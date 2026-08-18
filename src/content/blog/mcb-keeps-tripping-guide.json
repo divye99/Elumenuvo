@@ -1,0 +1,112 @@
+{
+  "slug": "mcb-keeps-tripping-guide",
+  "title": "MCB Keeps Tripping? Every Cause, From Most to Least Likely",
+  "description": "Why an MCB trips again and again: overload, short circuit, a failing appliance, nuisance tripping on inrush, undersized breakers and genuine wiring faults, with a safe step-by-step diagnosis.",
+  "category": "Switchgear",
+  "date": "2026-08-17",
+  "author": "Elume Editorial",
+  "readMins": 9,
+  "tldr": [
+    "A tripping MCB is doing its job. Find the cause instead of holding it on or upsizing it blindly.",
+    "Most common cause: simple overload, too many watts on one circuit. Add up what was running when it tripped.",
+    "Trips the instant you switch on one particular appliance point to that appliance, not the wiring.",
+    "Trips immediately on reset with everything unplugged suggest a short circuit or damp junction box; call an electrician.",
+    "If the RCCB trips rather than the MCB, the problem is leakage to earth, a different fault family entirely.",
+    "Never replace a tripping MCB with a higher rating without confirming the wire size can carry it. That converts an annoyance into a fire risk."
+  ],
+  "intro": [
+    "An MCB that trips repeatedly is one of the most searched electrical problems in India, and also one of the most misdiagnosed. The breaker is rarely faulty; in the overwhelming majority of cases it is correctly detecting a real problem: an overloaded circuit, a failing appliance, or a short. The dangerous responses, taping the lever on, or swapping a 10 A breaker for a 32 A because 'this one is weak', remove the protection while leaving the fault in place.",
+    "This guide walks through the causes in order of likelihood, how to tell them apart safely without instruments, and when the fix is a rebalanced circuit, a replaced appliance, or a call to an electrician. If it is your earth-leakage device (RCCB) tripping rather than an MCB, the causes are different; we cover how to tell which device fired and what that means."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "Overload: too many watts on one circuit",
+      "brand": "",
+      "body": "The classic pattern: the breaker holds for minutes, then trips, especially when a heating appliance joins the party. A 16 A circuit at 230 V carries about 3,600 W continuously; a geyser (2,000 W) plus an iron (1,500 W) plus anything else exceeds it, and the MCB's thermal element trips after a delay, faster in summer. The tell is the time lag and the correlation with what was running. The fix is load management or wiring: move heavy appliances to separate circuits, each geyser and AC on its own run. Upsizing the breaker without upsizing the 2.5 sq mm wire behind it just moves the overheating into the wall.",
+      "bestFor": "Trips after a delay, under heavy use",
+      "productId": "hav-dhmycfpm016"
+    },
+    {
+      "rank": 2,
+      "name": "One appliance is the culprit",
+      "brand": "",
+      "body": "If the trip happens the moment a specific appliance switches on or reaches a certain point in its cycle (a washing machine entering spin, a geyser mid-heat, a fridge compressor kicking in), suspect the appliance. Heating elements crack and short to their earthed casing, motor windings fail, and old wiring inside the appliance chafes. Confirm it by process of elimination: unplug everything on the circuit, reset, then reintroduce loads one at a time. When the trip follows one device around, even to a different socket on another circuit, the diagnosis is complete. Repair or replace the appliance; the breaker was never the problem.",
+      "bestFor": "Trips tied to a single device",
+      "productId": null
+    },
+    {
+      "rank": 3,
+      "name": "Short circuit: instant, decisive trips",
+      "brand": "",
+      "body": "A short circuit (phase touching neutral or earth directly) drives hundreds of amps for milliseconds, and the MCB's magnetic element fires instantly, often with a sharp clack and sometimes a visible spark or scorch smell at the fault. The signature: the breaker will not hold even with every appliance unplugged, tripping the instant you reset it. Common household culprits are damaged flexible cords, a nail or drill screw through a concealed run, water in a junction box or outdoor fitting, and failed insulation in an old switch. Do not keep resetting into a short. Isolate the circuit and have an electrician trace it; repeated resets hammer the wiring at the fault point.",
+      "bestFor": "Trips instantly on reset",
+      "productId": "E2C63H4PC7"
+    },
+    {
+      "rank": 4,
+      "name": "Nuisance tripping: inrush and the wrong curve",
+      "brand": "",
+      "body": "Some loads draw a harmless but huge surge at switch-on: AC compressors, pumps, large mixer motors, and banks of LED drivers can pull 5 to 10 times their running current for a few cycles. A B-curve MCB (trips magnetically at 3 to 5 times rating) may fire on this inrush even though nothing is wrong. The fix is not a bigger breaker but the right curve: C-curve devices (5 to 10 times) are the domestic default precisely because they ride through inrush while still catching real shorts, and D-curve exists for heavy motor loads. If a correctly sized breaker trips only at the moment of switch-on of a motor or a big LED array, and never under steady load, curve selection is your answer.",
+      "bestFor": "Trips only at switch-on of motors or LED banks",
+      "productId": "E2H9RMDJ32"
+    },
+    {
+      "rank": 5,
+      "name": "Loose terminations and tired breakers",
+      "brand": "",
+      "body": "A loose wire at the MCB terminal heats the breaker body from outside; the thermal element cannot tell external heat from overload heat, so a warm, loosely-terminated breaker trips below its rating. Signs include a hot DB face, discoloured terminal, or a breaker that trips at loads it handled for years while connections have never been re-torqued. Genuine breaker fatigue also exists but is rarer: an MCB that has cleared several real short circuits, or a decades-old device, can weaken and trip early. After an electrician verifies the circuit is healthy and terminations are tight, replacing a suspect old breaker like-for-like (same rating, same curve) is cheap insurance.",
+      "bestFor": "Ageing boards, warm breakers",
+      "productId": null
+    },
+    {
+      "rank": 6,
+      "name": "It is actually the RCCB tripping",
+      "brand": "",
+      "body": "Check which lever fell. If the wider device feeding the whole board dropped, that is your RCCB, and the fault family is different: current leaking to earth through damaged insulation, a damp geyser element, a washing machine with a leaky heater, or moisture in an outdoor fitting. RCCBs at 30 mA protect people and will trip on leakage far too small for any MCB to notice. The elimination method works here too: with the RCCB reset, switch on circuits one at a time via their MCBs to find the leaking circuit, then unplug appliances on it one by one. A geyser that trips the RCCB only when heating almost always has a perforated element.",
+      "bestFor": "Whole-board trips, wet-area faults",
+      "productId": "hav-dhracmdf030040"
+    },
+    {
+      "rank": 7,
+      "name": "When to stop and call a professional",
+      "brand": "",
+      "body": "Self-diagnosis safely ends at unplugging appliances and resetting levers. Call an electrician immediately if the breaker will not hold with everything unplugged, if you smell burning or see scorch marks at any point, if trips are accompanied by flickering across multiple rooms (possible neutral fault, which can destroy appliances), or if the affected circuit feeds concealed wiring you suspect was drilled or nailed. Insist the visit ends with a written finding: what tripped, why, and what was changed. If any breaker is replaced, the new one must match the wire size of the circuit, not the convenience of the moment.",
+      "bestFor": "Knowing your limits",
+      "productId": null
+    }
+  ],
+  "buyingTips": [
+    "Replace like-for-like: same rating and curve, from a reputable brand. A 16 A C-curve MCB is the standard for domestic socket circuits on 2.5 sq mm copper; 10 A suits lighting on 1.5 sq mm.",
+    "Buying a higher-rated MCB to stop tripping is only legitimate after confirming the conductor size supports it: 20 A needs 2.5 sq mm minimum in short runs, 25 to 32 A belongs on 4 to 6 sq mm dedicated circuits.",
+    "Choose C-curve for general domestic use. B-curve suits purely resistive circuits, D-curve only for heavy motor inrush; the curve letter is printed before the rating (C16, B10).",
+    "If your board still has no RCCB, add a 30 mA one while an electrician is already at the DB. It covers the shock risks no MCB can see.",
+    "Keep one spare MCB of each rating used in your DB. A failed breaker at night otherwise becomes a bypassed breaker, which is how fires start."
+  ],
+  "faq": [
+    {
+      "q": "Why does my MCB trip again and again?",
+      "a": "In order of likelihood: the circuit is overloaded, one appliance on it is failing, there is a short circuit or damp junction, the breaker curve is wrong for a motor's inrush, or a loose termination is overheating the breaker. The pattern of the trips (delayed vs instant, tied to one device vs random) points to the cause."
+    },
+    {
+      "q": "Can I replace a 16 A MCB with a 32 A to stop the tripping?",
+      "a": "Only if the wiring is sized for 32 A, which on a typical 2.5 sq mm socket circuit it is not. The breaker protects the wire; doubling the rating on the same wire lets the wire become the fuse. Diagnose the overload instead, and if the load is genuine, run a new adequately sized circuit."
+    },
+    {
+      "q": "Why does the MCB trip only at night or only in summer?",
+      "a": "Thermal trip points drift with temperature and coincide with load patterns: geysers and heaters at night in winter, ACs in summer afternoons, and a hot DB enclosure lowers the trip threshold slightly. It is still an overload pattern; the clock is just telling you which appliances to add up."
+    },
+    {
+      "q": "How do I tell whether the MCB or the RCCB tripped?",
+      "a": "Look at which lever is down. MCBs are narrow single or double modules each labelled with a rating like C16; the RCCB is a wider device, usually 40 A or 63 A with '30 mA' on it, feeding the whole board and carrying a test button. MCB trips mean overcurrent; RCCB trips mean earth leakage."
+    },
+    {
+      "q": "Does a tripping MCB mean the MCB is faulty?",
+      "a": "Rarely. A breaker that trips is almost always reporting a real condition. Suspect the breaker itself only after the circuit and its loads have been verified healthy, terminations tightened, and the device is old or known to have cleared major faults; then replace it like-for-like."
+    },
+    {
+      "q": "Is it dangerous to keep resetting a tripping MCB?",
+      "a": "Resetting once after removing an obvious overload is fine. Repeatedly resetting into an unknown fault, especially instant trips, subjects the wiring at the fault point to repeated surges and is how insulation damage escalates. Two unexplained instant trips is the signal to stop and investigate."
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "slug": "ceiling-fan-size-guide",
+  "title": "Ceiling Fan Size Guide: 900mm vs 1200mm vs 1400mm for Indian Rooms",
+  "description": "How to pick ceiling fan sweep size by room dimensions: where 1200mm is right, when to go 900mm or 1400mm, mounting height rules, and why two smaller fans beat one big one in long rooms.",
+  "category": "Fans",
+  "date": "2026-08-17",
+  "author": "Elume Editorial",
+  "readMins": 8,
+  "tldr": [
+    "1200 mm (48 inch) sweep is correct for the standard Indian bedroom of 100 to 144 sq ft. It is the default for a reason.",
+    "Under 80 sq ft (bathrooms, small kitchens, box rooms): 900 mm. Large living rooms above 180 sq ft: 1400 mm, or two fans.",
+    "Long rectangular rooms are served far better by two 1200 mm fans than one 1400 mm in the middle.",
+    "Keep blades 7 to 8 feet above the floor and at least 15 cm below the ceiling; low ceilings change the fan you should buy.",
+    "Sweep decides coverage; air delivery (CMM) and RPM decide how strong it feels. Compare both numbers, not just size."
+  ],
+  "intro": [
+    "Fan sweep, the diameter of the circle the blades trace, is printed on every box in millimetres: 900, 1050, 1200, 1400. Pick too small and the corners of the room stay still; too large for a small room and you get noise, wobble risk near walls, and no comfort gain. Indian rooms and Indian fans have standardised around a few sizes, so matching them is straightforward once you know the floor-area bands.",
+    "This guide maps room sizes to sweep sizes, covers mounting height (which matters as much as sweep), and explains the specification most buyers skip: air delivery in cubic metres per minute, which is what actually separates a powerful 1200 mm fan from a weak one of identical size."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "Under 80 sq ft: 900mm sweep",
+      "brand": "",
+      "body": "Box rooms, home offices carved from balconies, small kitchens, utility areas and large bathrooms fall here. A 900 mm (36 inch) fan moves plenty of air for the footprint and, critically, keeps safe clearance from walls; blades should stay at least 60 cm, ideally more, from any wall or cupboard for both airflow and safety. Fitting a 1200 mm fan in a 7 by 9 room pushes the blade tips into turbulent, dead air near the walls and gains nothing. In kitchens, mount the fan away from the flame path of the hob; a fan directly over a burner disturbs it and coats itself in grease faster.",
+      "bestFor": "Rooms up to 80 sq ft",
+      "productId": null
+    },
+    {
+      "rank": 2,
+      "name": "100 to 144 sq ft: the 1200mm standard",
+      "brand": "",
+      "body": "The 10x10, 10x12 and 12x12 rooms that make up most Indian bedrooms and compact living rooms are exactly what the 1200 mm (48 inch) sweep was standardised for. Centre it over the usable area (over the bed in a bedroom, not the geometric centre of an L-shaped room) and it covers the space evenly. This is also where the market gives you maximum choice: every brand's full range, from budget induction-motor workhorses to BLDC models that cut the power bill by half and premium underlight designs, comes in 1200 mm first. Unless your room measures outside this band, you do not need to deliberate on size at all, only on motor and model.",
+      "bestFor": "Standard bedrooms and compact living rooms",
+      "productId": "hav-fhcsv1swht48"
+    },
+    {
+      "rank": 3,
+      "name": "144 to 180 sq ft: large 1200mm or 1400mm",
+      "brand": "",
+      "body": "In the 12x13 to 12x15 range, a strong 1200 mm fan still works if its air delivery is high (230 CMM upwards) and the room is close to square. Beyond that, or if the seating spreads across the room, step up to 1400 mm (56 inch). The larger sweep moves a wider column of air at lower RPM, which also means less noise for the same comfort. Check two practicalities before buying 1400 mm: ceiling height (the bigger fan hangs on the same downrod but its presence dominates a low ceiling) and the switchboard regulator, since some older resistance regulators mate poorly with big BLDC motors, which prefer their own remotes.",
+      "bestFor": "Larger bedrooms, dining areas",
+      "productId": "cro-metallic-copper"
+    },
+    {
+      "rank": 4,
+      "name": "Above 180 sq ft or long rooms: two fans beat one",
+      "brand": "",
+      "body": "A 20-foot living room with one central 1400 mm fan leaves both ends becalmed; air speed falls off quickly beyond the blade circle. The better design for halls and long living-dining spaces is two 1200 mm fans, each centred over its zone, spaced so their circles do not fight, roughly one fan per 120 to 140 sq ft of zone. Two efficient BLDC fans together often draw less than a single old 75 W induction fan while covering triple the useful area. This is the arrangement you see in classrooms and offices for exactly this reason. Wire each to its own switch so zones run independently.",
+      "bestFor": "Halls, living-dining rooms, offices",
+      "productId": "ort-2134877411010"
+    },
+    {
+      "rank": 5,
+      "name": "Mounting height: the forgotten variable",
+      "brand": "",
+      "body": "Comfort correlates with air speed at body level, and that depends on how far the blades sit from the floor and ceiling. The working rules: blades 7 to 8 feet above the floor, and at least 6 inches (15 cm) of air above the blades so the fan can breathe; starve that gap and delivery drops sharply. For the common 9.5 to 10 foot Indian ceiling, the standard downrod supplied in the box lands you correctly. For low 8.5 to 9 foot ceilings, hugger or short-downrod models preserve headroom, accepting slightly lower delivery. For double-height spaces, extended downrods bring the fan down to where people are; a fan near a 15-foot ceiling cools nobody.",
+      "bestFor": "Getting installed performance right",
+      "productId": "ort-2134870117950"
+    },
+    {
+      "rank": 6,
+      "name": "Reading the spec sheet: CMM and RPM over sweep",
+      "brand": "",
+      "body": "Two 1200 mm fans can feel completely different. The number that predicts comfort is air delivery, measured in cubic metres per minute: 210 CMM is adequate, 230 to 250 CMM is strong, and premium high-speed models exceed that. RPM (typically 300 to 390 for 1200 mm) correlates with breeze strength but also noise; BLDC fans often achieve high delivery at moderate RPM with wider, better-profiled blades. Also worth reading: power draw (28 to 35 W for BLDC versus 70 to 80 W induction, which pays for the difference within a couple of summers), and the warranty term, where serious motors carry 2 to 5 years.",
+      "bestFor": "Comparing fans of the same size",
+      "productId": "hav-fhcnue5mbl48"
+    }
+  ],
+  "buyingTips": [
+    "Measure the room before shopping and buy by the band: under 80 sq ft take 900 mm, 100 to 144 sq ft take 1200 mm, above that consider 1400 mm or a second fan.",
+    "In long rooms, split the budget across two 1200 mm fans instead of one premium 1400 mm; coverage beats capacity.",
+    "Prefer BLDC for any fan that runs long hours. At Indian tariffs the energy saving repays the price premium in roughly two summers, and the remote is a genuine convenience.",
+    "Check blade-to-wall clearance in the actual mounting spot: 60 cm minimum from walls and wardrobes, and never overlapping a cupboard door's swing.",
+    "If the ceiling is below 9 feet, look specifically at low-profile models rather than shortening a standard fan's downrod below its rated minimum.",
+    "Air delivery (CMM) printed on the box is the comparison number. Between two same-size fans, the one moving more air at lower watts is the better machine."
+  ],
+  "faq": [
+    {
+      "q": "Which fan size is best for a 10x10 or 12x12 room?",
+      "a": "Both fall in the 1200 mm (48 inch) band. A 10x10 room (100 sq ft) sits at the lower edge where any decent 1200 mm fan is ample; a 12x12 (144 sq ft) benefits from a higher air-delivery model, 230 CMM or more."
+    },
+    {
+      "q": "Is a bigger ceiling fan always better?",
+      "a": "No. Oversizing in a small room creates wall turbulence, wobble risk and noise without improving comfort, since the limit is the room, not the fan. Match sweep to floor area, then buy quality within that size."
+    },
+    {
+      "q": "What does sweep size actually mean, blade length or diameter?",
+      "a": "Sweep is the full diameter of the circle the blade tips trace, not the length of one blade. A 1200 mm sweep fan has roughly 600 mm blades. Boxes and listings always quote sweep."
+    },
+    {
+      "q": "How many fans do I need for a large hall?",
+      "a": "Plan one fan per 120 to 140 sq ft of occupied zone. A 300 sq ft hall is well served by two 1200 mm fans over the two main zones; a very large space may take three. Position over where people sit rather than by geometry alone."
+    },
+    {
+      "q": "Does ceiling height change which fan I should buy?",
+      "a": "Yes. Below about 9 feet, choose a hugger or short-downrod model to keep blades near 7.5 feet off the floor. For double-height ceilings, order the correct extended downrod at purchase; running a fan tight against any ceiling chokes its air supply."
+    },
+    {
+      "q": "Are BLDC fans worth it over ordinary induction fans?",
+      "a": "For fans running several hours daily, yes: 28 to 35 W against 70 to 80 W for equal breeze roughly halves the fan's electricity use, and the premium recovers in about two summers of Indian usage. They also regulate speed smoothly via remote rather than a lossy wall regulator."
+    }
+  ]
+}

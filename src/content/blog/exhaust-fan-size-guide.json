@@ -1,0 +1,104 @@
+{
+  "slug": "exhaust-fan-size-guide",
+  "title": "Exhaust Fan Size for Kitchen and Bathroom: 150mm, 230mm or 300mm?",
+  "description": "How to size an exhaust fan by room and air changes per hour: the right sweep for Indian bathrooms and kitchens, metal vs plastic bodies, where to mount it, and when a fan beats a chimney.",
+  "category": "Fans",
+  "date": "2026-08-18",
+  "author": "Elume Editorial",
+  "readMins": 7,
+  "tldr": [
+    "Bathrooms: 150 mm to 230 mm sweep. Kitchens: 230 mm to 300 mm. Bigger room and heavier use push you up a size.",
+    "Size properly using air changes per hour (ACH): bathrooms need 6 to 8, kitchens 10 to 15.",
+    "Mount high on the wall opposite the door, as close to the moisture or smoke source as the layout allows.",
+    "Kitchens want metal-body fans; steam-only bathrooms are fine with plastic bodies, which are quieter and never rust.",
+    "An exhaust fan complements a chimney; it clears the heat and steam a chimney's narrow capture zone misses."
+  ],
+  "intro": [
+    "An undersized exhaust fan is why a bathroom mirror stays fogged twenty minutes after a shower and why a kitchen's ceiling above the hob slowly turns brown. Exhaust fans are cheap enough that people buy them by guesswork, yet the sizing arithmetic takes one minute: the fan must replace the room's air several times an hour, a figure engineers call air changes per hour (ACH).",
+    "This guide gives the ACH-based sizes for Indian bathrooms and kitchens, the mounting positions that make the same fan work twice as well, and the build choices, metal versus plastic, louvre shutters, reversible models, that decide how the fan survives grease, steam and monsoon air."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "The one-minute sizing method: air changes per hour",
+      "brand": "",
+      "body": "Multiply the room's volume by the target ACH to get the airflow the fan must deliver. A typical 6 by 8 bathroom with a 10-foot ceiling is 480 cubic feet, about 13.6 cubic metres; at 8 air changes per hour that needs roughly 110 cubic metres per hour, comfortably inside a 150 mm fan's range. A 10 by 12 kitchen at 12 ACH needs around 480 cubic metres per hour, which is 300 mm fan territory. Manufacturers publish air delivery per model, so the comparison is direct. When a room falls between sizes, go up: an oversized exhaust fan simply finishes faster, while an undersized one runs forever and never wins.",
+      "bestFor": "Getting the size right before buying",
+      "productId": null
+    },
+    {
+      "rank": 2,
+      "name": "Bathrooms: 150mm for standard, 230mm for large",
+      "brand": "",
+      "body": "Standard Indian bathrooms up to about 50 sq ft are served by a 150 mm (6 inch) fan; big master bathrooms, or any bathroom with a heavy hot-shower habit and poor natural ventilation, justify 230 mm (9 inch). The moisture argument is not comfort but maintenance: persistent humidity peels paint, corrodes fittings, and feeds the black mould in grout lines. Run the fan during the shower and 10 to 15 minutes after; models with louvre shutters that close when off prevent backdraught and keep insects and street dust out, which matters most on shafts and external walls facing the monsoon.",
+      "bestFor": "Steam and moisture removal",
+      "productId": "hav-fhvvemtbrn09"
+    },
+    {
+      "rank": 3,
+      "name": "Kitchens: 230mm minimum, 300mm for real cooking",
+      "brand": "",
+      "body": "Indian cooking, with its tadkas and high-flame frying, produces more airborne grease and combustion products than the cuisine most global sizing tables assume, so size generously: 230 mm for a compact or lightly used kitchen, 300 mm (12 inch) for a family kitchen used two or three times daily. A metal-body fan is the right call here; grease-laden hot air ages plastic bodies and metal blades handle the higher temperatures near a hob. Mount it high and as close to the cooking zone as the window or wall cutout allows, because smoke you capture at source never crosses the room to deposit on walls.",
+      "bestFor": "Smoke, grease and heat removal",
+      "productId": "hav-fhvtadxwht12"
+    },
+    {
+      "rank": 4,
+      "name": "Placement: opposite the door, close to the source, up high",
+      "brand": "",
+      "body": "An exhaust fan does not clean air, it moves it, so the path matters. Fresh air must enter (a door undercut or slightly open window) and the fan should sit so the airflow path crosses the problem zone: high on the wall, since heat, steam and smoke rise, and roughly opposite the fresh-air inlet so the room is swept rather than short-circuited. The common mistakes are mounting the fan right beside the door (air loops straight back out without crossing the room) and fan-versus-sealed-room, where a fan in a fully closed bathroom moves almost nothing because no make-up air can enter.",
+      "bestFor": "Making any fan perform to its rating",
+      "productId": null
+    },
+    {
+      "rank": 5,
+      "name": "Quiet and reversible options for living spaces",
+      "brand": "",
+      "body": "Exhaust fans have escaped bathrooms: utility rooms, pooja rooms where incense smoke gathers, server corners and pantries all use them, and in these spaces noise and looks matter. Quiet-line models trade a little peak airflow for noticeably lower sound, worth it anywhere near a bedroom. Reversible fans switch between exhaust and fresh-air intake, useful in basements and internal kitchens where you sometimes want air pushed in rather than pulled out. For rooms without an external wall, a duct-mounted inline fan venting through the ceiling to a shaft does the same job invisibly.",
+      "bestFor": "Utility areas and noise-sensitive spots",
+      "productId": "hav-fhvhuststf06"
+    },
+    {
+      "rank": 6,
+      "name": "Exhaust fan vs kitchen chimney: complementary, not rivals",
+      "brand": "",
+      "body": "A chimney hood captures grease and smoke at the source, directly over the hob, far better than any wall fan, but its capture zone is narrow: steam from a pressure cooker across the kitchen, heat from the oven, or the general warmth of a summer cooking session escape it entirely. The exhaust fan is the whole-room device that removes what the chimney misses and keeps the kitchen liveable. The practical Indian kitchen setup is both: a chimney over the hob for grease, plus a 230 to 300 mm exhaust fan for room air. If budget forces a choice in a small kitchen, the exhaust fan is the more versatile single purchase; a reversible model adds fresh-air mode in summer.",
+      "bestFor": "Planning kitchen ventilation as a system",
+      "productId": "hav-fhvdsrepsg09"
+    }
+  ],
+  "buyingTips": [
+    "Compute the requirement first: room volume in cubic metres times target ACH (8 for bathrooms, 12 to 15 for kitchens) gives the air delivery in cubic metres per hour to look for on the box.",
+    "Kitchens take metal-body fans; bathrooms can use plastic bodies, which are quieter, lighter and immune to rust in permanent humidity.",
+    "Insist on louvre shutters or a back-draught flap on any fan facing an external wall; open blades whistle in wind and admit dust and insects when off.",
+    "Check the cutout before buying: fans are specified by sweep, but the wall or window opening is set by the frame's cutout dimension printed in the specs.",
+    "Wire bathroom exhaust fans to the light switch (or a two-in-one switch) so they actually get used; a fan on its own forgotten switch protects nothing.",
+    "For ground-floor and shaft-facing installations, a bird guard or mesh on the outside face saves the fan from nesting material, the most common cause of a jammed exhaust fan in India."
+  ],
+  "faq": [
+    {
+      "q": "What size exhaust fan do I need for a small bathroom?",
+      "a": "For bathrooms up to roughly 50 sq ft with a standard ceiling, a 150 mm (6 inch) fan delivering around 100 cubic metres per hour achieves the 6 to 8 air changes per hour target. Large or heavily used bathrooms step up to 230 mm."
+    },
+    {
+      "q": "Which exhaust fan is best for an Indian kitchen, and what size?",
+      "a": "A metal-body fan of 230 mm for compact kitchens or 300 mm for full family kitchens, sized for 10 to 15 air changes per hour. Metal bodies and blades tolerate grease and heat that degrade plastic fans mounted near a hob."
+    },
+    {
+      "q": "Where should an exhaust fan be placed in a bathroom?",
+      "a": "High on the wall or in the ceiling, close to the shower area, and ideally opposite the door so incoming air sweeps the whole room. Leave a fresh-air path; a fan in a sealed room moves almost no air."
+    },
+    {
+      "q": "Can an exhaust fan replace a kitchen chimney?",
+      "a": "For light cooking, a well-placed 300 mm exhaust fan manages. For regular Indian frying and tadka, the chimney's at-source grease capture is hard to replace, and the ideal setup is chimney plus exhaust fan handling room air. As a single purchase in a small kitchen, the exhaust fan is more versatile."
+    },
+    {
+      "q": "Do exhaust fans consume much electricity?",
+      "a": "No. Domestic exhaust fans draw roughly 25 to 60 W depending on size, comparable to a ceiling fan on low speed. Even hours of daily use cost a few rupees; moisture damage from not running one costs far more."
+    },
+    {
+      "q": "What is a reversible exhaust fan and who needs one?",
+      "a": "A model whose motor runs in both directions, exhausting stale air or drawing fresh air in. It suits internal kitchens, basements and rooms on shafts where in summer you may want positive fresh-air supply rather than extraction."
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "slug": "lumens-not-watts-led-brightness-guide",
+  "title": "Lumens, Not Watts: How Bright Should Each Room's Lighting Be?",
+  "description": "Watts measure consumption, lumens measure light. Room-by-room lumen targets for Indian homes, how to read lumens per watt, and how many LED bulbs or panels each room actually needs.",
+  "category": "Lighting",
+  "date": "2026-08-18",
+  "author": "Elume Editorial",
+  "readMins": 8,
+  "tldr": [
+    "Watts tell you what a light costs to run; lumens tell you how much light it gives. Buy lumens.",
+    "A good LED delivers 90 to 110 lumens per watt; a 9 W LED (about 900 lm) replaces the old 60 W bulb.",
+    "Room targets: living rooms 1,500 to 3,000 lm total, bedrooms 1,000 to 2,000, kitchens 3,000 to 4,000 with task light over counters, bathrooms 1,500 plus mirror light.",
+    "Divide the room target across multiple fixtures; one central source makes shadows, not brightness.",
+    "Check lumens per watt on the pack: below 80 lm/W is yesterday's efficiency at today's prices."
+  ],
+  "intro": [
+    "For a century people bought light in watts because filament bulbs were all alike: a 60 W bulb gave a known glow, a 100 W more. LEDs broke that link. A watt of LED now produces anywhere from 80 to over 120 lumens depending on the chip and driver quality, so two 9 W bulbs can differ visibly in brightness. The lumen, the actual measure of light output, is the number that matters, and it is printed on every honest pack.",
+    "This guide converts the old watt habits into lumen targets, gives per-room totals for Indian homes, and shows how to split those totals across bulbs, battens and panels so rooms are lit evenly instead of harshly at the centre and dim at the edges. Colour temperature, warm versus cool light, is its own subject; we cover it separately in our colour temperature guide."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "The conversion: what replaced your old bulbs",
+      "brand": "",
+      "body": "Memorise four equivalences and the transition is done: the old 40 W filament bulb is about 450 lumens (a 5 W LED), 60 W is about 800 to 900 lumens (9 W LED), 75 W is about 1,100 lumens (12 W LED), and 100 W is about 1,600 lumens (15 to 16 W LED). Tube lights translate too: the classic 36 to 40 W T8 fluorescent tube gave roughly 2,300 to 2,500 lumens, which a 20 W LED batten now matches or beats. When a listing shouts watts without lumens, apply a conservative 90 lm/W estimate, and treat missing lumen figures as a quality signal in itself.",
+      "bestFor": "Replacing existing bulbs one-for-one",
+      "productId": "phi-led-9x2"
+    },
+    {
+      "rank": 2,
+      "name": "Living and dining rooms: 1,500 to 3,000 lumens, layered",
+      "brand": "",
+      "body": "A 12 by 15 living room wants around 2,000 to 3,000 total lumens for comfortable general lighting, more if finishes are dark, since dark walls swallow light. The error to avoid is delivering it from one central point: a single 2,000 lumen source glares while corners stay dim. Better: four to six 9 W bulbs or two 20 W battens distributed across the ceiling, plus accent light where you read or display. Dimmable fixtures earn their premium here because the same room hosts bright family evenings and dim movie nights; with LEDs, dimming also cuts consumption almost proportionally.",
+      "bestFor": "Even, layered general lighting",
+      "productId": null
+    },
+    {
+      "rank": 3,
+      "name": "Bedrooms: 1,000 to 2,000 lumens with warm bias",
+      "brand": "",
+      "body": "Bedrooms need less light and gentler light: 1,000 to 2,000 total lumens for a standard 10 by 12 room, delivered by two to three sources rather than one, with warm colour temperature aiding wind-down. The layer that matters most is the bedside reading light, 400 to 500 lumens aimed at the page, so the main lights can stay off entirely at night. Wardrobe zones deserve their own bright switch (a 9 W bulb inside or above the wardrobe outperforms doubling the room's total for the sake of finding clothes). Motion-sensor night lamps in the passage to the bathroom finish the job.",
+      "bestFor": "Rest-first lighting with task islands",
+      "productId": "ort-led10wbl-65kb22ms"
+    },
+    {
+      "rank": 4,
+      "name": "Kitchens: 3,000 to 4,000 lumens and counter task light",
+      "brand": "",
+      "body": "The kitchen is a workshop and takes workshop lighting: 3,000 to 4,000 total lumens for a typical Indian kitchen, in cool daylight tones that keep colours honest while cooking. General light comes from battens or panels, but the transformative addition is task lighting under the overhead cabinets, aimed at the counter where knives and flames actually operate; your body otherwise shadows the very spot you work on. An 18 to 20 W batten over the main run plus under-cabinet strips covers most layouts. Position the general light forward of where you stand at the counter, never behind.",
+      "bestFor": "Shadow-free cooking surfaces",
+      "productId": null
+    },
+    {
+      "rank": 5,
+      "name": "Bathrooms and mirrors: 1,500 lumens plus face light",
+      "brand": "",
+      "body": "General bathroom light of about 1,500 lumens keeps a standard bathroom safe and clean-looking, but the fixture people judge daily is the mirror light. Light for a mirror must hit the face, not the glass: a bulb or LED strip above or beside the mirror at 500 to 800 lumens, high CRI so skin tones read true, beats any amount of ceiling light that leaves eye sockets in shadow. Choose fittings rated for humid locations in wet zones. An often-missed detail is the geyser indicator sightline; a small window of light near the shower area helps in bathrooms that double as utility spaces.",
+      "bestFor": "Grooming light that flatters and functions",
+      "productId": "hav-lhldddbnl5r20"
+    },
+    {
+      "rank": 6,
+      "name": "Lumens per watt: the efficiency number on the pack",
+      "brand": "",
+      "body": "Divide lumens by watts and you have the merit figure that separates LED generations: 80 lm/W was respectable years ago, 100 lm/W is today's healthy standard, and premium ranges cross 120. The difference compounds: lighting a home to identical brightness at 100 rather than 80 lm/W cuts the lighting bill by a fifth. Efficiency also proxies build quality, since it reflects the chip bin and driver design, the same components that determine whether a bulb lasts its rated 15,000 hours or dies in a monsoon voltage swing. Inverter bulbs with built-in batteries and emergency models trade some efficiency for backup, a fair exchange where cuts are frequent.",
+      "bestFor": "Comparing any two LED products",
+      "productId": "ort-led15wbl-em65kb22"
+    }
+  ],
+  "buyingTips": [
+    "Buy by the lumen number on the pack, and if a product hides its lumens, assume the worst and pick one that does not.",
+    "Divide each room's lumen target across several fixtures: four 9 W bulbs light a living room better than one 36 W fixture of identical total output.",
+    "Aim for 100 lumens per watt or better in general lighting; accept less only where the product adds something specific (battery backup, sensors, decorative diffusion).",
+    "Match light to task, not just room: counters, mirrors, desks and reading spots each deserve a dedicated 400 to 800 lumen source in addition to the general light.",
+    "Check the surge rating for Indian conditions; 2.5 kV or better survives the voltage events that kill budget bulbs at the first monsoon storm.",
+    "For rooms with frequent power cuts, one inverter LED bulb per room keeps 3 to 4 hours of light through an outage and charges itself the rest of the time."
+  ],
+  "faq": [
+    {
+      "q": "How many lumens equal the old 60 watt bulb?",
+      "a": "About 800 to 900 lumens. A quality 9 W LED delivers that, which is the direct one-for-one replacement, at about 15 percent of the running cost."
+    },
+    {
+      "q": "How many lumens do I need per room?",
+      "a": "As totals: living rooms 1,500 to 3,000, bedrooms 1,000 to 2,000, kitchens 3,000 to 4,000, bathrooms about 1,500 plus a dedicated mirror light, distributed over multiple fixtures rather than one central point. Dark interiors and high ceilings push the target up."
+    },
+    {
+      "q": "Is a higher wattage LED always brighter?",
+      "a": "Within one product line, usually. Across brands, no: efficiency ranges from under 80 to over 120 lumens per watt, so a well-made 9 W bulb can outshine a poor 12 W one. Compare the lumen figures directly."
+    },
+    {
+      "q": "What is a good lumens-per-watt figure in 2026?",
+      "a": "Around 100 lm/W for general-purpose bulbs and battens is the healthy standard; premium ranges exceed 120. Below 80 lm/W you are paying yesterday's electricity cost for no benefit."
+    },
+    {
+      "q": "Do more lumens mean harsher light?",
+      "a": "Not if distributed. Harshness comes from concentrating output in one glaring point source. The same total lumens split across several diffused fixtures produces bright, even, comfortable light. Colour temperature, warm or cool, is a separate choice from brightness."
+    },
+    {
+      "q": "How do lumens relate to lux?",
+      "a": "Lumens measure a source's total output; lux measures how much lands per square metre of surface. One lux is one lumen spread over one square metre, which is why a room's size determines how many lumens achieve a given task brightness."
+    }
+  ]
+}

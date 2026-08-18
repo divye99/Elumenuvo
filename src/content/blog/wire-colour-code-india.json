@@ -1,0 +1,103 @@
+{
+  "slug": "wire-colour-code-india",
+  "title": "Wire Colour Code in India: Red, Black, Green and What They Mean",
+  "description": "The Indian wire colour code explained: which colour is phase, neutral and earth, what IS 732 and the IE Rules require, three-phase colours, and the mistakes electricians still make.",
+  "category": "Wires & Cables",
+  "date": "2026-08-16",
+  "author": "Elume Editorial",
+  "readMins": 7,
+  "tldr": [
+    "Single phase: red (or brown) is phase/live, black (or blue) is neutral, green (or green-yellow) is earth.",
+    "Three phase: red, yellow and blue are the three phases; black is neutral; green is earth.",
+    "Never use green for anything except earthing. It is the one non-negotiable rule.",
+    "Newer IEC-style coding uses brown (phase), blue (neutral) and green-yellow (earth); both systems are legal in India.",
+    "Buy each run in its correct colour: coils cost the same in every colour, so there is no saving in mixing."
+  ],
+  "intro": [
+    "Open any Indian switchboard and the colours tell the story before a tester does. Wire colour coding exists so that anyone working on the installation years later, an electrician you have never met, knows instantly which conductor can kill and which is safe. India inherited the British red-black-green convention and is gradually adopting the international IEC brown-blue-green-yellow scheme, so both are in circulation and both are correct when used consistently.",
+    "This guide covers the single-phase and three-phase colour codes used in Indian homes, what IS 732 (the code of practice for electrical wiring installations) expects, and the wiring mistakes that colour discipline prevents. Every house wire we sell comes in the full colour range at the same price per coil, so following the code costs nothing extra."
+  ],
+  "items": [
+    {
+      "rank": 1,
+      "name": "Red (or brown): the phase wire",
+      "brand": "",
+      "body": "The phase or live conductor carries full mains voltage, 230 V to earth, and is the wire that delivers a shock. In the traditional Indian code it is red; in the IEC code it is brown. Every switch in the house must break the phase, never the neutral, so the phase colour is what an electrician traces first. In practice red remains the most stocked phase colour in India, and for extensions to an existing red-wired house you should stay with red for consistency. Whatever you pick, use one phase colour throughout the installation rather than whatever coil is lying around.",
+      "bestFor": "Live conductors, switch connections",
+      "productId": "wire-havells-frlsh-1-red"
+    },
+    {
+      "rank": 2,
+      "name": "Black (or blue): the neutral wire",
+      "brand": "",
+      "body": "Neutral completes the circuit back to the transformer and normally sits near earth potential, but treat it as live: if the neutral breaks upstream while a load is on, the black wire can float to full mains voltage. The traditional Indian neutral is black; the IEC neutral is blue, which causes real confusion because blue is also a phase colour in the old three-phase code. The safe reading: in a modern IEC-coded house, blue is neutral; in an older installation, confirm with a tester before touching. Never fuse or switch the neutral alone.",
+      "bestFor": "Return conductors from every load",
+      "productId": "anchor-penta-1-45-black"
+    },
+    {
+      "rank": 3,
+      "name": "Green (or green-yellow): earth, and nothing else",
+      "brand": "",
+      "body": "Earth is the safety conductor that gives fault current a low-resistance path back so that the MCB or RCCB trips instead of a person completing the circuit. The Indian Electricity Rules effectively reserve green (and the IEC green-with-yellow-stripe) for earthing alone. Using green for a phase or neutral, or landing a phase on a green wire to finish a job with a leftover coil, is the single most dangerous colour mistake made on Indian sites because the next electrician will handle green as safe. Every socket above 6 A, every appliance with a metal body, and every water heater must have its green run back to the earth bar.",
+      "bestFor": "Earthing every socket and appliance",
+      "productId": "wire-kei-frlsh-0p5-yellow"
+    },
+    {
+      "rank": 4,
+      "name": "Three-phase homes: red, yellow, blue",
+      "brand": "",
+      "body": "Larger homes and most commercial connections take a three-phase supply. The traditional Indian phase colours are red, yellow and blue (R-Y-B), with black neutral and green earth; the IEC equivalents are brown, black and grey, which is another reason not to mix coding systems in one board. Phase sequence matters for motors and for balancing load across the phases, so a three-phase DB should carry phase identification at every landing. If your house has two or three phases split across floors, label the DB clearly; a phase-to-phase fault is 415 V, not 230 V.",
+      "bestFor": "Three-phase distribution boards",
+      "productId": null
+    },
+    {
+      "rank": 5,
+      "name": "The IEC scheme: brown, blue, green-yellow",
+      "brand": "",
+      "body": "New appliance cords, imported equipment and an increasing share of new construction follow IEC 60446-style coding: brown phase, blue neutral, green-yellow earth. Every appliance you plug in already uses it, which is why a fan or geyser cord never matches the colours inside an older switchboard. Both systems are acceptable in India; what is not acceptable is mixing them within one installation. If you rewire a house, pick one scheme, write it inside the DB door, and buy coils accordingly. All major brands, Havells, Polycab, KEI, Anchor and Finolex, stock house wire in every colour of both schemes at identical prices.",
+      "bestFor": "New wiring projects and rewires",
+      "productId": "wire-kei-fr-0p75-blue"
+    },
+    {
+      "rank": 6,
+      "name": "Colour discipline inside the switchboard",
+      "brand": "",
+      "body": "Where colour coding usually breaks down is inside the board: loops between switches wired with whatever was left over. IS 732 expects conductors to be identifiable at every termination. Practical discipline: phase loops in the phase colour, switch-to-load runs ideally in a distinct colour (many electricians use yellow or blue in the old scheme for switched-phase runs so they are not confused with the incoming phase), neutral bar fed only by black or blue, and green landing only on the earth terminal. Photograph the board before closing it; the photo becomes the wiring diagram the next person never has.",
+      "bestFor": "Clean, serviceable switchboards",
+      "productId": null
+    }
+  ],
+  "buyingTips": [
+    "Buy the full colour set for a wiring job in one order: same size, same brand, one colour per function. Mixed-brand coils of the same nominal size can differ slightly in strand count and feel.",
+    "For a typical 2 BHK you need roughly twice as much phase-colour and neutral-colour wire as earth, because earth runs skip the switch loops. Order red and black (or brown and blue) in 2 to 3 coils each and green to match the socket count.",
+    "FR grade is the sensible minimum for concealed house wiring; FR-LSH or HFFR is worth the small premium for bedrooms since it smokes far less in a fire.",
+    "Never accept a quotation that prices wire 'per point' without naming brand, size and grade. Colour tells you function; the print on the insulation tells you what you actually paid for.",
+    "Keep a small leftover coil of each colour after the job. Future repairs done in the correct colour keep the installation safe for the next electrician."
+  ],
+  "faq": [
+    {
+      "q": "Which colour wire is positive and which is negative in house wiring?",
+      "a": "House wiring is AC, so there is no positive and negative; there is phase (red or brown), neutral (black or blue) and earth (green or green-yellow). Positive and negative apply to DC systems like inverter battery leads, where red is positive and black is negative."
+    },
+    {
+      "q": "Is blue wire phase or neutral in India?",
+      "a": "It depends on the coding system. In the traditional Indian three-phase code, blue is one of the three phases. In the newer IEC code, blue is neutral. That ambiguity is exactly why you should never rely on colour alone in an unfamiliar installation; verify with a tester first."
+    },
+    {
+      "q": "Can I use any colour if I connect it correctly?",
+      "a": "It will work electrically, but it is unsafe and against the code of practice. Colour is the only documentation most installations have. The one absolute rule: green or green-yellow must never be used for a current-carrying conductor."
+    },
+    {
+      "q": "What colour is the earth wire and what size should it be?",
+      "a": "Green or green-with-yellow-stripe. For domestic circuits the earth conductor is commonly the same size as the phase for circuits up to 4 sq mm; a common practical standard is 1 sq mm earth for lighting and 2.5 sq mm earth alongside power circuits, with heavier equipotential bonding at the main board."
+    },
+    {
+      "q": "Do wire colours cost different amounts?",
+      "a": "No. A 90 m coil of 2.5 sq mm FR wire costs the same in red, black, blue, green, yellow or grey. There is no economy in wiring a house out of one colour, only risk."
+    },
+    {
+      "q": "My new appliance cord has brown and blue wires but my switchboard is red and black. How do they connect?",
+      "a": "Brown joins the red side (phase) and blue joins the black side (neutral), with green-yellow to green (earth). Appliance cords follow the IEC code worldwide, so this pairing is universal in Indian homes."
+    }
+  ]
+}
