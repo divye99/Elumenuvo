@@ -7,7 +7,8 @@ import { CATS, type Product } from "@/lib/data";
 import { groupVariants, familyKey } from "@/lib/variants";
 import { logSearch } from "@/lib/search-log";
 import { useSearchParams } from "next/navigation";
-import { searchTokens, matchesAll, relevanceScore, buildSearchVocab, correctSearchTokens, editDistance, normalizeSearchText } from "@/lib/search-normalize";
+import { editDistance, normalizeSearchText } from "@/lib/search-normalize";
+import { rankSearch } from "@/lib/search-rank";
 import CategoryIcon from "@/components/storefront/CategoryIcon";
 
 // Category icons come from the shared Elume icon system (CategoryIcon);
@@ -64,9 +65,7 @@ export default function CatalogueBrowser({
     if (c !== null || sp.get("q") !== null) setCat(c && CATS.includes(c) ? c : "All");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sp]);
-  const [open, setOpen] = useState<"cat" | "brand" | "sort" | null>(null);
   const [sheet, setSheet] = useState(false); // mobile filter bottom-sheet
-  const searchRef = useRef<HTMLInputElement>(null);
 
   const brands = useMemo(
     () => Array.from(new Set(products.map((p) => p.brand))).sort(),
@@ -99,25 +98,7 @@ export default function CatalogueBrowser({
   const dq = useDeferredValue(q);
   useEffect(() => { setShown(PAGE); }, [dq, cat, picked, sort]);
 
-  // Catalogue word list for typo correction, built once per product load.
-  // Names + brands + categories only: spec text is full of codes and units
-  // that would give typos plausible-looking but useless correction targets.
-  const vocab = useMemo(() => buildSearchVocab(products.map((p) => `${p.brand} ${p.name} ${p.cat}`)), [products]);
-
-  const { filtered, correctedTo, partial } = useMemo(() => {
-    // Word-based matching, same rule as the header's suggest API: EVERY word
-    // must appear somewhere in brand/name/spec/sku/elin/brand-sku/category.
-    // A whole-string substring test made "hav mcb" (a suggestion the search
-    // bar itself offers) return zero results, since no single field contains it.
-    let tokens = searchTokens(dq);
-    const match = (toks: string[]) =>
-      products.filter((p) => {
-        const inCat = cat === "All" || p.cat === cat;
-        const inBrand = picked.size === 0 || picked.has(p.brand);
-        const inSearch = toks.length === 0 || matchesAll(`${p.brand} ${p.name} ${p.spec} ${p.sku} ${p.elin ?? ""} ${p.brandSku ?? ""} ${p.cat}`, toks);
-        return inCat && inBrand && inSearch;
-      });
-
+  const { filtered, correctedTo, relaxedNote } = useMemo(() => {
     // Exact-code short-circuit (ASIN behaviour): a query that IS an ELIN,
     // our SKU or a manufacturer SKU returns exactly that product, ahead of
     // any word matching. Whitespace-insensitive so "r-fs 001" hits "R-FS 001".
@@ -127,48 +108,29 @@ export default function CatalogueBrowser({
         [p.elin, p.sku, p.brandSku].some((v) => v && v.replace(/\s+/g, "").toUpperCase() === codeQ)
       );
       if (exact.length > 0) {
-        return { filtered: exact, correctedTo: null, partial: null };
+        return { filtered: exact, correctedTo: null, relaxedNote: null };
       }
     }
 
-    let list = match(tokens);
-    let correctedTo: string | null = null;
-    let partial: { matched: number; total: number } | null = null;
-    // Typo rescue, ONLY on a dead end: "water moter" found nothing, so try
-    // the closest catalogue words and say so. A search that found anything
-    // is never second-guessed - SKU and part-number queries stay exact.
-    const fix = list.length === 0 && tokens.length > 0 ? correctSearchTokens(tokens, vocab) : null;
-    if (fix?.changed) {
-      const rescued = match(fix.tokens);
-      if (rescued.length > 0) {
-        list = rescued;
-        tokens = fix.tokens;
-        correctedTo = fix.tokens.join(" ");
-      }
-    }
-    // Best-possible-match fallback, still on a dead end: "Apogee 1m
-    // 12switches board slim plate" has no product carrying EVERY word, but
-    // walking away with zero when we stock a wall of Apogee plates is worse
-    // than showing the closest thing. Keep the products that match the MOST
-    // query words (each word also counts via its typo-corrected form) and
-    // say so in a banner. Analytics still logs the query as 0 exact results,
-    // so missed-demand reporting keeps seeing the truth.
-    if (list.length === 0 && tokens.length > 1) {
-      const forms = tokens.map((t, i) => (fix?.changed && fix.tokens[i] !== t ? [t, fix.tokens[i]] : [t]));
-      const pool = products.filter((p) => (cat === "All" || p.cat === cat) && (picked.size === 0 || picked.has(p.brand)));
-      let best = 0;
-      const counted = pool.map((p) => {
-        const hay = `${p.brand} ${p.name} ${p.spec} ${p.sku} ${p.cat}`;
-        let n = 0;
-        for (const f of forms) if (f.some((w) => matchesAll(hay, [w]))) n += 1;
-        if (n > best) best = n;
-        return { p, n };
-      });
-      if (best > 0) {
-        list = counted.filter((c) => c.n === best).map((c) => c.p);
-        partial = { matched: best, total: tokens.length };
-      }
-    }
+    // Category/brand gates apply first; the ranker only sees the pool.
+    const pool = products.filter(
+      (p) => (cat === "All" || p.cat === cat) && (picked.size === 0 || picked.has(p.brand))
+    );
+
+    const hasQuery = dq.trim().length > 0;
+    // The lexicon-aware ranker (search-rank.ts) owns matching: it speaks the
+    // buyer's language (glued units, DP/FP shorthand, plurals, colour words,
+    // typos) and NEVER returns an empty page while anything partially
+    // matches - it relaxes and says so instead.
+    const outcome = hasQuery ? rankSearch(dq, pool) : null;
+    const list = outcome ? outcome.results.map((r) => r.item) : pool;
+    const rel = new Map<string, number>(outcome ? outcome.results.map((r) => [r.item.id, r.score]) : []);
+    const tokensActive = hasQuery;
+    const correctedTo =
+      outcome && outcome.corrections.length
+        ? outcome.corrections.map(([from, to]) => `${from} → ${to}`).join(", ")
+        : null;
+    const relaxedNote = outcome?.relaxed?.note ?? null;
     // Out-of-stock products stay browsable and searchable, but never lead a
     // list: sink them to the bottom of whatever ordering is chosen.
     const stockRank = (a: Product, b: Product) => Number(a.inStock === false) - Number(b.inStock === false);
@@ -206,16 +168,13 @@ export default function CatalogueBrowser({
           // earns organic pull. Search, compare and PDPs are untouched.
           (p.brand === "Elume" ? 0.5 : 1) *
           (Math.min(searchBoost[p.id] ?? 0, 20) * 3 + Math.min(p.unitsSold ?? 0, 200) + (p.recommended ? 8 : 0));
-        // With a query active, RELEVANCE leads and trend only breaks ties:
-        // "havells wire" must show wires before Wi-Fi sockets whose specs
-        // merely mention "wireless". Weak matches stay in (recall), but sink.
-        const rel = new Map<string, number>(
-          tokens.length ? list.map((p) => [p.id, relevanceScore({ name: p.name, brand: p.brand, cat: p.cat, spec: p.spec }, tokens)]) : []
-        );
+        // With a query active, RELEVANCE (the ranker's score) leads and trend
+        // only breaks ties: "havells wire" must show wires before Wi-Fi
+        // sockets whose specs merely mention "wireless".
         const ranked = [...list].sort(
           (a, b) => stockRank(a, b) || (rel.get(b.id) ?? 0) - (rel.get(a.id) ?? 0) || trend(b) - trend(a)
         );
-        const filtersActive = cat !== "All" || picked.size > 0 || tokens.length > 0;
+        const filtersActive = cat !== "All" || picked.size > 0 || tokensActive;
         if (filtersActive) return ranked;
 
         const lead: Product[] = [];
@@ -233,8 +192,8 @@ export default function CatalogueBrowser({
       }
     }
     })();
-    return { filtered: sorted, correctedTo, partial };
-  }, [products, vocab, cat, picked, dq, sort, searchBoost]);
+    return { filtered: sorted, correctedTo, relaxedNote };
+  }, [products, cat, picked, dq, sort, searchBoost]);
 
   useEffect(() => {
     const needle = q.trim();
@@ -243,20 +202,12 @@ export default function CatalogueBrowser({
       const key = `${needle.toLowerCase()}|${cat}`;
       if (loggedRef.current.has(key)) return;
       loggedRef.current.add(key);
-      if (correctedTo) {
-        // The typed query genuinely found nothing; the corrected one is what
-        // the shopper is now looking at. Two rows keep both facts true, and
-        // the corrected row teaches the suggest layer the right spelling.
-        logSearch({ q: needle, source: "search", results: 0, cat: cat === "All" ? undefined : cat });
-        logSearch({ q: correctedTo, source: "search", results: filtered.length, cat: cat === "All" ? undefined : cat });
-      } else {
-        // A best-effort partial rescue is NOT an exact hit: log 0 so the
-        // missed-demand report keeps seeing what we genuinely don't carry.
-        logSearch({ q: needle, source: "search", results: partial ? 0 : filtered.length, cat: cat === "All" ? undefined : cat });
-      }
+      // A relaxed (best-effort) page is NOT an exact hit: log 0 so the
+      // missed-demand report keeps seeing what we genuinely don't carry.
+      logSearch({ q: needle, source: "search", results: relaxedNote ? 0 : filtered.length, cat: cat === "All" ? undefined : cat });
     }, 1200);
     return () => clearTimeout(t);
-  }, [q, cat, filtered.length, correctedTo, partial]);
+  }, [q, cat, filtered.length, relaxedNote]);
 
   // When even the partial fallback finds nothing (SKU-style queries like
   // "CHZ/PO/0015"), read category INTENT from the words instead: fuzzy-match
@@ -297,34 +248,9 @@ export default function CatalogueBrowser({
     setSort("featured");
   };
 
-  const popBtn = (active: boolean): React.CSSProperties => ({
-    display: "flex",
-    alignItems: "center",
-    gap: 7,
-    fontSize: 13,
-    fontWeight: 600,
-    padding: "9px 14px",
-    borderRadius: 11,
-    cursor: "pointer",
-    whiteSpace: "nowrap",
-    background: active ? "#EEF0FE" : "#fff",
-    color: active ? "#4E5BDC" : "#3A4358",
-    border: `1px solid ${active ? "#C9CFF6" : "#E8EBF1"}`,
-  });
-
-  const panel: React.CSSProperties = {
-    position: "absolute",
-    top: "calc(100% + 8px)",
-    right: 0,
-    zIndex: 50,
-    background: "rgba(255,255,255,0.96)",
-    backdropFilter: "blur(16px)",
-    border: "1px solid #E8EBF1",
-    borderRadius: 14,
-    boxShadow: "0 18px 44px rgba(20,24,45,.14)",
-    padding: 8,
-    minWidth: 220,
-  };
+  const sideCard: React.CSSProperties = { background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "12px 12px 13px", display: "flex", flexDirection: "column", gap: 8 };
+  const sideLabel: React.CSSProperties = { fontSize: 10.5, fontWeight: 800, letterSpacing: "0.8px", textTransform: "uppercase", color: "#8A93A6" };
+  const sideSelect: React.CSSProperties = { fontSize: 13, fontWeight: 600, color: "#19202E", padding: "9px 10px", borderRadius: 10, border: "1px solid #E0E4ED", background: "#F8F9FC", width: "100%", cursor: "pointer" };
 
   return (
     <main style={{ maxWidth: 1280, margin: "0 auto", padding: "26px 28px 56px" }}>
@@ -336,62 +262,24 @@ export default function CatalogueBrowser({
 
       {personalShelf}
 
-      {/* ── Command bar ── */}
-      {/* top comes from .cat-cmdbar (globals.css): it must clear the FULL
-          sticky header stack (promo strip + nav row) or it tucks under the
-          translucent header and ghosts through the blur. */}
+      {/* ── Mobile filter pill ── */}
+      {/* One search bar everywhere: the header owns the query (Amazon
+          pattern). This bar only exists on phones/tablets as the entry to
+          the filter sheet; desktop filters live in the left rail below. */}
       <div
         className="cat-cmdbar"
         style={{
-          position: "sticky",
           zIndex: 30,
-          display: "flex",
           alignItems: "center",
-          flexWrap: "wrap",
           gap: 10,
           padding: 8,
           borderRadius: 16,
           background: "rgba(255,255,255,0.82)",
-          backdropFilter: "blur(18px) saturate(160%)",
-          WebkitBackdropFilter: "blur(18px) saturate(160%)",
           border: "1px solid #E8EBF1",
           boxShadow: "0 10px 30px rgba(20,24,45,.07)",
           marginBottom: 18,
         }}
       >
-        {/* Search - hidden on phones (.cat-cmdsearch): the header's pinned
-            search bar is the single query box there. */}
-        <div
-          className="cat-cmdsearch"
-          onClick={() => searchRef.current?.focus()}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            background: "#F3F5F9",
-            borderRadius: 11,
-            padding: "9px 13px",
-            minWidth: 180,
-            flex: "1 1 200px",
-            maxWidth: 320,
-            cursor: "text",
-          }}
-        >
-          <span style={{ color: "#A0A7B5", fontSize: 14 }}>⌕</span>
-          <input
-            ref={searchRef}
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search products…"
-            style={{ border: "none", outline: "none", fontSize: 13.5, width: "100%", background: "transparent", color: "#19202E" }}
-          />
-          {q && (
-            <span onClick={() => setQ("")} style={{ cursor: "pointer", color: "#A0A7B5", fontSize: 13 }}>
-              ✕
-            </span>
-          )}
-        </div>
-
         {/* Mobile: single filter icon opening the bottom sheet */}
         <button className="cat-filterbtn" aria-label="Filters" onClick={() => setSheet(true)}>
           <svg width="17" height="15" viewBox="0 0 17 15" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -404,157 +292,7 @@ export default function CatalogueBrowser({
           )}
         </button>
 
-        {/* Category popover */}
-        <div className="cat-popover" style={{ position: "relative" }}>
-          <button onClick={() => setOpen(open === "cat" ? null : "cat")} style={popBtn(cat !== "All" || open === "cat")}>
-            {cat !== "All" && <span style={{ display: "inline-flex", color: "#6B748C" }}><CategoryIcon cat={cat} size={13} /></span>}
-            {cat === "All" ? "Category" : cat}
-            <span style={{ fontSize: 10, opacity: 0.7 }}>▾</span>
-          </button>
-          {open === "cat" && (
-            <div style={{ ...panel, right: "auto", left: 0 }}>
-              {CATS.map((label) => {
-                const on = cat === label;
-                return (
-                  <button
-                    key={label}
-                    onClick={() => {
-                      setCat(label);
-                      setOpen(null);
-                    }}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 12,
-                      width: "100%",
-                      fontSize: 13,
-                      fontWeight: 600,
-                      padding: "9px 11px",
-                      borderRadius: 9,
-                      cursor: "pointer",
-                      border: "none",
-                      textAlign: "left",
-                      background: on ? "#EEF0FE" : "transparent",
-                      color: on ? "#4E5BDC" : "#3A4358",
-                    }}
-                  >
-                    <span style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                      <span style={{ width: 18, display: "inline-flex", justifyContent: "center", color: "#6B748C" }}>{label !== "All" && <CategoryIcon cat={label} size={15} />}</span>
-                      {label === "All" ? "All categories" : label}
-                    </span>
-                    <span style={{ fontSize: 11.5, color: on ? "#8A93F0" : "#A0A7B5", fontWeight: 500 }}>{catCount[label] ?? 0}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        <div style={{ flex: 1 }} />
-
-        {/* Brand popover */}
-        <div className="cat-popover" style={{ position: "relative" }}>
-          <button onClick={() => setOpen(open === "brand" ? null : "brand")} style={popBtn(picked.size > 0 || open === "brand")}>
-            Brand
-            {picked.size > 0 && (
-              <span style={{ background: "#4E5BDC", color: "#fff", fontSize: 10.5, fontWeight: 700, borderRadius: 999, padding: "1px 7px" }}>
-                {picked.size}
-              </span>
-            )}
-            <span style={{ fontSize: 10, opacity: 0.7 }}>▾</span>
-          </button>
-          {open === "brand" && (
-            <div style={{ ...panel, maxHeight: 340, overflowY: "auto" }}>
-              {brands.map((b) => {
-                const on = picked.has(b);
-                return (
-                  <button
-                    key={b}
-                    onClick={() => toggleBrand(b)}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 12,
-                      width: "100%",
-                      fontSize: 13,
-                      fontWeight: 600,
-                      padding: "9px 11px",
-                      borderRadius: 9,
-                      cursor: "pointer",
-                      border: "none",
-                      textAlign: "left",
-                      background: on ? "#EEF0FE" : "transparent",
-                      color: on ? "#4E5BDC" : "#3A4358",
-                    }}
-                  >
-                    <span style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                      <span
-                        style={{
-                          width: 16,
-                          height: 16,
-                          borderRadius: 5,
-                          border: `1.5px solid ${on ? "#4E5BDC" : "#C9CFDB"}`,
-                          background: on ? "#4E5BDC" : "#fff",
-                          color: "#fff",
-                          fontSize: 10.5,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        {on ? "✓" : ""}
-                      </span>
-                      {b}
-                    </span>
-                    <span style={{ fontSize: 11.5, color: "#A0A7B5", fontWeight: 500 }}>{brandCount[b]}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Sort popover */}
-        <div className="cat-popover" style={{ position: "relative" }}>
-          <button onClick={() => setOpen(open === "sort" ? null : "sort")} style={popBtn(sort !== "featured" || open === "sort")}>
-            ↕ {SORTS.find((s) => s.key === sort)?.label}
-            <span style={{ fontSize: 10, opacity: 0.7 }}>▾</span>
-          </button>
-          {open === "sort" && (
-            <div style={panel}>
-              {SORTS.map((s) => (
-                <button
-                  key={s.key}
-                  onClick={() => {
-                    setSort(s.key);
-                    setOpen(null);
-                  }}
-                  style={{
-                    display: "block",
-                    width: "100%",
-                    fontSize: 13,
-                    fontWeight: 600,
-                    padding: "9px 11px",
-                    borderRadius: 9,
-                    cursor: "pointer",
-                    border: "none",
-                    textAlign: "left",
-                    background: sort === s.key ? "#EEF0FE" : "transparent",
-                    color: sort === s.key ? "#4E5BDC" : "#3A4358",
-                  }}
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
-
-      {/* Click-away layer for popovers */}
-      {open && <div onClick={() => setOpen(null)} style={{ position: "fixed", inset: 0, zIndex: 20 }} />}
 
       {/* Mobile filter bottom sheet - one list with sort, category and brand */}
       {sheet && (
@@ -605,6 +343,64 @@ export default function CatalogueBrowser({
         </>
       )}
 
+      {/* ── Two-column body: left filter rail (desktop) + results ── */}
+      <div style={{ display: "flex", gap: 22, alignItems: "flex-start" }}>
+        <aside className="cat-sidebar">
+          <div style={sideCard}>
+            <div style={sideLabel}>Sort by</div>
+            <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} style={sideSelect}>
+              {SORTS.map((s) => (
+                <option key={s.key} value={s.key}>{s.label}</option>
+              ))}
+            </select>
+          </div>
+          <div style={sideCard}>
+            <div style={sideLabel}>Category</div>
+            <select value={cat} onChange={(e) => setCat(e.target.value)} style={sideSelect}>
+              {CATS.map((label) => (
+                <option key={label} value={label}>
+                  {label === "All" ? "All categories" : label} ({catCount[label] ?? 0})
+                </option>
+              ))}
+            </select>
+          </div>
+          <div style={sideCard}>
+            <div style={sideLabel}>Brand</div>
+            <div style={{ maxHeight: 296, overflowY: "auto", display: "flex", flexDirection: "column", gap: 1 }}>
+              {brands.map((b) => {
+                const on = picked.has(b);
+                return (
+                  <button
+                    key={b}
+                    onClick={() => toggleBrand(b)}
+                    style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", fontSize: 12.5, fontWeight: 600, padding: "7px 8px", borderRadius: 8, cursor: "pointer", border: "none", textAlign: "left", background: on ? "#EEF0FE" : "transparent", color: on ? "#4E5BDC" : "#3A4358" }}
+                  >
+                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ width: 15, height: 15, borderRadius: 5, border: `1.5px solid ${on ? "#4E5BDC" : "#C9CFDB"}`, background: on ? "#4E5BDC" : "#fff", color: "#fff", fontSize: 10, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{on ? "\u2713" : ""}</span>
+                      {b}
+                    </span>
+                    <span style={{ fontSize: 11, color: "#A0A7B5", fontWeight: 500 }}>{brandCount[b]}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          {hasFilters && (
+            <button onClick={clearAll} style={{ fontSize: 12.5, fontWeight: 700, color: "#4E5BDC", background: "none", border: "1px solid #E0E4ED", borderRadius: 10, cursor: "pointer", padding: "9px 12px" }}>
+              Clear all filters
+            </button>
+          )}
+        </aside>
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+      {/* Results header: the navbar owns the query; this line confirms it. */}
+      {dq.trim() && (
+        <div style={{ fontSize: 14, color: "#3A4358", margin: "0 0 12px" }}>
+          <b>{filtered.length.toLocaleString("en-IN")}</b> result{filtered.length === 1 ? "" : "s"} for{" "}
+          <b>“{dq.trim()}”</b>
+        </div>
+      )}
+
       {/* Active filter chips */}
       {hasFilters && (
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
@@ -614,7 +410,7 @@ export default function CatalogueBrowser({
           {[...picked].map((b) => (
             <FilterChip key={b} label={b} onClear={() => toggleBrand(b)} />
           ))}
-          {q.trim() && <FilterChip label={`“${correctedTo ?? q.trim()}”`} onClear={() => setQ("")} />}
+          {q.trim() && <FilterChip label={`“${q.trim()}”`} onClear={() => setQ("")} />}
           {sort !== "featured" && (
             <FilterChip label={SORTS.find((s) => s.key === sort)!.label} onClear={() => setSort("featured")} />
           )}
@@ -633,12 +429,12 @@ export default function CatalogueBrowser({
           buyers already know. */}
       {correctedTo && (
         <div style={{ fontSize: 13.5, color: "#3A4358", background: "#F2FBF6", border: "1px solid #DCEDE3", borderRadius: 10, padding: "10px 14px", margin: "0 0 14px" }}>
-          Showing results for <b>{correctedTo}</b> · no matches for “{q.trim()}”
+          Including close spellings: <b>{correctedTo}</b>
         </div>
       )}
-      {partial && (
+      {relaxedNote && (
         <div style={{ fontSize: 13.5, color: "#3A4358", background: "#FFF9EE", border: "1px solid #F0DFC0", borderRadius: 10, padding: "10px 14px", margin: "0 0 14px" }}>
-          Nothing matches all of “{q.trim()}” · showing the closest matches ({partial.matched} of {partial.total} words)
+          {relaxedNote}
         </div>
       )}
       {filtered.length === 0 ? (
@@ -700,6 +496,8 @@ export default function CatalogueBrowser({
           )}
         </>
       )}
+        </div>
+      </div>
     </main>
   );
 }

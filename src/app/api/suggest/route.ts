@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { searchTokens, matchesAll, normalizeSearchText, CATEGORY_INTENT } from "@/lib/search-normalize";
 import { loadSearchSignals } from "@/lib/search-signals";
+import { normalizeSearchText as lexNormalize, expandToken, singularize } from "@/lib/search-lexicon";
+import { rankSearch } from "@/lib/search-rank";
 import { rateLimited, requestIp } from "@/lib/rate-limit";
 
 /**
@@ -75,7 +77,17 @@ export async function GET(request: Request) {
   // verbatim against the many spellings in the data). Precision comes from
   // the normalised token filter applied after the fetch.
   const dbWords = words.filter((w) => /[a-z]{3,}/i.test(w) && !/^(sqmm|mm2?|mtr|metre|meter)s?$/i.test(w)).slice(0, 3);
-  const per = (dbWords.length ? dbWords : words.slice(0, 2)).map((w) => `or(name.ilike.*${w}*,brand.ilike.*${w}*,category.ilike.*${w}*)`);
+  // Lexicon widening: each shortlist word also fetches its trade synonyms
+  // and singular form, so "isolators" pulls Isolator rows and "spd" pulls
+  // "Surge Protection" rows into the candidate set.
+  const per = (dbWords.length ? dbWords : words.slice(0, 2)).map((w) => {
+    const alts = [...new Set([w, singularize(w), ...expandToken(lexNormalize(w)).map((e) => e.split(" ")[0])])]
+      .map(safe)
+      .filter((a) => a.length >= 3)
+      .slice(0, 4);
+    const ors = alts.flatMap((a) => [`name.ilike.*${a}*`, `brand.ilike.*${a}*`, `category.ilike.*${a}*`]);
+    return `or(${ors.join(",")})`;
+  });
   const filter = per.length === 1 ? per[0].replace(/^or/, "or=") : `and=(${per.join(",")})`;
   const url = `${URL_}/rest/v1/products?select=id,name,brand,category,elume_price,image_url,units_sold,is_recommended,gst_rate&${filter}&order=units_sold.desc.nullslast,id&limit=120`;
 
@@ -83,8 +95,14 @@ export async function GET(request: Request) {
   try {
     const r = await fetch(url, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` }, next: { revalidate: 300 } });
     if (r.ok) rows = (await r.json()) as Row[];
-    // Precision pass: every normalised token must appear in the product.
-    rows = rows.filter((row) => matchesAll(`${row.name} ${row.brand} ${row.category}`, tokens));
+    // Precision pass: the same lexicon-aware ranker as the results page, so
+    // the dropdown and the page never disagree about what matches.
+    const ranked = rankSearch(
+      q,
+      rows.map((row) => ({ id: row.id, name: row.name, brand: row.brand, cat: row.category, unitsSold: Number(row.units_sold) || 0 }))
+    );
+    const keep = new Set(ranked.results.filter((r) => r.matchedWeight / r.totalWeight >= 0.55).map((r) => r.item.id));
+    rows = keep.size ? rows.filter((row) => keep.has(row.id)) : rows.filter((row) => matchesAll(`${row.name} ${row.brand} ${row.category}`, tokens));
   } catch {
     /* suggest must never break the page; empty is fine */
   }

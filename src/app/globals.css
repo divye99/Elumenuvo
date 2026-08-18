@@ -414,29 +414,20 @@ input[type="range"].elume-range::-moz-range-thumb {
   .pc-deliv { display: block; font-size: 8.5px; font-weight: 600; color: #1F9D63; margin-top: 3px; }
 }
 
-/* ── Catalogue command bar: sit BELOW the sticky header stack ──
-   The header is promo strip (~35px) + nav row (~67px) = ~102px of sticky
-   chrome; a bar pinned higher tucks under the translucent header and its
-   input ghosts through the blur over the nav (the landscape-phone bug). */
-.cat-cmdbar { top: 108px; }
+/* ── Catalogue: one search bar (the header's), filters in a left rail ──
+   Desktop: the command bar is gone entirely - the sticky left sidebar holds
+   sort/category/brand dropdowns. Mobile/tablet (<=820px): the sidebar hides
+   and the command bar returns as a compact filter pill opening the sheet. */
+.cat-cmdbar { display: none; }
+.cat-sidebar { width: 230px; flex-shrink: 0; position: sticky; top: 122px; display: flex; flex-direction: column; gap: 12px; }
 @media (max-width: 820px) {
-  /* The mobile header's height varies with its scroll-collapse state, so no
-     fixed sticky offset is safe - pinning under the translucent header is
-     exactly the ghosting bug. The bar simply scrolls with the page; the
-     pinned header search + scroll-to-top button cover mid-list needs. */
-  .cat-cmdbar { position: static !important; top: auto !important; }
-}
-@media (max-width: 760px) {
-  /* One search bar on phones: the header's pinned search owns the query;
-     the command bar shrinks to a compact filter pill on the right. */
-  .cat-cmdsearch { display: none !important; }
-  .cat-cmdbar { width: fit-content; margin-left: auto; border-radius: 13px !important; }
+  .cat-sidebar { display: none !important; }
+  .cat-cmdbar { display: flex; width: fit-content; margin-left: auto; border-radius: 13px !important; }
 }
 
 /* ── Mobile catalogue filter button + bottom sheet ── */
 .cat-filterbtn { display: none; }
-@media (max-width: 760px) {
-  .cat-popover { display: none !important; }
+@media (max-width: 820px) {
   .cat-filterbtn { display: inline-flex; align-items: center; justify-content: center; position: relative; width: 38px; height: 38px; flex-shrink: 0; border: 1px solid #E8EBF1; border-radius: 11px; background: #fff; cursor: pointer; }
 }
 .cat-sheet-overlay { position: fixed; inset: 0; background: rgba(20,24,45,.42); z-index: 94; animation: elumeOverlay .16s ease; }

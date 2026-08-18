@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { fmt } from "@/lib/format";
 import { baseExGst } from "@/lib/pricing";
 import { logSearch } from "@/lib/search-log";
@@ -33,7 +33,23 @@ const cache = new Map<string, Suggest>();
 
 export default function HeaderSearch({ compact = false }: { compact?: boolean }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [q, setQ] = useState("");
+  // One search bar (Amazon pattern): on the catalogue, the header input IS
+  // the query box, so it must reflect the URL's q - including on hard loads
+  // and back/forward. window.location avoids a useSearchParams Suspense
+  // boundary in the always-mounted chrome.
+  useEffect(() => {
+    if (!pathname?.startsWith("/catalogue")) return;
+    const sync = () => {
+      const urlQ = new URLSearchParams(window.location.search).get("q") ?? "";
+      setQ((cur) => (cur === urlQ ? cur : urlQ));
+    };
+    sync();
+    window.addEventListener("popstate", sync);
+    return () => window.removeEventListener("popstate", sync);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
   const [open, setOpen] = useState(false);
   const [sug, setSug] = useState<Suggest>({ terms: [], products: [] });
   const [recents, setRecents] = useState<string[]>([]);
