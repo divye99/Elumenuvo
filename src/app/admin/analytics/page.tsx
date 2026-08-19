@@ -30,19 +30,28 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
   const fetchDays = isTraffic ? Math.min(97, days + 7) : days;
   const isOutreach = view === "outreach";
   const isSearch = view === "search";
-  const [events, searchesBySid, surveys, searchStats] = await Promise.all([
+  const [events, searchesBySid, surveys] = await Promise.all([
     fetchEvents(fetchDays),
     fetchAllSearches(days),
     isOutreach ? fetchSurveyResponses() : Promise.resolve([]),
-    isSearch ? fetchSearchAnalytics(days) : Promise.resolve(null),
   ]);
   const allVisitors = toVisitors(events);
+  const botSids = new Set(allVisitors.filter((v) => v.likelyBot).map((v) => v.sid));
+  // Search analytics runs after visitor classification (not in the batch
+  // above) because it needs the bot session set: historic crawler rows
+  // predate the ingest gate and must not shape the query cloud or the
+  // missed-demand list.
+  const searchStats = isSearch ? await fetchSearchAnalytics(days, botSids) : null;
 
-  // Dropdown options come from the data itself. India leads the country list.
-  const countries = [...new Set(allVisitors.map((v) => v.country).filter(Boolean) as string[])]
+  // Dropdown options come from the data itself (humans only, unless bots are
+  // explicitly shown - a country only crawlers come from is not a filter
+  // anyone needs). India leads the country list.
+  const showingBots = bots === "1" || bots === "only";
+  const optionBase = showingBots ? allVisitors : allVisitors.filter((v) => !v.likelyBot);
+  const countries = [...new Set(optionBase.map((v) => v.country).filter(Boolean) as string[])]
     .sort((a, b) => (a === "IN" ? -1 : b === "IN" ? 1 : a.localeCompare(b)));
-  const states = [...new Set(allVisitors.filter((v) => !country || v.country === country).map((v) => v.region).filter(Boolean) as string[])].sort();
-  const deviceOSes = [...new Set(allVisitors.map((v) => v.device?.split(" · ")[0]).filter(Boolean) as string[])].sort();
+  const states = [...new Set(optionBase.filter((v) => !country || v.country === country).map((v) => v.region).filter(Boolean) as string[])].sort();
+  const deviceOSes = [...new Set(optionBase.map((v) => v.device?.split(" · ")[0]).filter(Boolean) as string[])].sort();
 
   const visitors = allVisitors.filter((v) => {
     // Likely bots are hidden unless explicitly requested.
@@ -297,7 +306,10 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
             {n} days
           </Link>
         ))}
-        <span style={{ fontSize: 12.5, color: "#8A93A6" }}>{visitors.length} of {allVisitors.length} visitors · {identified} identified · {events.length} events</span>
+        <span style={{ fontSize: 12.5, color: "#8A93A6" }}>
+          {visitors.length} of {allVisitors.length} visitors · {identified} identified · {events.length} events
+          {!showingBots && botSids.size > 0 && <span style={{ color: "#B4341C", fontWeight: 700 }}> · {botSids.size} bots hidden</span>}
+        </span>
         <a href={`/admin/analytics/export?days=${days}`} style={{ marginLeft: "auto", fontSize: 13, fontWeight: 700, color: "#4E5BDC" }}>⬇ Export CSV (raw events)</a>
       </div>
 

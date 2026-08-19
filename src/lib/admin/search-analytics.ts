@@ -41,7 +41,12 @@ export type SearchAnalytics = {
 
 const EMPTY: SearchAnalytics = { totalSearches: 0, distinctQueries: 0, zeroRate: 0, terms: [], missed: [] };
 
-export async function fetchSearchAnalytics(days: number): Promise<SearchAnalytics> {
+/** excludeSids: sessions the analytics layer classified as bots. Historic
+ *  bot rows predate the ingest gate on /api/search-log, and a crawler
+ *  "searching" its own URL fragments would otherwise pollute both the bubble
+ *  cloud and the missed-demand list. Rows with no session id stay (they
+ *  cannot be attributed either way). */
+export async function fetchSearchAnalytics(days: number, excludeSids?: Set<string>): Promise<SearchAnalytics> {
   const db = adminClient();
   if (!db) return EMPTY;
   try {
@@ -58,8 +63,11 @@ export async function fetchSearchAnalytics(days: number): Promise<SearchAnalytic
     const by = new Map<string, Agg>();
     let measured = 0;
     let zeros = 0;
+    let kept = 0;
 
     for (const r of data as { query: string; source: string; results: number | null; picked: string | null; session_id: string | null; created_at: string }[]) {
+      if (r.session_id && excludeSids?.has(r.session_id)) continue;
+      kept += 1;
       const norm = normalizeSearchText(r.query ?? "");
       if (norm.length < 2 || norm.length > 80) continue;
       let a = by.get(norm);
@@ -91,7 +99,7 @@ export async function fetchSearchAnalytics(days: number): Promise<SearchAnalytic
     const missed = terms.filter((t) => t.maxResults === 0 && t.picks === 0);
 
     return {
-      totalSearches: (data as unknown[]).length,
+      totalSearches: kept,
       distinctQueries: terms.length,
       zeroRate: measured > 0 ? zeros / measured : 0,
       terms: terms.slice(0, 400),

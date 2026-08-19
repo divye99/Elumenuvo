@@ -1,4 +1,5 @@
 import { adminClient } from "@/lib/supabase/admin";
+import { BOT_RE, BOT_IP_PREFIXES } from "@/lib/bots";
 
 /** Server-side reads for the admin Analytics pages (service role only). */
 
@@ -36,9 +37,12 @@ export type Visitor = {
   utmContent: string | null;
 };
 
-/** UA fragments identifying crawlers/agents (display-layer; catches rows
- *  recorded before a bot was added to the ingest gate). */
-const BOT_UA_RE = /bot|crawl|spider|slurp|headless|lighthouse|preview|python|curl|wget|axios|node-fetch|go-http|ahrefs|semrush|petalbot|bytespider|yandex|applebot|gptbot|perplexity|ccbot|dataforseo|screaming/i;
+/** Display-layer bot classification reuses the full ingest gate list
+ *  (src/lib/bots.ts) so both layers agree, plus a few looser fragments that
+ *  are safe here but too broad for ingest (a UA merely CONTAINING "python"
+ *  is fine to hide from a report, riskier to silently drop at the door).
+ *  Catches rows recorded before a pattern was added to the ingest gate. */
+const LOOSE_AGENT_RE = /python|curl|go-http|java\/|okhttp|libwww|scrapy|phantomjs|selenium|puppeteer|playwright/i;
 
 const PAGE = 1000;
 
@@ -191,12 +195,23 @@ export function toVisitors(events: SiteEvent[]): Visitor[] {
   }
   const all = [...by.values()];
   for (const v of all) {
-    // Classified a bot when the UA says so, or when the behaviour is a
-    // crawler's signature: outside India, barely any events, no interaction,
-    // zero measured dwell. Indian sessions are never behaviour-flagged.
-    const uaBot = !!v.ua && BOT_UA_RE.test(v.ua);
-    const behaviourBot = v.country !== "IN" && v.pageviews <= 2 && v.clicks === 0 && v.addToCarts === 0 && v.totalMs === 0 && !v.identity.email;
-    v.likelyBot = uaBot || behaviourBot;
+    // Bot when ANY of four signals fires:
+    //   ua        - matches the full ingest bot list or the looser fragments
+    //   ip        - from a known crawl-fleet range (Googlebot, Bing)
+    //   light     - outside India, barely any events, no interaction, zero
+    //               dwell (drive-by crawler). Indian light sessions are never
+    //               flagged this way: a real buyer checking one price looks
+    //               identical.
+    //   heavy     - ANY country: 10+ pageviews yet zero clicks, zero dwell,
+    //               zero carts, never identified. No human reads ten pages
+    //               without producing a single leave-timer or tap; this is
+    //               the disguised-UA crawler that was polluting the numbers
+    //               (owner report, Aug 2026).
+    const uaBot = !!v.ua && (BOT_RE.test(v.ua) || LOOSE_AGENT_RE.test(v.ua));
+    const ipBot = !!v.ip && BOT_IP_PREFIXES.some((p) => v.ip!.startsWith(p));
+    const lightCrawler = v.country !== "IN" && v.pageviews <= 2 && v.clicks === 0 && v.addToCarts === 0 && v.totalMs === 0 && !v.identity.email;
+    const heavyCrawler = v.pageviews >= 10 && v.clicks === 0 && v.totalMs === 0 && v.addToCarts === 0 && !v.identity.email;
+    v.likelyBot = uaBot || ipBot || lightCrawler || heavyCrawler;
   }
   return all.sort((a, b) => (a.lastSeen < b.lastSeen ? 1 : -1));
 }

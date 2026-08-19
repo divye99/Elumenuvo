@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminClient } from "@/lib/supabase/admin";
+import { isBotRequest } from "@/lib/bots";
 import { rateLimited, requestIp } from "@/lib/rate-limit";
 
 /**
@@ -15,6 +16,8 @@ const ok = () => new NextResponse(null, { status: 204 });
 
 export async function POST(request: Request) {
   if (rateLimited(`slog:${requestIp(request.headers)}`, 40, 60_000)) return new Response(null, { status: 204 });
+  // Bots must never teach the ranking: no picks, no corrections, no demand rows.
+  if (isBotRequest(request.headers)) return ok();
   let body: Record<string, unknown>;
   try {
     body = await request.json();

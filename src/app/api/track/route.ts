@@ -36,12 +36,8 @@ const geo = (h: Headers, k: string) => {
   try { return v ? decodeURIComponent(v).slice(0, 80) : null; } catch { return v?.slice(0, 80) ?? null; }
 };
 
-const BOT_RE = /bot|crawl|spider|slurp|headless|lighthouse|pingdom|uptime|monitor|gtmetrix|preview|facebookexternalhit|whatsapp|telegram|slack|twitter|linkedin|discord|embedly|quora|python-requests|python-httpx|curl\/|wget|axios|node-fetch|go-http-client|vercel-screenshot|prerender|google-inspectiontool|googleother|google-read-aloud|google-pagespeed|apis-google|mediapartners|adsbot|feedfetcher|bingpreview|ahrefs|semrush|mj12|dotbot|petalbot|bytespider|bytedance|yandex|applebot|amazonbot|claudebot|gptbot|oai-searchbot|perplexity|ccbot|cohere|anthropic|serpstat|dataforseo|zoominfo|barkrowler|seznam|baiduspider|sogou|360spider|coccoc|duckduckgo|qwant|neevabot|timpibot|awariobot|linkfluence|brandwatch|screaming.?frog|netcraft|expanse|censys|shodan|internetmeasurement|paloalto|masscan|zgrab/i;
 
-// Google's crawl/render fleet (Googlebot, InspectionTool, favicon fetcher…)
-// operates from 66.249.0.0/16 and executes JS, so UA checks alone leak rows.
-// Bing's classic crawler ranges included for the same reason.
-const BOT_IP_PREFIXES = ["66.249.", "157.55.39.", "207.46.13.", "40.77.167."];
+import { BOT_RE, BOT_IP_PREFIXES } from "@/lib/bots";
 
 export async function POST(request: Request) {
   let body: { sid?: unknown; events?: unknown };

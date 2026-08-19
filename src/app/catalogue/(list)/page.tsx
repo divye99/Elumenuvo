@@ -4,7 +4,7 @@ import BuyAgainShelf from "@/components/storefront/BuyAgainShelf";
 import { fetchProducts } from "@/lib/products";
 import { getEditorialPicks } from "@/lib/blog";
 import { loadSearchSignals } from "@/lib/search-signals";
-import { glanceViews30d } from "@/lib/glance";
+import { loadMerit } from "@/lib/merit";
 
 // ISR: the catalogue data is shared by everyone; serving it cached makes
 // search navigations near-instant (the browser filters client-side anyway).
@@ -24,10 +24,21 @@ export const metadata: Metadata = {
 };
 
 export default async function CataloguePage() {
-  const [products, signals, glance] = await Promise.all([fetchProducts(), loadSearchSignals(), glanceViews30d()]);
+  const [products, signals] = await Promise.all([fetchProducts(), loadSearchSignals()]);
+  const merit = await loadMerit(products, signals.pickTotals);
   // key: the shelf element crosses the server->client boundary as a prop and
   // lands in <main>'s children array un-validated; without an explicit key
   // React warns "missing key ... passed a child from CataloguePage" on every
   // catalogue render.
-  return <CatalogueBrowser products={products} editorial={getEditorialPicks()} searchBoost={signals.pickTotals} glanceBoost={glance} personalShelf={<BuyAgainShelf key="buy-again" />} />;
+  return (
+    <CatalogueBrowser
+      products={products}
+      editorial={getEditorialPicks()}
+      searchBoost={signals.pickTotals}
+      emsBoost={merit?.ems ?? {}}
+      explorePreferred={merit?.config.promoterBrands ?? []}
+      exploreCooldown={merit?.cooldownIds ?? []}
+      personalShelf={<BuyAgainShelf key="buy-again" />}
+    />
+  );
 }

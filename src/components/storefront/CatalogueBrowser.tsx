@@ -38,7 +38,9 @@ export default function CatalogueBrowser({
   initialSort = "featured",
   editorial = {},
   searchBoost = {},
-  glanceBoost = {},
+  emsBoost = {},
+  explorePreferred = [],
+  exploreCooldown = [],
   personalShelf,
 }: {
   products: Product[];
@@ -48,9 +50,13 @@ export default function CatalogueBrowser({
   editorial?: Record<string, { bestFor: string; rank: number; slug: string; postTitle: string }>;
   /** productId -> times chosen from search; learned signal reshaping Featured. */
   searchBoost?: Record<string, number>;
-  /** productId -> 30-day glance views; ties between equally-specced brands
-   *  go to what buyers actually look at and buy. */
-  glanceBoost?: Record<string, number>;
+  /** productId -> Elume Merit Score (server-computed, Bayesian-smoothed;
+   *  see lib/merit.ts). Photo rule + house-brand dial already applied. */
+  emsBoost?: Record<string, number>;
+  /** Brands we are Brand Promoter for - preferred in the exploration slot. */
+  explorePreferred?: string[];
+  /** Product ids in temporary exploration cooldown (explored, no engagement). */
+  exploreCooldown?: string[];
   personalShelf?: React.ReactNode;
 }) {
   // URL params are read client-side (the page itself is static/cached).
@@ -84,6 +90,7 @@ export default function CatalogueBrowser({
   // keystroke) with its result count, once per distinct query per visit.
   // Zero-result rows become the "demand we do not carry" report.
   const loggedRef = useRef<Set<string>>(new Set());
+  const exploreLoggedRef = useRef<Set<string>>(new Set());
 
   // Render the grid in pages of 60; mounting thousands of cards at once is
   // what made searches feel slow. Cap resets whenever the filters change.
@@ -95,7 +102,7 @@ export default function CatalogueBrowser({
   const dq = useDeferredValue(q);
   useEffect(() => { setShown(PAGE); }, [dq, cat, picked, sort]);
 
-  const { filtered, correctedTo, relaxedNote, brandCount, catCount } = useMemo(() => {
+  const { filtered, correctedTo, relaxedNote, brandCount, catCount, explored } = useMemo(() => {
     const facetCounts = (matched: Product[]) => {
       // Facet counts describe THIS result set, not the whole catalogue -
       // a brand that would give zero results for the query never advertises
@@ -122,7 +129,7 @@ export default function CatalogueBrowser({
         [p.elin, p.sku, p.brandSku].some((v) => v && v.replace(/\s+/g, "").toUpperCase() === codeQ)
       );
       if (exact.length > 0) {
-        return { filtered: exact, correctedTo: null, relaxedNote: null, ...facetCounts(exact) };
+        return { filtered: exact, correctedTo: null, relaxedNote: null, explored: null as { id: string; brand: string } | null, ...facetCounts(exact) };
       }
     }
 
@@ -147,6 +154,9 @@ export default function CatalogueBrowser({
     // Out-of-stock products stay browsable and searchable, but never lead a
     // list: sink them to the bottom of whatever ordering is chosen.
     const stockRank = (a: Product, b: Product) => Number(a.inStock === false) - Number(b.inStock === false);
+    // Which product (if any) the exploration slot surfaced - logged as an
+    // impression so cooldowns and the Merit panel have evidence.
+    let explored: { id: string; brand: string } | null = null;
     const sorted = (() => {
     switch (sort) {
       case "recommended":
@@ -174,8 +184,11 @@ export default function CatalogueBrowser({
         // Photo rule from the visibility ranking system: a listing without an
         // image runs at a fifth of its trend, so it cannot occupy the landing
         // shelf while imaged competitors exist.
+        const hasEms = Object.keys(emsBoost).length > 0;
         const trend = (p: Product) =>
-          (p.image ? 1 : 0.2) *
+          hasEms
+            ? emsBoost[p.id] ?? 0
+            : (p.image ? 1 : 0.2) *
           // eslint-disable-next-line no-mixed-operators
           // Elume house-brand dial (owner call, Aug 2026): visible but not
           // pushed - halve its trend on featured surfaces until the brand
@@ -185,7 +198,7 @@ export default function CatalogueBrowser({
             Math.min(p.unitsSold ?? 0, 200) +
             (p.recommended ? 8 : 0) +
             // Glance views: what buyers actually look at, 30-day window.
-            Math.min(glanceBoost[p.id] ?? 0, 400) * 0.25 +
+            
             // Reviews: a well-rated product with real reviews outranks an
             // unreviewed twin; a poorly-rated one sinks.
             ((p.rating ?? 0) >= 4 ? Math.min(p.ratingCount ?? 0, 25) * 4 : 0) -
@@ -237,16 +250,18 @@ export default function CatalogueBrowser({
           // Exploration slot: a FULLY relevant product (>= 92% of the top
           // relevance score) from a brand not already in the head. If no
           // such product exists, no slot - relevance is never sacrificed.
-          const EXPLORE_PREFERRED_BRANDS: string[] = []; // future: authorized dealership brands + guardrails
+          const cooldown = new Set(exploreCooldown);
           if (head.length >= 6) {
             const topRel = rel.get(head[0].id) ?? 0;
             const headBrands = new Set(head.map((p) => p.brand));
             const headIds = new Set(head.map((p) => p.id));
             const eligible = ranked.filter(
-              (p) => !headIds.has(p.id) && !headBrands.has(p.brand) && p.inStock !== false && p.image && (rel.get(p.id) ?? 0) >= topRel * 0.92
+              (p) => !headIds.has(p.id) && !headBrands.has(p.brand) && !cooldown.has(p.id) && p.inStock !== false && p.image && (rel.get(p.id) ?? 0) >= topRel * 0.92
             );
             if (eligible.length) {
-              const preferred = eligible.filter((p) => EXPLORE_PREFERRED_BRANDS.includes(p.brand));
+              // Brand Promoter preference (owner rule): brands we formally
+              // promote take the slot whenever one of theirs is eligible.
+              const preferred = eligible.filter((p) => explorePreferred.includes(p.brand));
               const pool = preferred.length ? preferred : eligible;
               // Deterministic pseudo-random (query-seeded): stable across
               // server render + hydration, varies query to query.
@@ -258,12 +273,14 @@ export default function CatalogueBrowser({
               // hash keeps it deterministic per query (hydration-safe).
               const slot = 2 + (Math.abs(h >> 4) % 10); // index 2..11 = position 3..12
               head.splice(Math.min(slot, head.length), 0, pick);
+              explored = { id: pick.id, brand: pick.brand };
               head.length = Math.min(head.length, HEAD);
             }
           }
 
           const headIds2 = new Set(head.map((p) => p.id));
           return [...head, ...ranked.filter((p) => !headIds2.has(p.id))];
+          // (explored pick is re-derived below for the impression log)
         }
 
         const lead: Product[] = [];
@@ -281,8 +298,22 @@ export default function CatalogueBrowser({
       }
     }
     })();
-    return { filtered: sorted, correctedTo, relaxedNote, ...facetCounts(matched) };
-  }, [products, cat, picked, dq, sort, searchBoost, glanceBoost]);
+    return { filtered: sorted, correctedTo, relaxedNote, explored, ...facetCounts(matched) };
+  }, [products, cat, picked, dq, sort, searchBoost]);
+
+  // Exploration impression log: evidence for cooldowns + /admin/merit.
+  useEffect(() => {
+    if (!explored) return;
+    const key = `${explored.id}|${dq.trim().toLowerCase()}`;
+    if (exploreLoggedRef.current.has(key)) return;
+    exploreLoggedRef.current.add(key);
+    fetch("/api/explore-log", {
+      method: "POST",
+      keepalive: true,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pid: explored.id, brand: explored.brand, q: dq.trim() }),
+    }).catch(() => { /* logging never breaks the page */ });
+  }, [explored, dq]);
 
   useEffect(() => {
     const needle = q.trim();
