@@ -37,18 +37,18 @@ async function call(body: Record<string, unknown>) {
   else window.location.reload();
 }
 
-export default function MeritPanel({ rows, promoterBrands, milestoneCr, paidGmv, milestoneReached, promoterExploreShare }: {
+export default function MeritPanel({ rows, promoterBrands, milestoneCr, paidGmv, milestoneReached, promoterExploreEdge }: {
   rows: MeritRow[];
   promoterBrands: string[];
   milestoneCr: number;
   paidGmv: number;
   milestoneReached: boolean;
-  promoterExploreShare: number;
+  promoterExploreEdge: number;
 }) {
   const [q, setQ] = useState("");
   const [view, setView] = useState<"all" | "explored" | "cooldown" | "overridden">("all");
   const [brandsText, setBrandsText] = useState(promoterBrands.join(", "));
-  const [sharePct, setSharePct] = useState(String(Math.round(promoterExploreShare * 100)));
+  const [edgePct, setEdgePct] = useState(String(Math.round(promoterExploreEdge * 100)));
   const [shown, setShown] = useState(100);
 
   const filtered = useMemo(() => {
@@ -72,11 +72,11 @@ export default function MeritPanel({ rows, promoterBrands, milestoneCr, paidGmv,
             Comma-separated. These brands get the (small) promoter term in EMS and a weighted preference in the exploration slot.
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "0 0 10px" }}>
-            <span style={{ fontSize: 12, color: "#3A4358", fontWeight: 600 }}>Exploration share</span>
-            <input value={sharePct} onChange={(e) => setSharePct(e.target.value)} inputMode="numeric" style={{ width: 64, fontSize: 13, padding: "7px 9px", borderRadius: 8, border: "1px solid #E0E4ED", textAlign: "right" }} />
-            <span style={{ fontSize: 12, color: "#8A93A6" }}>% of slots a promoter product wins when a non-promoter product also qualifies</span>
+            <span style={{ fontSize: 12, color: "#3A4358", fontWeight: 600 }}>Exploration edge</span>
+            <input value={edgePct} onChange={(e) => setEdgePct(e.target.value)} inputMode="numeric" style={{ width: 64, fontSize: 13, padding: "7px 9px", borderRadius: 8, border: "1px solid #E0E4ED", textAlign: "right" }} />
+            <span style={{ fontSize: 12, color: "#8A93A6" }}>% extra lottery tickets a promoter product holds in the exploration slot (everyone else holds 1 ticket)</span>
           </div>
-          <button onClick={() => call({ op: "config", promoterBrands: brandsText.split(",").map((s) => s.trim()).filter(Boolean), milestoneCr, promoterExploreShare: Math.min(100, Math.max(0, Number(sharePct) || 70)) / 100 })} style={{ fontSize: 12.5, fontWeight: 700, color: "#fff", background: "#4E5BDC", border: "none", borderRadius: 9, padding: "9px 16px", cursor: "pointer" }}>
+          <button onClick={() => call({ op: "config", promoterBrands: brandsText.split(",").map((s) => s.trim()).filter(Boolean), milestoneCr, promoterExploreEdge: Math.min(200, Math.max(0, Number(edgePct) || 20)) / 100 })} style={{ fontSize: 12.5, fontWeight: 700, color: "#fff", background: "#4E5BDC", border: "none", borderRadius: 9, padding: "9px 16px", cursor: "pointer" }}>
             Save config
           </button>
         </div>

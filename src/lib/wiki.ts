@@ -60,7 +60,7 @@ A query that exactly matches a SKU, brand SKU or ELIN short-circuits everything 
   {
     slug: "merit-engine",
     title: "EMS: the Elume Merit Score",
-    summary: "The fair Layer-2 ranking: Demand 50, Quality 30, Value 20, plus the Brand Promoter term.",
+    summary: "The fair Layer-2 ranking: Demand 60, Quality 30, Value 10, plus the Brand Promoter term.",
     tags: ["ranking", "merit"],
     body: `EMS (src/lib/merit.ts) decides tie-breaks in featured ordering. It replaced raw lifetime glance views, which compounded early exposure: whoever got seen first kept winning. EMS is rate-based and smoothed, so a 3-day-old Rajdhani SKU competes with a 2-year-old Havells SKU on equal terms.
 
@@ -68,7 +68,7 @@ A query that exactly matches a SKU, brand SKU or ELIN short-circuits everything 
 - Demand, 60%: view velocity per day live, search pick rate, cart rate, and 30-day buy rate. Buy rate carries the LEAST demand weight today and automatically becomes the HEAVIEST once total paid GMV crosses the 10 crore milestone. The flip needs no deploy; the panel shows which mode is live.
 - Quality, 30%: smoothed review stars only. Dispatch and stock reliability are deliberately excluded: those are our operations, not the brand's merit.
 - Value, 10%: savings depth vs MRP plus a bonus for beating the tracked market price.
-- Brand Promoter: a small additive for brands we formally promote (we are Rajdhani's Brand Promoter). Smallest term by design.
+- Brand Promoter: a small additive for brands we formally promote (we are Rajdhani's Brand Promoter), plus a 20% edge in the exploration-slot lottery (see the diversity article). Smallest terms by design.
 
 Every rate is normalized against its category average and then squashed onto a 0 to 1 scale (0.5 means exactly average for the category). The squash matters: without it, a product with 75x the average traffic would swamp every other pillar, which is the rich-get-richer effect this engine exists to kill. Doubling a rate always helps, but with diminishing returns.
 
@@ -129,7 +129,9 @@ The squash keeps order (more is always better) but pays diminishing returns: 2x 
 On generic featured-sorted queries, one brand can hold at most 4 of the first 12 results; overflow is deferred, never removed. The cap fully switches off when the customer shows brand intent: the brand name (or a 3+ letter prefix of it) in the query, an exact code, or a brand filter. Someone searching "havells rccb" sees all Havells.
 
 ## Exploration slot (Option D)
-At most ONE slot in positions 3 to 12 (position picked deterministically from the query, so reloads do not shuffle) can go to a brand not already in the head, but only if that product scores at least 92% of the top relevance score, is in stock and has a photo. If no product qualifies, there is no slot. Brands we are Brand Promoter of get a WEIGHTED preference, not a claim: when both a promoter and a non-promoter product qualify, the promoter wins the slot 70% of the time (configurable in /admin/merit); other brands keep real access to it.
+At most ONE slot in positions 3 to 12 (position picked deterministically from the query, so reloads do not shuffle) can go to a brand not already in the head. To qualify, a product must score at least 92% of the top relevance score, be in stock and have a photo. If nothing qualifies, there is no slot.
+
+The winner is drawn by lottery: every qualifying product holds 1 ticket, and Brand Promoter products hold 1.2 tickets (a 20% edge, configurable in /admin/merit). With one Rajdhani and one other product qualifying, Rajdhani wins about 55 times in 100. The edge scales fairly as more brands join the promoter network, and every qualifying product always keeps a real chance.
 
 ## Cooldowns
 Every exploration impression is logged (explore_log). A product shown 8+ times in 21 days with zero search picks enters cooldown and stops being explored. Cooldowns are ALWAYS temporary: either an admin timestamp or the 21-day evidence window expiring. Admins can set or clear cooldowns in /admin/merit.`,
