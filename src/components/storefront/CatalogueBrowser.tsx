@@ -9,6 +9,7 @@ import { logSearch } from "@/lib/search-log";
 import { useSearchParams } from "next/navigation";
 import { editDistance, normalizeSearchText } from "@/lib/search-normalize";
 import { rankSearch } from "@/lib/search-rank";
+import { normalizeSearchText as lexNormalize } from "@/lib/search-lexicon";
 import CategoryIcon from "@/components/storefront/CategoryIcon";
 
 // Category icons come from the shared Elume icon system (CategoryIcon);
@@ -196,7 +197,70 @@ export default function CatalogueBrowser({
           (a, b) => stockRank(a, b) || (rel.get(b.id) ?? 0) - (rel.get(a.id) ?? 0) || trend(b) - trend(a)
         );
         const filtersActive = cat !== "All" || picked.size > 0 || tokensActive;
-        if (filtersActive) return ranked;
+        if (filtersActive) {
+          // ── Brand diversity for GENERIC queries only (owner call, Aug 2026) ──
+          // Havells wins most trend tiebreaks through compounding history
+          // (biggest catalogue -> most sales -> most views -> most picks), so
+          // a generic query used to open with a single-brand wall. Two
+          // counters, both scoped to the FIRST 12 results only - beyond 12
+          // the order stays pure relevance + trend:
+          //  A) cap: max 4 slots per brand in the first 12, next-best other
+          //     brands pull up (only when enough other-brand matches exist);
+          //  B) exploration: ONE slot (position 4) for an equally-relevant
+          //     product from a brand absent from the head - random today,
+          //     dealership-weighted later via EXPLORE_PREFERRED_BRANDS.
+          // Neither runs when the buyer showed brand intent (typed a brand
+          // or brand prefix, exact codes short-circuit earlier), picked a
+          // brand filter, or the page is a relaxed closest-matches view.
+          const normQ = ` ${lexNormalize(dq)} `;
+          const qTokens = normQ.trim().split(" ").filter((t) => t.length >= 3);
+          const brandIntent = brands.some((b) => {
+            const nb = lexNormalize(b);
+            return normQ.includes(` ${nb} `) || normQ.includes(nb) || qTokens.some((t) => nb.startsWith(t));
+          });
+          if (!tokensActive || brandIntent || picked.size > 0 || relaxedNote) return ranked;
+
+          const HEAD = 12;
+          const CAP = 4;
+          const head: Product[] = [];
+          const deferred: Product[] = [];
+          const perBrand: Record<string, number> = {};
+          let idx = 0;
+          while (head.length < HEAD && idx < ranked.length) {
+            const p = ranked[idx++];
+            if ((perBrand[p.brand] ?? 0) < CAP) { head.push(p); perBrand[p.brand] = (perBrand[p.brand] ?? 0) + 1; }
+            else deferred.push(p);
+          }
+          // Not enough other-brand matches to fill 12: the cap relaxes.
+          while (head.length < HEAD && deferred.length) head.push(deferred.shift()!);
+
+          // Exploration slot: a FULLY relevant product (>= 92% of the top
+          // relevance score) from a brand not already in the head. If no
+          // such product exists, no slot - relevance is never sacrificed.
+          const EXPLORE_PREFERRED_BRANDS: string[] = []; // future: authorized dealership brands + guardrails
+          if (head.length >= 6) {
+            const topRel = rel.get(head[0].id) ?? 0;
+            const headBrands = new Set(head.map((p) => p.brand));
+            const headIds = new Set(head.map((p) => p.id));
+            const eligible = ranked.filter(
+              (p) => !headIds.has(p.id) && !headBrands.has(p.brand) && p.inStock !== false && p.image && (rel.get(p.id) ?? 0) >= topRel * 0.92
+            );
+            if (eligible.length) {
+              const preferred = eligible.filter((p) => EXPLORE_PREFERRED_BRANDS.includes(p.brand));
+              const pool = preferred.length ? preferred : eligible;
+              // Deterministic pseudo-random (query-seeded): stable across
+              // server render + hydration, varies query to query.
+              let h = 0;
+              for (const ch of dq) h = (h * 31 + ch.charCodeAt(0)) | 0;
+              const pick = pool[Math.abs(h) % pool.length];
+              head.splice(3, 0, pick);
+              head.length = Math.min(head.length, HEAD);
+            }
+          }
+
+          const headIds2 = new Set(head.map((p) => p.id));
+          return [...head, ...ranked.filter((p) => !headIds2.has(p.id))];
+        }
 
         const lead: Product[] = [];
         const chosen = new Set<string>();
