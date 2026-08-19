@@ -54,7 +54,7 @@ export default async function MeritPage() {
     <div>
       <h1 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 4px" }}>Merit engine</h1>
       <p style={{ fontSize: 13.5, color: "#56627A", margin: "0 0 18px", maxWidth: 760 }}>
-        The Elume Merit Score behind featured ordering: Demand 50% (velocity, pick, cart, 30-day buy) + Quality 30% (reviews) + Value 20% (savings vs MRP, market-beating), plus the Brand Promoter term. Every rate is Bayesian-smoothed against its category average, so new products start at par. The maths lives in the wiki.
+        The Elume Merit Score behind featured ordering: Demand 60% (velocity, pick, cart, 30-day buy) + Quality 30% (reviews) + Value 10% (savings vs MRP, market-beating), plus the Brand Promoter term. Every rate is Bayesian-smoothed against its category average, so new products start at par. The maths lives in the wiki.
       </p>
       <MeritPanel
         rows={rows}

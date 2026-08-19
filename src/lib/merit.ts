@@ -12,15 +12,15 @@ import type { Product } from "@/lib/data";
  * scores exactly the category average - the poor start at par and move on
  * their own performance, never on tenure or exposure volume.
  *
- * Pillars (owner-approved):
- *   DEMAND (50): view velocity/day-live + pick rate + cart rate + 30d buy
+ * Pillars (owner-approved; weights revised 50/30/20 -> 60/30/10, Aug 2026):
+ *   DEMAND (60): view velocity/day-live + pick rate + cart rate + 30d buy
  *     rate. Buy rate deliberately carries the LEAST demand weight until the
  *     platform crosses the sales milestone (Rs 10 Cr paid GMV), after which
  *     it automatically becomes the HEAVIEST - smoothing keeps it harmless
  *     while sparse either way.
  *   QUALITY (30): smoothed review stars only. Dispatch/stock reliability are
  *     deliberately EXCLUDED - those are our operations, not brand merit.
- *   VALUE (20): discount depth vs MRP + position vs tracked market price.
+ *   VALUE (10): discount depth vs MRP + position vs tracked market price.
  *   BRAND PROMOTER (small): a modest additive for brands we formally
  *     promote (owner naming: "we are Rajdhani's Brand Promoter") - the
  *     lowest-weighted term by design.
@@ -205,7 +205,7 @@ export function computeMerit(
     const suppressed = Boolean(ov?.suppressed);
 
     const demand = dw.velocity * velocity + dw.pick * pickRate + dw.cart * cartRate + dw.buy * buyRate;
-    let score = 0.5 * demand + 0.3 * review + 0.2 * value + promoter + override;
+    let score = 0.6 * demand + 0.3 * review + 0.1 * value + promoter + override;
     // Display guardrails carried over from the visibility rules:
     if (!p.image) score *= 0.2;                    // photo rule
     if (p.brand === "Elume") score *= 0.5;         // house-brand dial

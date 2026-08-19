@@ -65,9 +65,9 @@ A query that exactly matches a SKU, brand SKU or ELIN short-circuits everything 
     body: `EMS (src/lib/merit.ts) decides tie-breaks in featured ordering. It replaced raw lifetime glance views, which compounded early exposure: whoever got seen first kept winning. EMS is rate-based and smoothed, so a 3-day-old Rajdhani SKU competes with a 2-year-old Havells SKU on equal terms.
 
 ## Pillars
-- Demand, 50%: view velocity per day live, search pick rate, cart rate, and 30-day buy rate. Buy rate carries the LEAST demand weight today and automatically becomes the HEAVIEST once total paid GMV crosses the 10 crore milestone. The flip needs no deploy; the panel shows which mode is live.
+- Demand, 60%: view velocity per day live, search pick rate, cart rate, and 30-day buy rate. Buy rate carries the LEAST demand weight today and automatically becomes the HEAVIEST once total paid GMV crosses the 10 crore milestone. The flip needs no deploy; the panel shows which mode is live.
 - Quality, 30%: smoothed review stars only. Dispatch and stock reliability are deliberately excluded: those are our operations, not the brand's merit.
-- Value, 20%: savings depth vs MRP plus a bonus for beating the tracked market price.
+- Value, 10%: savings depth vs MRP plus a bonus for beating the tracked market price.
 - Brand Promoter: a small additive for brands we formally promote (we are Rajdhani's Brand Promoter). Smallest term by design.
 
 Every rate is normalized against its category average and then squashed onto a 0 to 1 scale (0.5 means exactly average for the category). The squash matters: without it, a product with 90x the average traffic would swamp every other pillar, which is the rich-get-richer effect this engine exists to kill. Doubling a rate always helps, but with diminishing returns.
