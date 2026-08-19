@@ -253,7 +253,11 @@ export default function CatalogueBrowser({
               let h = 0;
               for (const ch of dq) h = (h * 31 + ch.charCodeAt(0)) | 0;
               const pick = pool[Math.abs(h) % pool.length];
-              head.splice(3, 0, pick);
+              // Slot randomised across positions 3-12 (owner call, Aug 2026)
+              // so exploration doesn't imprint one fixed position; a second
+              // hash keeps it deterministic per query (hydration-safe).
+              const slot = 2 + (Math.abs(h >> 4) % 10); // index 2..11 = position 3..12
+              head.splice(Math.min(slot, head.length), 0, pick);
               head.length = Math.min(head.length, HEAD);
             }
           }
