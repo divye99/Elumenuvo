@@ -196,22 +196,27 @@ export function toVisitors(events: SiteEvent[]): Visitor[] {
   const all = [...by.values()];
   for (const v of all) {
     // Bot when ANY of four signals fires:
-    //   ua        - matches the full ingest bot list or the looser fragments
-    //   ip        - from a known crawl-fleet range (Googlebot, Bing)
-    //   light     - outside India, barely any events, no interaction, zero
-    //               dwell (drive-by crawler). Indian light sessions are never
-    //               flagged this way: a real buyer checking one price looks
-    //               identical.
-    //   heavy     - ANY country: 10+ pageviews yet zero clicks, zero dwell,
-    //               zero carts, never identified. No human reads ten pages
-    //               without producing a single leave-timer or tap; this is
-    //               the disguised-UA crawler that was polluting the numbers
-    //               (owner report, Aug 2026).
+    //   ua       - matches the full ingest bot list or the looser fragments
+    //   ip       - from a known crawl-fleet range (Googlebot, Bing)
+    //   foreign  - outside India (or unknown geo) WITHOUT real engagement.
+    //              We ship within India; the Aug 2026 residential-proxy
+    //              crawl wave (Baghdad/Lahore/Guyancourt..., spoofed desktop
+    //              UAs, 74% of a week's sessions) executes JS and fires
+    //              leave-timers, so DWELL ALONE PROVES NOTHING - that was
+    //              the leak in the previous rule. Engagement that keeps a
+    //              foreign session human: an identity, an add-to-cart, or
+    //              at least one real tap combined with measured dwell.
+    //   heavy    - any country incl. India: 10+ pageviews yet zero taps,
+    //              zero dwell, zero carts, never identified. No human reads
+    //              ten pages without touching anything.
+    // Indian sessions are still never flagged for merely being light: a real
+    // buyer checking one price looks exactly like that.
     const uaBot = !!v.ua && (BOT_RE.test(v.ua) || LOOSE_AGENT_RE.test(v.ua));
     const ipBot = !!v.ip && BOT_IP_PREFIXES.some((p) => v.ip!.startsWith(p));
-    const lightCrawler = v.country !== "IN" && v.pageviews <= 2 && v.clicks === 0 && v.addToCarts === 0 && v.totalMs === 0 && !v.identity.email;
+    const engaged = !!v.identity.email || v.addToCarts > 0 || (v.clicks > 0 && v.totalMs > 0);
+    const foreignDriveBy = v.country !== "IN" && !engaged;
     const heavyCrawler = v.pageviews >= 10 && v.clicks === 0 && v.totalMs === 0 && v.addToCarts === 0 && !v.identity.email;
-    v.likelyBot = uaBot || ipBot || lightCrawler || heavyCrawler;
+    v.likelyBot = uaBot || ipBot || foreignDriveBy || heavyCrawler;
   }
   return all.sort((a, b) => (a.lastSeen < b.lastSeen ? 1 : -1));
 }

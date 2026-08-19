@@ -70,7 +70,14 @@ A query that exactly matches a SKU, brand SKU or ELIN short-circuits everything 
 - Value, 10%: savings depth vs MRP plus a bonus for beating the tracked market price.
 - Brand Promoter: a small additive for brands we formally promote (we are Rajdhani's Brand Promoter). Smallest term by design.
 
-Every rate is normalized against its category average and then squashed onto a 0 to 1 scale (0.5 means exactly average for the category). The squash matters: without it, a product with 90x the average traffic would swamp every other pillar, which is the rich-get-richer effect this engine exists to kill. Doubling a rate always helps, but with diminishing returns.
+Every rate is normalized against its category average and then squashed onto a 0 to 1 scale (0.5 means exactly average for the category). The squash matters: without it, a product with 75x the average traffic would swamp every other pillar, which is the rich-get-richer effect this engine exists to kill. Doubling a rate always helps, but with diminishing returns.
+
+## Worked example (real numbers, Aug 2026)
+The Orient Ecotech Volt BLDC fan, 10 days live, 24 human views and 5 cart adds in 30 days, priced 34% under MRP. The Fans category averages 0.0132 views per day per product, so the fan's smoothed velocity is 75.8x its category average, which squashes to 0.987. Its cart rate is 1.9x average, squashing to 0.655. Reviews: none yet, so exactly par, 0.5. Value: (1 + 0.34) / (2 + 0.34) = 0.572.
+
+Demand pillar (early weights) = 0.4 x 0.987 + 0.3 x 0.5 (pick, par) + 0.2 x 0.655 + 0.1 x 0.70 (buy) = 0.75. EMS = 0.6 x 0.75 + 0.3 x 0.5 + 0.1 x 0.572 = about 0.65.
+
+Now a Rajdhani switch listed 3 days ago with zero views. Every rate pillar sits at exactly par (0.5, that is the smoothing promise), and its 50% discount gives value (1 + 0.5) / (2 + 0.5) = 0.6. EMS = 0.6 x 0.5 + 0.3 x 0.5 + 0.1 x 0.6 + 0.06 promoter = 0.57. Brand new, zero data, and it sits within striking distance of the best performer on the site. Real demand still wins; nobody is buried for being new.
 
 ## Guardrails carried over from the visibility rules
 - No photo: score multiplied by 0.2.
@@ -100,7 +107,16 @@ smoothed = (x + m * mu) / (n + m)
 - 200 views, 1 sale: (1 + 1) / 225 = 0.9%. Plenty of chances, few takers: genuinely below average.
 - 10,000 views, 800 sales: (800 + 1) / 10,025 = 8.0%. With heavy data the prior barely matters; the product's own rate wins.
 
-The poor start at par and move on performance. Tenure and exposure volume buy nothing by themselves.`,
+The poor start at par and move on performance. Tenure and exposure volume buy nothing by themselves.
+
+## The squash: why ratios alone are not enough
+After smoothing, each rate is divided by its category average to give a ratio (1.0 = exactly average), then squashed with r / (1 + r) onto 0 to 1, where average lands at 0.5.
+
+Why squash at all? A weighted average only means something when every pillar is marked out of the same maximum. Review stars have a natural ceiling (best possible is about 1.3x the average, since 5 stars vs a 3.8 average). Views have no ceiling, and because most products get almost no views, any product with real traffic is a huge multiple of the tiny average.
+
+Real case, Aug 2026: the Orient Ecotech BLDC fan ran at 75.8x its category's average velocity. Unsquashed, its demand pillar alone would be worth about 30 points while a perfect review score was worth 0.39: traffic would decide everything and the "30% for quality" label would be a lie. Squashed, 75.8x becomes 0.987 and 1x becomes 0.5, so demand leads (as weighted) without silencing the other pillars.
+
+The squash keeps order (more is always better) but pays diminishing returns: 2x average = 0.67, 10x = 0.91, 75x = 0.99. Being popular helps; being 10x more popular than the runner-up helps only a little more.`,
   },
   {
     slug: "diversity-exploration",
@@ -238,12 +254,15 @@ KAM note: rankings compound slowly; the honest answer to "why are we not #1" is 
     body: `## Pipeline
 The /api/track beacon logs page views, product glances, PDP section funnels and cart events into events tables, rolled up nightly into product_metrics_daily (per product per day: glance views, unique viewers, cart adds, units, orders, revenue). That rollup feeds admin analytics AND the merit engine.
 
+## Know the enemy
+The hard case is not Googlebot (it announces itself). It is the residential-proxy crawl wave seen in Aug 2026: 74% of a week's sessions, spoofed desktop user agents, IPs scattered across Baghdad, Lahore, Karachi, Guyancourt. These bots execute JavaScript and even fire the leave-timer, so they produce fake "time on page". The one thing they never fake: real engagement. They do not tap, do not add to cart, do not identify.
+
 ## Bot defense, three layers
 - Ingest: /api/track, /api/search-log and /api/explore-log all reject requests matching the bot user-agent list or known crawler IP ranges (src/lib/bots.ts, ~60 patterns plus Googlebot/Bingbot IP prefixes).
-- Rollup: the nightly SQL excludes bot user agents again, so even a miss at ingest cannot enter product_metrics_daily.
-- Display: the analytics UI classifies each session on four signals (the full bot UA list, crawler IP ranges, drive-by behaviour from outside India, and the disguised heavy crawler: 10+ pageviews with zero taps, zero dwell, zero carts, never identified) and hides them by default. The Searches tab also drops rows from bot sessions, including historic rows that predate the ingest gate. The "Include likely bots" filter shows them when needed.
+- Rollup (migration 0123): product_metrics_daily counts only India-geolocated human sessions, gated by the full UA list and crawler IPs. We sell within India, so foreign pageviews carry no purchase signal; foreign PAYING customers still count fully, because units and revenue come from the orders table, which has no geo filter. This is the layer that protects EMS.
+- Display: a session is classified a bot if its UA or IP matches, if it is foreign (or geo-unknown) WITHOUT engagement (engagement = an identity, an add-to-cart, or at least one tap plus measured dwell), or if it reads 10+ pages with zero taps, dwell, and carts in any country. Dwell alone never proves a human. Indian sessions are never flagged for merely being light. The Searches tab drops rows from bot sessions too, including historic pre-gate rows. "Include likely bots" in the filter shows them on demand.
 
-Consequence: EMS, search learning and exploration logging are human-only by construction, and every number on the analytics page is human-only by default.`,
+Consequence: EMS, search learning and exploration logging are human-only by construction, and every number on the analytics page is human-only by default. Verified Aug 2026: the display rule cut a 1,255-session week to 330 humans, keeping the 5 foreign sessions that genuinely engaged; the rollup rule removed 47% of recorded product views as bot traffic.`,
   },
 ];
 

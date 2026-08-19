@@ -306,10 +306,7 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
             {n} days
           </Link>
         ))}
-        <span style={{ fontSize: 12.5, color: "#8A93A6" }}>
-          {visitors.length} of {allVisitors.length} visitors · {identified} identified · {events.length} events
-          {!showingBots && botSids.size > 0 && <span style={{ color: "#B4341C", fontWeight: 700 }}> · {botSids.size} bots hidden</span>}
-        </span>
+        <span style={{ fontSize: 12.5, color: "#8A93A6" }}>{visitors.length} visitors · {identified} identified</span>
         <a href={`/admin/analytics/export?days=${days}`} style={{ marginLeft: "auto", fontSize: 13, fontWeight: 700, color: "#4E5BDC" }}>⬇ Export CSV (raw events)</a>
       </div>
 
