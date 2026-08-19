@@ -62,6 +62,7 @@ export default async function MeritPage() {
         milestoneCr={merit.config.milestoneCr}
         paidGmv={merit.paidGmv}
         milestoneReached={merit.milestoneReached}
+        promoterExploreShare={merit.config.promoterExploreShare}
       />
     </div>
   );

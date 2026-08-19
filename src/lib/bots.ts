@@ -14,3 +14,57 @@ export function isBotRequest(h: Headers): boolean {
   const ip = (h.get("x-forwarded-for") ?? "").split(",")[0].trim();
   return !!ip && BOT_IP_PREFIXES.some((p) => ip.startsWith(p));
 }
+
+/* ── Session-level bot evidence (display layer + rollup classifier) ──
+ *
+ * The Aug 2026 residential-proxy crawl wave defeats simple rules: spoofed
+ * desktop UAs, foreign residential IPs, executes JS, even fires leave-timers
+ * (fake dwell). Two things it cannot fake:
+ *   1. Browser freshness. Real browsers auto-update; bot toolkits ship
+ *      frozen UA strings. The wave runs Chrome 118-121 / Firefox 120-121
+ *      (late 2023) while every engaged human session runs current versions.
+ *   2. UA diversity. The wave reuses ~11 exact UA strings across hundreds
+ *      of sessions, none of which ever engages (the fleet signature).
+ *
+ * Deliberately NOT evidence (owner rule): bouncing without interaction (a
+ * Google-listing visitor who looks and leaves is a real view) and foreign
+ * geography (foreign interest is real interest). Engagement always proves a
+ * human; its absence proves nothing by itself.
+ *
+ * STALE_BROWSER_MAX must move forward roughly yearly (current-major minus
+ * ~25). Keep in lockstep with the SQL classifier in migration 0124. */
+
+export const STALE_BROWSER_MAX: Record<string, number> = {
+  chrome: 125,  // Aug 2026: current ~151; also covers Edge/Opera via their Chrome/ token
+  firefox: 125, // current ~153
+  safari: 16,
+  ios: 16,
+};
+
+export function browserVersion(ua: string | null | undefined): { fam: keyof typeof STALE_BROWSER_MAX | "other"; v: number } {
+  if (!ua) return { fam: "other", v: -1 };
+  let m = ua.match(/Chrome\/(\d+)/);
+  if (m) return { fam: "chrome", v: +m[1] };
+  m = ua.match(/Firefox\/(\d+)/) ?? ua.match(/rv:(\d+)/);
+  if (m) return { fam: "firefox", v: +m[1] };
+  if (/iPhone|iPad/.test(ua)) {
+    m = ua.match(/OS (\d+)_/);
+    if (m) return { fam: "ios", v: +m[1] };
+  }
+  m = ua.match(/Version\/(\d+)[.\d]* .*Safari/);
+  if (m) return { fam: "safari", v: +m[1] };
+  return { fam: "other", v: -1 };
+}
+
+/** Frozen bot-toolkit UA: a browser version no auto-updating human still
+ *  runs, or a Windows 7/8 UA (NT 6.x, long out of support). */
+export function isStaleBrowser(ua: string | null | undefined): boolean {
+  if (!ua) return false;
+  if (/Windows NT 6\./.test(ua)) return true;
+  const { fam, v } = browserVersion(ua);
+  return fam !== "other" && v > 0 && v < STALE_BROWSER_MAX[fam];
+}
+
+/** Minimum sessions sharing one exact UA string, with zero of them engaged,
+ *  before the whole group reads as a crawl fleet. */
+export const FLEET_MIN_SESSIONS = 8;

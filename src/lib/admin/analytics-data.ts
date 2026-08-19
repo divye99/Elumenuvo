@@ -1,5 +1,5 @@
 import { adminClient } from "@/lib/supabase/admin";
-import { BOT_RE, BOT_IP_PREFIXES } from "@/lib/bots";
+import { BOT_RE, BOT_IP_PREFIXES, isStaleBrowser, FLEET_MIN_SESSIONS } from "@/lib/bots";
 
 /** Server-side reads for the admin Analytics pages (service role only). */
 
@@ -194,29 +194,40 @@ export function toVisitors(events: SiteEvent[]): Visitor[] {
     }
   }
   const all = [...by.values()];
+  // Bot classification on OBJECTIVE machine evidence only. Deliberately NOT
+  // evidence (owner rule): bouncing without interaction (a Google-listing
+  // visitor who looks and leaves is a real view) and foreign geography
+  // (foreign interest is real interest). Engagement always proves a human.
+  //
+  // Signals (any one fires; engaged sessions are never flagged):
+  //   ua     - the full ingest bot list or looser agent fragments
+  //   ip     - a known crawl-fleet range (Googlebot, Bing)
+  //   stale  - a frozen browser version no auto-updating human still runs
+  //            (the Aug 2026 proxy wave ships Chrome 118-121 / Firefox
+  //            120-121 while every engaged session runs current builds),
+  //            or a Windows 7 era UA
+  //   fleet  - the same exact UA string across 8+ sessions in the window
+  //            with not one of them ever engaging
+  //   heavy  - 10+ pageviews yet zero taps, zero dwell, zero carts
+  // Keep in lockstep with the SQL classifier in migration 0124.
+  const engagedOf = (v: Visitor) => !!v.identity.email || v.addToCarts > 0 || (v.clicks > 0 && v.totalMs > 0);
+  const uaGroups = new Map<string, { n: number; engaged: number }>();
   for (const v of all) {
-    // Bot when ANY of four signals fires:
-    //   ua       - matches the full ingest bot list or the looser fragments
-    //   ip       - from a known crawl-fleet range (Googlebot, Bing)
-    //   foreign  - outside India (or unknown geo) WITHOUT real engagement.
-    //              We ship within India; the Aug 2026 residential-proxy
-    //              crawl wave (Baghdad/Lahore/Guyancourt..., spoofed desktop
-    //              UAs, 74% of a week's sessions) executes JS and fires
-    //              leave-timers, so DWELL ALONE PROVES NOTHING - that was
-    //              the leak in the previous rule. Engagement that keeps a
-    //              foreign session human: an identity, an add-to-cart, or
-    //              at least one real tap combined with measured dwell.
-    //   heavy    - any country incl. India: 10+ pageviews yet zero taps,
-    //              zero dwell, zero carts, never identified. No human reads
-    //              ten pages without touching anything.
-    // Indian sessions are still never flagged for merely being light: a real
-    // buyer checking one price looks exactly like that.
+    if (!v.ua) continue;
+    const g = uaGroups.get(v.ua) ?? { n: 0, engaged: 0 };
+    g.n += 1;
+    if (engagedOf(v)) g.engaged += 1;
+    uaGroups.set(v.ua, g);
+  }
+  const fleetUAs = new Set([...uaGroups.entries()].filter(([, g]) => g.n >= FLEET_MIN_SESSIONS && g.engaged === 0).map(([ua]) => ua));
+  for (const v of all) {
+    if (engagedOf(v)) { v.likelyBot = false; continue; }
     const uaBot = !!v.ua && (BOT_RE.test(v.ua) || LOOSE_AGENT_RE.test(v.ua));
     const ipBot = !!v.ip && BOT_IP_PREFIXES.some((p) => v.ip!.startsWith(p));
-    const engaged = !!v.identity.email || v.addToCarts > 0 || (v.clicks > 0 && v.totalMs > 0);
-    const foreignDriveBy = v.country !== "IN" && !engaged;
-    const heavyCrawler = v.pageviews >= 10 && v.clicks === 0 && v.totalMs === 0 && v.addToCarts === 0 && !v.identity.email;
-    v.likelyBot = uaBot || ipBot || foreignDriveBy || heavyCrawler;
+    const staleBot = isStaleBrowser(v.ua);
+    const fleetBot = !!v.ua && fleetUAs.has(v.ua);
+    const heavyCrawler = v.pageviews >= 10 && v.clicks === 0 && v.totalMs === 0 && v.addToCarts === 0;
+    v.likelyBot = uaBot || ipBot || staleBot || fleetBot || heavyCrawler;
   }
   return all.sort((a, b) => (a.lastSeen < b.lastSeen ? 1 : -1));
 }

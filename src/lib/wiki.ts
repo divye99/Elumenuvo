@@ -129,7 +129,7 @@ The squash keeps order (more is always better) but pays diminishing returns: 2x 
 On generic featured-sorted queries, one brand can hold at most 4 of the first 12 results; overflow is deferred, never removed. The cap fully switches off when the customer shows brand intent: the brand name (or a 3+ letter prefix of it) in the query, an exact code, or a brand filter. Someone searching "havells rccb" sees all Havells.
 
 ## Exploration slot (Option D)
-At most ONE slot in positions 3 to 12 (position picked deterministically from the query, so reloads do not shuffle) can go to a brand not already in the head, but only if that product scores at least 92% of the top relevance score, is in stock and has a photo. If no product qualifies, there is no slot. Brands we are Brand Promoter of get first claim on it.
+At most ONE slot in positions 3 to 12 (position picked deterministically from the query, so reloads do not shuffle) can go to a brand not already in the head, but only if that product scores at least 92% of the top relevance score, is in stock and has a photo. If no product qualifies, there is no slot. Brands we are Brand Promoter of get a WEIGHTED preference, not a claim: when both a promoter and a non-promoter product qualify, the promoter wins the slot 70% of the time (configurable in /admin/merit); other brands keep real access to it.
 
 ## Cooldowns
 Every exploration impression is logged (explore_log). A product shown 8+ times in 21 days with zero search picks enters cooldown and stops being explored. Cooldowns are ALWAYS temporary: either an admin timestamp or the 21-day evidence window expiring. Admins can set or clear cooldowns in /admin/merit.`,
@@ -255,14 +255,19 @@ KAM note: rankings compound slowly; the honest answer to "why are we not #1" is 
 The /api/track beacon logs page views, product glances, PDP section funnels and cart events into events tables, rolled up nightly into product_metrics_daily (per product per day: glance views, unique viewers, cart adds, units, orders, revenue). That rollup feeds admin analytics AND the merit engine.
 
 ## Know the enemy
-The hard case is not Googlebot (it announces itself). It is the residential-proxy crawl wave seen in Aug 2026: 74% of a week's sessions, spoofed desktop user agents, IPs scattered across Baghdad, Lahore, Karachi, Guyancourt. These bots execute JavaScript and even fire the leave-timer, so they produce fake "time on page". The one thing they never fake: real engagement. They do not tap, do not add to cart, do not identify.
+The hard case is not Googlebot (it announces itself). It is the residential-proxy crawl wave seen in Aug 2026: 74% of a week's sessions, spoofed desktop user agents, IPs scattered across Baghdad, Lahore, Karachi, Guyancourt. These bots execute JavaScript and even fire the leave-timer, so they produce fake "time on page". What they cannot fake: browser freshness (real browsers auto-update; the wave shipped frozen Chrome 118-121 and Firefox 120-121 from late 2023 while every engaged human ran current builds) and UA diversity (the wave reused 11 exact UA strings across ~1,000 sessions, none of which ever engaged).
+
+## Two things that are NEVER treated as bot evidence
+- Bouncing. A visitor from a Google listing who opens one page, touches nothing and leaves is a REAL view and counts everywhere. View count does not equal engagement.
+- Foreign geography. Foreign interest is real interest; nothing filters on country.
+Engagement (an identity, an add-to-cart, or a tap plus measured dwell) always proves a human; its absence proves nothing by itself.
 
 ## Bot defense, three layers
 - Ingest: /api/track, /api/search-log and /api/explore-log all reject requests matching the bot user-agent list or known crawler IP ranges (src/lib/bots.ts, ~60 patterns plus Googlebot/Bingbot IP prefixes).
-- Rollup (migration 0123): product_metrics_daily counts only India-geolocated human sessions, gated by the full UA list and crawler IPs. We sell within India, so foreign pageviews carry no purchase signal; foreign PAYING customers still count fully, because units and revenue come from the orders table, which has no geo filter. This is the layer that protects EMS.
-- Display: a session is classified a bot if its UA or IP matches, if it is foreign (or geo-unknown) WITHOUT engagement (engagement = an identity, an add-to-cart, or at least one tap plus measured dwell), or if it reads 10+ pages with zero taps, dwell, and carts in any country. Dwell alone never proves a human. Indian sessions are never flagged for merely being light. The Searches tab drops rows from bot sessions too, including historic pre-gate rows. "Include likely bots" in the filter shows them on demand.
+- Classifier + rollup (migration 0124): classify_bot_sessions writes verdicts into the bot_sessions table on objective evidence only: bot UA, crawler IP, a frozen browser version no auto-updating human still runs (thresholds move forward yearly), the fleet signature (8+ sessions sharing one exact UA, zero engaged), or heavy crawling (10+ pageviews, zero interaction). rollup_product_metrics excludes those sids, so product_metrics_daily and therefore EMS stay clean. The nightly cron classifies, then rolls.
+- Display: the same evidence rules classify sessions in the analytics UI; an engaged session is never flagged. The Searches tab drops rows from bot sessions too, including historic pre-gate rows. "Include likely bots" in the filter shows them on demand.
 
-Consequence: EMS, search learning and exploration logging are human-only by construction, and every number on the analytics page is human-only by default. Verified Aug 2026: the display rule cut a 1,255-session week to 330 humans, keeping the 5 foreign sessions that genuinely engaged; the rollup rule removed 47% of recorded product views as bot traffic.`,
+Verified Aug 2026: the evidence rules caught 94% of the wave while keeping every current-browser bounce, Indian or foreign. The few percent that are indistinguishable from real bounces stay counted, by design: when we cannot prove machine, we count the view.`,
   },
 ];
 

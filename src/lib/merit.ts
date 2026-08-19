@@ -45,6 +45,10 @@ export type MeritEntry = { ems: number; parts: MeritParts };
 export type MeritConfig = {
   promoterBrands: string[];
   milestoneCr: number; // purchase weight flips at this paid GMV
+  /** Share of exploration slots a Brand Promoter product wins when both a
+   *  promoter and a non-promoter product qualify (owner: a preference
+   *  score, not an absolute claim - others still get through). */
+  promoterExploreShare: number;
 };
 
 export const DEFAULT_MERIT_CONFIG: MeritConfig = {
@@ -52,6 +56,7 @@ export const DEFAULT_MERIT_CONFIG: MeritConfig = {
   // /admin/merit as those relationships land.
   promoterBrands: ["Rajdhani"],
   milestoneCr: 10,
+  promoterExploreShare: 0.7,
 };
 
 const CONFIG_KEY = "merit_config";
@@ -98,9 +103,11 @@ async function fetchInputs() {
   ]);
 
   const stored = (cfgRes.data?.v ?? null) as Partial<MeritConfig> | null;
+  const share = Number(stored?.promoterExploreShare);
   const config: MeritConfig = {
     promoterBrands: Array.isArray(stored?.promoterBrands) ? stored!.promoterBrands! : DEFAULT_MERIT_CONFIG.promoterBrands,
     milestoneCr: Number(stored?.milestoneCr) > 0 ? Number(stored!.milestoneCr) : DEFAULT_MERIT_CONFIG.milestoneCr,
+    promoterExploreShare: Number.isFinite(share) && share >= 0 && share <= 1 ? share : DEFAULT_MERIT_CONFIG.promoterExploreShare,
   };
   const overrides = new Map((ovRes.data ?? []).map((o: any) => [o.product_id as string, o]));
   const paidGmv = (gmvRes.data ?? []).reduce((a: number, r: any) => a + Number(r.total ?? 0), 0);

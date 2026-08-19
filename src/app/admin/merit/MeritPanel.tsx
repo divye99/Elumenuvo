@@ -37,16 +37,18 @@ async function call(body: Record<string, unknown>) {
   else window.location.reload();
 }
 
-export default function MeritPanel({ rows, promoterBrands, milestoneCr, paidGmv, milestoneReached }: {
+export default function MeritPanel({ rows, promoterBrands, milestoneCr, paidGmv, milestoneReached, promoterExploreShare }: {
   rows: MeritRow[];
   promoterBrands: string[];
   milestoneCr: number;
   paidGmv: number;
   milestoneReached: boolean;
+  promoterExploreShare: number;
 }) {
   const [q, setQ] = useState("");
   const [view, setView] = useState<"all" | "explored" | "cooldown" | "overridden">("all");
   const [brandsText, setBrandsText] = useState(promoterBrands.join(", "));
+  const [sharePct, setSharePct] = useState(String(Math.round(promoterExploreShare * 100)));
   const [shown, setShown] = useState(100);
 
   const filtered = useMemo(() => {
@@ -67,9 +69,14 @@ export default function MeritPanel({ rows, promoterBrands, milestoneCr, paidGmv,
           <div style={{ fontSize: 11, fontWeight: 800, color: "#8A93A6", letterSpacing: "0.7px", marginBottom: 8 }}>BRAND PROMOTER OF</div>
           <input value={brandsText} onChange={(e) => setBrandsText(e.target.value)} style={{ width: "100%", fontSize: 13, padding: "9px 11px", borderRadius: 9, border: "1px solid #E0E4ED" }} placeholder="Rajdhani, Wipro" />
           <div style={{ fontSize: 11, color: "#8A93A6", margin: "6px 0 10px" }}>
-            Comma-separated. These brands get the (small) promoter term in EMS and first claim on the exploration slot.
+            Comma-separated. These brands get the (small) promoter term in EMS and a weighted preference in the exploration slot.
           </div>
-          <button onClick={() => call({ op: "config", promoterBrands: brandsText.split(",").map((s) => s.trim()).filter(Boolean), milestoneCr })} style={{ fontSize: 12.5, fontWeight: 700, color: "#fff", background: "#4E5BDC", border: "none", borderRadius: 9, padding: "9px 16px", cursor: "pointer" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "0 0 10px" }}>
+            <span style={{ fontSize: 12, color: "#3A4358", fontWeight: 600 }}>Exploration share</span>
+            <input value={sharePct} onChange={(e) => setSharePct(e.target.value)} inputMode="numeric" style={{ width: 64, fontSize: 13, padding: "7px 9px", borderRadius: 8, border: "1px solid #E0E4ED", textAlign: "right" }} />
+            <span style={{ fontSize: 12, color: "#8A93A6" }}>% of slots a promoter product wins when a non-promoter product also qualifies</span>
+          </div>
+          <button onClick={() => call({ op: "config", promoterBrands: brandsText.split(",").map((s) => s.trim()).filter(Boolean), milestoneCr, promoterExploreShare: Math.min(100, Math.max(0, Number(sharePct) || 70)) / 100 })} style={{ fontSize: 12.5, fontWeight: 700, color: "#fff", background: "#4E5BDC", border: "none", borderRadius: 9, padding: "9px 16px", cursor: "pointer" }}>
             Save config
           </button>
         </div>

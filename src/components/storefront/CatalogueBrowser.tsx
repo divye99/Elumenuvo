@@ -40,6 +40,7 @@ export default function CatalogueBrowser({
   searchBoost = {},
   emsBoost = {},
   explorePreferred = [],
+  exploreShare = 0.7,
   exploreCooldown = [],
   personalShelf,
 }: {
@@ -53,8 +54,11 @@ export default function CatalogueBrowser({
   /** productId -> Elume Merit Score (server-computed, Bayesian-smoothed;
    *  see lib/merit.ts). Photo rule + house-brand dial already applied. */
   emsBoost?: Record<string, number>;
-  /** Brands we are Brand Promoter for - preferred in the exploration slot. */
+  /** Brands we are Brand Promoter for - weighted preference in the
+   *  exploration slot (they win it exploreShare of the time when a
+   *  non-promoter product also qualifies). */
   explorePreferred?: string[];
+  exploreShare?: number;
   /** Product ids in temporary exploration cooldown (explored, no engagement). */
   exploreCooldown?: string[];
   personalShelf?: React.ReactNode;
@@ -259,14 +263,21 @@ export default function CatalogueBrowser({
               (p) => !headIds.has(p.id) && !headBrands.has(p.brand) && !cooldown.has(p.id) && p.inStock !== false && p.image && (rel.get(p.id) ?? 0) >= topRel * 0.92
             );
             if (eligible.length) {
-              // Brand Promoter preference (owner rule): brands we formally
-              // promote take the slot whenever one of theirs is eligible.
-              const preferred = eligible.filter((p) => explorePreferred.includes(p.brand));
-              const pool = preferred.length ? preferred : eligible;
               // Deterministic pseudo-random (query-seeded): stable across
               // server render + hydration, varies query to query.
               let h = 0;
               for (const ch of dq) h = (h * 31 + ch.charCodeAt(0)) | 0;
+              // Brand Promoter preference is a WEIGHTED share, not a claim
+              // (owner rule, Aug 2026): when both a promoter and a
+              // non-promoter product qualify, the promoter wins the slot
+              // exploreShare of the time (default 7 in 10) across the query
+              // distribution; other brands keep real access to it.
+              const promoterPool = eligible.filter((p) => explorePreferred.includes(p.brand));
+              const otherPool = eligible.filter((p) => !explorePreferred.includes(p.brand));
+              const roll = (Math.abs(h >> 8) % 1000) / 1000;
+              const pool = promoterPool.length && otherPool.length
+                ? (roll < exploreShare ? promoterPool : otherPool)
+                : (promoterPool.length ? promoterPool : eligible);
               const pick = pool[Math.abs(h) % pool.length];
               // Slot randomised across positions 3-12 (owner call, Aug 2026)
               // so exploration doesn't imprint one fixed position; a second

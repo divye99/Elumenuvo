@@ -37,6 +37,7 @@ export default async function CataloguePage() {
       searchBoost={signals.pickTotals}
       emsBoost={merit?.ems ?? {}}
       explorePreferred={merit?.config.promoterBrands ?? []}
+      exploreShare={merit?.config.promoterExploreShare ?? 0.7}
       exploreCooldown={merit?.cooldownIds ?? []}
       personalShelf={<BuyAgainShelf key="buy-again" />}
     />

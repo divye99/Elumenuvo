@@ -29,9 +29,14 @@ export async function GET(request: Request) {
   const to = istNow.toISOString().slice(0, 10);
   const from = new Date(istNow.getTime() - 3 * 86_400_000).toISOString().slice(0, 10);
 
+  // Classify bot sessions over the window FIRST (0124): the rollup counts
+  // only sids that are not in bot_sessions. Classification failure must not
+  // stop the rollup (pre-0124 databases have no such function).
+  const cls = await db.rpc("classify_bot_sessions", { from_day: from, to_day: to });
+
   const { data, error } = await db.rpc("rollup_product_metrics", { from_day: from, to_day: to });
   if (error) {
     return NextResponse.json({ error: `${error.message} (run migration 0061?)` }, { status: 500 });
   }
-  return NextResponse.json({ ok: true, from, to, rows: data });
+  return NextResponse.json({ ok: true, from, to, rows: data, botsFlagged: cls.error ? `unavailable: ${cls.error.message}` : cls.data });
 }

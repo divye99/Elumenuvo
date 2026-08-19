@@ -24,7 +24,9 @@ export async function POST(request: Request) {
           ? body.promoterBrands.map((b: unknown) => String(b).trim()).filter(Boolean).slice(0, 40)
           : [];
         const milestoneCr = Number(body.milestoneCr) > 0 ? Number(body.milestoneCr) : 10;
-        await db.from("app_kv").upsert({ k: "merit_config", v: { promoterBrands, milestoneCr }, updated_at: new Date().toISOString() });
+        const shareRaw = Number(body.promoterExploreShare);
+        const promoterExploreShare = Number.isFinite(shareRaw) ? Math.min(1, Math.max(0, shareRaw)) : 0.7;
+        await db.from("app_kv").upsert({ k: "merit_config", v: { promoterBrands, milestoneCr, promoterExploreShare }, updated_at: new Date().toISOString() });
         break;
       }
       case "override": {
