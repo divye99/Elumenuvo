@@ -32,11 +32,12 @@ export async function POST(request: Request) {
   const results = Number.isFinite(Number(body.results)) ? Math.max(0, Math.min(100000, Math.round(Number(body.results)))) : null;
   const picked = body.picked ? String(body.picked).slice(0, 160) : null;
 
-  // Cross-learning (owner, Aug 2026): a suggest pick is a human confirming
+  // Cross-learning (owner, Aug 2026): a pick - from the suggest dropdown OR
+  // a results-page card click - is a human confirming
   // "this phrasing means this product" - exactly what the Smart BOM alias
   // table stores. Feed it there too, so the BOQ matcher learns from every
   // storefront search and vice versa. Best-effort: never delays the beacon.
-  if (source === "suggest" && picked?.startsWith("product:") && q.length >= 4) {
+  if (picked?.startsWith("product:") && q.length >= 4) {
     const { normalizeSearchText } = await import("@/lib/search-normalize");
     const alias_norm = normalizeSearchText(q).slice(0, 300);
     const product_id = picked.slice(8);

@@ -37,6 +37,7 @@ export default function CatalogueBrowser({
   initialSort = "featured",
   editorial = {},
   searchBoost = {},
+  glanceBoost = {},
   personalShelf,
 }: {
   products: Product[];
@@ -46,6 +47,9 @@ export default function CatalogueBrowser({
   editorial?: Record<string, { bestFor: string; rank: number; slug: string; postTitle: string }>;
   /** productId -> times chosen from search; learned signal reshaping Featured. */
   searchBoost?: Record<string, number>;
+  /** productId -> 30-day glance views; ties between equally-specced brands
+   *  go to what buyers actually look at and buy. */
+  glanceBoost?: Record<string, number>;
   personalShelf?: React.ReactNode;
 }) {
   // URL params are read client-side (the page itself is static/cached).
@@ -66,21 +70,13 @@ export default function CatalogueBrowser({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sp]);
   const [sheet, setSheet] = useState(false); // mobile filter bottom-sheet
+  const [brandQuery, setBrandQuery] = useState(""); // sidebar brand finder
 
   const brands = useMemo(
     () => Array.from(new Set(products.map((p) => p.brand))).sort(),
     [products]
   );
-  const brandCount = useMemo(() => {
-    const m: Record<string, number> = {};
-    for (const p of products) m[p.brand] = (m[p.brand] ?? 0) + 1;
-    return m;
-  }, [products]);
-  const catCount = useMemo(() => {
-    const m: Record<string, number> = { All: products.length };
-    for (const p of products) m[p.cat] = (m[p.cat] ?? 0) + 1;
-    return m;
-  }, [products]);
+
   const variantGroups = useMemo(() => groupVariants(products), [products]);
 
   // Stage-1 search logging: record a SETTLED search (1.2s after the last
@@ -98,7 +94,24 @@ export default function CatalogueBrowser({
   const dq = useDeferredValue(q);
   useEffect(() => { setShown(PAGE); }, [dq, cat, picked, sort]);
 
-  const { filtered, correctedTo, relaxedNote } = useMemo(() => {
+  const { filtered, correctedTo, relaxedNote, brandCount, catCount } = useMemo(() => {
+    const facetCounts = (matched: Product[]) => {
+      // Facet counts describe THIS result set, not the whole catalogue -
+      // a brand that would give zero results for the query never advertises
+      // a count it cannot deliver. Each facet ignores its own selection
+      // (standard faceting), so counts read as "what happens if I pick this".
+      const brandCount: Record<string, number> = {};
+      const catCount: Record<string, number> = { All: 0 };
+      for (const p of matched) {
+        if (cat === "All" || p.cat === cat) brandCount[p.brand] = (brandCount[p.brand] ?? 0) + 1;
+        if (picked.size === 0 || picked.has(p.brand)) {
+          catCount[p.cat] = (catCount[p.cat] ?? 0) + 1;
+          catCount.All += 1;
+        }
+      }
+      return { brandCount, catCount };
+    };
+
     // Exact-code short-circuit (ASIN behaviour): a query that IS an ELIN,
     // our SKU or a manufacturer SKU returns exactly that product, ahead of
     // any word matching. Whitespace-insensitive so "r-fs 001" hits "R-FS 001".
@@ -108,22 +121,21 @@ export default function CatalogueBrowser({
         [p.elin, p.sku, p.brandSku].some((v) => v && v.replace(/\s+/g, "").toUpperCase() === codeQ)
       );
       if (exact.length > 0) {
-        return { filtered: exact, correctedTo: null, relaxedNote: null };
+        return { filtered: exact, correctedTo: null, relaxedNote: null, ...facetCounts(exact) };
       }
     }
 
-    // Category/brand gates apply first; the ranker only sees the pool.
-    const pool = products.filter(
+    const hasQuery = dq.trim().length > 0;
+    // The lexicon-aware ranker (search-rank.ts) owns matching over the FULL
+    // catalogue: it speaks the buyer's language (glued units, DP/FP
+    // shorthand, plurals, colour words, typos) and NEVER returns an empty
+    // page while anything partially matches - it relaxes and says so.
+    // Category/brand gates apply AFTER ranking so facet counts stay honest.
+    const outcome = hasQuery ? rankSearch(dq, products) : null;
+    const matched = outcome ? outcome.results.map((r) => r.item) : products;
+    const list = matched.filter(
       (p) => (cat === "All" || p.cat === cat) && (picked.size === 0 || picked.has(p.brand))
     );
-
-    const hasQuery = dq.trim().length > 0;
-    // The lexicon-aware ranker (search-rank.ts) owns matching: it speaks the
-    // buyer's language (glued units, DP/FP shorthand, plurals, colour words,
-    // typos) and NEVER returns an empty page while anything partially
-    // matches - it relaxes and says so instead.
-    const outcome = hasQuery ? rankSearch(dq, pool) : null;
-    const list = outcome ? outcome.results.map((r) => r.item) : pool;
     const rel = new Map<string, number>(outcome ? outcome.results.map((r) => [r.item.id, r.score]) : []);
     const tokensActive = hasQuery;
     const correctedTo =
@@ -163,11 +175,20 @@ export default function CatalogueBrowser({
         // shelf while imaged competitors exist.
         const trend = (p: Product) =>
           (p.image ? 1 : 0.2) *
+          // eslint-disable-next-line no-mixed-operators
           // Elume house-brand dial (owner call, Aug 2026): visible but not
           // pushed - halve its trend on featured surfaces until the brand
           // earns organic pull. Search, compare and PDPs are untouched.
           (p.brand === "Elume" ? 0.5 : 1) *
-          (Math.min(searchBoost[p.id] ?? 0, 20) * 3 + Math.min(p.unitsSold ?? 0, 200) + (p.recommended ? 8 : 0));
+          (Math.min(searchBoost[p.id] ?? 0, 20) * 3 +
+            Math.min(p.unitsSold ?? 0, 200) +
+            (p.recommended ? 8 : 0) +
+            // Glance views: what buyers actually look at, 30-day window.
+            Math.min(glanceBoost[p.id] ?? 0, 400) * 0.25 +
+            // Reviews: a well-rated product with real reviews outranks an
+            // unreviewed twin; a poorly-rated one sinks.
+            ((p.rating ?? 0) >= 4 ? Math.min(p.ratingCount ?? 0, 25) * 4 : 0) -
+            ((p.rating ?? 0) > 0 && (p.rating ?? 0) < 3 ? 30 : 0));
         // With a query active, RELEVANCE (the ranker's score) leads and trend
         // only breaks ties: "havells wire" must show wires before Wi-Fi
         // sockets whose specs merely mention "wireless".
@@ -192,8 +213,8 @@ export default function CatalogueBrowser({
       }
     }
     })();
-    return { filtered: sorted, correctedTo, relaxedNote };
-  }, [products, cat, picked, dq, sort, searchBoost]);
+    return { filtered: sorted, correctedTo, relaxedNote, ...facetCounts(matched) };
+  }, [products, cat, picked, dq, sort, searchBoost, glanceBoost]);
 
   useEffect(() => {
     const needle = q.trim();
@@ -357,7 +378,7 @@ export default function CatalogueBrowser({
           <div style={sideCard}>
             <div style={sideLabel}>Category</div>
             <select value={cat} onChange={(e) => setCat(e.target.value)} style={sideSelect}>
-              {CATS.map((label) => (
+              {CATS.filter((label) => label === "All" || label === cat || (catCount[label] ?? 0) > 0).map((label) => (
                 <option key={label} value={label}>
                   {label === "All" ? "All categories" : label} ({catCount[label] ?? 0})
                 </option>
@@ -366,8 +387,17 @@ export default function CatalogueBrowser({
           </div>
           <div style={sideCard}>
             <div style={sideLabel}>Brand</div>
+            <input
+              value={brandQuery}
+              onChange={(e) => setBrandQuery(e.target.value)}
+              placeholder="Find a brand…"
+              style={{ fontSize: 12.5, padding: "8px 10px", borderRadius: 9, border: "1px solid #E0E4ED", background: "#F8F9FC", outline: "none", width: "100%" }}
+            />
             <div style={{ maxHeight: 296, overflowY: "auto", display: "flex", flexDirection: "column", gap: 1 }}>
-              {brands.map((b) => {
+              {brands
+                .filter((b) => (brandCount[b] ?? 0) > 0 || picked.has(b))
+                .filter((b) => !brandQuery.trim() || b.toLowerCase().includes(brandQuery.trim().toLowerCase()))
+                .map((b) => {
                 const on = picked.has(b);
                 return (
                   <button
@@ -482,7 +512,19 @@ export default function CatalogueBrowser({
             style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(232px, 1fr))", gap: 16 }}
           >
             {filtered.slice(0, shown).map((p, i) => (
-              <div key={p.id} className="pgrid-in" style={{ "--gi": Math.min(i, 20) } as React.CSSProperties}>
+              <div
+                key={p.id}
+                className="pgrid-in"
+                style={{ "--gi": Math.min(i, 20) } as React.CSSProperties}
+                onClickCapture={() => {
+                  // Self-learning inlet #2: a card clicked on a query page is
+                  // a human confirming "this query means this product" - the
+                  // same signal as a dropdown pick. Feeds pickTotals (featured
+                  // boost), picksByQuery (suggest) and product_aliases (BOQ).
+                  const needle = dq.trim();
+                  if (needle.length >= 2) logSearch({ q: needle, source: "search", picked: `product:${p.id}` });
+                }}
+              >
                 <ProductCard p={p} siblings={variantGroups[familyKey(p)]} editorial={editorial} />
               </div>
             ))}

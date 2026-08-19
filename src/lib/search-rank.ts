@@ -127,14 +127,19 @@ export function rankSearch<T extends Searchable>(query: string, items: T[]): Ran
     // matching just "rccb" - and a missing decorative word ("acr") cannot
     // sink an otherwise perfect variant match.
     const coverage = matchedWeight / totalWeight;
-    const popularity = Math.log10(1 + (item.unitsSold ?? 0)) * 0.15;
-    scored.push({ item, score: coverage * 100 + score + popularity, matchedWeight, totalWeight });
+    // Deliberately NO popularity term here: relevance scores stay pure so
+    // equally-specced products (three brands of "63 A 30 mA DP RCCB") tie
+    // exactly and the CALLER's trend signal - glance views, purchases,
+    // search picks, reviews - decides the order between brands.
+    scored.push({ item, score: coverage * 100 + score, matchedWeight, totalWeight });
   }
   scored.sort((a, b) => b.score - a.score);
 
-  // Strong result: something matched a healthy share of the query.
+  // Strong results exist: return ONLY them. The weak tail (products sharing
+  // one incidental word) used to inflate "3,626 results" for a query with
+  // ten real answers; counts must mean what a buyer thinks they mean.
   const strong = scored.filter((r) => r.matchedWeight / r.totalWeight >= 0.55);
-  if (strong.length > 0) return { results: scored, relaxed: null, corrections };
+  if (strong.length > 0) return { results: strong, relaxed: null, corrections };
 
   // Relaxation: nothing covers most of the query. Whatever DOES match some
   // of it is still worth showing, ordered by how much they cover - with a
