@@ -283,6 +283,44 @@ export default function CatalogueBrowser({
 
       {personalShelf}
 
+      {/* ── Floating filter button (mobile): pinned bottom-centre like the
+          scroll-to-top control, so filters are one thumb-tap away at any
+          scroll depth (owner ask, Aug 2026). Desktop uses the left rail. ── */}
+      <button
+        className="cat-fab"
+        aria-label="Filters"
+        onClick={() => setSheet(true)}
+        style={{
+          position: "fixed",
+          left: "50%",
+          transform: "translateX(-50%)",
+          bottom: 20,
+          zIndex: 60,
+          alignItems: "center",
+          gap: 8,
+          padding: "12px 20px",
+          borderRadius: 999,
+          border: "1px solid rgba(255,255,255,0.25)",
+          background: "rgba(25,32,46,0.9)",
+          backdropFilter: "blur(10px)",
+          color: "#fff",
+          fontSize: 13.5,
+          fontWeight: 700,
+          cursor: "pointer",
+          boxShadow: "0 10px 28px rgba(20,24,45,.3)",
+        }}
+      >
+        <svg width="15" height="13" viewBox="0 0 17 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M1 2.5h15M3.5 7.5h10M6 12.5h5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+        Filters
+        {hasFilters && (
+          <span style={{ background: "#4E5BDC", color: "#fff", fontSize: 10.5, fontWeight: 800, borderRadius: 999, padding: "1px 7px" }}>
+            {(cat !== "All" ? 1 : 0) + picked.size + (sort !== "featured" ? 1 : 0)}
+          </span>
+        )}
+      </button>
+
       {/* ── Mobile filter pill ── */}
       {/* One search bar everywhere: the header owns the query (Amazon
           pattern). This bar only exists on phones/tablets as the entry to

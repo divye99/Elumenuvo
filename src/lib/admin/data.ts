@@ -233,6 +233,9 @@ export type Shipment = {
   proof_url: string | null;
   shipped_at: string | null;
   delivered_at: string | null;
+  /** Present when booked through Shiprocket - unlocks label/invoice/manifest. */
+  sr_order_id: number | null;
+  sr_shipment_id: number | null;
   created_at: string;
 };
 export type OrderEvent = { id: string; order_id: string; status: string; note: string | null; created_at: string };

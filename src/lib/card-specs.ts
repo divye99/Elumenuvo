@@ -17,9 +17,31 @@ export function cardHighlights(p: Product): string[] {
   const attrs = p.attrs ?? {};
   const text = `${p.name} · ${p.spec ?? ""}`;
   const out: string[] = [];
+  // A bullet must ADD information: anything the title already states
+  // ("Type 1+2", "SP+N", "1200 mm") is wasted card space (owner rule,
+  // Aug 2026). A bullet is redundant when (nearly) all its meaningful
+  // tokens already appear in the product name, stem-tolerantly, so
+  // "Surge protector" dies against "...Surge Protection Device" too.
+  const nameLow = p.name.toLowerCase();
+  const inTitle = (bullet: string) => {
+    const toks = bullet.toLowerCase().split(/[^a-z0-9.+]+/).filter((t) => t.length >= 2);
+    if (!toks.length) return false;
+    const nameWords = nameLow.split(/[^a-z0-9.+]+/).filter(Boolean);
+    const hit = toks.filter((t) =>
+      nameLow.includes(t) || nameWords.some((w) => w.length >= 5 && t.length >= 5 && w.slice(0, 5) === t.slice(0, 5))
+    );
+    return hit.length >= Math.max(1, Math.ceil(toks.length * 0.65));
+  };
   const push = (v: string | null | undefined) => {
     const t = (v ?? "").replace(/\s+/g, " ").trim();
     if (!t || t.length > 34 || out.length >= 3) return;
+    // Junk that tells a buyer nothing (owner escalation, Aug 2026: an SPD
+    // card read "Surge protector / Surge Protection Device / Imported By
+    // Havells India Ltd."). Importer, packaging and origin lines are label
+    // compliance, not decision specs; and a bullet must never just repeat
+    // the category or another bullet in different words.
+    if (/imported by|country of origin|marketed by|manufactured by|net contents|net quantity|customer care|per google demand data/i.test(t)) return;
+    if (inTitle(t)) return;
     // Containment dedupe: "Amperes 25 A" adds nothing next to "25 A".
     const low = t.toLowerCase();
     if (out.some((x) => low.includes(x.toLowerCase()) || x.toLowerCase().includes(low))) return;
@@ -63,10 +85,23 @@ export function cardHighlights(p: Product): string[] {
     case "Switchgear": {
       const type = /RCBO/i.test(text) ? "RCBO" : /RCCB/i.test(text) ? "RCCB" : /isolator|disconnector/i.test(text) ? "Isolator" : /surge|SPD/i.test(text) ? "Surge protector" : /motor starter/i.test(text) ? "Motor starter" : /changeover/i.test(text) ? "Changeover switch" : /energy saver/i.test(text) ? "Energy saver" : /MCB|breaker/i.test(text) ? "MCB" : g("Type");
       push(type);
+      if (type === "Surge protector") {
+        // SPD cards differentiate on type class + pole config + discharge
+        // capacity - never on generic "Surge Protection Device" repeats.
+        push(rx(/type\s*(\d\s*\+\s*\d|\d)\b/i) ? `Type ${rx(/type\s*(\d\s*\+\s*\d|\d)\b/i)!.replace(/\s+/g, "")}` : null);
+        push(attrs.Poles ?? rx(/\b(SP\+N|TP\+N|DP|FP|1P\+N|3P\+N)\b/i));
+        push(rx(/imax\s*:?\s*(\d+)\s*ka/i) ? `Imax ${rx(/imax\s*:?\s*(\d+)\s*ka/i)} kA` : null);
+        break;
+      }
       push(g("Rating", "Rated Current") ?? (rx(/(\d+)\s*A\b/) && `${rx(/(\d+)\s*A\b/)} A`));
-      const poles = g("Execution pole") ?? rx(/\b(SP|DP|TP|FP|SPN|TPN|4P)\b/);
+      const poles = g("Execution pole") ?? attrs.Poles ?? rx(/\b(SP|DP|TP|FP|SPN|TPN|4P)\b/);
       const sens = g("Senstivity", "Sensitivity") ?? (/(RCCB|RCBO)/i.test(text) ? rx(/(\d+)\s*mA/) && `${rx(/(\d+)\s*mA/)} mA` : null);
       push([poles, sens].filter(Boolean).join(" · ") || null);
+      // Depth facts for when the title already says type/rating/poles:
+      const brk = g("Breaking Capacity", "Breaking capacity") ?? rx(/(\d+)\s*kA\b/);
+      push(brk ? `${String(brk).replace(/\s*ka.*/i, "")} kA breaking` : null);
+      push(g("Curve") ?? (rx(/\b([BCD])[\s-]*curve/i) && `${rx(/\b([BCD])[\s-]*curve/i)}-curve`));
+      push(g("Warranty") ? `${g("Warranty")} warranty` : null);
       break;
     }
     case "DB & Panels": {
@@ -123,8 +158,17 @@ export function cardHighlights(p: Product): string[] {
       const t = seg.trim();
       if (t.length < 3 || t.length > 34) continue;
       if (t.toLowerCase() === range) continue;
-      if (/^(suitable|net |warranty|manufactured|applications?|product range|ambient|base \d)/i.test(t)) continue;
+      if (/^(suitable|net |warranty|manufactured|imported|marketed|country of|applications?|product range|ambient|base \d)/i.test(t)) continue;
       push(t);
+    }
+  }
+  // Never a bare card: if the title said everything the category logic knew,
+  // surface any remaining honest fact from the spec table.
+  if (out.length === 0) {
+    for (const [k, v] of Object.entries(s)) {
+      if (out.length >= 2) break;
+      if (!/breaking|warranty|guarantee|curve|voltage|frequency|material|mount|width|module|capacity|ip\b/i.test(k)) continue;
+      push(/warranty|guarantee/i.test(k) ? `${v} warranty` : v);
     }
   }
   return out.slice(0, 3);

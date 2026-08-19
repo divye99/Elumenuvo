@@ -207,7 +207,7 @@ export default function OrderDetailClient({ order, shipments, events, customer }
         {/* ── Right: actions ── */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16, position: "sticky", top: 20 }}>
           {/* Shipping first (owner): it is the most-used action on an open order. */}
-          {!isClosed && anyRemaining && <ShipmentForm orderId={order.id} remaining={remaining} pending={pending} run={run} />}
+          {!isClosed && anyRemaining && <ShipmentForm orderId={order.id} remaining={remaining} pending={pending} run={run} shipTo={order.shipping_address ?? ""} billTo={order.billing_address ?? ""} custName={order.name ?? ""} custPhone={order.phone ?? ""} />}
           <Card title="Invoices">
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               <a
@@ -351,7 +351,7 @@ type SrCourier = {
 type SrRates = { ok: true; couriers: SrCourier[]; pickups: { name: string; city: string; pin: string }[]; pickup: string; deliveryPin: string; balance: number | null; distanceKm: number | null } | { ok: false; error: string };
 type SrShip = { ok: true; awb: string; courierName: string; freight: number | null; labelUrl: string | null; pickupScheduled: boolean } | { ok: false; error: string };
 
-function ShipmentForm({ orderId, remaining, pending, run }: { orderId: string; remaining: (OrderItem & { remaining: number })[]; pending: boolean; run: (fn: () => Promise<any>) => void }) {
+function ShipmentForm({ orderId, remaining, pending, run, shipTo, billTo, custName, custPhone }: { orderId: string; remaining: (OrderItem & { remaining: number })[]; pending: boolean; run: (fn: () => Promise<any>) => void; shipTo: string; billTo: string; custName: string; custPhone: string }) {
   const shippable = remaining.filter((r) => r.remaining > 0);
   const [sel, setSel] = useState<Record<string, boolean>>(() => Object.fromEntries(shippable.map((r) => [r.id, true])));
   const chosen = shippable.filter((r) => sel[r.id]);
@@ -368,6 +368,10 @@ function ShipmentForm({ orderId, remaining, pending, run }: { orderId: string; r
   const [booked, setBooked] = useState<Extract<SrShip, { ok: true }> | null>(null);
   const [srErr, setSrErr] = useState<string | null>(null);
   const [manual, setManual] = useState(false);
+  // Booking guard (owner rule, Aug 2026): the admin must eyeball ship-to and
+  // bill-to before money is spent on a pickup - a wrong address at booking
+  // is a paid RTO later.
+  const [addrOk, setAddrOk] = useState(false);
 
   // Manual fallback fields (the pre-Shiprocket form, kept for edge cases).
   const [courier, setCourier] = useState("");
@@ -390,8 +394,7 @@ function ShipmentForm({ orderId, remaining, pending, run }: { orderId: string; r
 
   const book = async () => {
     const opt = rates?.ok ? rates.couriers.find((c) => c.courierId === courierId) : null;
-    if (!opt) return;
-    if (!window.confirm(`Book ${chosen.length} item(s) with ${opt.name} for ₹${opt.rate}? Pickup: ${pickup}. The customer is emailed the tracking link.`)) return;
+    if (!opt || !addrOk) return;
     setBusy(true); setSrErr(null);
     try {
       const r = await callAdmin({
@@ -544,8 +547,25 @@ function ShipmentForm({ orderId, remaining, pending, run }: { orderId: string; r
               })}
             </div>
             <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+              <div style={{ flexBasis: "100%", background: "#F8F9FC", border: "1px solid #E8EBF1", borderRadius: 10, padding: "10px 12px", marginBottom: 2 }}>
+                <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: "0.7px", color: "#8A93A6", marginBottom: 6 }}>CONFIRM ADDRESSES BEFORE BOOKING</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  <div>
+                    <div style={{ fontSize: 10.5, fontWeight: 700, color: "#4E5BDC" }}>SHIP TO</div>
+                    <div style={{ fontSize: 12, color: "#19202E", lineHeight: 1.45, whiteSpace: "pre-wrap" }}>{custName} · {custPhone}{"\n"}{shipTo}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 10.5, fontWeight: 700, color: "#4E5BDC" }}>BILL TO</div>
+                    <div style={{ fontSize: 12, color: "#19202E", lineHeight: 1.45, whiteSpace: "pre-wrap" }}>{billTo === shipTo ? "Same as shipping address" : billTo}</div>
+                  </div>
+                </div>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, fontWeight: 700, color: "#19202E", marginTop: 9, cursor: "pointer" }}>
+                  <input type="checkbox" checked={addrOk} onChange={(e) => setAddrOk(e.target.checked)} />
+                  Both addresses are correct - proceed to book
+                </label>
+              </div>
               <button onClick={() => setShowRates(false)} style={{ flex: "0 0 auto", background: "#fff", border: "1.5px solid #D8DCE6", color: "#19202E", fontWeight: 700, fontSize: 12.5, padding: "10px 16px", borderRadius: 9, cursor: "pointer" }}>Cancel</button>
-              <button disabled={busy || courierId == null} onClick={book} style={{ ...primaryBtn(busy), flex: 1, opacity: busy || courierId == null ? 0.5 : 1 }}>
+              <button disabled={busy || courierId == null || !addrOk} onClick={book} style={{ ...primaryBtn(busy), flex: 1, opacity: busy || courierId == null || !addrOk ? 0.5 : 1 }}>
                 {busy ? "Booking…" : courierId != null ? `Book with ${rates.couriers.find((c) => c.courierId === courierId)?.name} · ₹${Math.round(rates.couriers.find((c) => c.courierId === courierId)?.rate ?? 0).toLocaleString("en-IN")}` : "Select a courier to book"}
               </button>
             </div>
@@ -598,8 +618,9 @@ function ShipmentRow({ s, orderId, pending, run }: { s: Shipment; orderId: strin
         </div>
         <OrderStatusBadge status={s.status} size={11} />
       </div>
-      <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
+      <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8, flexWrap: "wrap" }}>
         {s.tracking_url && <a href={s.tracking_url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#4E5BDC", fontWeight: 600 }}>Track →</a>}
+        {s.sr_shipment_id != null && <SrDocButtons orderId={s.order_id} shipmentId={s.id} />}
         {s.status !== "delivered" ? (
           <>
             <button disabled={pending} onClick={() => deliver()} style={miniBtn}>Mark delivered</button>
@@ -809,3 +830,44 @@ function RefundPanel({ order, run, pending }: { order: OrderRow; run: (fn: () =>
     </Card>
   );
 }
+
+/** Shiprocket's own documents (label / SR invoice / manifest) for a booked
+ *  shipment - separate from our proforma/tax invoices. Fetched on demand so
+ *  the page never blocks on three Shiprocket calls. */
+function SrDocButtons({ orderId, shipmentId }: { orderId: string; shipmentId: string }) {
+  const [docs, setDocs] = useState<{ label: string | null; invoice: string | null; manifest: string | null } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const load = async () => {
+    setBusy(true); setErr(null);
+    try {
+      const r = await callAdmin({ op: "sr-docs", orderId, shipmentId }) as unknown as
+        | { ok: true; label: string | null; invoice: string | null; manifest: string | null }
+        | { ok: false; error: string };
+      if (r.ok) setDocs(r);
+      else setErr(r.error);
+    } catch { setErr("Network hiccup - try again."); }
+    setBusy(false);
+  };
+  if (!docs) {
+    return (
+      <>
+        <button onClick={load} disabled={busy} style={{ fontSize: 12, color: "#4E5BDC", fontWeight: 600, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+          {busy ? "Fetching…" : "Shiprocket docs ↓"}
+        </button>
+        {err && <span style={{ fontSize: 11, color: "#C2410C" }}>{err}</span>}
+      </>
+    );
+  }
+  const link = (url: string | null, label: string) =>
+    url ? <a href={url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#4E5BDC", fontWeight: 600 }}>{label} ↗</a>
+        : <span style={{ fontSize: 12, color: "#A0A7B5" }}>{label} n/a</span>;
+  return (
+    <>
+      {link(docs.label, "Label")}
+      {link(docs.invoice, "SR invoice")}
+      {link(docs.manifest, "Manifest")}
+    </>
+  );
+}
+

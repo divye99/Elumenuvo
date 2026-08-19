@@ -273,6 +273,28 @@ export type SrShipResult =
 /** Book the parcel on Shiprocket (order -> AWB -> pickup -> label), record the
  *  shipment with full telemetry, roll the order status and email the customer -
  *  the automated twin of _addShipment. */
+/** Shiprocket document URLs (label / SR invoice / manifest) for a booked
+ *  shipment row. Kept separate from our own proforma/tax invoice engine. */
+export async function getSrDocuments(input: { orderId: string; shipmentId?: string }): Promise<
+  { ok: true; label: string | null; invoice: string | null; manifest: string | null } | { ok: false; error: string }
+> {
+  const db = adminClient();
+  if (!db) return { ok: false, error: "Server storage unavailable." };
+  let qy = db.from("order_shipments").select("id, sr_order_id, sr_shipment_id").eq("order_id", input.orderId).not("sr_shipment_id", "is", null).order("created_at", { ascending: false });
+  if (input.shipmentId) qy = qy.eq("id", input.shipmentId);
+  const { data } = await qy.limit(1);
+  const row = data?.[0];
+  if (!row?.sr_order_id || !row?.sr_shipment_id) return { ok: false, error: "This shipment wasn't booked through Shiprocket." };
+  try {
+    const { srDocuments } = await import("@/lib/shiprocket");
+    const docs = await srDocuments(Number(row.sr_order_id), Number(row.sr_shipment_id));
+    if (!docs.label && !docs.invoice && !docs.manifest) return { ok: false, error: "Shiprocket returned no documents yet - try again in a minute." };
+    return { ok: true, ...docs };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Shiprocket document fetch failed." };
+  }
+}
+
 export async function shipViaShiprocket(input: {
   orderId: string;
   items: { id: string; name: string; qty: number }[];

@@ -287,6 +287,30 @@ export type TrackingSnapshot = {
   scans: { time: string; status: string; location: string }[];
 };
 
+/** Shiprocket's own shipping documents for a booked shipment. Separate from
+ *  our proforma/tax invoices: these are the courier-side label, Shiprocket
+ *  invoice and pickup manifest PDFs (owner ask, Aug 2026). Each is fetched
+ *  best-effort - a missing manifest (pickup not yet manifested) returns null
+ *  rather than failing the others. */
+export async function srDocuments(srOrderId: number, srShipmentId: number): Promise<{ label: string | null; invoice: string | null; manifest: string | null }> {
+  const out = { label: null as string | null, invoice: null as string | null, manifest: null as string | null };
+  try {
+    const l = await api<any>("/courier/generate/label", { method: "POST", body: JSON.stringify({ shipment_id: [srShipmentId] }) });
+    out.label = l?.label_url ? String(l.label_url) : null;
+  } catch { /* label can lag right after booking */ }
+  try {
+    const i = await api<any>("/orders/print/invoice", { method: "POST", body: JSON.stringify({ ids: [srOrderId] }) });
+    out.invoice = i?.invoice_url ? String(i.invoice_url) : null;
+  } catch { /* ignore */ }
+  try {
+    // Generate errors once a manifest exists; print returns the PDF either way.
+    try { await api<any>("/manifests/generate", { method: "POST", body: JSON.stringify({ shipment_id: [srShipmentId] }) }); } catch { /* already generated */ }
+    const m = await api<any>("/manifests/print", { method: "POST", body: JSON.stringify({ order_ids: [srOrderId] }) });
+    out.manifest = m?.manifest_url ? String(m.manifest_url) : null;
+  } catch { /* manifest exists only after pickup generation */ }
+  return out;
+}
+
 const STATUS_MAP: [RegExp, TrackingSnapshot["status"]][] = [
   [/deliver/i, "delivered"],
   [/out for delivery/i, "out_for_delivery"],

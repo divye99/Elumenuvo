@@ -19,7 +19,7 @@ function recomputeSubtotal(items: any[], total: number, shippingFee = 0): number
   const scale = lines > 0 && goodsTotal > 0 ? goodsTotal / lines : 1;
   return Math.round(gross * scale * 100) / 100;
 }
-import {
+import { getSrDocuments,
   updateOrderStatus,
   cancelOrder,
   saveAdminNote,
@@ -113,6 +113,10 @@ export async function POST(request: Request) {
         breadthCm: Number(body.breadthCm) || 25,
         heightCm: Number(body.heightCm) || 15,
       });
+      return NextResponse.json(out, { status: out.ok ? 200 : 400 });
+    }
+    case "sr-docs": {
+      const out = await getSrDocuments({ orderId: String(body.orderId), shipmentId: body.shipmentId ? String(body.shipmentId) : undefined });
       return NextResponse.json(out, { status: out.ok ? 200 : 400 });
     }
     case "shipment":
