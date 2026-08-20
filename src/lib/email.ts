@@ -75,8 +75,12 @@ export function trackUrl(order: OrderLike, campaign = "order-email"): string {
 
 /* ── Shared HTML shell ── */
 function shell(heading: string, bodyHtml: string): string {
+  // The white horizontal lockup from the identity kit heads every email;
+  // alt text keeps the brand line when a client blocks remote images.
   return `<div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#19202e">
-    <div style="background:#16215B;color:#fff;padding:18px 22px;border-radius:12px 12px 0 0;font-weight:700;font-size:18px">Elume</div>
+    <div style="background:#16215B;padding:16px 22px;border-radius:12px 12px 0 0">
+      <img src="${SITE}/assets/elume-horizontal-white.png" alt="Elume" height="24" style="height:24px;width:auto;display:block;border:0" />
+    </div>
     <div style="border:1px solid #E8EBF1;border-top:none;border-radius:0 0 12px 12px;padding:24px 22px">
       <h1 style="font-size:19px;margin:0 0 12px">${heading}</h1>
       ${bodyHtml}

@@ -204,6 +204,15 @@ export async function renderInvoicePdf(m: InvoiceModel): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  // Brand the invoice with the horizontal lockup (Factor X kit). Fetched from
+  // our own CDN because public/ is not in the serverless bundle; any failure
+  // falls back to the text header so invoicing never breaks over a logo.
+  let logo: Awaited<ReturnType<PDFDocument["embedPng"]>> | null = null;
+  try {
+    const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://elumenuvo.com").replace(/\/+$/, "");
+    const res = await fetch(`${site}/assets/elume-horizontal.png`);
+    if (res.ok) logo = await doc.embedPng(await res.arrayBuffer());
+  } catch { /* text fallback below */ }
   const title = m.kind === "tax" ? "TAX INVOICE" : "PROFORMA INVOICE";
   doc.setTitle(`${title} ${m.number} - ${COMPANY.legalName}`);
 
@@ -228,14 +237,20 @@ export async function renderInvoicePdf(m: InvoiceModel): Promise<Uint8Array> {
   const safe = (s: string) => s.replace(/²/g, "2").replace(/[^\x20-\x7E -ÿ]/g, "-");
 
   /* Header */
-  text(page, COMPANY.tradingName.toUpperCase(), MARGIN, y - 16, 21, bold);
-  text(page, COMPANY.legalName, MARGIN, y - 30, 9.5, bold);
-  text(page, officeLine(COMPANY.registeredOffice), MARGIN, y - 42, 8, font, MUTED);
-  text(page, `GSTIN: ${COMPANY.gstin || "-"}    CIN: ${COMPANY.cin}`, MARGIN, y - 53, 8, font, MUTED);
-  text(page, `${COMPANY.email}  ·  ${COMPANY.phoneDisplay}  ·  elumenuvo.com`, MARGIN, y - 64, 8, font, MUTED);
+  if (logo) {
+    const lw = 132;
+    const lh = (logo.height / logo.width) * lw;
+    page.drawImage(logo, { x: MARGIN, y: y - 6 - lh, width: lw, height: lh });
+  } else {
+    text(page, COMPANY.tradingName.toUpperCase(), MARGIN, y - 16, 21, bold);
+  }
+  text(page, COMPANY.legalName, MARGIN, y - 40, 9.5, bold);
+  text(page, officeLine(COMPANY.registeredOffice), MARGIN, y - 52, 8, font, MUTED);
+  text(page, `GSTIN: ${COMPANY.gstin || "-"}    CIN: ${COMPANY.cin}`, MARGIN, y - 63, 8, font, MUTED);
+  text(page, `${COMPANY.email}  ·  ${COMPANY.phoneDisplay}  ·  elumenuvo.com`, MARGIN, y - 74, 8, font, MUTED);
   right(page, title, A4[0] - MARGIN, y - 18, 15, bold);
   right(page, m.kind === "tax" ? "ORIGINAL FOR RECIPIENT" : "NOT A TAX INVOICE", A4[0] - MARGIN, y - 31, 7.5, font, MUTED);
-  y -= 74;
+  y -= 84;
   hr(page, y);
 
   /* Meta grid */

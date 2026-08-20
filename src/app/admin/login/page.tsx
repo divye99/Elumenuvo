@@ -1,6 +1,7 @@
 import { login } from "@/lib/admin/actions";
 import { isAdmin } from "@/lib/admin/auth";
 import { redirect } from "next/navigation";
+import { Lockup } from "@/components/Brand";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,9 @@ export default async function AdminLogin({
 
   return (
     <div style={{ maxWidth: 360, margin: "60px auto 0", background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: 28 }}>
+      <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
+        <Lockup height={56} />
+      </div>
       <h1 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 4px" }}>Admin sign in</h1>
       <p style={{ fontSize: 13, color: "#8A93A6", margin: "0 0 18px" }}>Enter the admin password to manage products & content.</p>
       <form action={login}>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Mark, Wordmark } from "@/components/Brand";
+import { Lockup } from "@/components/Brand";
 import { createClient } from "@/lib/supabase/client";
 import { identify } from "@/lib/analytics";
 
@@ -175,8 +175,10 @@ export default function SignIn() {
   return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#F7F8FB", fontFamily: "var(--hanken)" }}>
       <div style={{ width: 380, background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: 30 }}>
-        <Link href="/" style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 20 }}>
-          <Mark height={26} /><Wordmark height={15} />
+        {/* Centered auth card: the brand stands alone, so the stacked lockup
+            from the kit fits better than the nav-row mark + wordmark. */}
+        <Link href="/" style={{ display: "flex", justifyContent: "center", marginBottom: 22 }}>
+          <Lockup height={62} />
         </Link>
 
         {/* Phone OTP needs an SMS provider in Supabase; until that's configured

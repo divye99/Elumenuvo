@@ -96,7 +96,9 @@ export default function AppShell({ user, live }: { user?: { email: string; name?
       {/* ===================== SIDEBAR ===================== */}
       <div className="ws-sidebar" style={{ width: 224, flex: "none", background: "#16215B", padding: "20px 15px", display: "flex", flexDirection: "column" }}>
         <div onClick={() => router.push("/")} style={{ display: "flex", alignItems: "center", gap: 9, margin: "6px 6px 26px", cursor: "pointer" }}>
-          <Mark height={30} />
+          {/* Dark sidebar: the kit's white mark, not the colour one (the
+              gradient mark sinks into Midnight Blue). */}
+          <Mark height={30} white />
           <Wordmark height={17} white opacity={0.96} />
         </div>
 
