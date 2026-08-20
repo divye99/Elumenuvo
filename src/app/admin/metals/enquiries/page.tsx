@@ -45,8 +45,8 @@ export default async function MetalsEnquiries() {
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 6 }}>
         <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Metals · enquiries</h1>
         <div style={{ display: "flex", gap: 16, fontSize: 13, fontWeight: 600 }}>
-          <Link href="/admin/metals" style={{ color: "#4E5BDC" }}>← Price console</Link>
-          <a href="/admin/metals/enquiries/export" style={{ color: "#4E5BDC" }}>Download CSV ↓</a>
+          <Link href="/admin/metals" style={{ color: "#1D2F8A" }}>← Price console</Link>
+          <a href="/admin/metals/enquiries/export" style={{ color: "#1D2F8A" }}>Download CSV ↓</a>
         </div>
       </div>
       <p style={{ fontSize: 14, color: "#56627A", margin: "0 0 22px" }}>
@@ -64,13 +64,13 @@ export default async function MetalsEnquiries() {
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
                   <span style={{ fontSize: 15, fontWeight: 700 }}>{e.company}</span>
-                  <span style={{ fontSize: 11.5, fontWeight: 700, color: "#4E5BDC", background: "#EEF0FD", borderRadius: 7, padding: "2px 8px" }}>{e.metal}</span>
+                  <span style={{ fontSize: 11.5, fontWeight: 700, color: "#1D2F8A", background: "#EEF0FD", borderRadius: 7, padding: "2px 8px" }}>{e.metal}</span>
                   <span style={{ fontSize: 12, fontFamily: "var(--mono, monospace)", color: "#56627A" }}>GSTIN {e.gstin}</span>
                 </div>
                 <span style={{ fontSize: 12, color: "#8A93A6" }}>{IST.format(new Date(e.created_at))} IST</span>
               </div>
               <div style={{ fontSize: 13, color: "#56627A", margin: "6px 0 10px" }}>
-                {e.name} · <a href={`mailto:${e.email}`} style={{ color: "#4E5BDC" }}>{e.email}</a> · <a href={`tel:${e.phone}`} style={{ color: "#4E5BDC" }}>{e.phone}</a>
+                {e.name} · <a href={`mailto:${e.email}`} style={{ color: "#1D2F8A" }}>{e.email}</a> · <a href={`tel:${e.phone}`} style={{ color: "#1D2F8A" }}>{e.phone}</a>
               </div>
               <div style={{ fontSize: 13.5, color: "#19202E", whiteSpace: "pre-wrap", background: "#F7F8FB", border: "1px solid #F0F2F6", borderRadius: 10, padding: "10px 14px" }}>{e.message}</div>
             </div>

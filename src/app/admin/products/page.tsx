@@ -73,7 +73,7 @@ export default async function AdminProducts({
         <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>Products &amp; pricing</h1>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <Link href="/admin/radar" style={{ background: "#fff", border: "1px solid #E0E4ED", color: "#19202e", fontWeight: 600, fontSize: 13.5, padding: "8px 15px", borderRadius: 10 }}>◎ All suggestions</Link>
-          <Link href="/admin/products/new" style={{ background: "#4E5BDC", color: "#fff", fontWeight: 600, fontSize: 13.5, padding: "9px 16px", borderRadius: 10 }}>+ New product</Link>
+          <Link href="/admin/products/new" style={{ background: "#1D2F8A", color: "#fff", fontWeight: 600, fontSize: 13.5, padding: "9px 16px", borderRadius: 10 }}>+ New product</Link>
         </div>
       </div>
       <p style={{ fontSize: 13.5, color: "#56627A", margin: "0 0 18px" }}>

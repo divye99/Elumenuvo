@@ -278,19 +278,19 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
 
       <div style={{ display: "flex", gap: 8, marginBottom: 16, alignItems: "center", flexWrap: "wrap" }}>
         {[1, 7, 14, 30, 90].map((n) => (
-          <Link key={n} href={linkTo({ days: n })} style={{ fontSize: 13, fontWeight: 600, padding: "6px 13px", borderRadius: 8, background: days === n ? "#161D2B" : "#fff", color: days === n ? "#fff" : "#56627A", border: "1px solid #E8EBF1" }}>
+          <Link key={n} href={linkTo({ days: n })} style={{ fontSize: 13, fontWeight: 600, padding: "6px 13px", borderRadius: 8, background: days === n ? "#16215B" : "#fff", color: days === n ? "#fff" : "#56627A", border: "1px solid #E8EBF1" }}>
             {n === 1 ? "24 hours" : `${n} days`}
           </Link>
         ))}
         <span style={{ fontSize: 12.5, color: "#8A93A6" }}>{visitors.length} visitors · {identified} identified</span>
-        <a href={`/admin/analytics/export?days=${days}`} style={{ marginLeft: "auto", fontSize: 13, fontWeight: 700, color: "#4E5BDC" }}>⬇ Export CSV (raw events)</a>
+        <a href={`/admin/analytics/export?days=${days}`} style={{ marginLeft: "auto", fontSize: 13, fontWeight: 700, color: "#1D2F8A" }}>⬇ Export CSV (raw events)</a>
       </div>
 
       <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
         {([["", "Visitors"], ["traffic", "Daily traffic"], ["pages", "Top products"], ["pdp", "Product page"], ["search", "Searches"]] as [string, string][]).map(([key, label]) => {
           const active = (view ?? "") === key;
           return (
-            <Link key={label} href={linkTo({ view: key })} style={{ fontSize: 13, fontWeight: 600, padding: "6px 14px", borderRadius: 8, background: active ? "#161D2B" : "#fff", color: active ? "#fff" : "#56627A", border: "1px solid #E8EBF1" }}>
+            <Link key={label} href={linkTo({ view: key })} style={{ fontSize: 13, fontWeight: 600, padding: "6px 14px", borderRadius: 8, background: active ? "#16215B" : "#fff", color: active ? "#fff" : "#56627A", border: "1px solid #E8EBF1" }}>
               {label}
             </Link>
           );
@@ -329,7 +329,7 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
                 <div key={r.key} style={{ flex: "1 0 26px", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, minWidth: 26 }}
                      title={`${r.key} (${r.weekday}) - ${r.visitors} unique visitor${r.visitors === 1 ? "" : "s"}${r.delta != null ? ` · ${r.delta >= 0 ? "+" : ""}${r.delta} vs ${r.prevKey}` : ""}`}>
                   <span style={{ fontSize: 10.5, fontWeight: 700, color: r.visitors ? "#19202E" : "#C6CBD6" }}>{r.visitors}</span>
-                  <div style={{ width: "100%", height: Math.max(h, r.visitors ? 3 : 1), borderRadius: "4px 4px 0 0", background: up ? "#1F9D63" : down ? "#E9967A" : "#4E5BDC", opacity: r.visitors ? 1 : 0.25 }} />
+                  <div style={{ width: "100%", height: Math.max(h, r.visitors ? 3 : 1), borderRadius: "4px 4px 0 0", background: up ? "#1F9D63" : down ? "#E9967A" : "#1D2F8A", opacity: r.visitors ? 1 : 0.25 }} />
                   <span style={{ fontSize: 9.5, color: "#8A93A6", whiteSpace: "nowrap" }}>{r.weekday}</span>
                 </div>
               );
@@ -347,10 +347,10 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
             <div key={r.key} style={{ display: "grid", gridTemplateColumns: "150px 1fr 90px 90px 90px 150px", gap: 10, padding: "10px 18px", alignItems: "center", borderTop: i ? "1px solid #F5F6F9" : undefined, fontSize: 13 }}>
               <span style={{ fontWeight: 600, color: "#19202E" }}>
                 {is24h ? r.key : istDate(`${r.key}T06:00:00Z`)} <span style={{ color: "#A0A7B5", fontWeight: 400 }}>{r.weekday}</span>
-                {r.key === todayKey && <span style={{ marginLeft: 6, fontSize: 10, color: "#4E5BDC", fontWeight: 700 }}>today</span>}
+                {r.key === todayKey && <span style={{ marginLeft: 6, fontSize: 10, color: "#1D2F8A", fontWeight: 700 }}>today</span>}
               </span>
               <span>
-                <span style={{ display: "block", height: 8, borderRadius: 4, background: "#EEF0FE", width: `${Math.round((r.visitors / peakVisitors) * 100)}%`, minWidth: r.visitors ? 6 : 0 }} />
+                <span style={{ display: "block", height: 8, borderRadius: 4, background: "#E9EDF9", width: `${Math.round((r.visitors / peakVisitors) * 100)}%`, minWidth: r.visitors ? 6 : 0 }} />
               </span>
               <span style={{ textAlign: "right", fontFamily: "var(--space-grotesk)", fontWeight: 700 }}>{r.visitors}</span>
               <span style={{ textAlign: "right", color: "#56627A" }}>{r.views}</span>
@@ -425,7 +425,7 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
                       <div key={k} style={{ display: "flex", alignItems: "center", gap: 12, padding: "5px 0" }}>
                         <span style={{ width: 150, fontSize: 12.5, fontWeight: 600, color: "#3A4358", flex: "none" }}>{label}</span>
                         <div style={{ flex: 1, height: 18, background: "#F5F6F9", borderRadius: 6, overflow: "hidden" }}>
-                          <div style={{ width: `${pct}%`, height: "100%", background: pct > 60 ? "#4E5BDC" : pct > 30 ? "#8B96EA" : "#C6CDF5", borderRadius: 6 }} />
+                          <div style={{ width: `${pct}%`, height: "100%", background: pct > 60 ? "#1D2F8A" : pct > 30 ? "#8B96EA" : "#C6CDF5", borderRadius: 6 }} />
                         </div>
                         <span style={{ width: 84, fontSize: 12.5, color: "#56627A", textAlign: "right", flex: "none" }}><b style={{ color: "#19202E" }}>{pct}%</b> · {n}</span>
                       </div>
@@ -503,7 +503,7 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
                     <span style={{ display: "block", fontSize: 13.5, fontWeight: 700, color: v.identity.email ? "#137a4b" : "#19202E" }}>
                       {v.identity.name || v.identity.email || `Anonymous · ${v.sid.slice(0, 6)}`}
                     </span>
-                    <span style={{ fontSize: 11.5, color: "#4E5BDC" }}>{v.identity.email ?? "not identified yet"}</span>
+                    <span style={{ fontSize: 11.5, color: "#1D2F8A" }}>{v.identity.email ?? "not identified yet"}</span>
                   </span>
                   <span style={{ fontSize: 12, color: "#56627A", minWidth: 160 }}>{v.location ?? "location unknown"}{v.ip ? ` · ${v.ip}` : ""}</span>
                   <span style={{ fontSize: 12, color: "#56627A", minWidth: 140 }}>{v.device ?? "–"}</span>

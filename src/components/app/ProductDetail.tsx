@@ -143,7 +143,7 @@ export default function ProductDetail({
             <div style={{ display: "flex", alignItems: "flex-end", gap: 10, marginBottom: 4 }}>
               <span className="pd-price" style={{ fontFamily: GROTESK, fontSize: 34, fontWeight: 600, letterSpacing: "-1px", color: "#19202E" }}>{fmt(gb.base)}</span>
               <span style={{ fontSize: 14, color: "#8A93A6", marginBottom: 6 }}>/{p.unit}</span>
-              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.3px", color: "#4E5BDC", background: "#EEF0FD", padding: "4px 9px", borderRadius: 7, marginBottom: 7 }}>+ {Math.round(gb.rate * 100)}% GST</span>
+              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.3px", color: "#1D2F8A", background: "#EEF0FD", padding: "4px 9px", borderRadius: 7, marginBottom: 7 }}>+ {Math.round(gb.rate * 100)}% GST</span>
             </div>
             {/* Metals rate card: the trade thinks in ₹/kg, buyers compare lot
                 totals - show today's rate at per-kg, 3 MT and 4 MT in one card. */}
@@ -185,7 +185,7 @@ export default function ProductDetail({
                 <span style={{ color: "#56627A" }}>Base <b style={{ color: "#19202E" }}>{fmt(gb.base)}</b></span>
                 <span style={{ color: "#56627A" }}>GST {Math.round(gb.rate * 100)}% <b style={{ color: "#19202E" }}>{fmt(gb.gst)}</b></span>
                 <span style={{ color: "#56627A" }}>Total <b style={{ color: "#19202E" }}>{fmt(gb.incl)}</b></span>
-                <span style={{ fontSize: 11, color: "#4E5BDC", fontWeight: 600 }}>Business · GST invoice</span>
+                <span style={{ fontSize: 11, color: "#1D2F8A", fontWeight: 600 }}>Business · GST invoice</span>
               </div>
             )}
             {/* Wholesale tier (FMEG only - commodity-priced metals sell at the quoted rate) */}
@@ -203,7 +203,7 @@ export default function ProductDetail({
                   <button
                     data-cart-tracked
                     onClick={onAddWholesale}
-                    style={{ background: "#4E5BDC", color: "#fff", border: "none", fontWeight: 700, fontSize: 11.5, padding: "7px 12px", borderRadius: 8, cursor: "pointer", whiteSpace: "nowrap" }}
+                    style={{ background: "#1D2F8A", color: "#fff", border: "none", fontWeight: 700, fontSize: 11.5, padding: "7px 12px", borderRadius: 8, cursor: "pointer", whiteSpace: "nowrap" }}
                   >
                     Add {WHOLESALE_MIN_QTY} to cart
                   </button>
@@ -217,7 +217,7 @@ export default function ProductDetail({
                 <div style={{ fontFamily: GROTESK, fontSize: 15, fontWeight: 600, color: "#19202E" }}>Out of stock</div>
                 <p style={{ fontSize: 13, color: "#56627A", margin: "6px 0 0", lineHeight: 1.55 }}>
                   We list this so you can see the spec and our price, but it cannot be ordered right now.
-                  Email <a href="mailto:info@elumenuvo.com" style={{ color: "#4E5BDC", fontWeight: 600 }}>info@elumenuvo.com</a> and we will source it for you.
+                  Email <a href="mailto:info@elumenuvo.com" style={{ color: "#1D2F8A", fontWeight: 600 }}>info@elumenuvo.com</a> and we will source it for you.
                 </p>
               </div>
             ) : isMetalCategory(p.cat) && variant === "public" ? (
@@ -227,7 +227,7 @@ export default function ProductDetail({
                 <a
                   href={`/metals/book/${encodeURIComponent(p.id)}`}
                   data-cart-tracked
-                  style={{ display: "block", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 15, textAlign: "center", padding: "14px 16px", borderRadius: 11 }}
+                  style={{ display: "block", background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 15, textAlign: "center", padding: "14px 16px", borderRadius: 11 }}
                 >
                   Book at today's rate →
                 </a>
@@ -244,13 +244,13 @@ export default function ProductDetail({
               </div>
               {variant === "app" ? (
                 <>
-                  <div onClick={onAdd} style={{ flex: 1, background: "#4E5BDC", color: "#fff", fontWeight: 600, fontSize: 14.5, textAlign: "center", padding: 14, borderRadius: 11, cursor: "pointer" }}>{onProject ? "Add to PO" : "Add to cart"} · {fmt(lineTotal)}</div>
+                  <div onClick={onAdd} style={{ flex: 1, background: "#1D2F8A", color: "#fff", fontWeight: 600, fontSize: 14.5, textAlign: "center", padding: 14, borderRadius: 11, cursor: "pointer" }}>{onProject ? "Add to PO" : "Add to cart"} · {fmt(lineTotal)}</div>
                   {onProject && <div onClick={onProject} style={{ background: "#fff", border: "1.5px solid #E0E4ED", color: "#19202E", fontWeight: 600, fontSize: 13.5, padding: "13px 18px", borderRadius: 11, cursor: "pointer", whiteSpace: "nowrap" }}>Add to a project</div>}
                 </>
               ) : (
                 <>
-                  <div onClick={onAddToCart} style={{ flex: 1, background: "#fff", border: "1.5px solid #4E5BDC", color: "#4E5BDC", fontWeight: 700, fontSize: 14, textAlign: "center", padding: "12px 14px", borderRadius: 11, cursor: "pointer" }}>Add to cart</div>
-                  <div onClick={onBuyNow} style={{ flex: 1, background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14, textAlign: "center", padding: "13px 14px", borderRadius: 11, cursor: "pointer" }}>Buy now</div>
+                  <div onClick={onAddToCart} style={{ flex: 1, background: "#fff", border: "1.5px solid #1D2F8A", color: "#1D2F8A", fontWeight: 700, fontSize: 14, textAlign: "center", padding: "12px 14px", borderRadius: 11, cursor: "pointer" }}>Add to cart</div>
+                  <div onClick={onBuyNow} style={{ flex: 1, background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 14, textAlign: "center", padding: "13px 14px", borderRadius: 11, cursor: "pointer" }}>Buy now</div>
                 </>
               )}
             </div>
@@ -263,7 +263,7 @@ export default function ProductDetail({
             {variant === "public" && (
               <div style={{ fontSize: 12, color: "#8A93A6", marginTop: 12 }}>
                 🚚 Delivered pan-India · 30-day NBFC credit is coming soon -{" "}
-                <a href="/credit" style={{ color: "#4E5BDC", fontWeight: 600 }}>
+                <a href="/credit" style={{ color: "#1D2F8A", fontWeight: 600 }}>
                   join the waitlist
                 </a>
                 .

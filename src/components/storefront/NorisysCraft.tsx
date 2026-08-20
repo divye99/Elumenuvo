@@ -55,7 +55,7 @@ export default function NorisysCraft({ series, pairing }: {
       )}
 
       {/* ── Engineering trust block: 3 bullets + the exploded view ── */}
-      <section style={{ background: "#161D2B", color: "#fff", borderRadius: 16, padding: "20px 22px", display: "grid", gridTemplateColumns: "1.1fr 1fr", gap: 20, alignItems: "center" }} className="norisys-eng">
+      <section style={{ background: "#16215B", color: "#fff", borderRadius: 16, padding: "20px 22px", display: "grid", gridTemplateColumns: "1.1fr 1fr", gap: 20, alignItems: "center" }} className="norisys-eng">
         <div>
           <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "1.1px", textTransform: "uppercase", color: "#9AA6FF", marginBottom: 6 }}>
             {eng.title}

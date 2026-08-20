@@ -64,7 +64,7 @@ export default function CompareRail({ current, items, pageSlug }: { current: Com
             Same key specifications, different brands - matched on spec, never on looks. Tap a product to open it.
           </span>
           {pageSlug && (
-            <Link href={`/compare/${pageSlug}`} style={{ fontSize: 12.5, fontWeight: 700, color: "#4E5BDC", whiteSpace: "nowrap" }}>
+            <Link href={`/compare/${pageSlug}`} style={{ fontSize: 12.5, fontWeight: 700, color: "#1D2F8A", whiteSpace: "nowrap" }}>
               Full comparison page →
             </Link>
           )}
@@ -94,7 +94,7 @@ export default function CompareRail({ current, items, pageSlug }: { current: Com
                   {/* Photo + name (click-through on alternatives) */}
                   <div style={{ ...row(H_TOP), borderTop: "none", justifyContent: "flex-start", paddingTop: 12 }}>
                     {isCurrent ? (
-                      <span style={{ fontSize: 9.5, fontWeight: 800, color: "#4E5BDC", background: "#EEF0FE", padding: "2px 8px", borderRadius: 6, alignSelf: "flex-start" }}>THIS PRODUCT</span>
+                      <span style={{ fontSize: 9.5, fontWeight: 800, color: "#1D2F8A", background: "#E9EDF9", padding: "2px 8px", borderRadius: 6, alignSelf: "flex-start" }}>THIS PRODUCT</span>
                     ) : (
                       <span style={{ fontSize: 10, fontWeight: 700, color: "#8A93A6" }}>{p.brand.toUpperCase()}</span>
                     )}
@@ -131,7 +131,7 @@ export default function CompareRail({ current, items, pageSlug }: { current: Com
                     ) : (
                       <button
                         onClick={() => addToCart(p)}
-                        style={{ width: "100%", background: "#4E5BDC", color: "#fff", border: "none", fontWeight: 700, fontSize: 12, padding: "8px 10px", borderRadius: 8, cursor: "pointer" }}
+                        style={{ width: "100%", background: "#1D2F8A", color: "#fff", border: "none", fontWeight: 700, fontSize: 12, padding: "8px 10px", borderRadius: 8, cursor: "pointer" }}
                       >
                         Add to cart
                       </button>

@@ -307,7 +307,7 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
           <button
             onClick={applyAllSuggestions}
             disabled={applying}
-            style={{ marginLeft: "auto", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13.5, border: "none", padding: "10px 18px", borderRadius: 10, cursor: applying ? "wait" : "pointer", opacity: applying ? 0.6 : 1, whiteSpace: "nowrap" }}
+            style={{ marginLeft: "auto", background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 13.5, border: "none", padding: "10px 18px", borderRadius: 10, cursor: applying ? "wait" : "pointer", opacity: applying ? 0.6 : 1, whiteSpace: "nowrap" }}
           >
             {applying ? "Applying…" : `✓ Apply all ${filtered.filter(needsReprice).length} price suggestions`}
           </button>
@@ -323,7 +323,7 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
         <button onClick={selectAll} style={selLink}>Select all {rows.length}</button>
         {selected.size > 0 && <button onClick={clearSelection} style={{ ...selLink, color: "#C0392B" }}>Clear</button>}
         {selected.size > 0 && (
-          <span style={{ fontSize: 12, fontWeight: 700, color: "#3A46B8", background: "#EEF0FE", padding: "3px 10px", borderRadius: 999 }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: "#3A46B8", background: "#E9EDF9", padding: "3px 10px", borderRadius: 999 }}>
             {selected.size} selected
           </span>
         )}
@@ -331,7 +331,7 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
           <button onClick={downloadSelected} disabled={selected.size === 0} title={selected.size === 0 ? "Select products first - tick rows, or use Select visible / Select all" : `Download ${selected.size} products as an editable CSV`} style={{ ...ghost, opacity: selected.size === 0 ? 0.5 : 1, cursor: selected.size === 0 ? "default" : "pointer" }}>
             ⬇ Download template{selected.size > 0 ? ` (${selected.size})` : ""}
           </button>
-          <button onClick={() => setShowImport((v) => !v)} style={showImport ? { ...primary, background: "#161D2B" } : ghost}>
+          <button onClick={() => setShowImport((v) => !v)} style={showImport ? { ...primary, background: "#16215B" } : ghost}>
             ⇅ Excel import {showImport ? "▴" : "▾"}
           </button>
         </div>
@@ -366,12 +366,12 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
                 <div style={{ flex: "1 1 260px", minWidth: 0 }}>
                   <div style={{ fontWeight: 600, fontSize: 13.5, display: "flex", alignItems: "center", gap: 7 }}>
                     {r.name}
-                    <a href={`/catalogue/${r.id}`} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} title="Open the live product page" style={{ color: "#4E5BDC", fontSize: 11.5, fontWeight: 700 }}>↗</a>
-                    {groupColours && (colourCountRef.current.get(familyKeyOf(r)) ?? 1) > 1 && <Tag color="#4E5BDC">{colourCountRef.current.get(familyKeyOf(r))} colours</Tag>}
-                    {!r.is_active && <Tag color="#E0612A">hidden</Tag>}
+                    <a href={`/catalogue/${r.id}`} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} title="Open the live product page" style={{ color: "#1D2F8A", fontSize: 11.5, fontWeight: 700 }}>↗</a>
+                    {groupColours && (colourCountRef.current.get(familyKeyOf(r)) ?? 1) > 1 && <Tag color="#1D2F8A">{colourCountRef.current.get(familyKeyOf(r))} colours</Tag>}
+                    {!r.is_active && <Tag color="#F25929">hidden</Tag>}
                     {r.in_stock === false && <Tag color="#C0392B">out of stock</Tag>}
                     {r.parent_id && <Tag color="#8A93A6">variant</Tag>}
-                    {r.is_recommended && <Tag color="#4E5BDC">rec</Tag>}
+                    {r.is_recommended && <Tag color="#1D2F8A">rec</Tag>}
                   </div>
                   <div style={{ fontFamily: "var(--space-mono)", fontSize: 11, color: "#8A93A6" }}>{r.brand} · {r.sku}</div>
                 </div>
@@ -388,7 +388,7 @@ export default function ProductManager({ rows, sources }: { rows: ManagerRow[]; 
                 {sug && sugTarget != null && (
                   <span
                     title={`A live competitor sells this for ${fmt(lowestFor(r)!)} - undercut to ${fmt(sugTarget)}`}
-                    style={{ fontSize: 10.5, fontWeight: 700, color: "#fff", background: "#E0612A", borderRadius: 20, padding: "2px 9px", whiteSpace: "nowrap" }}
+                    style={{ fontSize: 10.5, fontWeight: 700, color: "#fff", background: "#F25929", borderRadius: 20, padding: "2px 9px", whiteSpace: "nowrap" }}
                   >
                     ↓ {fmt(sugTarget)}
                   </span>
@@ -536,9 +536,9 @@ function CompetitorTab({ row, sources }: { row: ManagerRow; sources: SourceInfo[
       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 12, fontSize: 12.5, color: "#56627A" }}>
         <span>Match key ·</span>
         {row.brand_sku
-          ? <span style={{ fontFamily: "var(--space-mono)", background: "#EEF0FE", color: "#3A46B8", padding: "3px 9px", borderRadius: 7, fontWeight: 600 }}>Brand SKU {row.brand_sku}</span>
+          ? <span style={{ fontFamily: "var(--space-mono)", background: "#E9EDF9", color: "#3A46B8", padding: "3px 9px", borderRadius: 7, fontWeight: 600 }}>Brand SKU {row.brand_sku}</span>
           : <span style={{ color: "#C77700", background: "#FFF3E0", padding: "3px 9px", borderRadius: 7, fontWeight: 600 }}>No brand SKU set - add it in Details for reliable cross-site matching</span>}
-        <span style={{ color: "#A0A7B5" }}>· our price <b style={{ color: "#4E5BDC" }}>{fmt(row.elume_price)}</b></span>
+        <span style={{ color: "#A0A7B5" }}>· our price <b style={{ color: "#1D2F8A" }}>{fmt(row.elume_price)}</b></span>
       </div>
 
       {msg && <div style={{ fontSize: 12.5, fontWeight: 600, color: msg.ok ? "#137a4b" : "#C0392B", marginBottom: 10 }}>{msg.t}</div>}
@@ -569,7 +569,7 @@ function CompetitorTab({ row, sources }: { row: ManagerRow; sources: SourceInfo[
                   <div style={{ fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                     {s.name}
                     {isCheapest && <span style={{ fontSize: 9, fontWeight: 700, color: "#137a4b", background: "#E6F5EE", padding: "1px 6px", borderRadius: 6 }}>LOWEST</span>}
-                    {map.match_method === "brand-sku" && <span title="Matched on the manufacturer part number" style={{ fontSize: 8.5, fontWeight: 800, color: "#3A46B8", background: "#EEF0FE", padding: "1px 6px", borderRadius: 5 }}>SKU</span>}
+                    {map.match_method === "brand-sku" && <span title="Matched on the manufacturer part number" style={{ fontSize: 8.5, fontWeight: 800, color: "#3A46B8", background: "#E9EDF9", padding: "1px 6px", borderRadius: 5 }}>SKU</span>}
                     {map.approval === "pending" && <span title="Auto-matched by name - needs your approval" style={{ fontSize: 8.5, fontWeight: 800, color: "#C77700", background: "#FFF3E0", padding: "1px 6px", borderRadius: 5 }}>PENDING</span>}
                   </div>
                   <div style={{ fontFamily: "var(--space-mono)", fontSize: 10.5, color: "#8A93A6", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={map.competitor_code}>{map.competitor_code}</div>
@@ -611,7 +611,7 @@ function CompetitorTab({ row, sources }: { row: ManagerRow; sources: SourceInfo[
                 {/* Link */}
                 <div style={{ minWidth: 0 }}>
                   {url
-                    ? <a href={url} target="_blank" rel="noreferrer" style={{ fontSize: 12, fontWeight: 600, color: "#4E5BDC" }}>Open ↗</a>
+                    ? <a href={url} target="_blank" rel="noreferrer" style={{ fontSize: 12, fontWeight: 600, color: "#1D2F8A" }}>Open ↗</a>
                     : <span style={{ fontSize: 12, color: "#C4C9D4" }}>-</span>}
                 </div>
                 {/* Actions */}
@@ -651,7 +651,7 @@ function CompetitorTab({ row, sources }: { row: ManagerRow; sources: SourceInfo[
         )}
       </div>
       {mappedSellers.some((s) => row.perSource[s.id].map && !row.perSource[s.id].price) && (
-        <div style={{ fontSize: 11, color: "#A0A7B5", marginTop: 8 }}>Some sellers are mapped but not priced yet - run a sync from <a href="/admin/radar" style={{ color: "#4E5BDC" }}>the radar</a>.</div>
+        <div style={{ fontSize: 11, color: "#A0A7B5", marginTop: 8 }}>Some sellers are mapped but not priced yet - run a sync from <a href="/admin/radar" style={{ color: "#1D2F8A" }}>the radar</a>.</div>
       )}
     </div>
   );
@@ -737,7 +737,7 @@ function MatchPicker({ row, source, sourceName, onDone }: { row: ManagerRow; sou
             const price = h.netPrice ?? h.listPrice;
             const isSku = skuMatch(h, row.brand_sku);
             return (
-              <button key={h.code} onClick={() => setChosen(h)} style={{ display: "flex", width: "100%", textAlign: "left", gap: 10, alignItems: "center", padding: "9px 11px", border: "none", borderTop: "1px solid #F5F6F9", background: chosen?.code === h.code ? "#EEF0FE" : isSku ? "#F1FBF5" : "#fff", cursor: "pointer" }}>
+              <button key={h.code} onClick={() => setChosen(h)} style={{ display: "flex", width: "100%", textAlign: "left", gap: 10, alignItems: "center", padding: "9px 11px", border: "none", borderTop: "1px solid #F5F6F9", background: chosen?.code === h.code ? "#E9EDF9" : isSku ? "#F1FBF5" : "#fff", cursor: "pointer" }}>
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ fontSize: 12.5, fontWeight: 600, display: "flex", alignItems: "center", gap: 6, overflow: "hidden" }}>
                     <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{h.name}</span>
@@ -772,11 +772,11 @@ function Tag({ children, color }: { children: React.ReactNode; color: string }) 
   return <span style={{ fontSize: 10, fontWeight: 700, color, background: `${color}1a`, padding: "1px 6px", borderRadius: 6 }}>{children}</span>;
 }
 function TabBtn({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
-  return <button onClick={onClick} style={{ fontSize: 13, fontWeight: 600, padding: "7px 16px", borderRadius: 9, border: "1px solid " + (on ? "#161D2B" : "#E0E4ED"), background: on ? "#161D2B" : "#fff", color: on ? "#fff" : "#3A4358", cursor: "pointer" }}>{children}</button>;
+  return <button onClick={onClick} style={{ fontSize: 13, fontWeight: 600, padding: "7px 16px", borderRadius: 9, border: "1px solid " + (on ? "#16215B" : "#E0E4ED"), background: on ? "#16215B" : "#fff", color: on ? "#fff" : "#3A4358", cursor: "pointer" }}>{children}</button>;
 }
 const inp: React.CSSProperties = { width: "100%", boxSizing: "border-box", border: "1px solid #E0E4ED", borderRadius: 9, padding: "8px 11px", fontSize: 13, outline: "none", background: "#fff" };
-const primary: React.CSSProperties = { background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13, border: "none", padding: "9px 18px", borderRadius: 9, cursor: "pointer", whiteSpace: "nowrap" };
+const primary: React.CSSProperties = { background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 13, border: "none", padding: "9px 18px", borderRadius: 9, cursor: "pointer", whiteSpace: "nowrap" };
 const ghost: React.CSSProperties = { background: "#fff", color: "#19202e", fontWeight: 600, fontSize: 13, border: "1px solid #E0E4ED", padding: "8px 14px", borderRadius: 9, cursor: "pointer" };
 const ckLabel: React.CSSProperties = { display: "flex", alignItems: "center", gap: 7, fontSize: 13, color: "#19202e" };
-const selLink: React.CSSProperties = { background: "none", border: "none", color: "#4E5BDC", fontWeight: 600, fontSize: 12.5, cursor: "pointer", padding: "2px 4px" };
+const selLink: React.CSSProperties = { background: "none", border: "none", color: "#1D2F8A", fontWeight: 600, fontSize: 12.5, cursor: "pointer", padding: "2px 4px" };
 const availPill = (fg: string, bg: string): React.CSSProperties => ({ fontSize: 10.5, fontWeight: 700, color: fg, background: bg, padding: "3px 9px", borderRadius: 999, whiteSpace: "nowrap" });

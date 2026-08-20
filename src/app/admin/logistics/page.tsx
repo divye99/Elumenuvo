@@ -233,7 +233,7 @@ export default async function LogisticsPage() {
             <tbody>
               {issues.slice(0, 40).map((i, idx) => (
                 <tr key={idx}>
-                  <td style={td}><Link href={`/admin/orders/${i.order_id}`} style={{ color: "#4E5BDC", fontWeight: 600 }}>{i.order_id}</Link></td>
+                  <td style={td}><Link href={`/admin/orders/${i.order_id}`} style={{ color: "#1D2F8A", fontWeight: 600 }}>{i.order_id}</Link></td>
                   <td style={td}>{i.courier ?? "-"}</td>
                   <td style={td}>{i.kind.replace(/_/g, " ")}</td>
                   <td style={{ ...td, fontWeight: 700, color: i.fault === "courier" ? "#C2410C" : i.fault === "buyer" ? "#B7791F" : "#8A93A6" }}>{i.fault}</td>
@@ -271,7 +271,7 @@ export default async function LogisticsPage() {
               <tbody>
                 {weightFlags.map((s) => (
                   <tr key={s.id}>
-                    <td style={td}><Link href={`/admin/orders/${s.order_id}`} style={{ color: "#4E5BDC", fontWeight: 600 }}>{s.order_id}</Link></td>
+                    <td style={td}><Link href={`/admin/orders/${s.order_id}`} style={{ color: "#1D2F8A", fontWeight: 600 }}>{s.order_id}</Link></td>
                     <td style={td}>{s.courier}</td>
                     <td style={{ ...td, fontFamily: "var(--space-mono)", fontSize: 12 }}>{s.awb}</td>
                     <td style={td}>{s.entered_weight_kg}</td>
@@ -315,7 +315,7 @@ export default async function LogisticsPage() {
                         <td style={{ ...td, fontWeight: 700 }}>
                           {r.name}
                           {i === 0 && <span style={{ marginLeft: 6, fontSize: 9.5, fontWeight: 800, color: "#1F9D63", background: "#E6F5EE", borderRadius: 6, padding: "1px 6px" }}>CHEAPEST</span>}
-                          {r.name === fastest && <span style={{ marginLeft: 6, fontSize: 9.5, fontWeight: 800, color: "#4E5BDC", background: "#EEF0FE", borderRadius: 6, padding: "1px 6px" }}>FASTEST</span>}
+                          {r.name === fastest && <span style={{ marginLeft: 6, fontSize: 9.5, fontWeight: 800, color: "#1D2F8A", background: "#E9EDF9", borderRadius: 6, padding: "1px 6px" }}>FASTEST</span>}
                         </td>
                         <td style={td}>{r.n}</td>
                         <td style={td}>{rs(r.avgRate)}</td>
@@ -346,7 +346,7 @@ export default async function LogisticsPage() {
               const late = s.etd && new Date() > new Date(s.etd);
               return (
                 <tr key={s.id}>
-                  <td style={td}><Link href={`/admin/orders/${s.order_id}`} style={{ color: "#4E5BDC", fontWeight: 600 }}>{s.order_id}</Link></td>
+                  <td style={td}><Link href={`/admin/orders/${s.order_id}`} style={{ color: "#1D2F8A", fontWeight: 600 }}>{s.order_id}</Link></td>
                   <td style={td}>{s.courier ?? "-"}</td>
                   <td style={{ ...td, fontFamily: "var(--space-mono)", fontSize: 12 }}>{s.awb}</td>
                   <td style={{ ...td, fontWeight: 700, color: late ? "#C2410C" : undefined }}>{s.sr_status ?? s.status}{late ? " · LATE" : ""}</td>

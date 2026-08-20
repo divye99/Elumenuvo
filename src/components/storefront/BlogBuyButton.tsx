@@ -60,7 +60,7 @@ export default function BlogBuyButton({ product }: { product: Product }) {
         >
           {added ? "✓ Added to cart" : "Add to cart"}
         </button>
-        {added && <Link href="/checkout" style={{ fontSize: 12.5, fontWeight: 700, color: "#4E5BDC" }}>Checkout →</Link>}
+        {added && <Link href="/checkout" style={{ fontSize: 12.5, fontWeight: 700, color: "#1D2F8A" }}>Checkout →</Link>}
       </div>
     </div>
   );

@@ -31,7 +31,7 @@ export default function ForYouLink({ variant, onNavigate }: { variant: "nav" | "
 
   if (variant === "nav") {
     return (
-      <Link href="/for-you" className="hdr-navlink" style={{ fontSize: 14, fontWeight: 600, color: "#4E5BDC" }}>
+      <Link href="/for-you" className="hdr-navlink" style={{ fontSize: 14, fontWeight: 600, color: "#1D2F8A" }}>
         For you
       </Link>
     );

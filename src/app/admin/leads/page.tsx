@@ -118,11 +118,11 @@ export default async function AdminLeads({ searchParams }: { searchParams: Promi
 
       <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
         {tabs.map(([key, label, count]) => (
-          <Link key={key} href={`/admin/leads?tab=${key}`} style={{ fontSize: 13, fontWeight: 600, padding: "6px 13px", borderRadius: 8, background: tab === key ? "#161D2B" : "#fff", color: tab === key ? "#fff" : "#56627A", border: "1px solid #E8EBF1" }}>
+          <Link key={key} href={`/admin/leads?tab=${key}`} style={{ fontSize: 13, fontWeight: 600, padding: "6px 13px", borderRadius: 8, background: tab === key ? "#16215B" : "#fff", color: tab === key ? "#fff" : "#56627A", border: "1px solid #E8EBF1" }}>
             {label} <span style={{ opacity: 0.7 }}>{count}</span>
           </Link>
         ))}
-        <a href={`/admin/leads/export?tab=${tab}`} style={{ marginLeft: "auto", fontSize: 13, fontWeight: 700, color: "#4E5BDC" }}>⬇ Export CSV</a>
+        <a href={`/admin/leads/export?tab=${tab}`} style={{ marginLeft: "auto", fontSize: 13, fontWeight: 700, color: "#1D2F8A" }}>⬇ Export CSV</a>
       </div>
 
       {tab === "guestbiz" ? (
@@ -140,7 +140,7 @@ export default async function AdminLeads({ searchParams }: { searchParams: Promi
                   {r.name ?? r.full_name ?? r.company ?? "–"}
                   {r.company && (r.name || r.full_name) && <span style={{ fontWeight: 500, color: "#56627A" }}> · {r.company}</span>}
                 </div>
-                <div style={{ fontSize: 12, color: "#4E5BDC" }}>{r.email ?? (tab === "survey" ? "" : "email via account")}{r.phone ? `${r.email || tab !== "survey" ? " · " : ""}${r.phone}` : ""}</div>
+                <div style={{ fontSize: 12, color: "#1D2F8A" }}>{r.email ?? (tab === "survey" ? "" : "email via account")}{r.phone ? `${r.email || tab !== "survey" ? " · " : ""}${r.phone}` : ""}</div>
               </div>
               {tab === "business" && (
                 <div style={{ fontSize: 12, color: "#56627A" }}>

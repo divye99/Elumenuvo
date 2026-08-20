@@ -68,7 +68,7 @@ export default function DuePanel() {
               </span>
             ))}
             {pf.byBrand.slice(0, 3).map((b) => (
-              <span key={b.brand} style={{ fontSize: 11.5, fontWeight: 600, color: "#3A46B8", background: "#EEF0FE", border: "1px solid #DDE1FB", borderRadius: 999, padding: "4px 11px" }}>
+              <span key={b.brand} style={{ fontSize: 11.5, fontWeight: 600, color: "#3A46B8", background: "#E9EDF9", border: "1px solid #DDE1FB", borderRadius: 999, padding: "4px 11px" }}>
                 {b.brand}
               </span>
             ))}
@@ -80,7 +80,7 @@ export default function DuePanel() {
             {pf.nextCategories.map((n, i) => (
               <span key={n.cat}>
                 {i > 0 && " · "}
-                <a href={`/catalogue?cat=${encodeURIComponent(n.cat)}`} style={{ color: "#4E5BDC", fontWeight: 700 }} title={n.why}>{n.cat}</a>
+                <a href={`/catalogue?cat=${encodeURIComponent(n.cat)}`} style={{ color: "#1D2F8A", fontWeight: 700 }} title={n.why}>{n.cat}</a>
               </span>
             ))}
           </div>
@@ -107,7 +107,7 @@ export default function DuePanel() {
                   {added.has(d.id) ? (
                     <button onClick={() => router.push("/cart")} style={{ marginLeft: "auto", background: "none", border: "none", color: "#137a4b", fontWeight: 700, fontSize: 11.5, cursor: "pointer" }}>✓ Cart →</button>
                   ) : (
-                    <button onClick={() => add(d)} style={{ marginLeft: "auto", background: "#EEF0FE", color: "#4E5BDC", border: "none", fontWeight: 700, fontSize: 11.5, padding: "6px 11px", borderRadius: 8, cursor: "pointer" }}>Add</button>
+                    <button onClick={() => add(d)} style={{ marginLeft: "auto", background: "#E9EDF9", color: "#1D2F8A", border: "none", fontWeight: 700, fontSize: 11.5, padding: "6px 11px", borderRadius: 8, cursor: "pointer" }}>Add</button>
                   )}
                 </div>
               </div>

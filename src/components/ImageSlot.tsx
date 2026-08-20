@@ -109,7 +109,7 @@ export default function ImageSlot({
         justifyContent: "center",
         cursor: allowUpload ? "pointer" : undefined,
         overflow: "hidden",
-        outline: over ? "2px dashed #4E5BDC" : "none",
+        outline: over ? "2px dashed #1D2F8A" : "none",
         outlineOffset: -4,
       }}
     >

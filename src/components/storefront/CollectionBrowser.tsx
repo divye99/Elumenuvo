@@ -64,13 +64,13 @@ export default function CollectionBrowser({ kind, title, blurb, rails, brands }:
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             {brands.map((b) => (
               <label key={b} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#3A4358", cursor: "pointer", padding: "2px 2px" }}>
-                <input type="checkbox" checked={picked.has(b)} onChange={() => toggle(b)} style={{ accentColor: "#4E5BDC" }} />
+                <input type="checkbox" checked={picked.has(b)} onChange={() => toggle(b)} style={{ accentColor: "#1D2F8A" }} />
                 {b}
               </label>
             ))}
           </div>
           {picked.size > 0 && (
-            <button onClick={() => setPicked(new Set())} style={{ marginTop: 12, border: "none", background: "none", color: "#4E5BDC", fontSize: 12.5, fontWeight: 700, cursor: "pointer", padding: 0 }}>
+            <button onClick={() => setPicked(new Set())} style={{ marginTop: 12, border: "none", background: "none", color: "#1D2F8A", fontSize: 12.5, fontWeight: 700, cursor: "pointer", padding: 0 }}>
               Clear brands
             </button>
           )}
@@ -88,7 +88,7 @@ export default function CollectionBrowser({ kind, title, blurb, rails, brands }:
               <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 10 }}>
                 <h2 style={{ fontFamily: GROTESK, fontSize: 18.5, fontWeight: 700, margin: 0 }}>{CAT_ICON[r.cat] ?? ""} {r.cat}</h2>
                 <span style={{ fontSize: 12.5, color: "#8A93A6" }}>top {r.items.length}</span>
-                <Link href={`/category/${slugify(r.cat)}`} style={{ marginLeft: "auto", fontSize: 12.5, fontWeight: 700, color: "#4E5BDC", whiteSpace: "nowrap" }}>
+                <Link href={`/category/${slugify(r.cat)}`} style={{ marginLeft: "auto", fontSize: 12.5, fontWeight: 700, color: "#1D2F8A", whiteSpace: "nowrap" }}>
                   All {r.cat.toLowerCase()} →
                 </Link>
               </div>
@@ -97,7 +97,7 @@ export default function CollectionBrowser({ kind, title, blurb, rails, brands }:
               <div key={[...picked].sort().join("+")} style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 10, scrollSnapType: "x proximity" }}>
                 {r.items.map((p, i) => (
                   <div key={p.id} className="pgrid-in" style={{ flex: "0 0 216px", scrollSnapAlign: "start", position: "relative", "--gi": Math.min(i, 20) } as React.CSSProperties}>
-                    <div style={{ position: "absolute", top: -1, left: 8, zIndex: 2, background: i === 0 ? "#B8860B" : "#161D2B", color: "#fff", fontFamily: "var(--space-mono)", fontSize: 11, fontWeight: 700, borderRadius: "0 0 7px 7px", padding: "3px 8px" }}>
+                    <div style={{ position: "absolute", top: -1, left: 8, zIndex: 2, background: i === 0 ? "#B8860B" : "#16215B", color: "#fff", fontFamily: "var(--space-mono)", fontSize: 11, fontWeight: 700, borderRadius: "0 0 7px 7px", padding: "3px 8px" }}>
                       #{i + 1}
                     </div>
                     {/* No trophy badge here on purpose: the rail's #N position is the only

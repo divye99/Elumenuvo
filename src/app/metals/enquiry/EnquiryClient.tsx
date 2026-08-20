@@ -62,7 +62,7 @@ export default function EnquiryClient({ preselect }: { preselect: string }) {
           Thanks, {f.name.split(" ")[0] || "there"} - our sourcing desk has your {f.metal.toLowerCase()} requirement and
           will come back to {f.email} with a firm quote, usually within one working day.
         </p>
-        <Link href="/metals" style={{ display: "inline-block", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14, padding: "12px 22px", borderRadius: 11 }}>
+        <Link href="/metals" style={{ display: "inline-block", background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 14, padding: "12px 22px", borderRadius: 11 }}>
           Back to Metals →
         </Link>
       </main>
@@ -140,7 +140,7 @@ export default function EnquiryClient({ preselect }: { preselect: string }) {
         <button
           type="submit"
           disabled={pending}
-          style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14.5, border: "none", padding: "13px 22px", borderRadius: 11, cursor: "pointer", opacity: pending ? 0.7 : 1 }}
+          style={{ background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 14.5, border: "none", padding: "13px 22px", borderRadius: 11, cursor: "pointer", opacity: pending ? 0.7 : 1 }}
         >
           {pending ? "Sending…" : "Send enquiry"}
         </button>

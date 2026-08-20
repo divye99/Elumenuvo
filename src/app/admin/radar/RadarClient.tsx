@@ -281,7 +281,7 @@ export default function RadarClient({
     <div>
       {/* Floating batch-save bar */}
       {queue.size > 0 && (
-        <div style={{ position: "fixed", top: 78, right: 26, zIndex: 80, background: "#161D2B", color: "#fff", borderRadius: 14, boxShadow: "0 18px 50px rgba(20,24,45,.35)", padding: "14px 18px", display: "flex", alignItems: "center", gap: 14, animation: "elumeFade .2s ease" }}>
+        <div style={{ position: "fixed", top: 78, right: 26, zIndex: 80, background: "#16215B", color: "#fff", borderRadius: 14, boxShadow: "0 18px 50px rgba(20,24,45,.35)", padding: "14px 18px", display: "flex", alignItems: "center", gap: 14, animation: "elumeFade .2s ease" }}>
           <div>
             <div style={{ fontSize: 13.5, fontWeight: 700 }}>{queue.size} price change{queue.size === 1 ? "" : "s"} queued</div>
             <div style={{ fontSize: 11, color: "#9aa3b8", marginTop: 2 }}>
@@ -299,13 +299,13 @@ export default function RadarClient({
 
       {/* Action bar */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
-        <button onClick={syncAll} disabled={pending} title="Refreshes live prices for mapped products. Mapping is done via the GitHub Action." style={{ background: "#161D2B", color: "#fff", fontWeight: 600, fontSize: 13.5, border: "none", padding: "10px 18px", borderRadius: 10, cursor: pending ? "wait" : "pointer", opacity: pending ? 0.7 : 1 }}>
+        <button onClick={syncAll} disabled={pending} title="Refreshes live prices for mapped products. Mapping is done via the GitHub Action." style={{ background: "#16215B", color: "#fff", fontWeight: 600, fontSize: 13.5, border: "none", padding: "10px 18px", borderRadius: 10, cursor: pending ? "wait" : "pointer", opacity: pending ? 0.7 : 1 }}>
           {pending ? "Working…" : "↻ Refresh prices"}
         </button>
-        <button onClick={applyAll} disabled={pending || filtered.length === 0} style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13.5, border: "none", padding: "10px 18px", borderRadius: 10, cursor: pending ? "wait" : "pointer", opacity: pending || filtered.length === 0 ? 0.55 : 1 }}>
+        <button onClick={applyAll} disabled={pending || filtered.length === 0} style={{ background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 13.5, border: "none", padding: "10px 18px", borderRadius: 10, cursor: pending ? "wait" : "pointer", opacity: pending || filtered.length === 0 ? 0.55 : 1 }}>
           ✓ Apply lowest − ₹1 to all {filtered.length ? `(${filtered.length})` : ""}
         </button>
-        {actionCount > 0 && <span style={{ fontSize: 12.5, fontWeight: 700, color: "#fff", background: "#E0612A", borderRadius: 20, padding: "3px 11px" }}>{actionCount} need repricing</span>}
+        {actionCount > 0 && <span style={{ fontSize: 12.5, fontWeight: 700, color: "#fff", background: "#F25929", borderRadius: 20, padding: "3px 11px" }}>{actionCount} need repricing</span>}
         <span style={{ fontSize: 12, color: "#8A93A6", marginLeft: "auto" }}>
           {lastSync ? <>Last sync {new Date(lastSync.created_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</> : "Not synced yet"}
         </span>
@@ -349,9 +349,9 @@ export default function RadarClient({
           onClick={() => setSort({ col: "action", dir: "desc" })}
           style={{
             ...sel, cursor: "pointer", fontWeight: 700,
-            background: sort.col === "action" ? "#161D2B" : "#fff",
+            background: sort.col === "action" ? "#16215B" : "#fff",
             color: sort.col === "action" ? "#fff" : "#56627A",
-            border: `1px solid ${sort.col === "action" ? "#161D2B" : "#E0E4ED"}`,
+            border: `1px solid ${sort.col === "action" ? "#16215B" : "#E0E4ED"}`,
           }}
         >
           Needs repricing first
@@ -427,8 +427,8 @@ function MappedRow({ r, first, pending, run, colourCount = 1, siblingIds = [], q
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 600, fontSize: 13.5, color: "#19202E", overflow: "hidden", textOverflow: "ellipsis" }}>
               {canExpand && <span style={{ color: "#8A93A6", marginRight: 5, fontSize: 11 }}>{open ? "▾" : "▸"}</span>}{r.name}
-              {colourCount > 1 && <span title="Price changes apply to every colour variant" style={{ marginLeft: 7, fontSize: 10.5, fontWeight: 700, color: "#4E5BDC", background: "#EEF0FE", padding: "2px 8px", borderRadius: 8 }}>{colourCount} colours</span>}
-              <a href={`/catalogue/${r.id}`} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} title="Open the live product page" style={{ marginLeft: 7, color: "#4E5BDC", fontSize: 11.5, fontWeight: 700 }}>↗</a>
+              {colourCount > 1 && <span title="Price changes apply to every colour variant" style={{ marginLeft: 7, fontSize: 10.5, fontWeight: 700, color: "#1D2F8A", background: "#E9EDF9", padding: "2px 8px", borderRadius: 8 }}>{colourCount} colours</span>}
+              <a href={`/catalogue/${r.id}`} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} title="Open the live product page" style={{ marginLeft: 7, color: "#1D2F8A", fontSize: 11.5, fontWeight: 700 }}>↗</a>
             </div>
             {/* Coil length is shown for wires: it is part of the SKU's identity
                 (a 90 m coil and a 180 m coil are different products at ~2x the
@@ -444,7 +444,7 @@ function MappedRow({ r, first, pending, run, colourCount = 1, siblingIds = [], q
                 sub-line: a label whose width changes per row can never align
                 to a fixed header. */}
             <Stat label="Elume · incl. GST" value={editing ? undefined : fmt(r.ourPrice)} sub={exGst(editing ? price : r.ourPrice)}>
-              {editing && <input autoFocus value={val} onChange={(e) => setVal(e.target.value.replace(/[^\d]/g, ""))} type="text" inputMode="numeric" style={{ width: "100%", border: "1px solid #4E5BDC", borderRadius: 7, padding: "3px 7px", fontSize: 13, fontWeight: 700, textAlign: "right" }} />}
+              {editing && <input autoFocus value={val} onChange={(e) => setVal(e.target.value.replace(/[^\d]/g, ""))} type="text" inputMode="numeric" style={{ width: "100%", border: "1px solid #1D2F8A", borderRadius: 7, padding: "3px 7px", fontSize: 13, fontWeight: 700, textAlign: "right" }} />}
             </Stat>
             <Stat label="Avg market" value={money(m.avgMarket)} sub={exGst(m.avgMarket)} />
             <Stat label="Lowest" value={money(m.lowest)} sub={[exGst(m.lowest), m.cheapestSource].filter(Boolean).join(" · ")} />
@@ -469,7 +469,7 @@ function MappedRow({ r, first, pending, run, colourCount = 1, siblingIds = [], q
              market columns rather than shunting everything out of line. */
           <>
             <Stat label="Elume · incl. GST" value={editing ? undefined : fmt(r.ourPrice)} sub={exGst(editing ? price : r.ourPrice)}>
-              {editing && <input autoFocus value={val} onChange={(e) => setVal(e.target.value.replace(/[^\d]/g, ""))} type="text" inputMode="numeric" style={{ width: "100%", border: "1px solid #4E5BDC", borderRadius: 7, padding: "3px 7px", fontSize: 13, fontWeight: 700, textAlign: "right" }} />}
+              {editing && <input autoFocus value={val} onChange={(e) => setVal(e.target.value.replace(/[^\d]/g, ""))} type="text" inputMode="numeric" style={{ width: "100%", border: "1px solid #1D2F8A", borderRadius: 7, padding: "3px 7px", fontSize: 13, fontWeight: 700, textAlign: "right" }} />}
             </Stat>
             <span className="radar-badge" style={{ gridColumn: "3 / 6", textAlign: "right", fontSize: 12, fontWeight: 600, color: r.mappedCount ? "#C77700" : "#C0392B" }}>
               <span style={{ background: r.mappedCount ? "#FFF3E0" : "#FBE9E4", padding: "4px 10px", borderRadius: 8, display: "inline-block" }}>
@@ -509,7 +509,7 @@ function MappedRow({ r, first, pending, run, colourCount = 1, siblingIds = [], q
                 {!s.available && <span title={s.inStock === false ? "Out of stock on the competitor site" : !s.synced ? "Not synced yet" : "No valid price"} style={{ fontSize: 10, fontWeight: 800, color: "#C0392B", background: "#FBE9E4", padding: "1px 7px", borderRadius: 5 }}>{s.inStock === false ? "OUT OF STOCK" : !s.synced ? "NOT SYNCED" : "NO PRICE"}</span>}
                 {isPending && <span title="Auto-matched by name - approve before it counts for pricing" style={{ fontSize: 10, fontWeight: 800, color: "#C77700", background: "#FFF3E0", padding: "1px 7px", borderRadius: 5 }}>PENDING</span>}
                 <span style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
-                  {s.url && <a href={s.url} target="_blank" rel="noreferrer" style={{ color: "#4E5BDC", fontWeight: 600, fontSize: 12 }}>View on {s.source} ↗</a>}
+                  {s.url && <a href={s.url} target="_blank" rel="noreferrer" style={{ color: "#1D2F8A", fontWeight: 600, fontSize: 12 }}>View on {s.source} ↗</a>}
                   {isPending && (
                     <>
                       <button onClick={() => run(() => setMapApproval(r.id, s.sourceId, true), "Mapping approved.")} disabled={pending} style={{ background: "#137a4b", color: "#fff", fontWeight: 700, fontSize: 11, border: "none", padding: "4px 10px", borderRadius: 7, cursor: "pointer" }}>✓ Approve</button>
@@ -560,12 +560,12 @@ function MappingSection({ rows, sources, lastSync, pending, run, startTransition
             {sources.map((s: SourceInfo) => {
               const on = s.id === source;
               return (
-                <button key={s.id} onClick={() => s.enabled && setSource(s.id)} disabled={!s.enabled} style={{ fontSize: 12.5, fontWeight: 600, padding: "7px 14px", borderRadius: 9, cursor: s.enabled ? "pointer" : "default", background: on ? "#161D2B" : "#fff", color: on ? "#fff" : s.enabled ? "#3A4358" : "#B4BAC6", border: `1px solid ${on ? "#161D2B" : "#E0E4ED"}` }}>
+                <button key={s.id} onClick={() => s.enabled && setSource(s.id)} disabled={!s.enabled} style={{ fontSize: 12.5, fontWeight: 600, padding: "7px 14px", borderRadius: 9, cursor: s.enabled ? "pointer" : "default", background: on ? "#16215B" : "#fff", color: on ? "#fff" : s.enabled ? "#3A4358" : "#B4BAC6", border: `1px solid ${on ? "#16215B" : "#E0E4ED"}` }}>
                   {s.name}{!s.enabled && <span style={{ fontSize: 10, marginLeft: 5, opacity: 0.8 }}>off</span>}
                 </button>
               );
             })}
-            <button onClick={syncOne} disabled={pending || mappedCount === 0} style={{ marginLeft: "auto", background: "#161D2B", color: "#fff", fontWeight: 600, fontSize: 12.5, border: "none", padding: "7px 14px", borderRadius: 9, cursor: pending || mappedCount === 0 ? "default" : "pointer", opacity: pending || mappedCount === 0 ? 0.6 : 1 }}>↻ Sync {active?.name}</button>
+            <button onClick={syncOne} disabled={pending || mappedCount === 0} style={{ marginLeft: "auto", background: "#16215B", color: "#fff", fontWeight: 600, fontSize: 12.5, border: "none", padding: "7px 14px", borderRadius: 9, cursor: pending || mappedCount === 0 ? "default" : "pointer", opacity: pending || mappedCount === 0 ? 0.6 : 1 }}>↻ Sync {active?.name}</button>
           </div>
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products…" style={{ width: "100%", boxSizing: "border-box", border: "1px solid #E0E4ED", borderRadius: 10, padding: "8px 12px", fontSize: 13, marginBottom: 10 }} />
           <div style={{ fontSize: 12, color: "#8A93A6", marginBottom: 8 }}>{mappedCount}/{rows.length} mapped on {active?.name}</div>
@@ -640,7 +640,7 @@ function MatchPicker({ row, source, sourceName, onDone, onCancel }: { row: Radar
           {hits.map((h) => {
             const price = h.netPrice ?? h.listPrice;
             return (
-              <button key={h.code} onClick={() => setChosen(h)} style={{ display: "flex", width: "100%", textAlign: "left", gap: 10, alignItems: "center", padding: "9px 11px", border: "none", borderTop: "1px solid #F5F6F9", background: chosen?.code === h.code ? "#EEF0FE" : "transparent", cursor: "pointer" }}>
+              <button key={h.code} onClick={() => setChosen(h)} style={{ display: "flex", width: "100%", textAlign: "left", gap: 10, alignItems: "center", padding: "9px 11px", border: "none", borderTop: "1px solid #F5F6F9", background: chosen?.code === h.code ? "#E9EDF9" : "transparent", cursor: "pointer" }}>
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ fontSize: 12.5, fontWeight: 600, color: "#19202e", display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{h.name}</span>
                   <span style={{ fontSize: 11, color: "#8A93A6", fontFamily: "var(--space-mono)" }}>{h.brand} · {h.code}</span>
@@ -779,6 +779,6 @@ function Stat({ label, value, sub, color, children }: { label: string; value?: s
   );
 }
 
-const btnAccept: React.CSSProperties = { background: "#4E5BDC", color: "#fff", fontWeight: 600, fontSize: 12.5, border: "none", padding: "8px 14px", borderRadius: 9, cursor: "pointer" };
+const btnAccept: React.CSSProperties = { background: "#1D2F8A", color: "#fff", fontWeight: 600, fontSize: 12.5, border: "none", padding: "8px 14px", borderRadius: 9, cursor: "pointer" };
 const btnGhost: React.CSSProperties = { background: "#fff", color: "#19202e", fontWeight: 600, fontSize: 12.5, border: "1px solid #E0E4ED", padding: "7px 13px", borderRadius: 9, cursor: "pointer" };
-const linkBtn: React.CSSProperties = { background: "none", border: "none", color: "#4E5BDC", fontWeight: 600, fontSize: 12.5, cursor: "pointer" };
+const linkBtn: React.CSSProperties = { background: "none", border: "none", color: "#1D2F8A", fontWeight: 600, fontSize: 12.5, cursor: "pointer" };

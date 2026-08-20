@@ -57,10 +57,10 @@ export default function CatalogueMegaMenu() {
                 onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
               >
                 <span style={{ width: 18, textAlign: "center" }}>{METAL_ICONS[m.name] ?? "▫️"}</span> {m.name}
-                {m.live && <span style={{ fontSize: 9, fontWeight: 800, color: "#fff", background: "#E0612A", borderRadius: 5, padding: "1px 5px", textTransform: "uppercase", letterSpacing: "0.3px" }}>Buy</span>}
+                {m.live && <span style={{ fontSize: 9, fontWeight: 800, color: "#fff", background: "#F25929", borderRadius: 5, padding: "1px 5px", textTransform: "uppercase", letterSpacing: "0.3px" }}>Buy</span>}
               </Link>
             ))}
-            <Link href="/metals" onClick={() => setOpen(false)} style={{ display: "block", marginTop: 10, fontSize: 12, fontWeight: 700, color: "#4E5BDC", padding: "0 8px" }}>
+            <Link href="/metals" onClick={() => setOpen(false)} style={{ display: "block", marginTop: 10, fontSize: 12, fontWeight: 700, color: "#1D2F8A", padding: "0 8px" }}>
               Daily copper rates →
             </Link>
           </div>
@@ -92,7 +92,7 @@ export default function CatalogueMegaMenu() {
                 {label}
               </Link>
             ))}
-            <Link href="/catalogue" onClick={() => setOpen(false)} style={{ display: "block", marginTop: 12, background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 12.5, textAlign: "center", padding: "10px 12px", borderRadius: 10 }}>
+            <Link href="/catalogue" onClick={() => setOpen(false)} style={{ display: "block", marginTop: 12, background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 12.5, textAlign: "center", padding: "10px 12px", borderRadius: 10 }}>
               Browse everything →
             </Link>
           </div>

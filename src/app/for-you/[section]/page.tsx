@@ -55,7 +55,7 @@ export default async function ForYouSection({ params }: { params: Promise<{ sect
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={brandLogo(b)!} alt={b} width={40} height={40} style={{ objectFit: "contain" }} />
                     ) : (
-                      <span style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 700, color: "#4E5BDC" }}>{b.slice(0, 1)}</span>
+                      <span style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 700, color: "#1D2F8A" }}>{b.slice(0, 1)}</span>
                     )}
                   </span>
                   <span style={{ fontSize: 13, fontWeight: 700, color: "#19202E" }}>{b}</span>
@@ -83,7 +83,7 @@ function Empty() {
   return (
     <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "44px 24px", textAlign: "center", color: "#8A93A6", fontSize: 14 }}>
       Nothing here yet - it fills up as you shop.{" "}
-      <Link href="/catalogue" style={{ color: "#4E5BDC", fontWeight: 700 }}>Browse the catalogue →</Link>
+      <Link href="/catalogue" style={{ color: "#1D2F8A", fontWeight: 700 }}>Browse the catalogue →</Link>
     </div>
   );
 }

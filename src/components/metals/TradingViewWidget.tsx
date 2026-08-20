@@ -52,7 +52,7 @@ export default function TradingViewWidget({ symbol, title }: { symbol: string; t
       {/* Attribution is a condition of TradingView's free embed licence. */}
       <div style={{ padding: "8px 18px 12px", fontSize: 11, color: "#8A93A6" }}>
         Chart by{" "}
-        <a href="https://www.tradingview.com/" target="_blank" rel="noopener nofollow noreferrer" style={{ color: "#4E5BDC", fontWeight: 600 }}>
+        <a href="https://www.tradingview.com/" target="_blank" rel="noopener nofollow noreferrer" style={{ color: "#1D2F8A", fontWeight: 600 }}>
           TradingView
         </a>
       </div>

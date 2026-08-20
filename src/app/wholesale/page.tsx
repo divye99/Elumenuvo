@@ -45,7 +45,7 @@ export default async function WholesalePage() {
     <StoreChrome>
       <main style={{ maxWidth: 1280, margin: "0 auto", padding: "0 24px 64px" }}>
         {/* ── Policy header ── */}
-        <section style={{ background: "linear-gradient(120deg,#161D2B,#232C44)", color: "#fff", borderRadius: 18, padding: "38px 34px", margin: "22px 0 26px" }}>
+        <section style={{ background: "linear-gradient(120deg,#16215B,#232C44)", color: "#fff", borderRadius: 18, padding: "38px 34px", margin: "22px 0 26px" }}>
           <h1 style={{ fontFamily: GROTESK, fontSize: 30, fontWeight: 700, margin: "0 0 10px" }}>Buy more, save more</h1>
           <p style={{ fontSize: 15, color: "#C6CDE2", margin: "0 0 20px", maxWidth: 760, lineHeight: 1.65 }}>
             Our wholesale policy is one sentence long: order <b style={{ color: "#fff" }}>{WHOLESALE_MIN_QTY} or more units</b> of
@@ -70,7 +70,7 @@ export default async function WholesalePage() {
         <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 12 }}>
           <h2 style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 700, margin: 0 }}>Where bulk saves the most</h2>
           <span style={{ fontSize: 12.5, color: "#8A93A6" }}>ranked by rupees saved on a {WHOLESALE_MIN_QTY}-unit order</span>
-          <Link href="/catalogue" style={{ marginLeft: "auto", fontSize: 12.5, fontWeight: 700, color: "#4E5BDC" }}>Browse everything →</Link>
+          <Link href="/catalogue" style={{ marginLeft: "auto", fontSize: 12.5, fontWeight: 700, color: "#1D2F8A" }}>Browse everything →</Link>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(224px, 1fr))", gap: 14 }}>
           {ranked.map((p) => <ProductCard key={p.id} p={p} />)}
@@ -78,7 +78,7 @@ export default async function WholesalePage() {
 
         <p style={{ fontSize: 12.5, color: "#8A93A6", marginTop: 26, maxWidth: 720 }}>
           Need more than the catalogue shows, project-quantity pricing, or 30-day credit terms?
-          See <Link href="/business" style={{ color: "#4E5BDC", fontWeight: 600 }}>Elume for business</Link> or
+          See <Link href="/business" style={{ color: "#1D2F8A", fontWeight: 600 }}>Elume for business</Link> or
           write to us - bulk enquiries are answered the same day.
         </p>
       </main>

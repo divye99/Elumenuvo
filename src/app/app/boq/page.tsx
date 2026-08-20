@@ -25,7 +25,7 @@ export default async function BoqPage() {
           business customers who have ordered with us before. Place your first order and it unlocks
           automatically.
         </p>
-        <Link href="/catalogue" style={{ display: "inline-block", background: "#4E5BDC", color: "#fff", fontSize: 14, fontWeight: 700, padding: "10px 20px", borderRadius: 8 }}>
+        <Link href="/catalogue" style={{ display: "inline-block", background: "#1D2F8A", color: "#fff", fontSize: 14, fontWeight: 700, padding: "10px 20px", borderRadius: 8 }}>
           Browse the catalogue
         </Link>
       </main>

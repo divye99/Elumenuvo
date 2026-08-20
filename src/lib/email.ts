@@ -76,7 +76,7 @@ export function trackUrl(order: OrderLike, campaign = "order-email"): string {
 /* ── Shared HTML shell ── */
 function shell(heading: string, bodyHtml: string): string {
   return `<div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#19202e">
-    <div style="background:#161D2B;color:#fff;padding:18px 22px;border-radius:12px 12px 0 0;font-weight:700;font-size:18px">Elume</div>
+    <div style="background:#16215B;color:#fff;padding:18px 22px;border-radius:12px 12px 0 0;font-weight:700;font-size:18px">Elume</div>
     <div style="border:1px solid #E8EBF1;border-top:none;border-radius:0 0 12px 12px;padding:24px 22px">
       <h1 style="font-size:19px;margin:0 0 12px">${heading}</h1>
       ${bodyHtml}
@@ -99,7 +99,7 @@ function itemsTable(order: OrderLike): string {
 }
 
 function btn(href: string, label: string): string {
-  return `<a href="${href}" style="display:inline-block;background:#4E5BDC;color:#fff;font-weight:700;font-size:14px;text-decoration:none;padding:11px 22px;border-radius:10px;margin-top:6px">${label}</a>`;
+  return `<a href="${href}" style="display:inline-block;background:#1D2F8A;color:#fff;font-weight:700;font-size:14px;text-decoration:none;padding:11px 22px;border-radius:10px;margin-top:6px">${label}</a>`;
 }
 
 function escapeHtml(s: string): string {
@@ -141,7 +141,7 @@ export async function sendCustomerStatusUpdate(
 ): Promise<EmailResult> {
   const label = STATUS_COPY[status] ?? { title: `Order ${status}`, line: "" };
   const tracking = extra?.awb
-    ? `<p style="font-size:13px;color:#56627A;margin:10px 0"><b>Courier:</b> ${escapeHtml(extra.courier || "-")} · <b>AWB:</b> ${escapeHtml(extra.awb)}${extra.tracking_url && /^https?:\/\//i.test(extra.tracking_url) ? `<br><a href="${escapeHtml(extra.tracking_url)}" style="color:#4E5BDC">Track parcel →</a>` : ""}</p>`
+    ? `<p style="font-size:13px;color:#56627A;margin:10px 0"><b>Courier:</b> ${escapeHtml(extra.courier || "-")} · <b>AWB:</b> ${escapeHtml(extra.awb)}${extra.tracking_url && /^https?:\/\//i.test(extra.tracking_url) ? `<br><a href="${escapeHtml(extra.tracking_url)}" style="color:#1D2F8A">Track parcel →</a>` : ""}</p>`
     : "";
   const html = shell(
     label.title,
@@ -204,7 +204,7 @@ export async function sendDeliveryDecisionAlert(
 function reviewAsk(order: OrderLike): string {
   const items = (order.items ?? []).slice(0, 3);
   const links = items
-    .map((i: any) => i.id ? `<a href="${withUtm(`${SITE}/catalogue/${encodeURIComponent(i.id)}#reviews`, "review-request")}" style="color:#4E5BDC;font-weight:600">${escapeHtml(String(i.name ?? i.id))}</a>` : escapeHtml(String(i.name ?? "")))
+    .map((i: any) => i.id ? `<a href="${withUtm(`${SITE}/catalogue/${encodeURIComponent(i.id)}#reviews`, "review-request")}" style="color:#1D2F8A;font-weight:600">${escapeHtml(String(i.name ?? i.id))}</a>` : escapeHtml(String(i.name ?? "")))
     .filter(Boolean)
     .join("<br>");
   return `

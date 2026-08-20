@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://elumenuvo.com/shipping" },
 };
 
-const link = { color: "#4E5BDC", fontWeight: 600 } as const;
+const link = { color: "#1D2F8A", fontWeight: 600 } as const;
 
 export default function ShippingPage() {
   return (

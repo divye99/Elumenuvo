@@ -425,7 +425,7 @@ export default function CatalogueBrowser({
         </svg>
         Filters
         {hasFilters && (
-          <span style={{ background: "#4E5BDC", color: "#fff", fontSize: 10.5, fontWeight: 800, borderRadius: 999, padding: "1px 7px" }}>
+          <span style={{ background: "#1D2F8A", color: "#fff", fontSize: 10.5, fontWeight: 800, borderRadius: 999, padding: "1px 7px" }}>
             {(cat !== "All" ? 1 : 0) + picked.size + (sort !== "featured" ? 1 : 0)}
           </span>
         )}
@@ -455,7 +455,7 @@ export default function CatalogueBrowser({
             <path d="M1 2.5h15M3.5 7.5h10M6 12.5h5" stroke="#3A4358" strokeWidth="1.8" strokeLinecap="round" />
           </svg>
           {hasFilters && (
-            <span style={{ position: "absolute", top: -4, right: -4, width: 14, height: 14, borderRadius: "50%", background: "#4E5BDC", color: "#fff", fontSize: 8.5, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ position: "absolute", top: -4, right: -4, width: 14, height: 14, borderRadius: "50%", background: "#1D2F8A", color: "#fff", fontSize: 8.5, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>
               {(cat !== "All" ? 1 : 0) + picked.size + (sort !== "featured" ? 1 : 0)}
             </span>
           )}
@@ -500,11 +500,11 @@ export default function CatalogueBrowser({
 
             <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
               {hasFilters && (
-                <button onClick={clearAll} style={{ flex: 1, fontSize: 12, fontWeight: 700, color: "#4E5BDC", background: "#EEF0FE", border: "none", borderRadius: 10, padding: "11px 12px", cursor: "pointer" }}>
+                <button onClick={clearAll} style={{ flex: 1, fontSize: 12, fontWeight: 700, color: "#1D2F8A", background: "#E9EDF9", border: "none", borderRadius: 10, padding: "11px 12px", cursor: "pointer" }}>
                   Clear all
                 </button>
               )}
-              <button onClick={() => setSheet(false)} style={{ flex: 2, fontSize: 12, fontWeight: 700, color: "#fff", background: "#4E5BDC", border: "none", borderRadius: 10, padding: "11px 12px", cursor: "pointer" }}>
+              <button onClick={() => setSheet(false)} style={{ flex: 2, fontSize: 12, fontWeight: 700, color: "#fff", background: "#1D2F8A", border: "none", borderRadius: 10, padding: "11px 12px", cursor: "pointer" }}>
                 Show {filtered.length} products
               </button>
             </div>
@@ -551,10 +551,10 @@ export default function CatalogueBrowser({
                   <button
                     key={b}
                     onClick={() => toggleBrand(b)}
-                    style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", fontSize: 12.5, fontWeight: 600, padding: "7px 8px", borderRadius: 8, cursor: "pointer", border: "none", textAlign: "left", background: on ? "#EEF0FE" : "transparent", color: on ? "#4E5BDC" : "#3A4358" }}
+                    style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", fontSize: 12.5, fontWeight: 600, padding: "7px 8px", borderRadius: 8, cursor: "pointer", border: "none", textAlign: "left", background: on ? "#E9EDF9" : "transparent", color: on ? "#1D2F8A" : "#3A4358" }}
                   >
                     <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ width: 15, height: 15, borderRadius: 5, border: `1.5px solid ${on ? "#4E5BDC" : "#C9CFDB"}`, background: on ? "#4E5BDC" : "#fff", color: "#fff", fontSize: 10, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{on ? "\u2713" : ""}</span>
+                      <span style={{ width: 15, height: 15, borderRadius: 5, border: `1.5px solid ${on ? "#1D2F8A" : "#C9CFDB"}`, background: on ? "#1D2F8A" : "#fff", color: "#fff", fontSize: 10, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{on ? "\u2713" : ""}</span>
                       {b}
                     </span>
                     <span style={{ fontSize: 11, color: "#A0A7B5", fontWeight: 500 }}>{brandCount[b]}</span>
@@ -564,7 +564,7 @@ export default function CatalogueBrowser({
             </div>
           </div>
           {hasFilters && (
-            <button onClick={clearAll} style={{ fontSize: 12.5, fontWeight: 700, color: "#4E5BDC", background: "none", border: "1px solid #E0E4ED", borderRadius: 10, cursor: "pointer", padding: "9px 12px" }}>
+            <button onClick={clearAll} style={{ fontSize: 12.5, fontWeight: 700, color: "#1D2F8A", background: "none", border: "1px solid #E0E4ED", borderRadius: 10, cursor: "pointer", padding: "9px 12px" }}>
               Clear all filters
             </button>
           )}
@@ -594,7 +594,7 @@ export default function CatalogueBrowser({
           )}
           <button
             onClick={clearAll}
-            style={{ fontSize: 12.5, fontWeight: 600, color: "#4E5BDC", background: "none", border: "none", cursor: "pointer", padding: "6px 4px" }}
+            style={{ fontSize: 12.5, fontWeight: 600, color: "#1D2F8A", background: "none", border: "none", cursor: "pointer", padding: "6px 4px" }}
           >
             Clear all
           </button>
@@ -626,7 +626,7 @@ export default function CatalogueBrowser({
           <div style={{ fontSize: 13, marginTop: 4 }}>Try a different search or clear the filters.</div>
           <button
             onClick={clearAll}
-            style={{ marginTop: 16, fontSize: 13, fontWeight: 700, color: "#fff", background: "#4E5BDC", border: "none", borderRadius: 10, padding: "10px 20px", cursor: "pointer" }}
+            style={{ marginTop: 16, fontSize: 13, fontWeight: 700, color: "#fff", background: "#1D2F8A", border: "none", borderRadius: 10, padding: "10px 20px", cursor: "pointer" }}
           >
             Clear all filters
           </button>
@@ -696,8 +696,8 @@ const chip = (on: boolean): React.CSSProperties => ({
   padding: "7px 11px",
   borderRadius: 999,
   cursor: "pointer",
-  border: `1px solid ${on ? "#4E5BDC" : "#E0E4ED"}`,
-  background: on ? "#4E5BDC" : "#fff",
+  border: `1px solid ${on ? "#1D2F8A" : "#E0E4ED"}`,
+  background: on ? "#1D2F8A" : "#fff",
   color: on ? "#fff" : "#3A4358",
 });
 

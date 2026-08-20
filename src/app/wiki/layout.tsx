@@ -17,7 +17,7 @@ export default async function WikiLayout({ children }: { children: React.ReactNo
 
   return (
     <div style={{ fontFamily: "var(--hanken)", minHeight: "100vh", background: "#F7F8FB", color: "#19202E" }}>
-      <header style={{ background: "#161D2B", color: "#fff" }}>
+      <header style={{ background: "#16215B", color: "#fff" }}>
         <div style={{ maxWidth: 860, margin: "0 auto", padding: "0 24px", height: 54, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Link href="/wiki" style={{ fontWeight: 700, letterSpacing: "-0.3px" }}>Elume Wiki <span style={{ fontSize: 11, fontWeight: 800, color: "#9AA6FF", marginLeft: 6 }}>INTERNAL</span></Link>
           <Link href="/" style={{ fontSize: 13, color: "rgba(255,255,255,0.6)" }}>↗ elumenuvo.com</Link>
@@ -31,7 +31,7 @@ export default async function WikiLayout({ children }: { children: React.ReactNo
               It documents how Elume's systems work: search, ranking, pricing, logistics. Access needs a business account sign-in or the admin password.
             </p>
             <div style={{ display: "flex", gap: 10 }}>
-              <Link href="/signin?next=/wiki" style={{ fontSize: 13.5, fontWeight: 700, color: "#fff", background: "#4E5BDC", borderRadius: 9, padding: "10px 18px" }}>Sign in</Link>
+              <Link href="/signin?next=/wiki" style={{ fontSize: 13.5, fontWeight: 700, color: "#fff", background: "#1D2F8A", borderRadius: 9, padding: "10px 18px" }}>Sign in</Link>
               <Link href="/admin/login" style={{ fontSize: 13.5, fontWeight: 700, color: "#3A4358", background: "#F3F5F9", borderRadius: 9, padding: "10px 18px" }}>Admin login</Link>
             </div>
           </div>

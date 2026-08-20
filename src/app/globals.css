@@ -3,8 +3,10 @@
 /* ── Theme tokens (Tailwind 4, CSS-first) ────────────────────────── */
 @theme {
   /* Elume (FMEG) prototype fonts */
-  --font-sans: var(--font-hanken), "Hanken Grotesk", sans-serif;
-  --font-grotesk: var(--font-space-grotesk), "Space Grotesk", sans-serif;
+  /* General Sans (brand face, Factor X kit) backs both the old body and
+     heading variables, so every inline font-family resolves to it. */
+  --font-sans: var(--font-general-sans), "General Sans", sans-serif;
+  --font-grotesk: var(--font-general-sans), "General Sans", sans-serif;
   --font-mono: var(--font-space-mono), "Space Mono", monospace;
   --font-inter: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
 
@@ -20,8 +22,8 @@
 /* Font-family CSS values used by the Elume design components via inline styles
    (lib/fonts.ts → GROTESK/MONO). Backed by next/font variables from layout.tsx. */
 :root {
-  --hanken: var(--font-hanken), "Hanken Grotesk", sans-serif;
-  --space-grotesk: var(--font-space-grotesk), "Space Grotesk", sans-serif;
+  --hanken: var(--font-general-sans), "General Sans", sans-serif;
+  --space-grotesk: var(--font-general-sans), "General Sans", sans-serif;
   --space-mono: var(--font-space-mono), "Space Mono", monospace;
 }
 
@@ -37,7 +39,7 @@ html {
   scroll-behavior: smooth;
 }
 body {
-  font-family: var(--hanken), "Hanken Grotesk", sans-serif;
+  font-family: var(--hanken), "General Sans", sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   color: #19202e;
@@ -96,8 +98,8 @@ input[type="range"].elume-range::-webkit-slider-thumb {
   height: 26px;
   border-radius: 50%;
   background: #fff;
-  border: 2px solid #4e5bdc;
-  box-shadow: 0 2px 8px rgba(78, 91, 220, 0.35);
+  border: 2px solid #1D2F8A;
+  box-shadow: 0 2px 8px rgba(29, 47, 138, 0.35);
   cursor: pointer;
 }
 input[type="range"].elume-range::-moz-range-thumb {
@@ -105,8 +107,8 @@ input[type="range"].elume-range::-moz-range-thumb {
   height: 24px;
   border-radius: 50%;
   background: #fff;
-  border: 2px solid #4e5bdc;
-  box-shadow: 0 2px 8px rgba(78, 91, 220, 0.35);
+  border: 2px solid #1D2F8A;
+  box-shadow: 0 2px 8px rgba(29, 47, 138, 0.35);
   cursor: pointer;
 }
 
@@ -342,11 +344,11 @@ input[type="range"].elume-range::-moz-range-thumb {
 .ft-tag { font-size: 12.5px; color: #56627A; line-height: 1.55; margin: 14px 0 16px; }
 .ft-contact { display: flex; flex-direction: column; gap: 7px; }
 .ft-contact a, .ft-contact .ft-loc { font-size: 13px; color: #3A4358; font-weight: 600; }
-.ft-contact a:hover { color: #4E5BDC; }
+.ft-contact a:hover { color: #1D2F8A; }
 .ft-contact .ft-loc { color: #8A93A6; font-weight: 500; }
 .ft-h { font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #8A93A6; margin-bottom: 12px; }
 .ft-col a { display: block; font-size: 13px; font-weight: 500; color: #56627A; padding: 5px 0; }
-.ft-col a:hover { color: #4E5BDC; }
+.ft-col a:hover { color: #1D2F8A; }
 .ft-bottom { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px 20px; border-top: 1px solid #EEF0F4; margin-top: 32px; padding-top: 18px; font-size: 12px; color: #A0A7B5; }
 
 @media (max-width: 900px) {

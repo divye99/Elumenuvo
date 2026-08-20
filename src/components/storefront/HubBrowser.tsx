@@ -131,7 +131,7 @@ export default function HubBrowser({ title, subtitle, hideHeader, rails, product
                   ) : it.cat ? (
                     <span style={{ color: "#3A4358", display: "inline-flex" }}><CategoryIcon cat={it.cat} size={26} strokeWidth={1.5} /></span>
                   ) : (
-                    <span style={{ fontFamily: GROTESK, fontSize: 19, fontWeight: 700, color: "#4E5BDC" }}>{it.label.slice(0, 1)}</span>
+                    <span style={{ fontFamily: GROTESK, fontSize: 19, fontWeight: 700, color: "#1D2F8A" }}>{it.label.slice(0, 1)}</span>
                   )}
                 </span>
                 <span style={{ fontSize: 11, fontWeight: 600, color: "#3A4358", textAlign: "center", lineHeight: 1.25, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 74 }}>{it.label}</span>
@@ -156,7 +156,7 @@ export default function HubBrowser({ title, subtitle, hideHeader, rails, product
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             {facets.map((f) => (
               <label key={f} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#3A4358", cursor: "pointer" }}>
-                <input type="checkbox" checked={picked.has(f)} onChange={() => toggle(f)} style={{ accentColor: "#4E5BDC" }} />
+                <input type="checkbox" checked={picked.has(f)} onChange={() => toggle(f)} style={{ accentColor: "#1D2F8A" }} />
                 {f}
               </label>
             ))}
@@ -167,7 +167,7 @@ export default function HubBrowser({ title, subtitle, hideHeader, rails, product
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 {facets2.map((f) => (
                   <label key={f} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#3A4358", cursor: "pointer" }}>
-                    <input type="checkbox" checked={picked2.has(f)} onChange={() => setPicked2((prev) => { const n = new Set(prev); if (n.has(f)) n.delete(f); else n.add(f); return n; })} style={{ accentColor: "#4E5BDC" }} />
+                    <input type="checkbox" checked={picked2.has(f)} onChange={() => setPicked2((prev) => { const n = new Set(prev); if (n.has(f)) n.delete(f); else n.add(f); return n; })} style={{ accentColor: "#1D2F8A" }} />
                     {f}
                   </label>
                 ))}
@@ -191,14 +191,14 @@ export default function HubBrowser({ title, subtitle, hideHeader, rails, product
                           } else n.add(g.group);
                           return n;
                         });
-                      }} style={{ accentColor: "#4E5BDC" }} />
+                      }} style={{ accentColor: "#1D2F8A" }} />
                       {g.group}
                     </label>
                     {pickedG.has(g.group) && g.subs.length > 1 && (
                       <div style={{ display: "flex", flexDirection: "column", gap: 3, margin: "4px 0 4px 24px" }}>
                         {g.subs.map((s) => (
                           <label key={s.value} style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12.5, color: "#56627A", cursor: "pointer" }}>
-                            <input type="checkbox" checked={pickedS.has(s.value)} onChange={() => setPickedS((prev) => { const n = new Set(prev); if (n.has(s.value)) n.delete(s.value); else n.add(s.value); return n; })} style={{ accentColor: "#4E5BDC" }} />
+                            <input type="checkbox" checked={pickedS.has(s.value)} onChange={() => setPickedS((prev) => { const n = new Set(prev); if (n.has(s.value)) n.delete(s.value); else n.add(s.value); return n; })} style={{ accentColor: "#1D2F8A" }} />
                             {s.label}
                           </label>
                         ))}
@@ -210,7 +210,7 @@ export default function HubBrowser({ title, subtitle, hideHeader, rails, product
             </>
           )}
           {!noFilters && (
-            <button onClick={() => { setPicked(new Set()); setPicked2(new Set()); setPickedG(new Set()); setPickedS(new Set()); }} style={{ marginTop: 12, border: "none", background: "none", color: "#4E5BDC", fontSize: 12.5, fontWeight: 700, cursor: "pointer", padding: 0 }}>
+            <button onClick={() => { setPicked(new Set()); setPicked2(new Set()); setPickedG(new Set()); setPickedS(new Set()); }} style={{ marginTop: 12, border: "none", background: "none", color: "#1D2F8A", fontSize: 12.5, fontWeight: 700, cursor: "pointer", padding: 0 }}>
               Clear filters
             </button>
           )}
@@ -227,7 +227,7 @@ export default function HubBrowser({ title, subtitle, hideHeader, rails, product
               <div style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 10, scrollSnapType: "x proximity" }}>
                 {r.items.map((p, i) => (
                   <div key={p.id} className="prail-card" style={{ flex: "0 0 216px", scrollSnapAlign: "start", position: "relative", display: "flex" }}>
-                    <div style={{ position: "absolute", top: -1, left: 8, zIndex: 2, background: i === 0 ? "#B8860B" : "#161D2B", color: "#fff", fontFamily: "var(--space-mono)", fontSize: 11, fontWeight: 700, borderRadius: "0 0 7px 7px", padding: "3px 8px" }}>
+                    <div style={{ position: "absolute", top: -1, left: 8, zIndex: 2, background: i === 0 ? "#B8860B" : "#16215B", color: "#fff", fontFamily: "var(--space-mono)", fontSize: 11, fontWeight: 700, borderRadius: "0 0 7px 7px", padding: "3px 8px" }}>
                       #{i + 1}
                     </div>
                     <ProductCard p={p} fixedWidth={216} />

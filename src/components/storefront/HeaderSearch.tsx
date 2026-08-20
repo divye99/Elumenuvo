@@ -166,7 +166,7 @@ export default function HeaderSearch({ compact = false }: { compact?: boolean })
           placeholder="Search wires, MCBs, fans, switches, brands…"
           style={{ border: "none", outline: "none", fontSize: 14, width: "100%", padding: "10px 10px", background: "transparent", color: "#19202E" }}
         />
-        <button type="submit" aria-label="Search" style={{ border: "none", cursor: "pointer", background: "#4E5BDC", color: "#fff", fontSize: 13, fontWeight: 600, padding: "10px 18px" }}>
+        <button type="submit" aria-label="Search" style={{ border: "none", cursor: "pointer", background: "#1D2F8A", color: "#fff", fontSize: 13, fontWeight: 600, padding: "10px 18px" }}>
           Search
         </button>
       </div>
@@ -205,7 +205,7 @@ export default function HeaderSearch({ compact = false }: { compact?: boolean })
                 <span style={{ color: "#A0A7B5", fontSize: 13, width: 16, textAlign: "center" }}>{o.kind === "recent" ? "↺" : "⌕"}</span>
                 <span style={{ fontSize: 13.5, color: "#19202E", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {o.kind === "recent" ? o.label : emphasize(o.label)}
-                  {o.kind === "term" && o.cat && <span style={{ color: "#4E5BDC", fontSize: 12 }}> in {o.cat}</span>}
+                  {o.kind === "term" && o.cat && <span style={{ color: "#1D2F8A", fontSize: 12 }}> in {o.cat}</span>}
                 </span>
               </div>
             );

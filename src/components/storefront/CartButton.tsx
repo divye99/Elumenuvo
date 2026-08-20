@@ -15,7 +15,7 @@ export default function CartButton() {
         <path d="M2.5 3.5h2.6l2.3 11.2a1.6 1.6 0 0 0 1.57 1.3h8.6a1.6 1.6 0 0 0 1.56-1.22L21.5 7.5H6.1" />
       </svg>
       {count > 0 && (
-        <span style={{ position: "absolute", top: -6, right: -8, background: "#4E5BDC", color: "#fff", fontSize: 10.5, fontWeight: 700, borderRadius: 999, minWidth: 17, height: 17, padding: "0 4px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <span style={{ position: "absolute", top: -6, right: -8, background: "#1D2F8A", color: "#fff", fontSize: 10.5, fontWeight: 700, borderRadius: 999, minWidth: 17, height: 17, padding: "0 4px", display: "flex", alignItems: "center", justifyContent: "center" }}>
           {count}
         </span>
       )}

@@ -62,7 +62,7 @@ export default function OnboardingForm({
             {(["business", "individual"] as const).map((t) => (
               <label key={t} style={{ cursor: "pointer" }}>
                 <input type="radio" name="account_type" value={t} checked={type === t} onChange={() => setType(t)} style={{ display: "none" }} />
-                <div style={{ border: `1.5px solid ${type === t ? "#4E5BDC" : "#E0E4ED"}`, background: type === t ? "#F7F8FF" : "#fff", borderRadius: 12, padding: "16px 14px" }}>
+                <div style={{ border: `1.5px solid ${type === t ? "#1D2F8A" : "#E0E4ED"}`, background: type === t ? "#F7F8FF" : "#fff", borderRadius: 12, padding: "16px 14px" }}>
                   <div style={{ fontSize: 22, marginBottom: 6 }}>{t === "business" ? "🏢" : "🏠"}</div>
                   <div style={{ fontSize: 14, fontWeight: 700, color: "#19202E" }}>{t === "business" ? "Business" : "Individual"}</div>
                   <div style={{ fontSize: 11.5, color: "#56627A", marginTop: 3, lineHeight: 1.4 }}>
@@ -105,9 +105,9 @@ export default function OnboardingForm({
             </p>
           )}
 
-          {state && !state.ok && <p style={{ fontSize: 12.5, color: "#E0612A", margin: "2px 0 10px" }}>{state.message}</p>}
+          {state && !state.ok && <p style={{ fontSize: 12.5, color: "#F25929", margin: "2px 0 10px" }}>{state.message}</p>}
 
-          <button disabled={pending || !type} style={{ width: "100%", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14, border: "none", padding: 12, borderRadius: 10, cursor: pending || !type ? "default" : "pointer", opacity: pending || !type ? 0.6 : 1, marginTop: 6 }}>
+          <button disabled={pending || !type} style={{ width: "100%", background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 14, border: "none", padding: 12, borderRadius: 10, cursor: pending || !type ? "default" : "pointer", opacity: pending || !type ? 0.6 : 1, marginTop: 6 }}>
             {pending ? "Saving…" : "Continue"}
           </button>
         </form>

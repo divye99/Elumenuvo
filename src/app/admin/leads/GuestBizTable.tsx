@@ -62,7 +62,7 @@ export default function GuestBizTable({ rows }: { rows: GuestBizRow[] }) {
                 <tr key={r.gstin} style={{ borderTop: i ? "1px solid #F5F6F9" : "1px solid #F0F2F6" }}>
                   <td style={{ ...td, padding: "11px 16px" }}>
                     <div style={{ fontWeight: 700, color: "#19202E", fontSize: 13 }}>{r.name || "(no name)"}</div>
-                    <div style={{ color: "#4E5BDC" }}>{r.email}{r.phone ? ` · ${r.phone}` : ""}</div>
+                    <div style={{ color: "#1D2F8A" }}>{r.email}{r.phone ? ` · ${r.phone}` : ""}</div>
                     {r.hasAccount && (
                       <div style={{ fontSize: 11, color: "#C77700", marginTop: 2 }}>has an account, but it is not a business one</div>
                     )}
@@ -82,7 +82,7 @@ export default function GuestBizTable({ rows }: { rows: GuestBizRow[] }) {
                         <button
                           onClick={() => nudge(r)}
                           disabled={s === "sending"}
-                          style={{ border: "1px solid #E8EBF1", background: "#fff", color: "#4E5BDC", fontSize: 12, fontWeight: 700, borderRadius: 8, padding: "6px 12px", cursor: s === "sending" ? "default" : "pointer", opacity: s === "sending" ? 0.6 : 1 }}
+                          style={{ border: "1px solid #E8EBF1", background: "#fff", color: "#1D2F8A", fontSize: 12, fontWeight: 700, borderRadius: 8, padding: "6px 12px", cursor: s === "sending" ? "default" : "pointer", opacity: s === "sending" ? 0.6 : 1 }}
                         >
                           {s === "sending" ? "Sending…" : "Send nudge"}
                         </button>

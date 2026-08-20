@@ -54,12 +54,12 @@ export default function MobileMenu() {
         {row("/collections/top-rated", "Top rated", "🏆")}
 
         {/* Wholesale hook */}
-        <div style={{ margin: "10px 12px 4px", background: "linear-gradient(120deg,#EEF0FE,#F7F8FB)", border: "1px solid #DFE3FB", borderRadius: 12, padding: "10px 12px" }}>
+        <div style={{ margin: "10px 12px 4px", background: "linear-gradient(120deg,#E9EDF9,#F7F8FB)", border: "1px solid #DFE3FB", borderRadius: 12, padding: "10px 12px" }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: "#232B6E" }}>💰 Buy more, save more</div>
           <div style={{ fontSize: 10.5, color: "#56627A", lineHeight: 1.45, marginTop: 3 }}>
             Order <b>15+ units</b> of any product and the price drops <b>5%</b> automatically.
           </div>
-          <Link href="/wholesale" onClick={close} style={{ display: "inline-block", fontSize: 10.5, fontWeight: 700, color: "#4E5BDC", marginTop: 5 }}>
+          <Link href="/wholesale" onClick={close} style={{ display: "inline-block", fontSize: 10.5, fontWeight: 700, color: "#1D2F8A", marginTop: 5 }}>
             See how it works →
           </Link>
         </div>

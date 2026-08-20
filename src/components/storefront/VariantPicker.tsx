@@ -48,9 +48,9 @@ export default function VariantPicker({ p, siblings }: { p: Product; siblings: P
                       padding: "8px 14px",
                       borderRadius: 10,
                       cursor: "pointer",
-                      background: active ? "#EEF0FE" : "#fff",
-                      color: active ? "#4E5BDC" : "#3A4358",
-                      border: `1.5px solid ${active ? "#4E5BDC" : "#E0E4ED"}`,
+                      background: active ? "#E9EDF9" : "#fff",
+                      color: active ? "#1D2F8A" : "#3A4358",
+                      border: `1.5px solid ${active ? "#1D2F8A" : "#E0E4ED"}`,
                     }}
                   >
                     {hex && (

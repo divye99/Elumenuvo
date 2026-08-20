@@ -32,7 +32,7 @@ const removeBtn = (busy: boolean): React.CSSProperties => ({
 });
 const addRow: React.CSSProperties = { display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 };
 const inp: React.CSSProperties = { flex: "1 1 160px", minWidth: 0, boxSizing: "border-box", border: "1px solid #E0E4ED", borderRadius: 9, padding: "9px 11px", fontSize: 13.5 };
-const addBtn: React.CSSProperties = { flex: "0 0 auto", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13, border: "none", borderRadius: 9, padding: "9px 16px", cursor: "pointer" };
+const addBtn: React.CSSProperties = { flex: "0 0 auto", background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 13, border: "none", borderRadius: 9, padding: "9px 16px", cursor: "pointer" };
 
 function useRemove<T extends { id: string }>(kind: SavedKind, setRows: React.Dispatch<React.SetStateAction<T[]>>) {
   const [busyId, setBusyId] = useState<string | null>(null);

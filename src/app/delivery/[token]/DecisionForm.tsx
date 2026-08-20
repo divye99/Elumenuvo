@@ -48,7 +48,7 @@ export default function DecisionForm({ decide, decided, choice }: {
       style={{ display: "grid", gap: 10 }}
     >
       {OPTIONS.map(([value, title, sub]) => (
-        <label key={value} style={{ display: "flex", gap: 12, alignItems: "flex-start", background: "#fff", border: `2px solid ${sel === value ? "#4E5BDC" : "#E8EBF1"}`, borderRadius: 14, padding: "14px 16px", cursor: "pointer" }}>
+        <label key={value} style={{ display: "flex", gap: 12, alignItems: "flex-start", background: "#fff", border: `2px solid ${sel === value ? "#1D2F8A" : "#E8EBF1"}`, borderRadius: 14, padding: "14px 16px", cursor: "pointer" }}>
           <input type="radio" name="choice" value={value} checked={sel === value} onChange={() => setSel(value)} style={{ marginTop: 3 }} />
           <span>
             <span style={{ display: "block", fontSize: 14.5, fontWeight: 700 }}>{title}</span>
@@ -68,7 +68,7 @@ export default function DecisionForm({ decide, decided, choice }: {
       <button
         type="submit"
         disabled={pending}
-        style={{ background: pending ? "#C9CFDD" : "#4E5BDC", color: "#fff", fontSize: 14.5, fontWeight: 700, padding: "13px 22px", borderRadius: 12, border: "none", cursor: pending ? "wait" : "pointer", justifySelf: "start" }}
+        style={{ background: pending ? "#C9CFDD" : "#1D2F8A", color: "#fff", fontSize: 14.5, fontWeight: 700, padding: "13px 22px", borderRadius: 12, border: "none", cursor: pending ? "wait" : "pointer", justifySelf: "start" }}
       >
         {pending ? "Saving…" : "Confirm my choice"}
       </button>

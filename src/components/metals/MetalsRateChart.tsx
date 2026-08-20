@@ -127,7 +127,7 @@ export default function MetalsRateChart({
                 border: "none",
                 cursor: "pointer",
                 color: range === r.key ? "#fff" : "#56627A",
-                background: range === r.key ? "#4E5BDC" : "transparent",
+                background: range === r.key ? "#1D2F8A" : "transparent",
               }}
             >
               {r.label}

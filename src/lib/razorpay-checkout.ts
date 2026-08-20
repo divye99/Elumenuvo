@@ -53,7 +53,7 @@ export async function openRazorpay(args: OpenArgs): Promise<RpSuccess | null> {
       order_id: args.razorpayOrderId,
       prefill: { name: args.name, email: args.email, contact: args.phone },
       notes: args.orderId ? { elume_order: args.orderId } : undefined,
-      theme: { color: "#4E5BDC", backdrop_color: "rgba(20,24,45,0.7)" },
+      theme: { color: "#1D2F8A", backdrop_color: "rgba(20,24,45,0.7)" },
       // Keep the buyer on our flow: no auto-redirect, we handle success inline.
       redirect: false,
       retry: { enabled: true, max_count: 3 },

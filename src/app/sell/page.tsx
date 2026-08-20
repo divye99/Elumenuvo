@@ -32,7 +32,7 @@ export default function SellPage() {
       <main style={{ maxWidth: 1080, margin: "0 auto", padding: "40px 28px 72px" }}>
         <div className="pd-grid" style={{ display: "grid", gridTemplateColumns: "1.15fr 1fr", gap: 40, alignItems: "start" }}>
           <div>
-            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "1.4px", textTransform: "uppercase", color: "#4E5BDC", marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "1.4px", textTransform: "uppercase", color: "#1D2F8A", marginBottom: 10 }}>
               For brands &amp; manufacturers
             </div>
             <h1 style={{ fontFamily: GROTESK, fontSize: 34, fontWeight: 600, letterSpacing: "-0.9px", lineHeight: 1.15, margin: 0 }}>

@@ -46,7 +46,7 @@ export default function SavedPicker({
 
   const chip = (on: boolean): React.CSSProperties => ({
     display: "inline-flex", flexDirection: "column", gap: 1, textAlign: "left",
-    border: `1.5px solid ${on ? "#4E5BDC" : "#E0E4ED"}`,
+    border: `1.5px solid ${on ? "#1D2F8A" : "#E0E4ED"}`,
     background: on ? "#F5F6FF" : "#fff",
     borderRadius: 10, padding: "8px 12px", cursor: "pointer", minWidth: 0, maxWidth: "100%",
   });
@@ -69,7 +69,7 @@ export default function SavedPicker({
             );
           })}
           {!adding && (
-            <button type="button" onClick={() => { setAdding(true); setErr(null); }} style={{ ...chip(false), borderStyle: "dashed", color: "#4E5BDC", fontWeight: 700, fontSize: 13, justifyContent: "center" }}>
+            <button type="button" onClick={() => { setAdding(true); setErr(null); }} style={{ ...chip(false), borderStyle: "dashed", color: "#1D2F8A", fontWeight: 700, fontSize: 13, justifyContent: "center" }}>
               + {addLabel}
             </button>
           )}
@@ -92,7 +92,7 @@ export default function SavedPicker({
                 fontSize: 14, fontFamily: mono ? "var(--space-mono)" : undefined,
               }}
             />
-            <button type="button" onClick={commit} style={{ flex: "0 0 auto", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13, border: "none", borderRadius: 10, padding: "10px 16px", cursor: "pointer" }}>
+            <button type="button" onClick={commit} style={{ flex: "0 0 auto", background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 13, border: "none", borderRadius: 10, padding: "10px 16px", cursor: "pointer" }}>
               Use this
             </button>
             {options.length > 0 && (

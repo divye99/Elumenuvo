@@ -29,7 +29,7 @@ export default async function AboutPage() {
   const cats = [...new Set(all.map((p) => p.cat))].sort();
   const skuCount = all.length;
 
-  const link = { color: "#4E5BDC", fontWeight: 600 } as const;
+  const link = { color: "#1D2F8A", fontWeight: 600 } as const;
 
   return (
     <InfoPage

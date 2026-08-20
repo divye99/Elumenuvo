@@ -30,7 +30,7 @@ export default function ReviewsConsole({ initial }: { initial: AdminReview[] }) 
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
         <span style={{ fontSize: 13, fontWeight: 700, color: "#E0A100", letterSpacing: 1 }}>{"⚡".repeat(r.rating)}<span style={{ opacity: 0.25 }}>{"⚡".repeat(5 - r.rating)}</span></span>
         {r.title && <span style={{ fontSize: 13.5, fontWeight: 700 }}>{r.title}</span>}
-        <a href={`/catalogue/${r.product_id}#reviews`} target="_blank" rel="noreferrer" style={{ fontSize: 12, fontWeight: 600, color: "#4E5BDC" }}>
+        <a href={`/catalogue/${r.product_id}#reviews`} target="_blank" rel="noreferrer" style={{ fontSize: 12, fontWeight: 600, color: "#1D2F8A" }}>
           {r.product_id} ↗
         </a>
         <span style={{ marginLeft: "auto", fontSize: 11.5, color: "#A0A7B5", whiteSpace: "nowrap" }}>{istDateTime(r.created_at)}</span>
@@ -78,7 +78,7 @@ export default function ReviewsConsole({ initial }: { initial: AdminReview[] }) 
 
       <section>
         <h2 style={{ fontSize: 15, fontWeight: 700, margin: "0 0 10px" }}>
-          Awaiting approval {pending.length > 0 && <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", background: "#E0612A", borderRadius: 20, padding: "2px 9px", marginLeft: 6 }}>{pending.length}</span>}
+          Awaiting approval {pending.length > 0 && <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", background: "#F25929", borderRadius: 20, padding: "2px 9px", marginLeft: 6 }}>{pending.length}</span>}
         </h2>
         {pending.length === 0 ? (
           <div style={{ border: "1px dashed #D5DAE4", borderRadius: 12, padding: "18px", fontSize: 13, color: "#8A93A6" }}>Queue is clear - nothing waiting.</div>

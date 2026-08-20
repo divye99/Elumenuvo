@@ -38,7 +38,7 @@ export default function ReviewsSection({ productId, reviews }: { productId: stri
             {reviews.length > 0 ? <Rating rating={avg} count={reviews.length} size={13} /> : <span style={{ fontSize: 12.5, color: "#8A93A6" }}>No reviews yet</span>}
           </div>
           {!showForm && (
-            <button onClick={() => setShowForm(true)} style={{ fontSize: 12.5, fontWeight: 600, color: "#4E5BDC", background: "#EEF0FE", border: "none", padding: "7px 14px", borderRadius: 8, cursor: "pointer" }}>
+            <button onClick={() => setShowForm(true)} style={{ fontSize: 12.5, fontWeight: 600, color: "#1D2F8A", background: "#E9EDF9", border: "none", padding: "7px 14px", borderRadius: 8, cursor: "pointer" }}>
               Write a review
             </button>
           )}
@@ -118,7 +118,7 @@ export default function ReviewsSection({ productId, reviews }: { productId: stri
               </div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 10, flexWrap: "wrap" }}>
-              <button type="submit" disabled={pending} style={{ background: "#4E5BDC", color: "#fff", fontSize: 13, fontWeight: 700, border: "none", borderRadius: 9, padding: "9px 18px", cursor: pending ? "wait" : "pointer", opacity: pending ? 0.7 : 1 }}>
+              <button type="submit" disabled={pending} style={{ background: "#1D2F8A", color: "#fff", fontSize: 13, fontWeight: 700, border: "none", borderRadius: 9, padding: "9px 18px", cursor: pending ? "wait" : "pointer", opacity: pending ? 0.7 : 1 }}>
                 {pending ? "Verifying…" : "Verify & post"}
               </button>
               <button type="button" onClick={() => setShowForm(false)} style={{ background: "none", border: "none", color: "#8A93A6", fontSize: 12.5, cursor: "pointer" }}>Cancel</button>

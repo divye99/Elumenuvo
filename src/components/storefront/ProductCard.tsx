@@ -89,7 +89,7 @@ export default function ProductCard({
         width: fixedWidth,
         flexShrink: fixedWidth ? 0 : undefined,
         position: "relative",
-        ...(current ? { outline: "2px solid #4E5BDC", outlineOffset: -2 } : {}),
+        ...(current ? { outline: "2px solid #1D2F8A", outlineOffset: -2 } : {}),
       }}
     >
       <div className="pc-img" style={{ height: 150, position: "relative" }}>
@@ -142,7 +142,7 @@ export default function ProductCard({
                         cursor: "pointer",
                         background: COLOUR_HEX[v] ?? "#CBD2DE",
                         border: "2px solid #fff",
-                        outline: active ? "2px solid #4E5BDC" : "1px solid rgba(0,0,0,0.18)",
+                        outline: active ? "2px solid #1D2F8A" : "1px solid rgba(0,0,0,0.18)",
                         padding: 0,
                       }}
                     />
@@ -168,9 +168,9 @@ export default function ProductCard({
                         padding: "4px 8px",
                         borderRadius: 7,
                         cursor: "pointer",
-                        background: active ? "#4E5BDC" : "#fff",
+                        background: active ? "#1D2F8A" : "#fff",
                         color: active ? "#fff" : "#3A4358",
-                        border: `1px solid ${active ? "#4E5BDC" : "#D5DAE4"}`,
+                        border: `1px solid ${active ? "#1D2F8A" : "#D5DAE4"}`,
                         boxShadow: "0 2px 6px rgba(20,24,45,.08)",
                       }}
                     >
@@ -191,7 +191,7 @@ export default function ProductCard({
           <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#1F9D63" }} />
           <span className="pc-brand" style={{ fontSize: 11, color: "#8A93A6", fontWeight: 600, letterSpacing: "0.2px" }}>{shown.brand}</span>
           {hasVariants && (
-            <span className="pc-opts" style={{ fontSize: 10, fontWeight: 700, color: "#4E5BDC", background: "#EEF0FE", padding: "2px 7px", borderRadius: 8, marginLeft: "auto" }}>
+            <span className="pc-opts" style={{ fontSize: 10, fontWeight: 700, color: "#1D2F8A", background: "#E9EDF9", padding: "2px 7px", borderRadius: 8, marginLeft: "auto" }}>
               {siblings.length} options
             </span>
           )}
@@ -201,7 +201,7 @@ export default function ProductCard({
           <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", margin: "0 0 4px" }}>
             {attrsLine && <span style={{ fontSize: 11, color: "#56627A", fontWeight: 600 }}>{attrsLine}</span>}
             {current && (
-              <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "0.4px", textTransform: "uppercase", color: "#4E5BDC", background: "#EEF0FE", padding: "2px 7px", borderRadius: 7 }}>Viewing</span>
+              <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "0.4px", textTransform: "uppercase", color: "#1D2F8A", background: "#E9EDF9", padding: "2px 7px", borderRadius: 7 }}>Viewing</span>
             )}
           </div>
         )}
@@ -221,7 +221,7 @@ export default function ProductCard({
         <div className="pc-spec" style={{ marginBottom: 13, display: "flex", flexDirection: "column", gap: 2.5 }}>
           {cardHighlights(shown).map((h) => (
             <div key={h} style={{ display: "flex", alignItems: "baseline", gap: 6, fontSize: 11, color: "#56627A", lineHeight: 1.35, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              <span style={{ color: "#4E5BDC", fontSize: 9, flexShrink: 0 }}>●</span>
+              <span style={{ color: "#1D2F8A", fontSize: 9, flexShrink: 0 }}>●</span>
               <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{h}</span>
             </div>
           ))}
@@ -253,7 +253,7 @@ export default function ProductCard({
           ) : isMetalCategory(shown.cat) ? (
             // Metals book via the token flow, never the cart - the card's CTA
             // walks through to the PDP's "Book at today's rate".
-            <div className="pc-cta" style={{ width: "100%", marginTop: 10, background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 12.5, padding: "8px 10px", borderRadius: 9, textAlign: "center" }}>
+            <div className="pc-cta" style={{ width: "100%", marginTop: 10, background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 12.5, padding: "8px 10px", borderRadius: 9, textAlign: "center" }}>
               Book at today's rate →
             </div>
           ) : (
@@ -266,7 +266,7 @@ export default function ProductCard({
                 setTimeout(() => setAdded(false), 1200);
               }}
               className="pc-cta"
-              style={{ width: "100%", marginTop: 10, background: added ? "#1F9D63" : "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 12.5, border: "none", padding: "8px 10px", borderRadius: 9, cursor: "pointer" }}
+              style={{ width: "100%", marginTop: 10, background: added ? "#1F9D63" : "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 12.5, border: "none", padding: "8px 10px", borderRadius: 9, cursor: "pointer" }}
             >
               {added ? "✓ Added" : "Add to cart"}
             </button>

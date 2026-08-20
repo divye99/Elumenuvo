@@ -118,7 +118,7 @@ export default function BookingClient({
           {bank?.note && <p style={{ fontSize: 12, color: "#8A93A6", margin: "10px 0 0" }}>{bank.note}</p>}
         </div>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 22 }}>
-          <Link href="/track" style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13.5, padding: "11px 20px", borderRadius: 10 }}>Track my booking →</Link>
+          <Link href="/track" style={{ background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 13.5, padding: "11px 20px", borderRadius: 10 }}>Track my booking →</Link>
           <Link href="/metals" style={{ background: "#fff", border: "1.5px solid #E0E4ED", color: "#19202E", fontWeight: 700, fontSize: 13.5, padding: "11px 20px", borderRadius: 10 }}>Back to Metals</Link>
         </div>
       </main>
@@ -145,7 +145,7 @@ export default function BookingClient({
               <span style={{ width: 56, textAlign: "center", fontFamily: GROTESK, fontSize: 16, fontWeight: 600 }}>{lots}</span>
               <button onClick={() => setLots(Math.min(MAX_LOTS, lots + 1))} style={{ width: 44, height: 46, border: "none", background: "#fff", cursor: "pointer", color: "#56627A", fontSize: 20 }}>+</button>
             </div>
-            <div style={{ fontSize: 12, color: "#8A93A6", marginTop: 6 }}>= {(kg * lots).toLocaleString("en-IN")} kg of copper · need more than {MAX_LOTS} lots? <Link href="/metals/enquiry?metal=Copper" style={{ color: "#4E5BDC", fontWeight: 600 }}>Raise a bulk enquiry</Link></div>
+            <div style={{ fontSize: 12, color: "#8A93A6", marginTop: 6 }}>= {(kg * lots).toLocaleString("en-IN")} kg of copper · need more than {MAX_LOTS} lots? <Link href="/metals/enquiry?metal=Copper" style={{ color: "#1D2F8A", fontWeight: 600 }}>Raise a bulk enquiry</Link></div>
           </div>
 
           <div style={{ background: "#F7F8FB", border: "1px solid #F0F2F6", borderRadius: 11, padding: "12px 15px", fontSize: 13 }}>
@@ -175,13 +175,13 @@ export default function BookingClient({
             <button
               onClick={book}
               disabled={pending}
-              style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 15, border: "none", padding: "14px 22px", borderRadius: 11, cursor: "pointer", opacity: pending ? 0.7 : 1 }}
+              style={{ background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 15, border: "none", padding: "14px 22px", borderRadius: 11, cursor: "pointer", opacity: pending ? 0.7 : 1 }}
             >
               {pending ? "Opening secure payment…" : `Pay ${fmt(m.token)} token · lock today's rate`}
             </button>
           ) : (
             <div style={{ background: "#F7F8FB", border: "1px solid #E8EBF1", borderRadius: 11, padding: "13px 16px", fontSize: 13.5, color: "#56627A" }}>
-              Online token payment is being enabled. Meanwhile, <Link href="/metals/enquiry?metal=Copper" style={{ color: "#4E5BDC", fontWeight: 700 }}>raise an enquiry</Link> and we'll book you over email.
+              Online token payment is being enabled. Meanwhile, <Link href="/metals/enquiry?metal=Copper" style={{ color: "#1D2F8A", fontWeight: 700 }}>raise an enquiry</Link> and we'll book you over email.
             </div>
           )}
           <p style={{ fontSize: 11.5, color: "#8A93A6", margin: 0, lineHeight: 1.55 }}>

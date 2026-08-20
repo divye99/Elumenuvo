@@ -187,7 +187,7 @@ export const STEPS = [
 export const MINI_ROWS = [
   { name: "Aurelia Towers", loc: "Noida · Sec 150", tag: "PO due", bg: "#FBF1E0", fg: "#C5841C" },
   { name: "Greenscape Residency", loc: "Ghaziabad", tag: "On track", bg: "#E6F5EE", fg: "#1F9D63" },
-  { name: "Meadows Phase 2", loc: "Gr. Noida West", tag: "Reorder", bg: "#EEF0FD", fg: "#4E5BDC" },
+  { name: "Meadows Phase 2", loc: "Gr. Noida West", tag: "Reorder", bg: "#EEF0FD", fg: "#1D2F8A" },
 ];
 
 /* ── Dashboard sample data (illustrative; becomes real per-user data with auth) ── */

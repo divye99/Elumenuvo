@@ -29,7 +29,7 @@ export default function WaitlistForm() {
       <button
         type="submit"
         disabled={pending}
-        style={{ background: "#4E5BDC", color: "#fff", fontSize: 14.5, fontWeight: 700, border: "none", borderRadius: 11, padding: "13px 22px", cursor: pending ? "wait" : "pointer", opacity: pending ? 0.7 : 1 }}
+        style={{ background: "#1D2F8A", color: "#fff", fontSize: 14.5, fontWeight: 700, border: "none", borderRadius: 11, padding: "13px 22px", cursor: pending ? "wait" : "pointer", opacity: pending ? 0.7 : 1 }}
       >
         {pending ? "Joining…" : "Join the credit waitlist"}
       </button>

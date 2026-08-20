@@ -220,6 +220,26 @@ Tracks competitor prices over time per SKU, flags where we have drifted above ma
 - The finish legend lives in NORISYS_FINISH; unknown suffixes fall back to the product's own name. Marble tones: .10 Sparkle White, .11 Terra Beige, .12 Salt White, .13 Onyx White. norisysFinishFamily groups labels into the material families used by the brand page's two-level Finish filter.`,
   },
   {
+    slug: "elume-brand",
+    title: "Elume house brand: identity and wire ranges",
+    summary: "The Factor X identity (palette, fonts, logo, tagline rules) and the FR / HFFR house-wire ranges.",
+    tags: ["catalogue"],
+    body: `The Factor X identity (Aug 2026) is the site's design system AND the house-wire brand.
+
+## Identity tokens
+- Palette: Azule Blue #1D2F8A (primary accent), Midnight Blue #16215B (dark surfaces), Bright Orange #F25929 (highlight), Violet #723271, Spark Gold #D2AE6D (premium accents), Black #121212. Signature gradient: linear-gradient(133deg, #16215B, #1D2F8A 34%, #723271 70%, #F25929 104%).
+- Fonts: General Sans sitewide (local woff2 in src/fonts, Fontshare license alongside); Space Mono for SKU chips. Tw Cen MT is PRINT ONLY (Monotype license) - never embed it on the web.
+- Logos: /assets/elume-mark.png (mark + gold star), elume-wordmark(.png/-white.png), elume-mark-square.png (SEO), elume-star.png (spark accent). App icons and og.png are generated from the kit.
+- TAGLINE RULE: "Current ka naya standard" belongs to the HOUSEWIRES range only - the brand page and wire surfaces, never the marketplace chrome.
+
+## The two wire ranges
+- Elume FR: FR PVC, 0.5-10 sq mm, 7 marketing colours (Ultraviolet, Solar Flare, Aurora, Ember, Midnight, Moonlight, Eclipse - keep these names), 45/90/180 m coils.
+- Elume HFFR: the FLAGSHIP. Halogen-free, PVC-free, 1-6 sq mm, same 7 colours, 90 m coils ONLY. Own variant family (root elume-hffr-2p5-90-ultraviolet), ELINs ELUME00174-00208. Launched at FR-parity pricing; packshots reuse the FR box until HFFR packaging exists.
+- Spec data comes from the Elume product catalogue via scripts/elume-wires-backfill.ts (idempotent - extend the script, never hand-edit wire tech_specs).
+
+KAM note: certifications to quote are IS 694 and IS 8130, ASTM D2863/D2843 fire tests, CE (generally conforming), RoHS and REACH - phrased exactly like that.`,
+  },
+  {
     slug: "elin",
     title: "ELIN: the Elume Listing Identifier",
     summary: "Our ASIN equivalent: stable short codes for every listing.",

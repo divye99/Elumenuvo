@@ -69,11 +69,11 @@ export default function CompareConsole({ groups, rejected, coverage }: { groups:
         <span style={{ fontSize: 12.5, color: "#8A93A6" }}>
           {groups.length} groups · {coverage.keyed}/{coverage.total} products fingerprinted
         </span>
-        <button onClick={rebuild} disabled={busy === "rebuild"} style={{ marginLeft: "auto", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13, border: "none", padding: "9px 16px", borderRadius: 9, cursor: "pointer", opacity: busy === "rebuild" ? 0.6 : 1 }}>
+        <button onClick={rebuild} disabled={busy === "rebuild"} style={{ marginLeft: "auto", background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 13, border: "none", padding: "9px 16px", borderRadius: 9, cursor: "pointer", opacity: busy === "rebuild" ? 0.6 : 1 }}>
           {busy === "rebuild" ? "Rebuilding…" : "↻ Rebuild mappings now"}
         </button>
       </div>
-      {note && <div style={{ background: "#EEF0FE", color: "#3A46B8", borderRadius: 10, padding: "10px 14px", fontSize: 13 }}>{note}</div>}
+      {note && <div style={{ background: "#E9EDF9", color: "#3A46B8", borderRadius: 10, padding: "10px 14px", fontSize: 13 }}>{note}</div>}
 
       {/* Groups */}
       {shown.length === 0 ? (
@@ -95,7 +95,7 @@ export default function CompareConsole({ groups, rejected, coverage }: { groups:
                 <div style={{ width: 36, height: 36, borderRadius: 8, flex: "none", background: m.image ? `center/contain no-repeat url(${m.image}) #fff` : "#F0F2F6", border: "1px solid #EEF0F4" }} />
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <a href={`/catalogue/${m.id}`} target="_blank" rel="noreferrer" style={{ fontSize: 13, fontWeight: 600, color: "#19202E" }}>
-                    {m.name} <span style={{ color: "#4E5BDC", fontSize: 11.5 }}>↗</span>
+                    {m.name} <span style={{ color: "#1D2F8A", fontSize: 11.5 }}>↗</span>
                   </a>
                   <div style={{ fontSize: 11, color: "#8A93A6" }}>
                     {m.brand} · {fmt(m.price)} incl.

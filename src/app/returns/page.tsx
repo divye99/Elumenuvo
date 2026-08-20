@@ -35,7 +35,7 @@ export default function ReturnsPage() {
           h: "How to start a return",
           body: (
             <>
-              Email <a href="mailto:info@elumenuvo.com" style={{ color: "#4E5BDC", fontWeight: 600 }}>info@elumenuvo.com</a> or
+              Email <a href="mailto:info@elumenuvo.com" style={{ color: "#1D2F8A", fontWeight: 600 }}>info@elumenuvo.com</a> or
               call +91 98188 21175 with your order ID and the item you want to return. We&apos;ll confirm eligibility and
               arrange a free reverse pickup from your address - you don&apos;t pay for return shipping.
             </>

@@ -62,7 +62,7 @@ export default function BlogBrowser({ posts }: { posts: BlogCard[] }) {
             <span
               key={c}
               onClick={() => setCat(c)}
-              style={{ fontSize: 12.5, fontWeight: 700, color: on ? "#fff" : "#3A4358", background: on ? "#4E5BDC" : "#fff", border: `1px solid ${on ? "#4E5BDC" : "#E0E4ED"}`, borderRadius: 20, padding: "7px 14px", cursor: "pointer", userSelect: "none" }}
+              style={{ fontSize: 12.5, fontWeight: 700, color: on ? "#fff" : "#3A4358", background: on ? "#1D2F8A" : "#fff", border: `1px solid ${on ? "#1D2F8A" : "#E0E4ED"}`, borderRadius: 20, padding: "7px 14px", cursor: "pointer", userSelect: "none" }}
             >
               {c}
             </span>
@@ -73,13 +73,13 @@ export default function BlogBrowser({ posts }: { posts: BlogCard[] }) {
       {shown.length === 0 ? (
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "40px 24px", textAlign: "center", color: "#8A93A6", fontSize: 14 }}>
           No guides match &quot;{q.trim()}&quot;{cat !== "All" ? ` in ${cat}` : ""}. Try another word or{" "}
-          <span onClick={() => { setQ(""); setCat("All"); }} style={{ color: "#4E5BDC", fontWeight: 700, cursor: "pointer" }}>clear the filters</span>.
+          <span onClick={() => { setQ(""); setCat("All"); }} style={{ color: "#1D2F8A", fontWeight: 700, cursor: "pointer" }}>clear the filters</span>.
         </div>
       ) : (
         <div className="blog-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 18 }}>
           {shown.map((p) => (
             <Link key={p.slug} href={`/blog/${p.slug}`} style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 16, padding: 22, display: "block" }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 11, fontWeight: 700, letterSpacing: "0.4px", textTransform: "uppercase", color: "#4E5BDC", background: "#EEF0FD", padding: "4px 10px", borderRadius: 20, marginBottom: 12 }}>{p.category}</div>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 11, fontWeight: 700, letterSpacing: "0.4px", textTransform: "uppercase", color: "#1D2F8A", background: "#EEF0FD", padding: "4px 10px", borderRadius: 20, marginBottom: 12 }}>{p.category}</div>
               <h2 style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600, lineHeight: 1.25, margin: "0 0 8px" }}>{p.title}</h2>
               <p style={{ fontSize: 14, color: "#56627A", lineHeight: 1.5, margin: 0 }}>{p.description}</p>
               <div style={{ fontFamily: MONO, fontSize: 11.5, color: "#A0A7B5", marginTop: 14 }}>

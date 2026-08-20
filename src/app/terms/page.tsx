@@ -36,7 +36,7 @@ export default function TermsPage() {
           body: (
             <>
               Returns are governed by our{" "}
-              <a href="/returns" style={{ color: "#4E5BDC", fontWeight: 600 }}>Returns &amp; refunds policy</a> (7-day
+              <a href="/returns" style={{ color: "#1D2F8A", fontWeight: 600 }}>Returns &amp; refunds policy</a> (7-day
               window, free return shipping). Products carry the manufacturer&apos;s standard warranty; your Elume GST
               invoice is your proof of purchase.
             </>

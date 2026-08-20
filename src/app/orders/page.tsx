@@ -37,7 +37,7 @@ export default async function MyOrdersPage() {
       <main style={{ maxWidth: 820, margin: "0 auto", padding: "36px 24px 60px" }}>
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 6 }}>
           <h1 style={{ fontFamily: "var(--space-grotesk)", fontSize: 28, fontWeight: 600, letterSpacing: "-0.6px", margin: 0 }}>My orders</h1>
-          <Link href="/catalogue" style={{ fontSize: 13, color: "#4E5BDC", fontWeight: 600 }}>Browse catalogue →</Link>
+          <Link href="/catalogue" style={{ fontSize: 13, color: "#1D2F8A", fontWeight: 600 }}>Browse catalogue →</Link>
         </div>
         <p style={{ fontSize: 13.5, color: "#8A93A6", margin: "0 0 20px" }}>Orders placed while signed in as {user.email}.</p>
 
@@ -47,8 +47,8 @@ export default async function MyOrdersPage() {
             <div style={{ fontFamily: "var(--space-grotesk)", fontSize: 18, fontWeight: 600 }}>No orders yet</div>
             <p style={{ fontSize: 13.5, color: "#8A93A6", margin: "8px 0 16px" }}>Placed an order as a guest? Track it with your order number and email.</p>
             <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
-              <Link href="/catalogue" style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14, padding: "10px 20px", borderRadius: 10 }}>Start shopping</Link>
-              <Link href="/track" style={{ background: "#EEF0FE", color: "#4E5BDC", fontWeight: 700, fontSize: 14, padding: "10px 20px", borderRadius: 10 }}>Track a guest order</Link>
+              <Link href="/catalogue" style={{ background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 14, padding: "10px 20px", borderRadius: 10 }}>Start shopping</Link>
+              <Link href="/track" style={{ background: "#E9EDF9", color: "#1D2F8A", fontWeight: 700, fontSize: 14, padding: "10px 20px", borderRadius: 10 }}>Track a guest order</Link>
             </div>
           </div>
         ) : (

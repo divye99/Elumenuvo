@@ -20,7 +20,7 @@ export default function AdminError({ error, reset }: { error: Error & { digest?:
       <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
         <button
           onClick={() => window.location.reload()}
-          style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13.5, border: "none", padding: "11px 22px", borderRadius: 10, cursor: "pointer" }}
+          style={{ background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 13.5, border: "none", padding: "11px 22px", borderRadius: 10, cursor: "pointer" }}
         >
           Reload this page
         </button>

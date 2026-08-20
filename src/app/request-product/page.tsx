@@ -31,7 +31,7 @@ export default function RequestProductPage() {
       <main style={{ maxWidth: 1080, margin: "0 auto", padding: "40px 28px 72px" }}>
         <div className="pd-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1.1fr", gap: 40, alignItems: "start" }}>
           <div>
-            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "1.4px", textTransform: "uppercase", color: "#4E5BDC", marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "1.4px", textTransform: "uppercase", color: "#1D2F8A", marginBottom: 10 }}>
               Product sourcing
             </div>
             <h1 style={{ fontFamily: GROTESK, fontSize: 34, fontWeight: 600, letterSpacing: "-0.9px", lineHeight: 1.15, margin: 0 }}>
@@ -44,7 +44,7 @@ export default function RequestProductPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {STEPS.map((s) => (
                 <div key={s.n} style={{ display: "flex", gap: 14, background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "14px 16px" }}>
-                  <span style={{ flexShrink: 0, width: 28, height: 28, borderRadius: "50%", background: "#EEF0FE", color: "#4E5BDC", fontWeight: 800, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>{s.n}</span>
+                  <span style={{ flexShrink: 0, width: 28, height: 28, borderRadius: "50%", background: "#E9EDF9", color: "#1D2F8A", fontWeight: 800, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>{s.n}</span>
                   <div>
                     <div style={{ fontSize: 13.5, fontWeight: 700, color: "#19202E" }}>{s.title}</div>
                     <p style={{ fontSize: 12.5, color: "#56627A", lineHeight: 1.55, margin: "3px 0 0" }}>{s.body}</p>

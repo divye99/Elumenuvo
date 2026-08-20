@@ -4,7 +4,7 @@ export default function AppLoading() {
   const card: React.CSSProperties = { background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, height: 108 };
   return (
     <div style={{ height: "100vh", display: "flex", overflow: "hidden", background: "#F5F6F9" }}>
-      <div style={{ width: 224, flex: "none", background: "#161D2B" }} />
+      <div style={{ width: 224, flex: "none", background: "#16215B" }} />
       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         <div style={{ height: 64, background: "#fff", borderBottom: "1px solid #E8EBF1", display: "flex", alignItems: "center", padding: "0 28px", gap: 10 }}>
           <div style={{ width: 140, height: 16, borderRadius: 6, background: "#EEF0F4", animation: "elumePulse 1.2s ease-in-out infinite" }} />

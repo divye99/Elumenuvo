@@ -18,7 +18,7 @@ export type PromoRow = {
 
 const inp: React.CSSProperties = { fontSize: 13, border: "1px solid #E0E4ED", borderRadius: 9, padding: "8px 10px", width: "100%" };
 const lbl: React.CSSProperties = { fontSize: 11, fontWeight: 700, color: "#56627A", display: "block", marginBottom: 4 };
-const mini: React.CSSProperties = { fontSize: 12, fontWeight: 700, color: "#4E5BDC", background: "#F3F5F9", border: "none", borderRadius: 8, padding: "6px 11px", cursor: "pointer" };
+const mini: React.CSSProperties = { fontSize: 12, fontWeight: 700, color: "#1D2F8A", background: "#F3F5F9", border: "none", borderRadius: 8, padding: "6px 11px", cursor: "pointer" };
 
 const istDate = (iso: string) => new Date(iso).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short", year: "numeric" });
 
@@ -48,7 +48,7 @@ export default function PromotionsConsole({ rows, tableMissing }: { rows: PromoR
   const status = (p: PromoRow) => {
     if (!p.active) return { label: "OFF", bg: "#F3F5F9", fg: "#8A93A6" };
     if (new Date(p.ends_at).getTime() < now) return { label: "EXPIRED", bg: "#FDECEC", fg: "#C0392B" };
-    if (new Date(p.starts_at).getTime() > now) return { label: "SCHEDULED", bg: "#EEF0FE", fg: "#4E5BDC" };
+    if (new Date(p.starts_at).getTime() > now) return { label: "SCHEDULED", bg: "#E9EDF9", fg: "#1D2F8A" };
     return { label: "LIVE", bg: "#E7F6EE", fg: "#1F9D63" };
   };
 
@@ -125,7 +125,7 @@ export default function PromotionsConsole({ rows, tableMissing }: { rows: PromoR
         <button
           disabled={pending}
           onClick={() => call({ op: "create", promotionId: pid, longTitle: title, offerType, redemptionCode: code, applicability, itemIds, minPurchase, startsAt: startsAt ? `${startsAt}T00:00:00+05:30` : "", endsAt: endsAt ? `${endsAt}T23:59:59+05:30` : "" })}
-          style={{ justifySelf: "start", background: pending ? "#C9CFDD" : "#4E5BDC", color: "#fff", fontSize: 13, fontWeight: 700, padding: "10px 18px", borderRadius: 10, border: "none", cursor: "pointer" }}
+          style={{ justifySelf: "start", background: pending ? "#C9CFDD" : "#1D2F8A", color: "#fff", fontSize: 13, fontWeight: 700, padding: "10px 18px", borderRadius: 10, border: "none", cursor: "pointer" }}
         >
           {pending ? "Saving…" : "Create promotion"}
         </button>

@@ -104,7 +104,7 @@ export default function MetalsConsole({ products }: { products: ConsoleProduct[]
             if (!parseFloat(fillAll)) return;
             setRates(Object.fromEntries(products.map((p) => [p.id, fillAll])));
           }}
-          style={{ fontSize: 13, fontWeight: 700, color: "#4E5BDC", background: "#EEF0FD", border: "none", padding: "9px 14px", borderRadius: 9, cursor: "pointer" }}
+          style={{ fontSize: 13, fontWeight: 700, color: "#1D2F8A", background: "#EEF0FD", border: "none", padding: "9px 14px", borderRadius: 9, cursor: "pointer" }}
         >
           Fill all rows
         </button>
@@ -129,7 +129,7 @@ export default function MetalsConsole({ products }: { products: ConsoleProduct[]
               <tr key={p.id}>
                 <td style={{ padding: "12px 10px 12px 0", borderBottom: "1px solid #F5F6F9", fontWeight: 600 }}>
                   {p.name}
-                  {p.lot && <span style={{ marginLeft: 8, fontSize: 11.5, fontWeight: 700, color: "#4E5BDC", background: "#EEF0FD", borderRadius: 7, padding: "2px 8px" }}>{p.lot}</span>}
+                  {p.lot && <span style={{ marginLeft: 8, fontSize: 11.5, fontWeight: 700, color: "#1D2F8A", background: "#EEF0FD", borderRadius: 7, padding: "2px 8px" }}>{p.lot}</span>}
                 </td>
                 <td style={{ padding: "12px 10px 12px 0", borderBottom: "1px solid #F5F6F9", color: "#56627A" }}>{kg === 1 ? "per kg" : `${p.lot} lot (${kg.toLocaleString("en-IN")} kg)`}</td>
                 <td style={{ padding: "12px 10px 12px 0", borderBottom: "1px solid #F5F6F9" }}>₹{curRate.toFixed(2)}/kg</td>
@@ -175,7 +175,7 @@ export default function MetalsConsole({ products }: { products: ConsoleProduct[]
           onClick={saveRates}
           disabled={pending || entries.length === 0}
           style={{
-            background: entries.length ? "#4E5BDC" : "#AEB6C4",
+            background: entries.length ? "#1D2F8A" : "#AEB6C4",
             color: "#fff",
             fontWeight: 700,
             fontSize: 14,

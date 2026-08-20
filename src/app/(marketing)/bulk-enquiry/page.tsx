@@ -50,7 +50,7 @@ export default function BulkEnquiryPage() {
     <StoreChrome>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLd(BREADCRUMB_LD) }} />
       <main style={{ maxWidth: 1120, margin: "0 auto", padding: "40px 28px 72px" }}>
-        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "1.4px", textTransform: "uppercase", color: "#4E5BDC", marginBottom: 10 }}>
+        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "1.4px", textTransform: "uppercase", color: "#1D2F8A", marginBottom: 10 }}>
           Bulk enquiry
         </div>
         <h1 style={{ fontFamily: GROTESK, fontSize: "clamp(26px, 4vw, 34px)", fontWeight: 600, letterSpacing: "-0.8px", margin: 0, maxWidth: 720 }}>
@@ -72,7 +72,7 @@ export default function BulkEnquiryPage() {
                 <div style={{ fontSize: 12.5, color: "#56627A", lineHeight: 1.6 }}>{b.body}</div>
               </div>
             ))}
-            <div style={{ gridColumn: "1 / -1", background: "#161D2B", color: "#C6CDE2", borderRadius: 14, padding: "14px 18px", fontSize: 12.5, lineHeight: 1.6 }}>
+            <div style={{ gridColumn: "1 / -1", background: "#16215B", color: "#C6CDE2", borderRadius: 14, padding: "14px 18px", fontSize: 12.5, lineHeight: 1.6 }}>
               Prefer email or phone? Write to <a href="mailto:info@elumenuvo.com" style={{ color: "#9DB0FF", fontWeight: 700 }}>info@elumenuvo.com</a> or
               call <a href="tel:+919818821175" style={{ color: "#9DB0FF", fontWeight: 700 }}>+91 98188 21175</a>. 30-day NBFC credit for
               business buyers is coming soon; ask about the waitlist in your enquiry.

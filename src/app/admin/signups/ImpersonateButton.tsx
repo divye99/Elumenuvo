@@ -54,7 +54,7 @@ export default function ImpersonateButton({ email, name }: { email: string; name
       <button
         onClick={() => { setErr(""); setState("confirm"); }}
         title="Opens a one-time sign-in link for this customer in a new tab. You will BE them - use a private window and sign out when done."
-        style={{ fontSize: 11, fontWeight: 700, color: "#4E5BDC", background: "#EEF0FE", border: "none", padding: "4px 10px", borderRadius: 8, cursor: "pointer", whiteSpace: "nowrap" }}
+        style={{ fontSize: 11, fontWeight: 700, color: "#1D2F8A", background: "#E9EDF9", border: "none", padding: "4px 10px", borderRadius: 8, cursor: "pointer", whiteSpace: "nowrap" }}
       >
         👁 View their workspace
       </button>

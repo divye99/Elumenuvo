@@ -29,8 +29,8 @@ export default async function AdminLogin({
           required
           style={{ width: "100%", boxSizing: "border-box", border: "1px solid #E0E4ED", borderRadius: 10, padding: "11px 13px", fontSize: 14, outline: "none" }}
         />
-        {msg && <p style={{ color: "#E0612A", fontSize: 12.5, margin: "10px 0 0" }}>{msg}</p>}
-        <button style={{ width: "100%", marginTop: 14, background: "#4E5BDC", color: "#fff", fontWeight: 600, fontSize: 14, border: "none", padding: "11px", borderRadius: 10, cursor: "pointer" }}>
+        {msg && <p style={{ color: "#F25929", fontSize: 12.5, margin: "10px 0 0" }}>{msg}</p>}
+        <button style={{ width: "100%", marginTop: 14, background: "#1D2F8A", color: "#fff", fontWeight: 600, fontSize: 14, border: "none", padding: "11px", borderRadius: 10, cursor: "pointer" }}>
           Sign in
         </button>
       </form>

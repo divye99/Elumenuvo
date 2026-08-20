@@ -123,7 +123,7 @@ export default async function MetalsHub() {
               Super D, CCR rod and CC rod go live here at a transparent daily rate. Until then, tell us what you need
               and we&apos;ll quote you directly.
             </p>
-            <Link href="/metals/enquiry?metal=Copper" style={{ display: "inline-block", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13, padding: "10px 18px", borderRadius: 10 }}>
+            <Link href="/metals/enquiry?metal=Copper" style={{ display: "inline-block", background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 13, padding: "10px 18px", borderRadius: 10 }}>
               Enquire about copper →
             </Link>
           </div>
@@ -137,7 +137,7 @@ export default async function MetalsHub() {
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <span style={{ fontSize: 14.5, fontWeight: 700, color: "#19202E" }}>{p.name}</span>
                     {p.attrs?.Lot && (
-                      <span style={{ fontSize: 11, fontWeight: 700, color: "#4E5BDC", background: "#EEF0FD", borderRadius: 7, padding: "2px 8px" }}>{p.attrs.Lot}</span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#1D2F8A", background: "#EEF0FD", borderRadius: 7, padding: "2px 8px" }}>{p.attrs.Lot}</span>
                     )}
                   </div>
                   <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
@@ -149,7 +149,7 @@ export default async function MetalsHub() {
                   {kg > 1 && (
                     <div style={{ fontSize: 12.5, color: "#56627A" }}>{fmt(p.price)} incl. GST per {p.attrs?.Lot} lot ({kg.toLocaleString("en-IN")} kg)</div>
                   )}
-                  <span style={{ fontSize: 12.5, fontWeight: 700, color: "#4E5BDC", marginTop: "auto" }}>Live rate, charts &amp; details →</span>
+                  <span style={{ fontSize: 12.5, fontWeight: 700, color: "#1D2F8A", marginTop: "auto" }}>Live rate, charts &amp; details →</span>
                 </Link>
               );
             })}
@@ -209,7 +209,7 @@ export default async function MetalsHub() {
                 >
                   <span style={{ fontSize: 18 }}>{METAL_ICONS[m.name]}</span>
                   <span style={{ fontSize: 13, fontWeight: 700, color: "#19202E" }}>{m.name}</span>
-                  <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 700, color: m.live ? "#1F9D63" : "#4E5BDC" }}>
+                  <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 700, color: m.live ? "#1F9D63" : "#1D2F8A" }}>
                     {m.live ? "Buy ↑" : "Enquire →"}
                   </span>
                 </Link>
@@ -247,7 +247,7 @@ export default async function MetalsHub() {
             ["4", "Dispatch & GST invoice", "Material dispatches on payment confirmation with a full GST tax invoice."],
           ].map(([n, t, b]) => (
             <div key={n}>
-              <div style={{ width: 26, height: 26, borderRadius: 8, background: "#EEF0FD", color: "#4E5BDC", fontWeight: 800, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>{n}</div>
+              <div style={{ width: 26, height: 26, borderRadius: 8, background: "#EEF0FD", color: "#1D2F8A", fontWeight: 800, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>{n}</div>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#19202E" }}>{t}</div>
               <div style={{ fontSize: 12, color: "#56627A", lineHeight: 1.5, marginTop: 3 }}>{b}</div>
             </div>

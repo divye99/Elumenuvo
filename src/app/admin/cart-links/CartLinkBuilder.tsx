@@ -88,7 +88,7 @@ export default function CartLinkBuilder({ products, initialItems }: { products: 
               {chosen.has(p.id) ? (
                 <span style={{ fontSize: 11.5, fontWeight: 700, color: "#137a4b" }}>✓ added</span>
               ) : (
-                <button onClick={() => setQty(p.id, 1)} style={{ background: "#EEF0FE", color: "#4E5BDC", border: "none", fontWeight: 700, fontSize: 12, padding: "7px 13px", borderRadius: 8, cursor: "pointer", flex: "none" }}>+ Add</button>
+                <button onClick={() => setQty(p.id, 1)} style={{ background: "#E9EDF9", color: "#1D2F8A", border: "none", fontWeight: 700, fontSize: 12, padding: "7px 13px", borderRadius: 8, cursor: "pointer", flex: "none" }}>+ Add</button>
               )}
             </div>
           ))}

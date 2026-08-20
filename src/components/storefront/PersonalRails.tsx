@@ -47,7 +47,7 @@ export default function PersonalRails({ ctx, heading }: { ctx: string; heading?:
           <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap", marginBottom: 4 }}>
             <h2 style={{ fontSize: 19, fontWeight: 700, letterSpacing: "-0.3px", margin: 0 }}>{rail.title}</h2>
             <span style={{ fontSize: 12.5, color: "#8A93A6" }}>{rail.reason}</span>
-            {heading && <Link href="/for-you" style={{ marginLeft: "auto", fontSize: 13, fontWeight: 700, color: "#4E5BDC" }}>Everything for you →</Link>}
+            {heading && <Link href="/for-you" style={{ marginLeft: "auto", fontSize: 13, fontWeight: 700, color: "#1D2F8A" }}>Everything for you →</Link>}
           </div>
           <div style={{ display: "flex", gap: 14, overflowX: "auto", padding: "10px 2px 12px", scrollSnapType: "x proximity" }}>
             {rail.items.map((p) => {
@@ -68,7 +68,7 @@ export default function PersonalRails({ ctx, heading }: { ctx: string; heading?:
                     {added.has(p.id) ? (
                       <Link href="/cart" style={{ display: "block", textAlign: "center", fontSize: 12, fontWeight: 700, color: "#137a4b", padding: "7px 0 0" }}>✓ In cart →</Link>
                     ) : (
-                      <button onClick={() => add(rail, p)} style={{ display: "block", width: "100%", marginTop: 7, background: "#4E5BDC", color: "#fff", border: "none", fontWeight: 700, fontSize: 12, padding: "7px 0", borderRadius: 8, cursor: "pointer" }}>
+                      <button onClick={() => add(rail, p)} style={{ display: "block", width: "100%", marginTop: 7, background: "#1D2F8A", color: "#fff", border: "none", fontWeight: 700, fontSize: 12, padding: "7px 0", borderRadius: 8, cursor: "pointer" }}>
                         Add to cart
                       </button>
                     )}

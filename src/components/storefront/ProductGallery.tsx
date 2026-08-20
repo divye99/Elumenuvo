@@ -90,7 +90,7 @@ export default function ProductGallery({
           <span style={{ position: "absolute", right: 14, bottom: 14, zIndex: 2, pointerEvents: "none", fontSize: 12, fontWeight: 700, color: "#1F9D63", background: "#fff", padding: "5px 10px", borderRadius: 7 }}>{offLabel}</span>
         )}
         {lens && (
-          <div style={{ position: "absolute", pointerEvents: "none", width: 96, height: 96, left: `calc(${lens.x * 100}% - 48px)`, top: `calc(${lens.y * 100}% - 48px)`, border: "1.5px solid #4E5BDC", background: "rgba(78,91,220,0.08)", borderRadius: 8 }} />
+          <div style={{ position: "absolute", pointerEvents: "none", width: 96, height: 96, left: `calc(${lens.x * 100}% - 48px)`, top: `calc(${lens.y * 100}% - 48px)`, border: "1.5px solid #1D2F8A", background: "rgba(78,91,220,0.08)", borderRadius: 8 }} />
         )}
         {live.length > 1 && (
           <span style={{ position: "absolute", right: 12, top: 12, fontSize: 11, fontWeight: 700, color: "#56627A", background: "rgba(255,255,255,0.92)", border: "1px solid #E8EBF1", padding: "3px 9px", borderRadius: 8, pointerEvents: "none" }}>
@@ -125,7 +125,7 @@ export default function ProductGallery({
               aria-label={`Photo ${i + 1} of ${live.length}`}
               aria-current={i === idx}
               onClick={(e) => { e.stopPropagation(); setIdx(i); if (i !== idx) emit("thumb", i); }}
-              style={{ width: 54, height: 54, flex: "0 0 auto", padding: 0, borderRadius: 9, cursor: "pointer", background: "#fff", border: i === idx ? "2px solid #4E5BDC" : "1px solid #E0E4ED", overflow: "hidden" }}
+              style={{ width: 54, height: 54, flex: "0 0 auto", padding: 0, borderRadius: 9, cursor: "pointer", background: "#fff", border: i === idx ? "2px solid #1D2F8A" : "1px solid #E0E4ED", overflow: "hidden" }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={u} alt="" onError={() => markBroken(u)} style={{ width: "100%", height: "100%", objectFit: "contain", padding: 4, boxSizing: "border-box" }} />

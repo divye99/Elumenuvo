@@ -73,7 +73,7 @@ export default async function DeliveryDecisionPage({ params }: { params: Promise
   const { issue, order } = data;
   return (
     <main style={{ fontFamily: "var(--hanken)", maxWidth: 640, margin: "0 auto", padding: "44px 22px 80px", color: "#19202E" }}>
-      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "1.2px", textTransform: "uppercase", color: "#4E5BDC", marginBottom: 8 }}>Elume · delivery update</div>
+      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "1.2px", textTransform: "uppercase", color: "#1D2F8A", marginBottom: 8 }}>Elume · delivery update</div>
       <h1 style={{ fontSize: 25, fontWeight: 700, margin: "0 0 8px" }}>We could not deliver order {order.id}</h1>
       <div style={{ background: "#FFF6ED", border: "1px solid #F5DEC4", borderRadius: 12, padding: "12px 16px", fontSize: 14, margin: "0 0 14px" }}>
         <b>What the courier reported:</b> {issue.reason}

@@ -38,7 +38,7 @@ export default async function WikiArticlePage({ params }: { params: Promise<{ sl
 
   return (
     <article>
-      <Link href="/wiki" style={{ fontSize: 13, color: "#4E5BDC", fontWeight: 700 }}>← All articles</Link>
+      <Link href="/wiki" style={{ fontSize: 13, color: "#1D2F8A", fontWeight: 700 }}>← All articles</Link>
       <h1 style={{ fontSize: 23, fontWeight: 700, margin: "12px 0 4px" }}>{article.title}</h1>
       <p style={{ fontSize: 14, color: "#56627A", margin: "0 0 6px" }}>{article.summary}</p>
       <div style={{ fontSize: 11.5, color: "#8A93A6", marginBottom: 18 }}>{article.tags.join(" · ")}</div>
@@ -46,7 +46,7 @@ export default async function WikiArticlePage({ params }: { params: Promise<{ sl
         {renderBody(article.body)}
       </div>
       <div style={{ marginTop: 18, fontSize: 13.5 }}>
-        Next: <Link href={`/wiki/${next.slug}`} style={{ color: "#4E5BDC", fontWeight: 700 }}>{next.title}</Link>
+        Next: <Link href={`/wiki/${next.slug}`} style={{ color: "#1D2F8A", fontWeight: 700 }}>{next.title}</Link>
       </div>
     </article>
   );

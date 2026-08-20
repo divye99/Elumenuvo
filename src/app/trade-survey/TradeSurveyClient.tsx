@@ -41,7 +41,7 @@ export default function TradeSurveyClient() {
 
   const chip = (on: boolean): React.CSSProperties => ({
     fontSize: 13, fontWeight: 600, padding: "9px 14px", borderRadius: 20, cursor: "pointer", userSelect: "none",
-    background: on ? "#4E5BDC" : "#fff", color: on ? "#fff" : "#3A4358", border: `1.5px solid ${on ? "#4E5BDC" : "#E0E4ED"}`,
+    background: on ? "#1D2F8A" : "#fff", color: on ? "#fff" : "#3A4358", border: `1.5px solid ${on ? "#1D2F8A" : "#E0E4ED"}`,
   });
   const label: React.CSSProperties = { fontFamily: GROTESK, fontSize: 15.5, fontWeight: 600, margin: "0 0 10px" };
   const inp: React.CSSProperties = { width: "100%", border: "1px solid #E0E4ED", borderRadius: 10, padding: "11px 13px", fontSize: 14, boxSizing: "border-box" };
@@ -52,9 +52,9 @@ export default function TradeSurveyClient() {
         <div style={{ fontSize: 40, marginBottom: 10 }}>🙏</div>
         <h1 style={{ fontFamily: GROTESK, fontSize: 26, fontWeight: 700, margin: "0 0 8px" }}>Thank you - that genuinely helps.</h1>
         <p style={{ fontSize: 14.5, color: "#56627A", margin: "0 0 22px" }}>As promised, here is your code for 5% off your first order:</p>
-        <div style={{ display: "inline-block", fontFamily: "var(--space-mono)", fontSize: 26, fontWeight: 700, letterSpacing: 3, background: "#EEF0FD", border: "2px dashed #4E5BDC", color: "#232B6E", borderRadius: 12, padding: "14px 30px" }}>TRADE5</div>
+        <div style={{ display: "inline-block", fontFamily: "var(--space-mono)", fontSize: 26, fontWeight: 700, letterSpacing: 3, background: "#EEF0FD", border: "2px dashed #1D2F8A", color: "#232B6E", borderRadius: 12, padding: "14px 30px" }}>TRADE5</div>
         <p style={{ fontSize: 12.5, color: "#8A93A6", margin: "14px 0 26px" }}>Apply it in the discount box at checkout. Valid till 30 November 2026.</p>
-        <Link href="/catalogue?utm_source=email&utm_medium=outreach&utm_campaign=trade100-survey" style={{ display: "inline-block", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14.5, padding: "13px 26px", borderRadius: 11 }}>
+        <Link href="/catalogue?utm_source=email&utm_medium=outreach&utm_campaign=trade100-survey" style={{ display: "inline-block", background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 14.5, padding: "13px 26px", borderRadius: 11 }}>
           Browse the catalogue →
         </Link>
       </main>
@@ -108,7 +108,7 @@ export default function TradeSurveyClient() {
         </div>
 
         {err && <div style={{ background: "#FBE9E4", color: "#9a3b16", fontSize: 13, fontWeight: 600, padding: "10px 12px", borderRadius: 9 }}>{err}</div>}
-        <button onClick={submit} disabled={pending} style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 15, border: "none", padding: 14, borderRadius: 11, cursor: "pointer", opacity: pending ? 0.6 : 1 }}>
+        <button onClick={submit} disabled={pending} style={{ background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 15, border: "none", padding: 14, borderRadius: 11, cursor: "pointer", opacity: pending ? 0.6 : 1 }}>
           {pending ? "Saving…" : "Submit · get TRADE5"}
         </button>
         <p style={{ fontSize: 11.5, color: "#8A93A6", margin: 0 }}>

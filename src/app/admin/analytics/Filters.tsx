@@ -59,7 +59,7 @@ export default function Filters({ countries, states, devices, brands }: { countr
         <option value="only">Likely bots only</option>
       </select>
       {(sp.get("identity") || sp.get("device") || sp.get("country") || sp.get("state") || sp.get("src") || sp.get("min") || sp.get("bots") || sp.get("brand")) && (
-        <button onClick={() => router.push(`/admin/analytics?days=${sp.get("days") ?? "7"}`)} style={{ border: "none", background: "none", color: "#4E5BDC", fontSize: 12.5, fontWeight: 700, cursor: "pointer" }}>
+        <button onClick={() => router.push(`/admin/analytics?days=${sp.get("days") ?? "7"}`)} style={{ border: "none", background: "none", color: "#1D2F8A", fontSize: 12.5, fontWeight: 700, cursor: "pointer" }}>
           Clear filters
         </button>
       )}

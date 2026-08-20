@@ -94,7 +94,7 @@ export default function RangeRail({ p, family }: { p: Product; family: Product[]
       {!showAll && family.length > FIRST_PAGE && (
         <button
           onClick={() => setShowAll(true)}
-          style={{ marginTop: 12, background: "none", border: "1px solid #E0E4ED", borderRadius: 9, padding: "8px 16px", fontSize: 13, fontWeight: 700, color: "#4E5BDC", cursor: "pointer" }}
+          style={{ marginTop: 12, background: "none", border: "1px solid #E0E4ED", borderRadius: 9, padding: "8px 16px", fontSize: 13, fontWeight: 700, color: "#1D2F8A", cursor: "pointer" }}
         >
           Show all {family.length} options
         </button>

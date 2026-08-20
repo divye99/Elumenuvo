@@ -61,7 +61,7 @@ export default function CartLinkClient({ items, missing, src }: { items: { p: Pr
             The items in it are no longer available. Browse the catalogue, or reply to us on WhatsApp and
             we will send you a fresh link.
           </p>
-          <Link href="/catalogue" style={{ display: "inline-block", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14, padding: "12px 24px", borderRadius: 10 }}>
+          <Link href="/catalogue" style={{ display: "inline-block", background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 14, padding: "12px 24px", borderRadius: 10 }}>
             Browse the catalogue
           </Link>
         </>
@@ -75,7 +75,7 @@ export default function CartLinkClient({ items, missing, src }: { items: { p: Pr
             {missing} item{missing === 1 ? " from this link is" : "s from this link are"} no longer available and
             {missing === 1 ? " was" : " were"} skipped.
           </p>
-          <Link href="/cart" style={{ display: "inline-block", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14, padding: "12px 24px", borderRadius: 10 }}>
+          <Link href="/cart" style={{ display: "inline-block", background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 14, padding: "12px 24px", borderRadius: 10 }}>
             Review cart and checkout →
           </Link>
         </>

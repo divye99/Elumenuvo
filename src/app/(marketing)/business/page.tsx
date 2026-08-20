@@ -40,7 +40,7 @@ export default async function BusinessPage() {
         <div className="pd-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, alignItems: "start" }}>
           {/* Value proposition */}
           <div>
-            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "1.4px", textTransform: "uppercase", color: "#4E5BDC", marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "1.4px", textTransform: "uppercase", color: "#1D2F8A", marginBottom: 10 }}>
               Elume for business
             </div>
             <h1 style={{ fontFamily: GROTESK, fontSize: 34, fontWeight: 600, letterSpacing: "-0.9px", lineHeight: 1.15, margin: 0 }}>
@@ -77,8 +77,8 @@ export default async function BusinessPage() {
                   rates apply on their own. You&apos;ll never be asked for GST details at checkout.
                 </p>
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                  <Link href="/app" style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13.5, padding: "11px 20px", borderRadius: 11 }}>Open your workspace →</Link>
-                  <Link href="/catalogue" style={{ background: "#fff", color: "#4E5BDC", fontWeight: 700, fontSize: 13.5, padding: "11px 20px", borderRadius: 11, border: "1px solid #BEE7D2" }}>Start ordering</Link>
+                  <Link href="/app" style={{ background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 13.5, padding: "11px 20px", borderRadius: 11 }}>Open your workspace →</Link>
+                  <Link href="/catalogue" style={{ background: "#fff", color: "#1D2F8A", fontWeight: 700, fontSize: 13.5, padding: "11px 20px", borderRadius: 11, border: "1px solid #BEE7D2" }}>Start ordering</Link>
                 </div>
               </div>
             ) : (

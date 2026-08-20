@@ -102,7 +102,7 @@ export default function ProductDeepDive({
       {/* ── Buying guide + category FAQs ── */}
       {post && (
         <PdpCollapse title="Know before you buy" sec="guide">
-          <Link href={`/blog/${post.slug}`} style={{ fontSize: 13, fontWeight: 600, color: "#4E5BDC" }}>
+          <Link href={`/blog/${post.slug}`} style={{ fontSize: 13, fontWeight: 600, color: "#1D2F8A" }}>
             Read: {post.title} →
           </Link>
           <div style={{ marginTop: 8 }}>

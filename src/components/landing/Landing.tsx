@@ -12,10 +12,10 @@ import { type SiteContent } from "@/lib/content";
 type Modal = false | "form" | "success";
 
 const FEATURES = [
-  { title: "One catalogue, every brand", iconBg: "#EEF0FD", iconFg: "#4E5BDC" },
+  { title: "One catalogue, every brand", iconBg: "#EEF0FD", iconFg: "#1D2F8A" },
   { title: "Transparent pricing", iconBg: "#E6F5EE", iconFg: "#1F9D63" },
   { title: "Smart BOM & phased POs", iconBg: "#F1ECFB", iconFg: "#7B5BDC" },
-  { title: "Credit, built in", iconBg: "#FBEDE4", iconFg: "#E0612A" },
+  { title: "Credit, built in", iconBg: "#FBEDE4", iconFg: "#F25929" },
 ];
 
 const SITE_VALUES = ["1–4", "5–10", "11–25", "25+"];
@@ -122,11 +122,11 @@ export default function Landing({ content }: { content: SiteContent }) {
                 fontSize: 14,
                 fontWeight: 600,
                 color: "#fff",
-                background: "linear-gradient(180deg, #5965e3, #4E5BDC)",
+                background: "linear-gradient(180deg, #5965e3, #1D2F8A)",
                 padding: "10px 18px",
                 borderRadius: 10,
                 cursor: "pointer",
-                boxShadow: "0 6px 18px rgba(78,91,220,0.35), inset 0 1px 0 rgba(255,255,255,0.25)",
+                boxShadow: "0 6px 18px rgba(29,47,138,0.35), inset 0 1px 0 rgba(255,255,255,0.25)",
               }}
             >
               Request access
@@ -138,7 +138,7 @@ export default function Landing({ content }: { content: SiteContent }) {
       {/* ===================== HERO ===================== */}
       {/* ambient liquid-glass backdrop orbs */}
       <div style={{ position: "absolute", inset: 0, top: 0, height: 920, overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
-        <div className="elume-orb" style={{ width: 520, height: 520, top: -120, left: -80, background: "radial-gradient(circle, rgba(78,91,220,0.34), transparent 70%)" }} />
+        <div className="elume-orb" style={{ width: 520, height: 520, top: -120, left: -80, background: "radial-gradient(circle, rgba(29,47,138,0.34), transparent 70%)" }} />
         <div className="elume-orb" style={{ width: 460, height: 460, top: 40, right: -60, background: "radial-gradient(circle, rgba(59,130,246,0.30), transparent 70%)" }} />
         <div className="elume-orb" style={{ width: 420, height: 420, top: 380, left: "38%", background: "radial-gradient(circle, rgba(31,157,99,0.18), transparent 70%)" }} />
       </div>
@@ -168,7 +168,7 @@ export default function Landing({ content }: { content: SiteContent }) {
             }}
           >
             <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#1F9D63" }} />
-            <span style={{ fontSize: 12.5, fontWeight: 600, color: "#4E5BDC" }}>
+            <span style={{ fontSize: 12.5, fontWeight: 600, color: "#1D2F8A" }}>
               India&apos;s procurement backbone for FMEG
             </span>
           </div>
@@ -179,7 +179,7 @@ export default function Landing({ content }: { content: SiteContent }) {
               lineHeight: 1.04,
               letterSpacing: "-1.8px",
               margin: "0 0 22px",
-              color: "#161D2B",
+              color: "#16215B",
             }}
           >
             Procure every site&apos;s
@@ -214,7 +214,7 @@ export default function Landing({ content }: { content: SiteContent }) {
             <div
               onClick={goCatalogue}
               style={{
-                background: "#4E5BDC",
+                background: "#1D2F8A",
                 color: "#fff",
                 fontWeight: 600,
                 fontSize: 14.5,
@@ -258,7 +258,7 @@ export default function Landing({ content }: { content: SiteContent }) {
                 fontSize: 15,
                 fontWeight: 600,
                 color: "#fff",
-                background: "#161D2B",
+                background: "#16215B",
                 padding: "15px 26px",
                 borderRadius: 12,
                 cursor: "pointer",
@@ -295,9 +295,9 @@ export default function Landing({ content }: { content: SiteContent }) {
 
         {/* hero product visual */}
         <div style={{ position: "relative", animation: "elumeFadeUp .7s ease .1s" }}>
-          <div style={{ background: "#161D2B", borderRadius: 22, padding: 18, boxShadow: "0 30px 70px rgba(20,24,45,.28)" }}>
+          <div style={{ background: "#16215B", borderRadius: 22, padding: 18, boxShadow: "0 30px 70px rgba(20,24,45,.28)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "4px 6px 14px" }}>
-              <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#E0612A" }} />
+              <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#F25929" }} />
               <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#F0C04A" }} />
               <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#4Fae7d" }} />
               <span style={{ marginLeft: 8, fontSize: 11, color: "#6b748c", fontFamily: MONO }}>app.elume.in/portfolio</span>
@@ -395,16 +395,16 @@ export default function Landing({ content }: { content: SiteContent }) {
       {/* ===================== CATALOGUE SHOWCASE ===================== */}
       <div id="catalogue" style={{ position: "relative", maxWidth: 1200, margin: "0 auto", padding: "90px 32px 6px" }}>
         <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
-          <div className="elume-orb" style={{ width: 480, height: 480, top: 120, left: -120, background: "radial-gradient(circle, rgba(78,91,220,0.20), transparent 70%)" }} />
+          <div className="elume-orb" style={{ width: 480, height: 480, top: 120, left: -120, background: "radial-gradient(circle, rgba(29,47,138,0.20), transparent 70%)" }} />
           <div className="elume-orb" style={{ width: 440, height: 440, top: 280, right: -100, background: "radial-gradient(circle, rgba(31,157,99,0.16), transparent 70%)" }} />
         </div>
         <div style={{ position: "relative", zIndex: 1 }}>
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 24, flexWrap: "wrap", marginBottom: 28 }}>
           <div style={{ maxWidth: 580 }}>
-            <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "1px", color: "#4E5BDC", textTransform: "uppercase", marginBottom: 14 }}>
+            <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "1px", color: "#1D2F8A", textTransform: "uppercase", marginBottom: 14 }}>
               The storefront
             </div>
-            <h2 style={{ fontFamily: GROTESK, fontSize: 38, lineHeight: 1.1, letterSpacing: "-1px", margin: "0 0 12px", color: "#161D2B" }}>
+            <h2 style={{ fontFamily: GROTESK, fontSize: 38, lineHeight: 1.1, letterSpacing: "-1px", margin: "0 0 12px", color: "#16215B" }}>
               9,000+ SKUs. Every brand, one cart.
             </h2>
             <p style={{ fontSize: 16, lineHeight: 1.6, color: "#56627A", margin: 0, maxWidth: 520 }}>
@@ -446,7 +446,7 @@ export default function Landing({ content }: { content: SiteContent }) {
                   cursor: "pointer",
                   color: on ? "#fff" : "#56627A",
                   ...(on
-                    ? { background: "#161D2B", border: "1.5px solid #161D2B" }
+                    ? { background: "#16215B", border: "1.5px solid #16215B" }
                     : {}),
                 }}
               >
@@ -507,7 +507,7 @@ export default function Landing({ content }: { content: SiteContent }) {
                       }}
                       style={{
                         background: "#EEF0FD",
-                        color: "#4E5BDC",
+                        color: "#1D2F8A",
                         fontWeight: 700,
                         fontSize: 18,
                         width: 38,
@@ -533,13 +533,13 @@ export default function Landing({ content }: { content: SiteContent }) {
       {/* ===================== PRICING ENGINE ===================== */}
       <div id="pricing" style={{ position: "relative", overflow: "hidden", background: "#F7F8FB", marginTop: 86, borderTop: "1px solid #EEF0F4", borderBottom: "1px solid #EEF0F4" }}>
         <div className="elume-orb" style={{ width: 520, height: 520, top: -80, right: -120, background: "radial-gradient(circle, rgba(59,130,246,0.20), transparent 70%)" }} />
-        <div className="elume-orb" style={{ width: 460, height: 460, bottom: -120, left: -100, background: "radial-gradient(circle, rgba(78,91,220,0.16), transparent 70%)" }} />
+        <div className="elume-orb" style={{ width: 460, height: 460, bottom: -120, left: -100, background: "radial-gradient(circle, rgba(29,47,138,0.16), transparent 70%)" }} />
         <div style={{ position: "relative", zIndex: 1, maxWidth: 1200, margin: "0 auto", padding: "80px 32px" }}>
           <div style={{ maxWidth: 620, marginBottom: 40 }}>
-            <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "1px", color: "#4E5BDC", textTransform: "uppercase", marginBottom: 14 }}>
+            <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "1px", color: "#1D2F8A", textTransform: "uppercase", marginBottom: 14 }}>
               Pricing engine
             </div>
-            <h2 style={{ fontFamily: GROTESK, fontSize: 38, lineHeight: 1.1, letterSpacing: "-1px", margin: "0 0 12px", color: "#161D2B" }}>
+            <h2 style={{ fontFamily: GROTESK, fontSize: 38, lineHeight: 1.1, letterSpacing: "-1px", margin: "0 0 12px", color: "#16215B" }}>
               Know the real price. Every single day.
             </h2>
             <p style={{ fontSize: 16, lineHeight: 1.6, color: "#56627A", margin: 0 }}>
@@ -573,15 +573,15 @@ export default function Landing({ content }: { content: SiteContent }) {
                         justifyContent: "space-between",
                         ...(on
                           ? {
-                              border: "1.5px solid rgba(78,91,220,0.55)",
-                              boxShadow: "0 10px 30px rgba(78,91,220,0.16), inset 0 1px 0 rgba(255,255,255,0.8)",
+                              border: "1.5px solid rgba(29,47,138,0.55)",
+                              boxShadow: "0 10px 30px rgba(29,47,138,0.16), inset 0 1px 0 rgba(255,255,255,0.8)",
                             }
                           : {}),
                       }}
                     >
                       <div style={{ minWidth: 0 }}>
                         <div style={{ fontSize: 11, color: "#8A93A6", fontWeight: 600 }}>{p.brand}</div>
-                        <div style={{ fontSize: 13.5, fontWeight: 600, color: on ? "#161D2B" : "#19202E" }}>{p.name}</div>
+                        <div style={{ fontSize: 13.5, fontWeight: 600, color: on ? "#16215B" : "#19202E" }}>{p.name}</div>
                       </div>
                       <div style={{ textAlign: "right", flex: "none" }}>
                         <div style={{ fontFamily: GROTESK, fontSize: 13.5, fontWeight: 600, color: "#19202E" }}>{fmt(el[11])}</div>
@@ -593,7 +593,7 @@ export default function Landing({ content }: { content: SiteContent }) {
                   );
                 })}
               </div>
-              <div style={{ marginTop: 16, background: "#161D2B", borderRadius: 14, padding: "16px 17px" }}>
+              <div style={{ marginTop: 16, background: "#16215B", borderRadius: 14, padding: "16px 17px" }}>
                 <div style={{ fontSize: 12.5, color: "#fff", fontWeight: 600, marginBottom: 5 }}>Why it matters</div>
                 <div style={{ fontSize: 12, color: "#aab2c8", lineHeight: 1.55 }}>
                   Wire tracks copper, DBs track steel. Our engine times your buy and locks savings even as the market
@@ -607,10 +607,10 @@ export default function Landing({ content }: { content: SiteContent }) {
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 18 }}>
                 <div>
                   <div style={{ fontSize: 12, color: "#8A93A6", fontWeight: 600 }}>{chart.brand}</div>
-                  <div style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600, letterSpacing: "-0.4px", color: "#161D2B" }}>{chart.name}</div>
+                  <div style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600, letterSpacing: "-0.4px", color: "#16215B" }}>{chart.name}</div>
                 </div>
                 <div style={{ textAlign: "right" }}>
-                  <div style={{ fontFamily: GROTESK, fontSize: 26, fontWeight: 600, letterSpacing: "-0.6px", color: "#161D2B" }}>
+                  <div style={{ fontFamily: GROTESK, fontSize: 26, fontWeight: 600, letterSpacing: "-0.6px", color: "#16215B" }}>
                     {chart.cur} <span style={{ fontSize: 13, color: "#8A93A6", fontWeight: 400 }}>{chart.unit}</span>
                   </div>
                   <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 5 }}>
@@ -623,7 +623,7 @@ export default function Landing({ content }: { content: SiteContent }) {
               {/* legend */}
               <div style={{ display: "flex", gap: 18, marginBottom: 6, fontSize: 11.5, color: "#56627A" }}>
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
-                  <span style={{ width: 16, height: 3, borderRadius: 2, background: "#4E5BDC", display: "inline-block" }} />Elume price
+                  <span style={{ width: 16, height: 3, borderRadius: 2, background: "#1D2F8A", display: "inline-block" }} />Elume price
                 </span>
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
                   <span style={{ width: 16, height: 0, borderTop: "2px dashed #AEB6C4", display: "inline-block" }} />Market price
@@ -639,9 +639,9 @@ export default function Landing({ content }: { content: SiteContent }) {
                 ))}
                 <path d={chart.bandPath} style={{ fill: "rgba(31,157,99,0.14)", stroke: "none" }} />
                 <path d={chart.marketPath} style={{ fill: "none", stroke: "#AEB6C4", strokeWidth: "2px", strokeDasharray: "5 4" }} />
-                <path d={chart.elumePath} style={{ fill: "none", stroke: "#4E5BDC", strokeWidth: "2.5px", strokeLinejoin: "round" }} />
+                <path d={chart.elumePath} style={{ fill: "none", stroke: "#1D2F8A", strokeWidth: "2.5px", strokeLinejoin: "round" }} />
                 <circle cx={chart.endX} cy={chart.endYm} r="3.5" style={{ fill: "#AEB6C4" }} />
-                <circle cx={chart.endX} cy={chart.endYe} r="5" style={{ fill: "#4E5BDC", stroke: "#fff", strokeWidth: "2px" }} />
+                <circle cx={chart.endX} cy={chart.endYe} r="5" style={{ fill: "#1D2F8A", stroke: "#fff", strokeWidth: "2px" }} />
               </svg>
               {/* month labels */}
               <div style={{ display: "flex", justifyContent: "space-between", fontFamily: MONO, fontSize: 10, color: "#A0A7B5", marginTop: 4, padding: "0 4px" }}>
@@ -684,7 +684,7 @@ export default function Landing({ content }: { content: SiteContent }) {
                 <span style={{ width: 14, height: 14, borderRadius: 4, background: f.iconFg, display: "inline-block" }} />
               </div>
               <div>
-                <div style={{ fontFamily: GROTESK, fontSize: 15, fontWeight: 600, color: "#161D2B", letterSpacing: "-0.2px" }}>{f.title}</div>
+                <div style={{ fontFamily: GROTESK, fontSize: 15, fontWeight: 600, color: "#16215B", letterSpacing: "-0.2px" }}>{f.title}</div>
                 <div style={{ fontSize: 12.5, color: "#8A93A6", marginTop: 3 }}>{FEATURE_TAGS[i]}</div>
               </div>
             </div>
@@ -697,10 +697,10 @@ export default function Landing({ content }: { content: SiteContent }) {
         <div className="elume-orb" style={{ width: 500, height: 500, top: -100, left: "30%", background: "radial-gradient(circle, rgba(123,91,220,0.16), transparent 70%)" }} />
         <div style={{ position: "relative", zIndex: 1, maxWidth: 1200, margin: "0 auto", padding: "80px 32px" }}>
           <div style={{ textAlign: "center", maxWidth: 580, margin: "0 auto 50px" }}>
-            <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "1px", color: "#4E5BDC", textTransform: "uppercase", marginBottom: 14 }}>
+            <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "1px", color: "#1D2F8A", textTransform: "uppercase", marginBottom: 14 }}>
               How it works
             </div>
-            <h2 style={{ fontFamily: GROTESK, fontSize: 38, lineHeight: 1.1, letterSpacing: "-1px", margin: 0, color: "#161D2B" }}>
+            <h2 style={{ fontFamily: GROTESK, fontSize: 38, lineHeight: 1.1, letterSpacing: "-1px", margin: 0, color: "#16215B" }}>
               Four steps, every site.
             </h2>
           </div>
@@ -714,7 +714,7 @@ export default function Landing({ content }: { content: SiteContent }) {
                       fontSize: 13,
                       fontWeight: 700,
                       color: "#fff",
-                      background: "#161D2B",
+                      background: "#16215B",
                       width: 28,
                       height: 28,
                       borderRadius: 9,
@@ -727,7 +727,7 @@ export default function Landing({ content }: { content: SiteContent }) {
                   </span>
                   <span style={{ fontFamily: MONO, fontSize: 11, color: "#8A93A6", textTransform: "uppercase", letterSpacing: "0.5px" }}>{s.kicker}</span>
                 </div>
-                <h3 style={{ fontFamily: GROTESK, fontSize: 18, fontWeight: 600, margin: "0 0 8px", color: "#161D2B" }}>{s.title}</h3>
+                <h3 style={{ fontFamily: GROTESK, fontSize: 18, fontWeight: 600, margin: "0 0 8px", color: "#16215B" }}>{s.title}</h3>
                 <p style={{ fontSize: 13.5, lineHeight: 1.55, margin: 0, color: "#56627A" }}>{s.body}</p>
               </div>
             ))}
@@ -791,7 +791,7 @@ export default function Landing({ content }: { content: SiteContent }) {
             </div>
             <div
               onClick={() => setModal("form")}
-              style={{ background: "#4E5BDC", color: "#fff", fontWeight: 600, fontSize: 14.5, textAlign: "center", padding: 15, borderRadius: 13, cursor: "pointer" }}
+              style={{ background: "#1D2F8A", color: "#fff", fontWeight: 600, fontSize: 14.5, textAlign: "center", padding: 15, borderRadius: 13, cursor: "pointer" }}
             >
               Get your custom estimate →
             </div>
@@ -800,7 +800,7 @@ export default function Landing({ content }: { content: SiteContent }) {
       </div>
 
       {/* ===================== CLOSING CTA ===================== */}
-      <div style={{ background: "#161D2B" }}>
+      <div style={{ background: "#16215B" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "80px 32px", textAlign: "center" }}>
           <h2 style={{ fontFamily: GROTESK, fontSize: 42, lineHeight: 1.08, letterSpacing: "-1.2px", margin: "0 auto 18px", color: "#fff", maxWidth: 640 }}>
             Bring your sites onto Elume.
@@ -812,7 +812,7 @@ export default function Landing({ content }: { content: SiteContent }) {
           <div style={{ display: "flex", gap: 14, justifyContent: "center" }}>
             <div
               onClick={() => setModal("form")}
-              style={{ fontSize: 15, fontWeight: 600, color: "#161D2B", background: "#fff", padding: "15px 28px", borderRadius: 12, cursor: "pointer" }}
+              style={{ fontSize: 15, fontWeight: 600, color: "#16215B", background: "#fff", padding: "15px 28px", borderRadius: 12, cursor: "pointer" }}
             >
               Request access
             </div>
@@ -945,9 +945,9 @@ export default function Landing({ content }: { content: SiteContent }) {
                               padding: "10px 0",
                               borderRadius: 10,
                               cursor: "pointer",
-                              border: `1.5px solid ${on ? "#4E5BDC" : "#E0E4ED"}`,
+                              border: `1.5px solid ${on ? "#1D2F8A" : "#E0E4ED"}`,
                               background: on ? "#F2F3FB" : "#fff",
-                              color: on ? "#4E5BDC" : "#56627A",
+                              color: on ? "#1D2F8A" : "#56627A",
                             }}
                           >
                             {v}
@@ -959,7 +959,7 @@ export default function Landing({ content }: { content: SiteContent }) {
                 </div>
                 <div
                   onClick={() => setModal("success")}
-                  style={{ marginTop: 24, background: "#4E5BDC", color: "#fff", fontWeight: 600, fontSize: 15, textAlign: "center", padding: 15, borderRadius: 12, cursor: "pointer" }}
+                  style={{ marginTop: 24, background: "#1D2F8A", color: "#fff", fontWeight: 600, fontSize: 15, textAlign: "center", padding: 15, borderRadius: 12, cursor: "pointer" }}
                 >
                   Request access
                 </div>
@@ -993,7 +993,7 @@ export default function Landing({ content }: { content: SiteContent }) {
                 </p>
                 <div
                   onClick={() => goApp()}
-                  style={{ display: "inline-block", background: "#4E5BDC", color: "#fff", fontWeight: 600, fontSize: 14.5, padding: "14px 26px", borderRadius: 12, cursor: "pointer" }}
+                  style={{ display: "inline-block", background: "#1D2F8A", color: "#fff", fontWeight: 600, fontSize: 14.5, padding: "14px 26px", borderRadius: 12, cursor: "pointer" }}
                 >
                   Launch live demo →
                 </div>
@@ -1012,7 +1012,7 @@ export default function Landing({ content }: { content: SiteContent }) {
 function Stat({ value, label }: { value: string; label: string }) {
   return (
     <div>
-      <div style={{ fontFamily: GROTESK, fontSize: 26, fontWeight: 600, color: "#161D2B" }}>{value}</div>
+      <div style={{ fontFamily: GROTESK, fontSize: 26, fontWeight: 600, color: "#16215B" }}>{value}</div>
       <div style={{ fontSize: 12.5, color: "#8A93A6" }}>{label}</div>
     </div>
   );
@@ -1027,7 +1027,7 @@ function MiniKpi({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ChartStat({ label, value, valueColor = "#161D2B" }: { label: string; value: string; valueColor?: string }) {
+function ChartStat({ label, value, valueColor = "#16215B" }: { label: string; value: string; valueColor?: string }) {
   return (
     <div>
       <div style={{ fontSize: 11, color: "#8A93A6" }}>{label}</div>

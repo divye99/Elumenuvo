@@ -48,7 +48,7 @@ export default function MobileBuyBar({
         }}
         style={{
           flexShrink: 0,
-          background: added ? "#1F9D63" : "#4E5BDC",
+          background: added ? "#1F9D63" : "#1D2F8A",
           color: "#fff",
           fontWeight: 700,
           fontSize: 12.5,

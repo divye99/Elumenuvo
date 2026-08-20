@@ -78,8 +78,8 @@ export default function BuyAgainButton({ order, compact = false }: { order: Live
       onClick={go}
       disabled={busy}
       style={{
-        background: compact ? "#fff" : "#4E5BDC",
-        color: compact ? "#4E5BDC" : "#fff",
+        background: compact ? "#fff" : "#1D2F8A",
+        color: compact ? "#1D2F8A" : "#fff",
         border: compact ? "1px solid #C9D0F5" : "none",
         fontWeight: 700, fontSize: 13, borderRadius: 9,
         padding: compact ? "7px 13px" : "10px 18px",

@@ -77,7 +77,7 @@ export default async function AdminMetals() {
     <div>
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 6 }}>
         <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Metals · price console</h1>
-        <Link href="/admin/metals/enquiries" style={{ fontSize: 13, fontWeight: 600, color: "#4E5BDC" }}>
+        <Link href="/admin/metals/enquiries" style={{ fontSize: 13, fontWeight: 600, color: "#1D2F8A" }}>
           Enquiries{enquiries > 0 ? ` (${enquiries})` : ""} →
         </Link>
       </div>

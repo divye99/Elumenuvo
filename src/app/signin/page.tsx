@@ -169,8 +169,8 @@ export default function SignIn() {
     } finally { if (!navigating) setBusy(false); }
   }
 
-  const field = "w-full rounded-lg border border-[#E0E4ED] px-3 py-2.5 text-sm outline-none focus:border-[#4E5BDC]";
-  const tabBtn = (on: boolean): React.CSSProperties => ({ flex: 1, padding: "9px", fontSize: 13, fontWeight: 600, borderRadius: 9, cursor: "pointer", border: "none", background: on ? "#161D2B" : "#F3F5F9", color: on ? "#fff" : "#56627A" });
+  const field = "w-full rounded-lg border border-[#E0E4ED] px-3 py-2.5 text-sm outline-none focus:border-[#1D2F8A]";
+  const tabBtn = (on: boolean): React.CSSProperties => ({ flex: 1, padding: "9px", fontSize: 13, fontWeight: 600, borderRadius: 9, cursor: "pointer", border: "none", background: on ? "#16215B" : "#F3F5F9", color: on ? "#fff" : "#56627A" });
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#F7F8FB", fontFamily: "var(--hanken)" }}>
@@ -203,9 +203,9 @@ export default function SignIn() {
               <input className={field} type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
               {mode === "up" && <input className={field} type="tel" placeholder="Phone number" value={phone} onChange={(e) => setPhone(e.target.value)} required autoComplete="tel" />}
               <input className={field} type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} autoComplete={mode === "in" ? "current-password" : "new-password"} />
-              {msg && <p style={{ fontSize: 12.5, color: msg.kind === "err" ? "#E0612A" : "#137a4b" }}>{msg.text}</p>}
+              {msg && <p style={{ fontSize: 12.5, color: msg.kind === "err" ? "#F25929" : "#137a4b" }}>{msg.text}</p>}
               {showResend && (
-                <button type="button" disabled={busy} onClick={resendConfirmation} style={{ width: "100%", background: "#fff", color: "#4E5BDC", fontWeight: 700, fontSize: 13, border: "1.5px solid #4E5BDC", padding: 10, borderRadius: 10, cursor: "pointer" }}>
+                <button type="button" disabled={busy} onClick={resendConfirmation} style={{ width: "100%", background: "#fff", color: "#1D2F8A", fontWeight: 700, fontSize: 13, border: "1.5px solid #1D2F8A", padding: 10, borderRadius: 10, cursor: "pointer" }}>
                   Resend confirmation email
                 </button>
               )}
@@ -224,13 +224,13 @@ export default function SignIn() {
             {!otpSent ? (
               <form onSubmit={sendOtp} className="space-y-3">
                 <input className={field} type="tel" placeholder="Phone number" value={phone} onChange={(e) => setPhone(e.target.value)} required autoComplete="tel" />
-                {msg && <p style={{ fontSize: 12.5, color: msg.kind === "err" ? "#E0612A" : "#137a4b" }}>{msg.text}</p>}
+                {msg && <p style={{ fontSize: 12.5, color: msg.kind === "err" ? "#F25929" : "#137a4b" }}>{msg.text}</p>}
                 <button disabled={busy} style={btn(busy)}>{busy ? "…" : "Send code"}</button>
               </form>
             ) : (
               <form onSubmit={verifyOtp} className="space-y-3">
                 <input className={field} inputMode="numeric" placeholder="6-digit code" value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))} required />
-                {msg && <p style={{ fontSize: 12.5, color: msg.kind === "err" ? "#E0612A" : "#137a4b" }}>{msg.text}</p>}
+                {msg && <p style={{ fontSize: 12.5, color: msg.kind === "err" ? "#F25929" : "#137a4b" }}>{msg.text}</p>}
                 <button disabled={busy} style={btn(busy)}>{busy ? "…" : "Verify & sign in"}</button>
                 <button type="button" onClick={() => { setOtpSent(false); setOtp(""); setMsg(null); }} style={{ ...linkBtn, display: "block", margin: "6px auto 0" }}>Use a different number</button>
               </form>
@@ -242,5 +242,5 @@ export default function SignIn() {
   );
 }
 
-const btn = (busy: boolean): React.CSSProperties => ({ width: "100%", background: "#4E5BDC", color: "#fff", fontWeight: 600, fontSize: 14, border: "none", padding: 11, borderRadius: 10, cursor: busy ? "default" : "pointer", opacity: busy ? 0.7 : 1 });
-const linkBtn: React.CSSProperties = { color: "#4E5BDC", fontWeight: 600, background: "none", border: "none", cursor: "pointer" };
+const btn = (busy: boolean): React.CSSProperties => ({ width: "100%", background: "#1D2F8A", color: "#fff", fontWeight: 600, fontSize: 14, border: "none", padding: 11, borderRadius: 10, cursor: busy ? "default" : "pointer", opacity: busy ? 0.7 : 1 });
+const linkBtn: React.CSSProperties = { color: "#1D2F8A", fontWeight: 600, background: "none", border: "none", cursor: "pointer" };

@@ -304,7 +304,7 @@ export default function CheckoutClient({
     return (
       <main style={{ maxWidth: 640, margin: "0 auto", padding: "48px 28px", textAlign: "center" }}>
         <p style={{ fontSize: 15, color: "#56627A" }}>Your cart is empty.</p>
-        <Link href="/catalogue" style={{ color: "#4E5BDC", fontWeight: 600 }}>Browse the catalogue →</Link>
+        <Link href="/catalogue" style={{ color: "#1D2F8A", fontWeight: 600 }}>Browse the catalogue →</Link>
       </main>
     );
   }
@@ -317,7 +317,7 @@ export default function CheckoutClient({
           Checking out as a guest.{" "}
           {/* ?next brings them straight back here, and the draft above means
               the form is still filled when they arrive. */}
-          <Link href="/signin?next=/checkout" style={{ color: "#4E5BDC", fontWeight: 600 }}>Sign in</Link>{" "}
+          <Link href="/signin?next=/checkout" style={{ color: "#1D2F8A", fontWeight: 600 }}>Sign in</Link>{" "}
           to save your details and track orders. Nothing you have typed will be lost.
         </p>
       )}
@@ -341,15 +341,15 @@ export default function CheckoutClient({
                     <div
                       key={e.id}
                       onClick={() => applySaved(e)}
-                      style={{ display: "flex", gap: 11, alignItems: "flex-start", border: `1.5px solid ${on ? "#4E5BDC" : "#E0E4ED"}`, background: on ? "#F7F8FF" : "#fff", borderRadius: 11, padding: "11px 13px", cursor: "pointer" }}
+                      style={{ display: "flex", gap: 11, alignItems: "flex-start", border: `1.5px solid ${on ? "#1D2F8A" : "#E0E4ED"}`, background: on ? "#F7F8FF" : "#fff", borderRadius: 11, padding: "11px 13px", cursor: "pointer" }}
                     >
-                      <span style={{ marginTop: 2, width: 15, height: 15, flex: "none", borderRadius: "50%", border: `1.5px solid ${on ? "#4E5BDC" : "#C7CCDA"}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        {on && <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#4E5BDC" }} />}
+                      <span style={{ marginTop: 2, width: 15, height: 15, flex: "none", borderRadius: "50%", border: `1.5px solid ${on ? "#1D2F8A" : "#C7CCDA"}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        {on && <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#1D2F8A" }} />}
                       </span>
                       <div style={{ minWidth: 0 }}>
                         <div style={{ fontSize: 13, fontWeight: 700, color: "#19202E", display: "flex", gap: 7, alignItems: "baseline", flexWrap: "wrap" }}>
                           {e.label}
-                          <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.4px", textTransform: "uppercase", color: e.kind === "project" ? "#4E5BDC" : "#1F9D63", background: e.kind === "project" ? "#EEF0FD" : "#E6F5EE", padding: "1.5px 7px", borderRadius: 7 }}>
+                          <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.4px", textTransform: "uppercase", color: e.kind === "project" ? "#1D2F8A" : "#1F9D63", background: e.kind === "project" ? "#EEF0FD" : "#E6F5EE", padding: "1.5px 7px", borderRadius: 7 }}>
                             {e.kind === "project" ? "Project" : "Saved address"}
                           </span>
                         </div>
@@ -361,7 +361,7 @@ export default function CheckoutClient({
                   );
                 })}
                 {savedSel && (
-                  <div onClick={() => setSavedSel("")} style={{ fontSize: 12.5, color: "#4E5BDC", fontWeight: 600, cursor: "pointer", padding: "2px 2px 0" }}>
+                  <div onClick={() => setSavedSel("")} style={{ fontSize: 12.5, color: "#1D2F8A", fontWeight: 600, cursor: "pointer", padding: "2px 2px 0" }}>
                     Use a different address instead (edit the fields below)
                   </div>
                 )}
@@ -438,7 +438,7 @@ export default function CheckoutClient({
                   const on = billSel === e.id;
                   return (
                     <span key={e.id} onClick={() => applyBilling(e)} title={e.sub}
-                      style={{ fontSize: 12, fontWeight: 600, color: on ? "#fff" : "#3A4358", background: on ? "#4E5BDC" : "#F0F2F6", border: `1px solid ${on ? "#4E5BDC" : "#E0E4ED"}`, borderRadius: 8, padding: "6px 11px", cursor: "pointer", maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      style={{ fontSize: 12, fontWeight: 600, color: on ? "#fff" : "#3A4358", background: on ? "#1D2F8A" : "#F0F2F6", border: `1px solid ${on ? "#1D2F8A" : "#E0E4ED"}`, borderRadius: 8, padding: "6px 11px", cursor: "pointer", maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       🧾 {e.label}{e.city ? `, ${e.city}` : ""}
                     </span>
                   );
@@ -468,7 +468,7 @@ export default function CheckoutClient({
                   </div>
                   <div style={{ fontSize: 11.5, color: "#56627A", marginTop: 4 }}>
                     Input tax credit claimable. To change your GSTIN, update it in{" "}
-                    <Link href="/app" style={{ color: "#4E5BDC", fontWeight: 600 }}>your account</Link>.
+                    <Link href="/app" style={{ color: "#1D2F8A", fontWeight: 600 }}>your account</Link>.
                   </div>
                 </div>
               </div>
@@ -519,7 +519,7 @@ export default function CheckoutClient({
               {!prefill.signedIn && (
                 <div style={{ fontSize: 11.5, color: "#8A93A6" }}>
                   Buying for a business?{" "}
-                  <Link href="/business" style={{ color: "#4E5BDC", fontWeight: 600 }}>Open a business account</Link>{" "}
+                  <Link href="/business" style={{ color: "#1D2F8A", fontWeight: 600 }}>Open a business account</Link>{" "}
                   and we&apos;ll invoice your GSTIN automatically, every time.
                 </div>
               )}
@@ -529,7 +529,7 @@ export default function CheckoutClient({
           {/* Payment: online only (pay-on-delivery is retired) */}
           <Section title="Payment">
             {onlineEnabled ? (
-              <div style={{ ...payOpt, borderColor: "#4E5BDC", background: "#F7F8FF", cursor: "default" }}>
+              <div style={{ ...payOpt, borderColor: "#1D2F8A", background: "#F7F8FF", cursor: "default" }}>
                 <span style={{ fontSize: 18 }}>🔒</span>
                 <span><b>Pay online</b><br /><span style={{ fontSize: 11.5, color: "#8A93A6" }}>UPI, cards &amp; netbanking · secure Razorpay checkout</span></span>
               </div>
@@ -554,7 +554,7 @@ export default function CheckoutClient({
                 <div style={{ fontSize: 11.5, color: "#8A93A6" }}>Total payable (incl. GST)</div>
                 <div style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 700, lineHeight: 1.2 }}>{fmt(payable)}</div>
               </div>
-              <button onClick={submit} disabled={pending || !onlineEnabled} title={onlineEnabled ? "" : "Online payment is being enabled - ordering opens shortly"} style={{ flex: 1, minWidth: 200, marginLeft: "auto", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 15, border: "none", padding: 15, borderRadius: 11, cursor: pending || !onlineEnabled ? "default" : "pointer", opacity: pending || !onlineEnabled ? 0.6 : 1 }}>
+              <button onClick={submit} disabled={pending || !onlineEnabled} title={onlineEnabled ? "" : "Online payment is being enabled - ordering opens shortly"} style={{ flex: 1, minWidth: 200, marginLeft: "auto", background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 15, border: "none", padding: 15, borderRadius: 11, cursor: pending || !onlineEnabled ? "default" : "pointer", opacity: pending || !onlineEnabled ? 0.6 : 1 }}>
                 {pending ? "Opening payment…" : onlineEnabled ? `Pay securely · ${fmt(payable)}` : "Payments enabling soon"}
               </button>
             </div>
@@ -593,14 +593,14 @@ export default function CheckoutClient({
           <div style={{ marginTop: 10 }}>
             <div style={{ display: "flex", gap: 7 }}>
               <input value={code} onChange={(e) => { setCode(e.target.value.toUpperCase()); setCodeState({ status: "idle" }); }} placeholder="Discount code" style={{ flex: 1, border: "1px solid #E0E4ED", borderRadius: 9, padding: "9px 11px", fontSize: 12.5, textTransform: "uppercase" }} />
-              <button onClick={applyCode} disabled={codeState.status === "checking" || !code.trim()} style={{ border: "1.5px solid #4E5BDC", background: "#fff", color: "#4E5BDC", fontWeight: 700, fontSize: 12.5, borderRadius: 9, padding: "0 14px", cursor: "pointer", opacity: codeState.status === "checking" ? 0.6 : 1 }}>
+              <button onClick={applyCode} disabled={codeState.status === "checking" || !code.trim()} style={{ border: "1.5px solid #1D2F8A", background: "#fff", color: "#1D2F8A", fontWeight: 700, fontSize: 12.5, borderRadius: 9, padding: "0 14px", cursor: "pointer", opacity: codeState.status === "checking" ? 0.6 : 1 }}>
                 {codeState.status === "checking" ? "…" : codeState.status === "ok" ? "✓" : "Apply"}
               </button>
             </div>
             {codeState.status === "ok" && <div style={{ fontSize: 12, color: "#1F9D63", fontWeight: 600, marginTop: 5 }}>{codeState.percent}% off applied.</div>}
             {codeState.status === "err" && <div style={{ fontSize: 12, color: "#D14343", fontWeight: 600, marginTop: 5 }}>{codeState.msg}</div>}
           </div>
-          <button onClick={submit} disabled={pending || !onlineEnabled} title={onlineEnabled ? "" : "Online payment is being enabled - ordering opens shortly"} style={{ width: "100%", marginTop: 14, background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14.5, border: "none", padding: 13, borderRadius: 11, cursor: pending || !onlineEnabled ? "default" : "pointer", opacity: pending || !onlineEnabled ? 0.6 : 1 }}>
+          <button onClick={submit} disabled={pending || !onlineEnabled} title={onlineEnabled ? "" : "Online payment is being enabled - ordering opens shortly"} style={{ width: "100%", marginTop: 14, background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 14.5, border: "none", padding: 13, borderRadius: 11, cursor: pending || !onlineEnabled ? "default" : "pointer", opacity: pending || !onlineEnabled ? 0.6 : 1 }}>
             {pending ? "Opening payment…" : onlineEnabled ? `Pay securely · ${fmt(payable)}` : "Payments enabling soon"}
           </button>
           <div style={{ fontSize: 11, color: "#A0A7B5", textAlign: "center", marginTop: 8 }}>🔒 Secured by Razorpay</div>

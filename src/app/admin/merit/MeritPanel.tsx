@@ -115,7 +115,7 @@ export default function MeritPanel({ rows, promoterBrands, milestoneCr, paidGmv,
             <input value={edgePct} onChange={(e) => setEdgePct(e.target.value)} inputMode="numeric" style={{ width: 64, fontSize: 13, padding: "7px 9px", borderRadius: 8, border: "1px solid #E0E4ED", textAlign: "right" }} />
             <span style={{ fontSize: 12, color: "#8A93A6" }}>% extra lottery tickets a promoter product holds in the exploration slot (everyone else holds 1 ticket)</span>
           </div>
-          <button onClick={() => call({ op: "config", promoterBrands: brandsText.split(",").map((s) => s.trim()).filter(Boolean), milestoneCr, promoterExploreEdge: Math.min(200, Math.max(0, Number(edgePct) || 20)) / 100 })} style={{ fontSize: 12.5, fontWeight: 700, color: "#fff", background: "#4E5BDC", border: "none", borderRadius: 9, padding: "9px 16px", cursor: "pointer" }}>
+          <button onClick={() => call({ op: "config", promoterBrands: brandsText.split(",").map((s) => s.trim()).filter(Boolean), milestoneCr, promoterExploreEdge: Math.min(200, Math.max(0, Number(edgePct) || 20)) / 100 })} style={{ fontSize: 12.5, fontWeight: 700, color: "#fff", background: "#1D2F8A", border: "none", borderRadius: 9, padding: "9px 16px", cursor: "pointer" }}>
             Save config
           </button>
         </div>
@@ -135,7 +135,7 @@ export default function MeritPanel({ rows, promoterBrands, milestoneCr, paidGmv,
 
       {/* ── Category averages: the number the owner reads - average EMS ── */}
       <div style={{ marginBottom: 14 }}>
-        <button onClick={() => setShowCats((v) => !v)} style={{ fontSize: 12.5, fontWeight: 700, color: "#4E5BDC", background: "#EEF0FE", border: "none", borderRadius: 9, padding: "8px 14px", cursor: "pointer" }}>
+        <button onClick={() => setShowCats((v) => !v)} style={{ fontSize: 12.5, fontWeight: 700, color: "#1D2F8A", background: "#E9EDF9", border: "none", borderRadius: 9, padding: "8px 14px", cursor: "pointer" }}>
           {showCats ? "Hide category averages" : "Show category averages"}
         </button>
         {showCats && (
@@ -184,7 +184,7 @@ export default function MeritPanel({ rows, promoterBrands, milestoneCr, paidGmv,
           {rowBrands.map((b) => <option key={b} value={b}>{b}</option>)}
         </select>
         {(["all", "explored", "cooldown", "overridden"] as const).map((v) => (
-          <button key={v} onClick={() => setView(v)} style={{ fontSize: 12, fontWeight: 700, padding: "7px 12px", borderRadius: 999, border: `1px solid ${view === v ? "#4E5BDC" : "#E0E4ED"}`, background: view === v ? "#4E5BDC" : "#fff", color: view === v ? "#fff" : "#3A4358", cursor: "pointer" }}>
+          <button key={v} onClick={() => setView(v)} style={{ fontSize: 12, fontWeight: 700, padding: "7px 12px", borderRadius: 999, border: `1px solid ${view === v ? "#1D2F8A" : "#E0E4ED"}`, background: view === v ? "#1D2F8A" : "#fff", color: view === v ? "#fff" : "#3A4358", cursor: "pointer" }}>
             {v === "all" ? `All (${rows.length})` : v === "explored" ? "Explored (last 21 days)" : v === "cooldown" ? "In cooldown" : "Overridden"}
           </button>
         ))}
@@ -196,7 +196,7 @@ export default function MeritPanel({ rows, promoterBrands, milestoneCr, paidGmv,
       <style>{`
         .mtip { position: relative; display: inline-block; margin-left: 4px; color: #A0A7B5; font-weight: 400; cursor: help; }
         .mtip .mtipbox { display: none; position: absolute; z-index: 40; top: 130%; left: -8px; width: 240px;
-          background: #161D2B; color: #fff; font-size: 11px; font-weight: 400; line-height: 1.45;
+          background: #16215B; color: #fff; font-size: 11px; font-weight: 400; line-height: 1.45;
           padding: 8px 11px; border-radius: 9px; white-space: normal; text-transform: none; letter-spacing: normal; }
         .mtip:hover .mtipbox { display: block; }
         th:nth-last-child(-n+3) .mtip .mtipbox { left: auto; right: -8px; }
@@ -207,7 +207,7 @@ export default function MeritPanel({ rows, promoterBrands, milestoneCr, paidGmv,
             <tr>
               <th style={th}>Product<Info tip="Name, brand, category and product id. Click a name to open its live product page." /></th>
               {NUMERIC_COLS.map(([key, label, tip]) => (
-                <th key={key} style={{ ...th, cursor: "pointer", userSelect: "none", color: sortKey === key ? "#4E5BDC" : th.color }} onClick={() => onSort(key)}>
+                <th key={key} style={{ ...th, cursor: "pointer", userSelect: "none", color: sortKey === key ? "#1D2F8A" : th.color }} onClick={() => onSort(key)}>
                   {label}{sortKey === key ? (sortDir === "desc" ? " ▼" : " ▲") : ""}<Info tip={tip} />
                 </th>
               ))}
@@ -234,7 +234,7 @@ export default function MeritPanel({ rows, promoterBrands, milestoneCr, paidGmv,
                   {r.exploreShows ? `${Math.round(r.explorePickRate * 100)}%` : "-"}
                 </td>
                 <td style={td}>
-                  {r.promoter > 0 && <span style={{ ...chip("#EEF0FE", "#4E5BDC"), marginRight: 4 }}>PROMOTER</span>}
+                  {r.promoter > 0 && <span style={{ ...chip("#E9EDF9", "#1D2F8A"), marginRight: 4 }}>PROMOTER</span>}
                   {r.override !== 0 && <span style={{ ...chip("#FFF4E0", "#9A6B0F"), marginRight: 4 }}>{r.override > 0 ? "+" : ""}{r.override}</span>}
                   {r.suppressed && <span style={{ ...chip("#FDE8E8", "#B42318"), marginRight: 4 }}>SUPPRESSED</span>}
                   {r.cooldown && <span style={chip("#F3F5F9", "#56627A")}>COOLDOWN</span>}
@@ -260,4 +260,4 @@ export default function MeritPanel({ rows, promoterBrands, milestoneCr, paidGmv,
   );
 }
 
-const mini: React.CSSProperties = { fontSize: 11, fontWeight: 700, color: "#4E5BDC", background: "#F3F5F9", border: "none", borderRadius: 7, padding: "5px 9px", marginRight: 5, cursor: "pointer" };
+const mini: React.CSSProperties = { fontSize: 11, fontWeight: 700, color: "#1D2F8A", background: "#F3F5F9", border: "none", borderRadius: 7, padding: "5px 9px", marginRight: 5, cursor: "pointer" };

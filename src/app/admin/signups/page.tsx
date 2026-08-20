@@ -25,7 +25,7 @@ export default async function AdminSignups() {
       <p style={{ fontSize: 14, color: "#56627A", margin: "0 0 18px" }}>
         {signups.length} registered account{signups.length === 1 ? "" : "s"} · {business} business ·{" "}
         {signups.filter((s) => !s.confirmed).length} unconfirmed
-        <a href="/admin/signups/export" style={{ marginLeft: 14, fontWeight: 700, color: "#4E5BDC" }}>⬇ Export CSV</a>
+        <a href="/admin/signups/export" style={{ marginLeft: 14, fontWeight: 700, color: "#1D2F8A" }}>⬇ Export CSV</a>
       </p>
 
       {signups.length === 0 ? (
@@ -40,10 +40,10 @@ export default async function AdminSignups() {
                 <div style={{ fontSize: 13.5, fontWeight: 700, color: "#19202E" }}>
                   {s.name ?? "–"}
                   {s.account_type === "business" && (
-                    <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 800, color: "#4E5BDC", background: "#EEF0FE", padding: "2px 8px", borderRadius: 7, textTransform: "uppercase" }}>Business</span>
+                    <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 800, color: "#1D2F8A", background: "#E9EDF9", padding: "2px 8px", borderRadius: 7, textTransform: "uppercase" }}>Business</span>
                   )}
                 </div>
-                <div style={{ fontSize: 12, color: "#4E5BDC" }}>{s.email}{s.phone ? ` · ${s.phone}` : ""}</div>
+                <div style={{ fontSize: 12, color: "#1D2F8A" }}>{s.email}{s.phone ? ` · ${s.phone}` : ""}</div>
               </div>
               {s.company && (
                 <div style={{ fontSize: 12, color: "#56627A" }}>

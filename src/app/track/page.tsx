@@ -45,7 +45,7 @@ export default async function TrackPage({ searchParams }: { searchParams: Promis
                 <label style={lbl}>Email</label>
                 <input name="email" type="email" defaultValue={email ?? ""} placeholder="you@email.com" style={inp} required />
               </div>
-              <button style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14, border: "none", padding: 12, borderRadius: 10, cursor: "pointer" }}>Track order</button>
+              <button style={{ background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 14, border: "none", padding: 12, borderRadius: 10, cursor: "pointer" }}>Track order</button>
             </form>
           </>
         )}
@@ -132,7 +132,7 @@ function OrderView({ order, shipments, events }: { order: any; shipments: any[];
                 <div style={{ fontSize: 11.5, color: "#8A93A6" }}>{(s.items ?? []).map((i: any) => `${i.qty}× ${i.name}`).join(", ")}</div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                {s.tracking_url && <a href={s.tracking_url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#4E5BDC", fontWeight: 600 }}>Track →</a>}
+                {s.tracking_url && <a href={s.tracking_url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#1D2F8A", fontWeight: 600 }}>Track →</a>}
                 <OrderStatusBadge status={s.status} size={11} />
               </div>
             </div>
@@ -145,7 +145,7 @@ function OrderView({ order, shipments, events }: { order: any; shipments: any[];
         {events.map((e, i) => (
           <div key={e.id} style={{ display: "flex", gap: 11, paddingBottom: i === events.length - 1 ? 0 : 14 }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#4E5BDC", marginTop: 4, flexShrink: 0 }} />
+              <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#1D2F8A", marginTop: 4, flexShrink: 0 }} />
               {i < events.length - 1 && <span style={{ width: 2, flex: 1, background: "#E8EBF1", marginTop: 2 }} />}
             </div>
             <div>
@@ -157,7 +157,7 @@ function OrderView({ order, shipments, events }: { order: any; shipments: any[];
         ))}
       </div>}
 
-      <Link href="/catalogue" style={{ textAlign: "center", fontSize: 13, color: "#4E5BDC", fontWeight: 600 }}>Continue shopping →</Link>
+      <Link href="/catalogue" style={{ textAlign: "center", fontSize: 13, color: "#1D2F8A", fontWeight: 600 }}>Continue shopping →</Link>
     </div>
   );
 }

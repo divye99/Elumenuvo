@@ -98,7 +98,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       </nav>
 
       <article>
-        <div style={{ display: "inline-flex", fontSize: 11, fontWeight: 700, letterSpacing: "0.4px", textTransform: "uppercase", color: "#4E5BDC", background: "#EEF0FD", padding: "4px 10px", borderRadius: 5, marginBottom: 14 }}>{post.category}</div>
+        <div style={{ display: "inline-flex", fontSize: 11, fontWeight: 700, letterSpacing: "0.4px", textTransform: "uppercase", color: "#1D2F8A", background: "#EEF0FD", padding: "4px 10px", borderRadius: 5, marginBottom: 14 }}>{post.category}</div>
         <h1 style={{ fontFamily: GROTESK, fontSize: 34, fontWeight: 600, letterSpacing: "-1px", lineHeight: 1.12, margin: "0 0 12px" }}>{post.title}</h1>
         <div style={{ fontFamily: MONO, fontSize: 12, color: "#A0A7B5", marginBottom: 24 }}>
           By {post.author} · {new Date(post.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} · {post.readMins} min read
@@ -107,7 +107,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         {/* TL;DR - the quick answer for skimmers (and a featured-snippet target) */}
         {post.tldr && post.tldr.length > 0 && (
           <div style={{ background: "#F4F6FE", border: "1px solid #DFE4FA", borderRadius: 10, padding: "18px 22px", margin: "0 0 22px" }}>
-            <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, letterSpacing: "1.2px", textTransform: "uppercase", color: "#4E5BDC", marginBottom: 10 }}>
+            <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, letterSpacing: "1.2px", textTransform: "uppercase", color: "#1D2F8A", marginBottom: 10 }}>
               TL;DR · The quick answer
             </div>
             <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 7 }}>
@@ -127,7 +127,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           {post.items.map((it) => (
             <div key={it.rank} style={{ borderTop: "1px solid #EEF0F4", padding: "22px 0" }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-                <span style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 700, color: "#4E5BDC", minWidth: 30 }}>{it.rank}.</span>
+                <span style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 700, color: "#1D2F8A", minWidth: 30 }}>{it.rank}.</span>
                 <div>
                   <h2 style={{ fontFamily: GROTESK, fontSize: 19, fontWeight: 600, margin: 0, lineHeight: 1.3 }}>{it.name}</h2>
                   <div style={{ fontSize: 12.5, color: "#8A93A6", fontWeight: 600, marginTop: 2 }}>{it.brand}</div>
@@ -164,7 +164,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         </div>
 
         {/* CTA */}
-        <div style={{ marginTop: 36, background: "#161D2B", border: "1px solid #232C40", borderRadius: 10, padding: "26px 28px", color: "#fff" }}>
+        <div style={{ marginTop: 36, background: "#16215B", border: "1px solid #2A3A7A", borderRadius: 10, padding: "26px 28px", color: "#fff" }}>
           <div style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600 }}>Source these on Elume - at transparent prices.</div>
           <p style={{ fontSize: 14.5, opacity: 0.9, margin: "6px 0 16px", maxWidth: 520 }}>
             Compare MRP vs the Elume price across brands, with an extra 5% wholesale rate on 15+ units.

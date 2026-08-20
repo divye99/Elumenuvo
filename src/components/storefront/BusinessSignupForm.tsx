@@ -150,13 +150,13 @@ export default function BusinessSignupForm({ signedIn, existingCompany }: { sign
 
       {err && <div style={{ background: "#FBE9E4", color: "#9a3b16", fontSize: 12.5, fontWeight: 600, padding: "10px 12px", borderRadius: 9, marginBottom: 12 }}>{err}</div>}
 
-      <button disabled={busy} style={{ width: "100%", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14.5, border: "none", padding: 13, borderRadius: 11, cursor: busy ? "wait" : "pointer", opacity: busy ? 0.7 : 1 }}>
+      <button disabled={busy} style={{ width: "100%", background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 14.5, border: "none", padding: 13, borderRadius: 11, cursor: busy ? "wait" : "pointer", opacity: busy ? 0.7 : 1 }}>
         {busy ? "Creating your account…" : signedIn ? "Upgrade to a business account" : "Create business account"}
       </button>
 
       {!signedIn && (
         <div style={{ fontSize: 12, color: "#8A93A6", textAlign: "center", marginTop: 12 }}>
-          Already have an account? <Link href="/signin" style={{ color: "#4E5BDC", fontWeight: 600 }}>Sign in</Link>
+          Already have an account? <Link href="/signin" style={{ color: "#1D2F8A", fontWeight: 600 }}>Sign in</Link>
         </div>
       )}
     </form>

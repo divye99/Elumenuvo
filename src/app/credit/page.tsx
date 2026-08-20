@@ -31,7 +31,7 @@ export default function CreditPage() {
       <main style={{ maxWidth: 1080, margin: "0 auto", padding: "40px 28px 72px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 40, alignItems: "start" }}>
           <div>
-            <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "1.6px", textTransform: "uppercase", color: "#4E5BDC", marginBottom: 12 }}>
+            <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "1.6px", textTransform: "uppercase", color: "#1D2F8A", marginBottom: 12 }}>
               In development · launching soon
             </div>
             <h1 style={{ fontFamily: GROTESK, fontSize: 40, fontWeight: 600, letterSpacing: "-1.2px", lineHeight: 1.1, margin: 0 }}>

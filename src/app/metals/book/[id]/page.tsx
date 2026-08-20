@@ -29,7 +29,7 @@ function Gate({ title, body, cta, href }: { title: string; body: string; cta: st
       <div style={{ fontSize: 38 }}>🔒</div>
       <h1 style={{ fontFamily: GROTESK, fontSize: 24, fontWeight: 600, letterSpacing: "-0.6px", margin: "14px 0 10px", color: "#19202E" }}>{title}</h1>
       <p style={{ fontSize: 14, color: "#56627A", lineHeight: 1.6, margin: "0 0 22px" }}>{body}</p>
-      <Link href={href} style={{ display: "inline-block", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14, padding: "12px 22px", borderRadius: 11 }}>
+      <Link href={href} style={{ display: "inline-block", background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 14, padding: "12px 22px", borderRadius: 11 }}>
         {cta}
       </Link>
     </main>

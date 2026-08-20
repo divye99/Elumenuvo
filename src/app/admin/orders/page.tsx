@@ -37,7 +37,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
     if (emailFilter) q.set("email", emailFilter);
     const qs = q.toString();
     return (
-      <Link href={`/admin/orders${qs ? `?${qs}` : ""}`} style={{ fontSize: 13, fontWeight: 600, padding: "6px 13px", borderRadius: 8, background: active ? "#161D2B" : "#fff", color: active ? "#fff" : "#56627A", border: "1px solid #E8EBF1" }}>
+      <Link href={`/admin/orders${qs ? `?${qs}` : ""}`} style={{ fontSize: 13, fontWeight: 600, padding: "6px 13px", borderRadius: 8, background: active ? "#16215B" : "#fff", color: active ? "#fff" : "#56627A", border: "1px solid #E8EBF1" }}>
         {label} <span style={{ opacity: 0.7 }}>{count}</span>
       </Link>
     );
@@ -82,7 +82,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
           </div>
           {view.map((o, i) => showingAbandoned ? (
             <div key={o.id} style={{ display: "grid", gridTemplateColumns: "120px 1fr 90px 110px 150px", gap: 12, padding: "13px 16px", alignItems: "center", borderTop: i ? "1px solid #F0F2F6" : undefined }}>
-              <Link href={`/admin/orders/${o.id}`} style={{ fontFamily: "var(--space-mono)", fontSize: 12.5, fontWeight: 600, color: "#4E5BDC" }}>{o.id}</Link>
+              <Link href={`/admin/orders/${o.id}`} style={{ fontFamily: "var(--space-mono)", fontSize: 12.5, fontWeight: 600, color: "#1D2F8A" }}>{o.id}</Link>
               <span style={{ minWidth: 0 }}>
                 <span style={{ display: "block", fontSize: 13.5, fontWeight: 600, color: "#19202E", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.name || "-"}</span>
                 <span style={{ fontSize: 11.5, color: "#8A93A6" }}>{o.email ?? "no email"}{o.phone ? ` · ${o.phone}` : ""}</span>

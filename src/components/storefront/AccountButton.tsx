@@ -65,7 +65,7 @@ export default function AccountButton({ user: initial = null }: { user?: Account
           onClick={() => router.push("/app")}
           aria-label="Open your dashboard"
           className="acct-btn"
-          style={{ display: "flex", alignItems: "center", gap: 9, background: "#161D2B", border: "none", borderRadius: 24, padding: "5px 14px 5px 5px", cursor: "pointer" }}
+          style={{ display: "flex", alignItems: "center", gap: 9, background: "#16215B", border: "none", borderRadius: 24, padding: "5px 14px 5px 5px", cursor: "pointer" }}
         >
           <Avatar text={initials(user)} business={user.business} size={30} />
           <span style={{ fontSize: 13.5, fontWeight: 600, color: "#fff", maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{firstName}</span>
@@ -76,7 +76,7 @@ export default function AccountButton({ user: initial = null }: { user?: Account
           onClick={() => setOpen(!open)}
           aria-label="Sign in"
           className="acct-btn"
-          style={{ display: "flex", alignItems: "center", gap: 9, background: "#4E5BDC", border: "none", borderRadius: 24, padding: "5px 16px 5px 5px", cursor: "pointer" }}
+          style={{ display: "flex", alignItems: "center", gap: 9, background: "#1D2F8A", border: "none", borderRadius: 24, padding: "5px 16px 5px 5px", cursor: "pointer" }}
         >
           <Avatar text="👤" business={false} size={30} glyph />
           {/* Label hides on phones - the avatar circle IS the button there */}
@@ -109,13 +109,13 @@ export default function AccountButton({ user: initial = null }: { user?: Account
                     {(user.business && user.company) || user.name || user.email.split("@")[0]}
                   </div>
                   <div style={{ fontSize: 11.5, color: "#8A93A6", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</div>
-                  <span style={{ display: "inline-block", marginTop: 3, fontSize: 9.5, fontWeight: 700, letterSpacing: "0.4px", textTransform: "uppercase", color: user.business ? "#1F7D50" : "#4E5BDC", background: user.business ? "#E6F5EE" : "#EEF0FE", padding: "2px 8px", borderRadius: 8 }}>
+                  <span style={{ display: "inline-block", marginTop: 3, fontSize: 9.5, fontWeight: 700, letterSpacing: "0.4px", textTransform: "uppercase", color: user.business ? "#1F7D50" : "#1D2F8A", background: user.business ? "#E6F5EE" : "#E9EDF9", padding: "2px 8px", borderRadius: 8 }}>
                     {user.business ? "Business" : "Individual"}
                   </span>
                 </div>
               </div>
               <div style={{ padding: 10 }}>
-                <Link href="/app" style={{ display: "block", textAlign: "center", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13.5, padding: "10px 12px", borderRadius: 10 }}>
+                <Link href="/app" style={{ display: "block", textAlign: "center", background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 13.5, padding: "10px 12px", borderRadius: 10 }}>
                   Open dashboard →
                 </Link>
                 <MenuLink href="/orders" label="My orders" icon="📦" />
@@ -130,15 +130,15 @@ export default function AccountButton({ user: initial = null }: { user?: Account
             </>
           ) : (
             <>
-              <div style={{ padding: "16px 16px 12px", background: "linear-gradient(135deg, #EEF0FE, #F7F8FB)", borderBottom: "1px solid #EEF0F4" }}>
+              <div style={{ padding: "16px 16px 12px", background: "linear-gradient(135deg, #E9EDF9, #F7F8FB)", borderBottom: "1px solid #EEF0F4" }}>
                 <div style={{ fontSize: 14.5, fontWeight: 700, color: "#19202E" }}>Welcome to Elume</div>
                 <div style={{ fontSize: 12, color: "#56627A", marginTop: 2 }}>Orders, GST invoices, wholesale rates & your business workspace.</div>
               </div>
               <div style={{ padding: 12 }}>
-                <Link href="/signin" style={{ display: "block", textAlign: "center", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13.5, padding: "10px 12px", borderRadius: 10 }}>
+                <Link href="/signin" style={{ display: "block", textAlign: "center", background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 13.5, padding: "10px 12px", borderRadius: 10 }}>
                   Sign in
                 </Link>
-                <Link href="/signin?mode=signup" style={{ display: "block", textAlign: "center", background: "#fff", color: "#4E5BDC", fontWeight: 700, fontSize: 13.5, padding: "9px 12px", borderRadius: 10, border: "1.5px solid #D9DDFB", marginTop: 8 }}>
+                <Link href="/signin?mode=signup" style={{ display: "block", textAlign: "center", background: "#fff", color: "#1D2F8A", fontWeight: 700, fontSize: 13.5, padding: "9px 12px", borderRadius: 10, border: "1.5px solid #D9DDFB", marginTop: 8 }}>
                   Create account
                 </Link>
                 <div style={{ borderTop: "1px solid #F0F2F6", marginTop: 10, paddingTop: 4 }}>
@@ -158,7 +158,7 @@ export default function AccountButton({ user: initial = null }: { user?: Account
 function Avatar({ text, business, size, glyph }: { text: string; business: boolean; size: number; glyph?: boolean }) {
   const ring = business
     ? "conic-gradient(#1F9D63, #7CE3B1, #1F9D63, #0E6B41, #1F9D63)"
-    : "conic-gradient(#4E5BDC, #9DB0FF, #E0612A, #4E5BDC)";
+    : "conic-gradient(#1D2F8A, #9DB0FF, #F25929, #1D2F8A)";
   return (
     <span style={{ position: "relative", width: size, height: size, flexShrink: 0, display: "inline-flex", alignItems: "center", justifyContent: "center", borderRadius: "50%" }}>
       {/* rotating ring */}

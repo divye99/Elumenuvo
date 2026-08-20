@@ -73,7 +73,7 @@ export default async function AdminCustomers({ searchParams }: { searchParams: P
               <span key={c.cat} style={{ fontSize: 11.5, fontWeight: 600, color: "#3A4358", background: "#F5F6F9", borderRadius: 999, padding: "4px 11px" }}>{c.cat} · {c.units}u · {fmt(c.spend)}</span>
             ))}
             {selected.byBrand.slice(0, 6).map((b) => (
-              <span key={b.brand} style={{ fontSize: 11.5, fontWeight: 600, color: "#3A46B8", background: "#EEF0FE", borderRadius: 999, padding: "4px 11px" }}>{b.brand}</span>
+              <span key={b.brand} style={{ fontSize: 11.5, fontWeight: 600, color: "#3A46B8", background: "#E9EDF9", borderRadius: 999, padding: "4px 11px" }}>{b.brand}</span>
             ))}
           </div>
           {selected.nextCategories.length > 0 && (

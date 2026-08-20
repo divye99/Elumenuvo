@@ -17,7 +17,7 @@ function Rail({ title, blurb, items, seeAll, max = 10 }: { title: string; blurb:
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 10 }}>
         <h2 style={{ fontFamily: GROTESK, fontSize: 18.5, fontWeight: 700, margin: 0 }}>{title}</h2>
         <span className="fy-blurb" style={{ fontSize: 12.5, color: "#8A93A6" }}>{blurb}</span>
-        <Link href={seeAll} style={{ marginLeft: "auto", fontSize: 12.5, fontWeight: 700, color: "#4E5BDC", whiteSpace: "nowrap" }}>
+        <Link href={seeAll} style={{ marginLeft: "auto", fontSize: 12.5, fontWeight: 700, color: "#1D2F8A", whiteSpace: "nowrap" }}>
           See all ({items.length}) →
         </Link>
       </div>
@@ -52,7 +52,7 @@ export default function ForYouClient({ data, firstName }: { data: ForYouData; fi
           <div style={{ fontSize: 30, marginBottom: 8 }}>✨</div>
           <div style={{ fontFamily: GROTESK, fontSize: 17, fontWeight: 600 }}>Nothing personal here yet</div>
           <p style={{ fontSize: 13.5, color: "#56627A", margin: "6px 0 16px" }}>Browse a few products or place an order, and this page starts building itself around you.</p>
-          <Link href="/catalogue" style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14, padding: "11px 22px", borderRadius: 11 }}>Browse the catalogue →</Link>
+          <Link href="/catalogue" style={{ background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 14, padding: "11px 22px", borderRadius: 11 }}>Browse the catalogue →</Link>
         </div>
       ) : (
         <>
@@ -62,7 +62,7 @@ export default function ForYouClient({ data, firstName }: { data: ForYouData; fi
               <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 10 }}>
                 <h2 style={{ fontFamily: GROTESK, fontSize: 18.5, fontWeight: 700, margin: 0 }}>Brands you love</h2>
                 <span className="fy-blurb" style={{ fontSize: 12.5, color: "#8A93A6" }}>from your orders and browsing</span>
-                <Link href="/for-you/brands" style={{ marginLeft: "auto", fontSize: 12.5, fontWeight: 700, color: "#4E5BDC" }}>See all ({brands.length}) →</Link>
+                <Link href="/for-you/brands" style={{ marginLeft: "auto", fontSize: 12.5, fontWeight: 700, color: "#1D2F8A" }}>See all ({brands.length}) →</Link>
               </div>
               <div style={{ display: "flex", gap: 18, overflowX: "auto", paddingBottom: 8 }}>
                 {brands.slice(0, 12).map((b) => (
@@ -72,7 +72,7 @@ export default function ForYouClient({ data, firstName }: { data: ForYouData; fi
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={brandLogo(b)!} alt={b} width={34} height={34} style={{ objectFit: "contain" }} />
                       ) : (
-                        <span style={{ fontFamily: GROTESK, fontSize: 19, fontWeight: 700, color: "#4E5BDC" }}>{b.slice(0, 1)}</span>
+                        <span style={{ fontFamily: GROTESK, fontSize: 19, fontWeight: 700, color: "#1D2F8A" }}>{b.slice(0, 1)}</span>
                       )}
                     </span>
                     <span style={{ fontSize: 11, fontWeight: 600, color: "#3A4358", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 74 }}>{b}</span>

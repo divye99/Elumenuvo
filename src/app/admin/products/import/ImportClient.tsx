@@ -25,7 +25,7 @@ type Diff = {
 
 const BADGE: Record<Diff["action"], { bg: string; fg: string; label: string }> = {
   add: { bg: "#E6F5EE", fg: "#137a4b", label: "Add" },
-  update: { bg: "#EEF0FE", fg: "#3a41b5", label: "Update" },
+  update: { bg: "#E9EDF9", fg: "#3a41b5", label: "Update" },
   remove: { bg: "#FBE9E4", fg: "#9a3b16", label: "Remove" },
 };
 
@@ -185,7 +185,7 @@ export default function ImportClient() {
               </div>
 
               <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 16 }}>
-                <button onClick={confirm} disabled={applying} style={{ ...btnPrimary, background: "#4E5BDC", cursor: applying ? "default" : "pointer", opacity: applying ? 0.7 : 1 }}>
+                <button onClick={confirm} disabled={applying} style={{ ...btnPrimary, background: "#1D2F8A", cursor: applying ? "default" : "pointer", opacity: applying ? 0.7 : 1 }}>
                   {applying ? `Applying ${diffs.length} change${diffs.length === 1 ? "" : "s"}…` : `Apply ${diffs.length} change${diffs.length === 1 ? "" : "s"}`}
                 </button>
                 <button onClick={() => { setDiffs(null); setErrors([]); setFilename(""); }} disabled={applying} style={{ background: "none", border: "none", color: "#56627A", fontSize: 13.5, cursor: "pointer" }}>Cancel</button>
@@ -203,7 +203,7 @@ function Section({ n, title, children }: { n: number; title: string; children: R
   return (
     <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "20px 22px", marginBottom: 16 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-        <span style={{ width: 24, height: 24, borderRadius: "50%", background: "#161D2B", color: "#fff", fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>{n}</span>
+        <span style={{ width: 24, height: 24, borderRadius: "50%", background: "#16215B", color: "#fff", fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>{n}</span>
         <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>{title}</h2>
       </div>
       {children}
@@ -211,5 +211,5 @@ function Section({ n, title, children }: { n: number; title: string; children: R
   );
 }
 
-const btnPrimary: React.CSSProperties = { background: "#161D2B", color: "#fff", fontWeight: 600, fontSize: 13.5, padding: "10px 18px", borderRadius: 10, border: "none", textDecoration: "none", display: "inline-block", cursor: "pointer" };
+const btnPrimary: React.CSSProperties = { background: "#16215B", color: "#fff", fontWeight: 600, fontSize: 13.5, padding: "10px 18px", borderRadius: 10, border: "none", textDecoration: "none", display: "inline-block", cursor: "pointer" };
 const btnGhost: React.CSSProperties = { background: "#fff", color: "#19202e", fontWeight: 600, fontSize: 13.5, padding: "10px 18px", borderRadius: 10, border: "1px solid #E0E4ED", textDecoration: "none", display: "inline-block" };

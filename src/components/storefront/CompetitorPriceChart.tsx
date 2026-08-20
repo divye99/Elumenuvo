@@ -5,8 +5,8 @@ import { GROTESK, MONO } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import type { MarketPoint } from "@/lib/competitor-history";
 
-const OUR = "#4E5BDC";
-const MARKET = "#E0612A"; // avg-market line
+const OUR = "#1D2F8A";
+const MARKET = "#F25929"; // avg-market line
 
 /**
  * Price history · Elume vs the market, one point per day (daily snapshots via

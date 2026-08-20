@@ -21,7 +21,7 @@ export default function WholesaleAddButton({ p }: { p: Product }) {
     return (
       <div style={{ marginTop: 10, fontSize: 12, fontWeight: 700, color: "#1F9D63" }}>
         ✓ {WHOLESALE_MIN_QTY} {p.unit}s in cart at {fmt(wholesalePrice(p.price))}/{p.unit} ·{" "}
-        <Link href="/cart" style={{ color: "#4E5BDC" }}>View cart →</Link>
+        <Link href="/cart" style={{ color: "#1D2F8A" }}>View cart →</Link>
       </div>
     );
   }
@@ -31,7 +31,7 @@ export default function WholesaleAddButton({ p }: { p: Product }) {
         add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.market, unit: p.unit, cat: p.cat, gstRate: p.gstRate, image: p.image }, WHOLESALE_MIN_QTY);
         setAdded(true);
       }}
-      style={{ marginTop: 10, background: "#EEF0FE", color: "#4E5BDC", border: "none", fontWeight: 700, fontSize: 11.5, padding: "7px 12px", borderRadius: 8, cursor: "pointer" }}
+      style={{ marginTop: 10, background: "#E9EDF9", color: "#1D2F8A", border: "none", fontWeight: 700, fontSize: 11.5, padding: "7px 12px", borderRadius: 8, cursor: "pointer" }}
     >
       Add {WHOLESALE_MIN_QTY} {p.unit}s to cart
     </button>

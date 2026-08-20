@@ -28,6 +28,9 @@ const PROOFS: [string, string][] = [
 ];
 
 export default function ElumeFlagship({ p }: { p: Product }) {
+  // The section serves both house lines; the opening paragraph names the one
+  // on the page (HFFR is the flagship halogen-free range, Aug 2026).
+  const isHffr = /hffr/i.test(p.name);
   return (
     <section style={{ borderRadius: 18, overflow: "hidden", border: "1px solid #262a55", background: "linear-gradient(168deg, #191c45 0%, #232052 38%, #5b2d63 68%, #b0472e 100%)", color: "#fff" }}>
       {/* ── Opening statement ── */}
@@ -38,9 +41,9 @@ export default function ElumeFlagship({ p }: { p: Product }) {
             Wire, the way we believe it should be made.
           </h2>
           <p style={{ fontSize: 14.5, lineHeight: 1.7, color: "rgba(255,255,255,0.82)", margin: "18px 0 0" }}>
-            Elume FR begins as bright annealed electrolytic copper, drawn to IS 8130 and stranded into a class-5
-            conductor that moves through conduit the way it should. It is insulated in a flame-retardant compound
-            that refuses to carry fire, and finished in a palette you will recognise from across a site.
+            {isHffr
+              ? "Elume HFFR, our flagship line, begins as bright annealed electrolytic copper, drawn to IS 8130 and stranded into a class-5 conductor. It is insulated in a 100% halogen-free compound that does not melt, drip or throw toxic smoke in a fire, and finished in a palette you will recognise from across a site."
+              : "Elume FR begins as bright annealed electrolytic copper, drawn to IS 8130 and stranded into a class-5 conductor that moves through conduit the way it should. It is insulated in a flame-retardant compound that refuses to carry fire, and finished in a palette you will recognise from across a site."}
           </p>
           <p style={{ fontSize: 14.5, lineHeight: 1.7, color: "rgba(255,255,255,0.82)", margin: "12px 0 0" }}>
             Then every single coil, not a sample, is spark-tested at high voltage before it is allowed into the box.
@@ -92,12 +95,24 @@ export default function ElumeFlagship({ p }: { p: Product }) {
           <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 18, lineHeight: 1.6 }}>
             RoHS compliant · lead-free · 1100 V grade · dispatched in a rigid printed carton, sized to shelve flat and stack clean.
           </div>
+          {/* Certification marks from the brand kit: white chips so the
+              official logos read correctly on the dark gradient. */}
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 18 }}>
+            {[["/assets/certs/isi.png", "IS 694"], ["/assets/certs/astm.png", "ASTM"], ["/assets/certs/ce.svg", "CE"], ["/assets/certs/rohs.png", "RoHS"], ["/assets/certs/reach.png", "REACH"]].map(([img, label]) => (
+              <span key={label} style={{ background: "#fff", borderRadius: 9, padding: "6px 10px", display: "inline-flex", alignItems: "center", gap: 7 }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={img} alt={label} style={{ height: 20, width: "auto", objectFit: "contain" }} loading="lazy" />
+                <span style={{ fontSize: 10.5, fontWeight: 700, color: "#3A4358" }}>{label}</span>
+              </span>
+            ))}
+          </div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, background: "#0e102e" }}>
+          {/* The 2026 brochure spreads from the Factor X kit. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/elume/brochure-open.jpg" alt="Elume specification brochure" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", minHeight: 170 }} />
+          <img src="/elume/brochure-2026-inside.jpg" alt="Elume specification brochure" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", minHeight: 170 }} />
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/elume/catalogue-cover.jpg" alt="Elume catalogue" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", minHeight: 170 }} />
+          <img src="/elume/brochure-2026-back.jpg" alt="Elume brochure, brand and contact" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", minHeight: 170 }} />
         </div>
       </div>
     </section>

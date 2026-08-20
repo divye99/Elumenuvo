@@ -42,8 +42,8 @@ const NAV: { key: Screen | "catalogue" | "cart" | "foryou" | "boq"; label: strin
 
 const STAGE_COLORS: Record<string, [string, string]> = {
   "Rough-in": ["#F5F6F9", "#56627A"],
-  Wiring: ["#EEF0FD", "#4E5BDC"],
-  "Panel & DB": ["#EEF0FD", "#4E5BDC"],
+  Wiring: ["#EEF0FD", "#1D2F8A"],
+  "Panel & DB": ["#EEF0FD", "#1D2F8A"],
   Finishing: ["#E6F5EE", "#1F9D63"],
 };
 
@@ -94,7 +94,7 @@ export default function AppShell({ user, live }: { user?: { email: string; name?
   return (
     <div style={{ height: "100vh", display: "flex", overflow: "hidden", fontFamily: "var(--hanken)", color: "#19202E", background: "#F5F6F9" }}>
       {/* ===================== SIDEBAR ===================== */}
-      <div className="ws-sidebar" style={{ width: 224, flex: "none", background: "#161D2B", padding: "20px 15px", display: "flex", flexDirection: "column" }}>
+      <div className="ws-sidebar" style={{ width: 224, flex: "none", background: "#16215B", padding: "20px 15px", display: "flex", flexDirection: "column" }}>
         <div onClick={() => router.push("/")} style={{ display: "flex", alignItems: "center", gap: 9, margin: "6px 6px 26px", cursor: "pointer" }}>
           <Mark height={30} />
           <Wordmark height={17} white opacity={0.96} />
@@ -155,14 +155,14 @@ export default function AppShell({ user, live }: { user?: { email: string; name?
             <div onClick={() => nav("cart")} className="ws-topcart" style={{ position: "relative", width: 38, height: 38, borderRadius: 9, border: "1px solid #E8EBF1", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <span style={{ width: 15, height: 13, border: "2px solid #56627A", borderRadius: 3, display: "inline-block" }} />
               {cartCount > 0 && (
-                <span style={{ position: "absolute", top: -6, right: -6, minWidth: 18, height: 18, padding: "0 4px", background: "#E0612A", color: "#fff", fontSize: 10.5, fontWeight: 700, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ position: "absolute", top: -6, right: -6, minWidth: 18, height: 18, padding: "0 4px", background: "#F25929", color: "#fff", fontSize: 10.5, fontWeight: 700, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   {cartCount}
                 </span>
               )}
             </div>
             <div style={{ position: "relative", paddingLeft: 6 }}>
               <div onClick={() => setMenuOpen((o) => !o)} style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer", userSelect: "none" }}>
-                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#3a2d6b,#E0612A)", color: "#fff", fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>{userInitials}</div>
+                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#3a2d6b,#F25929)", color: "#fff", fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center" }}>{userInitials}</div>
                 <div className="ws-usertext" style={{ lineHeight: 1.2 }}>
                   <div style={{ fontSize: 12.5, fontWeight: 600, color: "#19202E" }}>{userName}</div>
                   <div style={{ fontSize: 11, color: "#8A93A6" }}>{userOrg}</div>
@@ -217,11 +217,11 @@ export default function AppShell({ user, live }: { user?: { email: string; name?
             const active = n.key === screen;
             const badge = n.key === "cart" ? cartCount : 0;
             return (
-              <div key={n.key} onClick={() => nav(n.key)} style={{ flex: 1, padding: "9px 0 7px", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, cursor: "pointer", color: active ? "#4E5BDC" : "#8A93A6" }}>
+              <div key={n.key} onClick={() => nav(n.key)} style={{ flex: 1, padding: "9px 0 7px", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, cursor: "pointer", color: active ? "#1D2F8A" : "#8A93A6" }}>
                 <span style={{ position: "relative", display: "inline-flex" }}>
                   <TabIcon name={n.key} active={active} />
                   {badge > 0 && (
-                    <span style={{ position: "absolute", top: -5, right: -9, minWidth: 16, height: 16, padding: "0 4px", background: "#E0612A", color: "#fff", fontSize: 9.5, fontWeight: 700, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>{badge}</span>
+                    <span style={{ position: "absolute", top: -5, right: -9, minWidth: 16, height: 16, padding: "0 4px", background: "#F25929", color: "#fff", fontSize: 9.5, fontWeight: 700, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>{badge}</span>
                   )}
                 </span>
                 <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, letterSpacing: "0.1px" }}>{n.label}</span>
@@ -295,7 +295,7 @@ function LivePortfolio({ live, onCatalogue }: { live: LiveWorkspace; onCatalogue
           <span style={{ fontFamily: GROTESK, fontWeight: 600, fontSize: 14.5 }}>
             Projects <span style={{ color: "#8A93A6", fontWeight: 400 }}>· {live.projects.length} site{live.projects.length === 1 ? "" : "s"}</span>
           </span>
-          <span onClick={() => setCreating((c) => !c)} style={{ fontSize: 12.5, color: "#4E5BDC", fontWeight: 600, cursor: "pointer" }}>
+          <span onClick={() => setCreating((c) => !c)} style={{ fontSize: 12.5, color: "#1D2F8A", fontWeight: 600, cursor: "pointer" }}>
             {creating ? "Close" : "+ New project"}
           </span>
         </div>
@@ -307,7 +307,7 @@ function LivePortfolio({ live, onCatalogue }: { live: LiveWorkspace; onCatalogue
             <select value={stage} onChange={(e) => setStage(e.target.value)} style={{ border: "1px solid #E0E4ED", borderRadius: 9, padding: "9px 12px", fontSize: 13, background: "#fff" }}>
               {["Rough-in", "Wiring", "Panel & DB", "Finishing"].map((st) => <option key={st}>{st}</option>)}
             </select>
-            <button onClick={submit} disabled={busy || !name.trim()} style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 12.5, border: "none", padding: "10px 16px", borderRadius: 9, cursor: "pointer", opacity: busy || !name.trim() ? 0.6 : 1 }}>
+            <button onClick={submit} disabled={busy || !name.trim()} style={{ background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 12.5, border: "none", padding: "10px 16px", borderRadius: 9, cursor: "pointer", opacity: busy || !name.trim() ? 0.6 : 1 }}>
               {busy ? "Creating…" : "Create project"}
             </button>
             {err && <span style={{ fontSize: 12.5, color: "#D14343", fontWeight: 600 }}>{err}</span>}
@@ -321,7 +321,7 @@ function LivePortfolio({ live, onCatalogue }: { live: LiveWorkspace; onCatalogue
             <div style={{ fontSize: 12.5, color: "#8A93A6", marginTop: 4, lineHeight: 1.6 }}>
               Create your first project to organise purchases by site, or head straight to the catalogue.
             </div>
-            <div onClick={onCatalogue} style={{ display: "inline-block", marginTop: 14, background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13, padding: "10px 18px", borderRadius: 9, cursor: "pointer" }}>
+            <div onClick={onCatalogue} style={{ display: "inline-block", marginTop: 14, background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 13, padding: "10px 18px", borderRadius: 9, cursor: "pointer" }}>
               Browse the catalogue →
             </div>
           </div>
@@ -358,7 +358,7 @@ function LiveOrders({ live, onCatalogue }: { live: LiveWorkspace; onCatalogue: (
     out_for_delivery: "Out for delivery", delivered: "Delivered",
   };
   const badge: Record<string, [string, string]> = {
-    placed: ["#EEF0FE", "#4E5BDC"], confirmed: ["#E6F0FF", "#2563C9"], packed: ["#FFF3E0", "#C77700"],
+    placed: ["#E9EDF9", "#1D2F8A"], confirmed: ["#E6F0FF", "#2563C9"], packed: ["#FFF3E0", "#C77700"],
     shipped: ["#E7F3EC", "#1F9D63"], partially_shipped: ["#FBF0E4", "#B4690E"],
     out_for_delivery: ["#E7F3EC", "#1F8F5B"], delivered: ["#E6F5EE", "#137a4b"],
   };
@@ -379,7 +379,7 @@ function LiveOrders({ live, onCatalogue }: { live: LiveWorkspace; onCatalogue: (
             <div style={{ fontSize: 26, marginBottom: 8 }}>📦</div>
             <div style={{ fontSize: 14, fontWeight: 600, color: "#19202E" }}>No orders yet.</div>
             <div style={{ fontSize: 12.5, color: "#8A93A6", marginTop: 4 }}>Everything you buy shows up here with live tracking.</div>
-            <div onClick={onCatalogue} style={{ display: "inline-block", marginTop: 14, background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13, padding: "10px 18px", borderRadius: 9, cursor: "pointer" }}>
+            <div onClick={onCatalogue} style={{ display: "inline-block", marginTop: 14, background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 13, padding: "10px 18px", borderRadius: 9, cursor: "pointer" }}>
               Browse the catalogue →
             </div>
           </div>
@@ -439,7 +439,7 @@ function LiveOrders({ live, onCatalogue }: { live: LiveWorkspace; onCatalogue: (
       {/* Start a fresh order from the personalized catalogue */}
       <div
         onClick={() => router.push("/for-you")}
-        style={{ marginTop: 14, background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13.5, padding: "13px 18px", borderRadius: 11, cursor: "pointer", textAlign: "center" }}
+        style={{ marginTop: 14, background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 13.5, padding: "13px 18px", borderRadius: 11, cursor: "pointer", textAlign: "center" }}
       >
         + Create new order · your personalized catalogue
       </div>
@@ -491,7 +491,7 @@ function AccountScreen({ user, section, addresses = [], gstins = [], phones = []
   const card: React.CSSProperties = { background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "20px 22px", maxWidth: 560, marginBottom: 16 };
   const label: React.CSSProperties = { display: "block", fontSize: 11.5, fontWeight: 700, color: "#8A93A6", textTransform: "uppercase", letterSpacing: "0.4px", margin: "12px 0 5px" };
   const input: React.CSSProperties = { width: "100%", boxSizing: "border-box", border: "1px solid #E0E4ED", borderRadius: 9, padding: "10px 12px", fontSize: 13.5 };
-  const saveBtn = (b: boolean): React.CSSProperties => ({ marginTop: 14, background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13, border: "none", padding: "10px 20px", borderRadius: 9, cursor: "pointer", opacity: b ? 0.6 : 1 });
+  const saveBtn = (b: boolean): React.CSSProperties => ({ marginTop: 14, background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 13, border: "none", padding: "10px 20px", borderRadius: 9, cursor: "pointer", opacity: b ? 0.6 : 1 });
 
   return (
     <div className="ws-pad" style={{ padding: "26px 30px", animation: "elumeFade .35s ease" }}>
@@ -504,7 +504,7 @@ function AccountScreen({ user, section, addresses = [], gstins = [], phones = []
         <span style={label}>Account type</span>
         <div style={{ ...input, background: "#F5F6F9", color: "#56627A", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span>{isBiz ? "Business" : "Individual"}</span>
-          {isBiz && <span style={{ fontSize: 10.5, fontWeight: 800, color: "#4E5BDC", background: "#EEF0FE", padding: "2px 8px", borderRadius: 7, textTransform: "uppercase" }}>GST invoicing on</span>}
+          {isBiz && <span style={{ fontSize: 10.5, fontWeight: 800, color: "#1D2F8A", background: "#E9EDF9", padding: "2px 8px", borderRadius: 7, textTransform: "uppercase" }}>GST invoicing on</span>}
         </div>
 
         {/* Business fields (editable) or the switch form */}
@@ -607,7 +607,7 @@ function SavedAddressBook({ initial }: { initial: SavedAddress[] }) {
                 <div style={{ fontSize: 12.5, color: "#56627A", marginTop: 3, lineHeight: 1.45 }}>{line(a)}</div>
                 <div style={{ display: "flex", gap: 6, marginTop: 7, flexWrap: "wrap" }}>
                   {a.usedShipping && <Tag text="Delivery" bg="#E7F3EC" fg="#1F8F5B" />}
-                  {a.usedBilling && <Tag text="Billing" bg="#EEF0FD" fg="#4E5BDC" />}
+                  {a.usedBilling && <Tag text="Billing" bg="#EEF0FD" fg="#1D2F8A" />}
                 </div>
               </div>
               <button
@@ -666,7 +666,7 @@ function OrderDetail({ o, labelOf }: { o: LiveWorkspace["orders"][number]; label
                   {s.awb && <span style={{ fontFamily: MONO, fontSize: 12, color: "#56627A" }}>AWB {s.awb}</span>}
                   <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 6, background: bg, color: fg }}>{labelOf(s.status)}</span>
                   {s.tracking_url && (
-                    <a href={s.tracking_url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#4E5BDC", fontWeight: 700 }}>Track with courier →</a>
+                    <a href={s.tracking_url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#1D2F8A", fontWeight: 700 }}>Track with courier →</a>
                   )}
                 </div>
                 <div style={{ fontSize: 11.5, color: "#8A93A6", marginTop: 3 }}>
@@ -755,7 +755,7 @@ function OrderDetail({ o, labelOf }: { o: LiveWorkspace["orders"][number]; label
 
       {/* Help, right where the question arises */}
       <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap", fontSize: 12 }}>
-        <a href={`/track?order=${encodeURIComponent(o.id)}`} style={{ color: "#4E5BDC", fontWeight: 700 }}>Open the tracking page →</a>
+        <a href={`/track?order=${encodeURIComponent(o.id)}`} style={{ color: "#1D2F8A", fontWeight: 700 }}>Open the tracking page →</a>
         <a href="/contact" style={{ color: "#56627A", fontWeight: 600 }}>Need help with this order? Contact us</a>
       </div>
 
@@ -811,7 +811,7 @@ function ProjectsScreen({ live }: { live: LiveWorkspace }) {
     <div className="ws-pad" style={{ padding: "26px 30px", animation: "elumeFade .35s ease" }}>
       {/* Why this exists, in one line */}
       <div style={{ background: "#EEF0FD", border: "1px solid #DDE1FB", borderRadius: 12, padding: "12px 16px", fontSize: 12.5, color: "#3A4358", marginBottom: 16 }}>
-        <b style={{ color: "#4E5BDC" }}>Set a project up once, order to it forever.</b>{" "}
+        <b style={{ color: "#1D2F8A" }}>Set a project up once, order to it forever.</b>{" "}
         Give each site its contact person and delivery address; at checkout you just pick the project and every field fills itself.
       </div>
 
@@ -820,7 +820,7 @@ function ProjectsScreen({ live }: { live: LiveWorkspace }) {
           <span style={{ fontFamily: GROTESK, fontWeight: 600, fontSize: 14.5 }}>
             Your projects <span style={{ color: "#8A93A6", fontWeight: 400 }}>· {live.projects.length}</span>
           </span>
-          <span onClick={() => { setErr(null); setForm(form && !form.id ? null : emptyProjectForm()); }} style={{ fontSize: 12.5, color: "#4E5BDC", fontWeight: 600, cursor: "pointer" }}>
+          <span onClick={() => { setErr(null); setForm(form && !form.id ? null : emptyProjectForm()); }} style={{ fontSize: 12.5, color: "#1D2F8A", fontWeight: 600, cursor: "pointer" }}>
             {form && !form.id ? "Close" : "+ New project"}
           </span>
         </div>
@@ -858,7 +858,7 @@ function ProjectsScreen({ live }: { live: LiveWorkspace }) {
               <div><span style={lab}>PIN code</span><input inputMode="numeric" maxLength={6} value={form.pin} onChange={(e) => set("pin", e.target.value.replace(/\D/g, "").slice(0, 6))} style={fi} /></div>
             </div>
             <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 14, flexWrap: "wrap" }}>
-              <button onClick={submit} disabled={busy || !form.name.trim()} style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 12.5, border: "none", padding: "10px 18px", borderRadius: 9, cursor: "pointer", opacity: busy || !form.name.trim() ? 0.6 : 1 }}>
+              <button onClick={submit} disabled={busy || !form.name.trim()} style={{ background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 12.5, border: "none", padding: "10px 18px", borderRadius: 9, cursor: "pointer", opacity: busy || !form.name.trim() ? 0.6 : 1 }}>
                 {busy ? "Saving…" : form.id ? "Save changes" : "Create project"}
               </button>
               <span onClick={() => setForm(null)} style={{ fontSize: 12.5, color: "#56627A", fontWeight: 600, cursor: "pointer" }}>Cancel</span>
@@ -877,7 +877,7 @@ function ProjectsScreen({ live }: { live: LiveWorkspace }) {
             <div style={{ fontSize: 12.5, color: "#8A93A6", marginTop: 4, lineHeight: 1.6 }}>
               Create one per site - deliveries, contacts and purchases stay organised by project.
             </div>
-            <div onClick={() => setForm(emptyProjectForm())} style={{ display: "inline-block", marginTop: 14, background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 13, padding: "10px 18px", borderRadius: 9, cursor: "pointer" }}>
+            <div onClick={() => setForm(emptyProjectForm())} style={{ display: "inline-block", marginTop: 14, background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 13, padding: "10px 18px", borderRadius: 9, cursor: "pointer" }}>
               + Create your first project
             </div>
           </div>
@@ -906,10 +906,10 @@ function ProjectsScreen({ live }: { live: LiveWorkspace }) {
                   )}
                 </div>
                 <div style={{ display: "flex", gap: 14, marginTop: 10, alignItems: "center", flexWrap: "wrap" }}>
-                  <span onClick={() => router.push("/catalogue")} style={{ fontSize: 12.5, color: "#fff", background: "#4E5BDC", fontWeight: 700, cursor: "pointer", padding: "7px 14px", borderRadius: 8 }}>
+                  <span onClick={() => router.push("/catalogue")} style={{ fontSize: 12.5, color: "#fff", background: "#1D2F8A", fontWeight: 700, cursor: "pointer", padding: "7px 14px", borderRadius: 8 }}>
                     Order for this site →
                   </span>
-                  <span onClick={() => { setErr(null); setForm(projectToForm(pr)); }} style={{ fontSize: 12.5, color: "#4E5BDC", fontWeight: 600, cursor: "pointer" }}>Edit details</span>
+                  <span onClick={() => { setErr(null); setForm(projectToForm(pr)); }} style={{ fontSize: 12.5, color: "#1D2F8A", fontWeight: 600, cursor: "pointer" }}>Edit details</span>
                   <span onClick={() => removeProject(pr.id)} style={{ fontSize: 12.5, color: "#B43A16", fontWeight: 600, cursor: "pointer" }}>Delete</span>
                 </div>
               </div>

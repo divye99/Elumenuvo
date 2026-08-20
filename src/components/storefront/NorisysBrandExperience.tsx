@@ -56,7 +56,7 @@ export default function NorisysBrandExperience() {
       </div>
 
       {/* ── 2 · Engineering band ── */}
-      <div style={{ margin: "18px 0 0", background: "#161D2B", borderRadius: 20, padding: "26px 28px", display: "grid", gridTemplateColumns: "1fr 1.2fr", gap: 24, alignItems: "center" }} className="nrs-eng">
+      <div style={{ margin: "18px 0 0", background: "#16215B", borderRadius: 20, padding: "26px 28px", display: "grid", gridTemplateColumns: "1fr 1.2fr", gap: 24, alignItems: "center" }} className="nrs-eng">
         <div>
           <div style={{ fontSize: 11.5, letterSpacing: "2px", textTransform: "uppercase", color: "#9AA6FF", fontWeight: 600, marginBottom: 10 }}>
             Built like instruments

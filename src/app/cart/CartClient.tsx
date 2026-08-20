@@ -20,7 +20,7 @@ export default function CartClient() {
           <div style={{ fontSize: 34, marginBottom: 10 }}>🛒</div>
           <div style={{ fontFamily: GROTESK, fontSize: 20, fontWeight: 600 }}>Your cart is empty</div>
           <p style={{ fontSize: 14, color: "#8A93A6", margin: "8px 0 18px" }}>Add electrical goods and they&apos;ll show up here.</p>
-          <Link href="/catalogue" style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14, padding: "11px 22px", borderRadius: 11 }}>Browse the catalogue</Link>
+          <Link href="/catalogue" style={{ background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 14, padding: "11px 22px", borderRadius: 11 }}>Browse the catalogue</Link>
         </div>
       </main>
     );
@@ -87,10 +87,10 @@ export default function CartClient() {
             <span style={{ fontWeight: 600, fontSize: 14 }}>Total <span style={{ fontSize: 11, color: "#8A93A6", fontWeight: 500 }}>(incl. GST)</span></span>
             <span style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 700 }}>{fmt(total + shippingFeeFor(total) + heavyFreightFor(items))}</span>
           </div>
-          <button onClick={() => router.push("/checkout")} style={{ width: "100%", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14.5, border: "none", padding: 13, borderRadius: 11, cursor: "pointer" }}>
+          <button onClick={() => router.push("/checkout")} style={{ width: "100%", background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 14.5, border: "none", padding: 13, borderRadius: 11, cursor: "pointer" }}>
             Checkout
           </button>
-          <Link href="/catalogue" style={{ display: "block", textAlign: "center", fontSize: 12.5, color: "#4E5BDC", fontWeight: 600, marginTop: 12 }}>Continue shopping</Link>
+          <Link href="/catalogue" style={{ display: "block", textAlign: "center", fontSize: 12.5, color: "#1D2F8A", fontWeight: 600, marginTop: 12 }}>Continue shopping</Link>
         </div>
       </div>
     </main>

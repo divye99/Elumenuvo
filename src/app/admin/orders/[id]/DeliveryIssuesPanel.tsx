@@ -30,7 +30,7 @@ const FAULTS: [string, string, string][] = [
 
 const ISSUE_STATUS: Record<string, { label: string; bg: string; fg: string }> = {
   open: { label: "Open", bg: "#FFF6ED", fg: "#B7791F" },
-  awaiting_customer: { label: "Awaiting customer", bg: "#EEF0FE", fg: "#4E5BDC" },
+  awaiting_customer: { label: "Awaiting customer", bg: "#E9EDF9", fg: "#1D2F8A" },
   customer_decided: { label: "Customer decided", bg: "#E6F0FF", fg: "#2563C9" },
   redelivery_booked: { label: "Redelivery booked", bg: "#E7F3EC", fg: "#1F9D63" },
   resolved: { label: "Resolved", bg: "#1F9D63", fg: "#fff" },
@@ -44,7 +44,7 @@ const CHOICE_LABEL: Record<string, string> = {
 
 const inp: React.CSSProperties = { fontSize: 13, border: "1px solid #E0E4ED", borderRadius: 9, padding: "8px 10px", width: "100%" };
 const lbl: React.CSSProperties = { fontSize: 11, fontWeight: 700, color: "#56627A", display: "block", marginBottom: 4 };
-const mini: React.CSSProperties = { fontSize: 12, fontWeight: 700, color: "#4E5BDC", background: "#F3F5F9", border: "none", borderRadius: 8, padding: "7px 12px", cursor: "pointer" };
+const mini: React.CSSProperties = { fontSize: 12, fontWeight: 700, color: "#1D2F8A", background: "#F3F5F9", border: "none", borderRadius: 8, padding: "7px 12px", cursor: "pointer" };
 
 export default function DeliveryIssuesPanel({ orderId, phone, shipments, issues }: {
   orderId: string;

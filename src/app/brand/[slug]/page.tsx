@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import HubBrowser, { type FacetTreeGroup } from "@/components/storefront/HubBrowser";
 import NorisysBrandExperience from "@/components/storefront/NorisysBrandExperience";
+import ElumeBrandExperience from "@/components/storefront/ElumeBrandExperience";
 import { norisysCode, norisysFinishFamily, norisysFinishLabel, norisysSeries } from "@/lib/norisys";
 import { fetchProductsLite } from "@/lib/products";
 import { buildHub } from "@/lib/hub";
@@ -115,10 +116,16 @@ export default async function BrandPage({ params }: { params: Promise<{ slug: st
         <NorisysBrandExperience />
       </div>
     )}
+    {/* Elume house-brand flagship header (Factor X identity, Aug 2026). */}
+    {brand === "Elume" && (
+      <div style={{ maxWidth: 1240, margin: "18px auto 0", padding: "0 24px" }}>
+        <ElumeBrandExperience />
+      </div>
+    )}
     <HubBrowser
         title={brand}
         subtitle={`Buy genuine ${brand} ${cats.slice(0, 3).map((c) => c.toLowerCase()).join(", ")} and more online: trending picks first, the full range below, every price checked against the open market, with GST invoice and free pan-India delivery above ₹4,000.`}
-        hideHeader={brand === "Norisys"}
+        hideHeader={brand === "Norisys" || brand === "Elume"}
         rails={hub.rails.filter((r) => ["trending", "top-rated", "best-sellers"].includes(r.key))}
         strip={strip}
         stripTitle="Shop by category"

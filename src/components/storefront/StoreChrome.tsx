@@ -29,9 +29,9 @@ export default function StoreChrome({ children }: { children: React.ReactNode })
         overflow without creating one. */}
     <div style={{ fontFamily: "var(--hanken)", background: "#F7F8FB", minHeight: "100vh", color: "#19202e", overflowX: "clip" }}>
       {/* Announcement strip */}
-      <div className="hdr-strip" style={{ background: "#19202E", color: "#C6CDE2", fontSize: 12.5, textAlign: "center", padding: "8px 16px" }}>
+      <div className="hdr-strip" style={{ background: "#16215B", color: "#C6CDE2", fontSize: 12.5, textAlign: "center", padding: "8px 16px" }}>
         🚚 <strong style={{ color: "#fff" }}>Free delivery over ₹4,000</strong> pan-India · GST invoice on every order ·{" "}
-        <Link href="/credit" style={{ color: "#9DB0FF", fontWeight: 700 }}>
+        <Link href="/credit" style={{ color: "#D2AE6D", fontWeight: 700 }}>
           30-day NBFC credit coming soon - join the waitlist →
         </Link>
       </div>
@@ -61,7 +61,7 @@ export default function StoreChrome({ children }: { children: React.ReactNode })
             <CatalogueMegaMenu />
             <Link href="/metals" className="hdr-navlink" style={{ fontSize: 14, fontWeight: 600, color: "#19202E", display: "inline-flex", alignItems: "center", gap: 6 }}>
               Metals
-              <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.4px", color: "#fff", background: "#E0612A", borderRadius: 6, padding: "2px 6px", textTransform: "uppercase" }}>New</span>
+              <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.4px", color: "#fff", background: "#F25929", borderRadius: 6, padding: "2px 6px", textTransform: "uppercase" }}>New</span>
             </Link>
             <ForYouLink variant="nav" />
             <Link href="/blog" className="hdr-navlink" style={{ fontSize: 14, fontWeight: 500, color: "#56627A" }}>

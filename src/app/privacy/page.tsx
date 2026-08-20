@@ -46,7 +46,7 @@ export default function PrivacyPage() {
           body: (
             <>
               You can ask us to access, correct or delete your personal data at any time by writing to{" "}
-              <a href="mailto:info@elumenuvo.com" style={{ color: "#4E5BDC", fontWeight: 600 }}>info@elumenuvo.com</a>.
+              <a href="mailto:info@elumenuvo.com" style={{ color: "#1D2F8A", fontWeight: 600 }}>info@elumenuvo.com</a>.
               We&apos;ll respond within 30 days. Deleting data that we must keep for tax or legal compliance (e.g. GST
               invoices) may not be possible until the statutory period lapses.
             </>

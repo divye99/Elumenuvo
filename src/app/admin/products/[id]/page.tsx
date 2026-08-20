@@ -105,7 +105,7 @@ export default async function ProductForm({ params }: { params: Promise<{ id: st
         </div>
         <div style={{ fontSize: 12, color: "#8A93A6" }}>Wholesale is automatic: 5% below the Elume price at 15+ units.</div>
         <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
-          <button style={{ background: "#4E5BDC", color: "#fff", fontWeight: 600, fontSize: 14, border: "none", padding: "11px 22px", borderRadius: 10, cursor: "pointer" }}>{isNew ? "Create product" : "Save changes"}</button>
+          <button style={{ background: "#1D2F8A", color: "#fff", fontWeight: 600, fontSize: 14, border: "none", padding: "11px 22px", borderRadius: 10, cursor: "pointer" }}>{isNew ? "Create product" : "Save changes"}</button>
           <Link href="/admin/products" style={{ fontSize: 14, color: "#56627A", padding: "11px 18px" }}>Cancel</Link>
         </div>
       </form>

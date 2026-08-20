@@ -8,7 +8,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const authed = await isAdmin();
   return (
     <div style={{ fontFamily: "var(--hanken)", minHeight: "100vh", background: "#F7F8FB", color: "#19202e" }}>
-      <header style={{ background: "#161D2B", color: "#fff" }}>
+      <header style={{ background: "#16215B", color: "#fff" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 22 }}>
             <Link href="/admin" style={{ fontWeight: 700, letterSpacing: "-0.3px" }}>Elume Admin</Link>

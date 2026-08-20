@@ -109,7 +109,7 @@ export default function OrderDetailClient({ order, shipments, events, customer, 
                     ) : it.name}{" "}
                     {rem > 0 && rem < it.qty && <span style={{ color: "#B4690E", fontSize: 11.5 }}>({rem} to ship)</span>}{rem === 0 && <span style={{ color: "#1F9D63", fontSize: 11.5 }}>✓ shipped</span>}
                     {!isClosed && (
-                      <button onClick={() => setSwapItem(swapItem === it.id ? null : it.id)} style={{ marginLeft: 8, background: "none", border: "1px solid #E0E4ED", borderRadius: 7, color: "#4E5BDC", fontSize: 11, fontWeight: 700, padding: "2px 8px", cursor: "pointer" }}>
+                      <button onClick={() => setSwapItem(swapItem === it.id ? null : it.id)} style={{ marginLeft: 8, background: "none", border: "1px solid #E0E4ED", borderRadius: 7, color: "#1D2F8A", fontSize: 11, fontWeight: 700, padding: "2px 8px", cursor: "pointer" }}>
                         {swapItem === it.id ? "Close" : "Unavailable?"}
                       </button>
                     )}
@@ -193,7 +193,7 @@ export default function OrderDetailClient({ order, shipments, events, customer, 
                 {events.map((e, i) => (
                   <div key={e.id} style={{ display: "flex", gap: 11, paddingBottom: i === events.length - 1 ? 0 : 14, position: "relative" }}>
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                      <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#4E5BDC", marginTop: 4, flexShrink: 0 }} />
+                      <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#1D2F8A", marginTop: 4, flexShrink: 0 }} />
                       {i < events.length - 1 && <span style={{ width: 2, flex: 1, background: "#E8EBF1", marginTop: 2 }} />}
                     </div>
                     <div>
@@ -218,7 +218,7 @@ export default function OrderDetailClient({ order, shipments, events, customer, 
                 href={`/api/admin/orders/${encodeURIComponent(order.id)}/invoice?type=proforma`}
                 target="_blank"
                 rel="noreferrer"
-                style={{ background: "#fff", border: "1.5px solid #4E5BDC", color: "#4E5BDC", fontWeight: 700, fontSize: 12.5, padding: "9px 14px", borderRadius: 9 }}
+                style={{ background: "#fff", border: "1.5px solid #1D2F8A", color: "#1D2F8A", fontWeight: 700, fontSize: 12.5, padding: "9px 14px", borderRadius: 9 }}
               >
                 Proforma invoice (PDF)
               </a>
@@ -226,7 +226,7 @@ export default function OrderDetailClient({ order, shipments, events, customer, 
                 href={`/api/admin/orders/${encodeURIComponent(order.id)}/invoice?type=tax`}
                 target="_blank"
                 rel="noreferrer"
-                style={{ background: "#4E5BDC", border: "1.5px solid #4E5BDC", color: "#fff", fontWeight: 700, fontSize: 12.5, padding: "9px 14px", borderRadius: 9 }}
+                style={{ background: "#1D2F8A", border: "1.5px solid #1D2F8A", color: "#fff", fontWeight: 700, fontSize: 12.5, padding: "9px 14px", borderRadius: 9 }}
               >
                 Tax invoice (PDF)
               </a>
@@ -275,7 +275,7 @@ export default function OrderDetailClient({ order, shipments, events, customer, 
                             fn().then((r) => setInviteMsg(r.ok ? `${okMsg} to ${order.email}.` : r.error || "Failed."))
                               .catch(() => setInviteMsg("Network hiccup - try again."));
                           }}
-                          style={{ background: "#fff", border: "1.5px solid #4E5BDC", color: "#4E5BDC", fontWeight: 700, fontSize: 12.5, padding: "9px 14px", borderRadius: 9, cursor: "pointer" }}
+                          style={{ background: "#fff", border: "1.5px solid #1D2F8A", color: "#1D2F8A", fontWeight: 700, fontSize: 12.5, padding: "9px 14px", borderRadius: 9, cursor: "pointer" }}
                         >
                           {label}
                         </button>
@@ -486,7 +486,7 @@ function ShipmentForm({ orderId, remaining, pending, run, shipTo, billTo, custNa
         {busy ? "Fetching rates…" : rates?.ok ? "Choose courier →" : "Compare couriers & book"}
       </button>
       {rates?.ok && !busy && (
-        <button onClick={() => fetchRates()} style={{ background: "none", border: "none", color: "#4E5BDC", fontSize: 11, fontWeight: 700, padding: 0, marginTop: 6, cursor: "pointer" }}>
+        <button onClick={() => fetchRates()} style={{ background: "none", border: "none", color: "#1D2F8A", fontSize: 11, fontWeight: 700, padding: 0, marginTop: 6, cursor: "pointer" }}>
           ↻ Refresh rates (after changing weight/box)
         </button>
       )}
@@ -523,7 +523,7 @@ function ShipmentForm({ orderId, remaining, pending, run, shipTo, billTo, custNa
                   : "-";
                 const sel = courierId === c.courierId;
                 return (
-                  <label key={c.courierId} style={{ display: "grid", gridTemplateColumns: "18px 1.4fr 1fr 1fr 0.9fr 0.7fr", alignItems: "center", gap: 10, border: `1.5px solid ${sel ? "#4E5BDC" : "#E8EBF1"}`, borderRadius: 11, padding: "10px 12px", cursor: "pointer", background: sel ? "#F6F7FE" : "#fff" }}>
+                  <label key={c.courierId} style={{ display: "grid", gridTemplateColumns: "18px 1.4fr 1fr 1fr 0.9fr 0.7fr", alignItems: "center", gap: 10, border: `1.5px solid ${sel ? "#1D2F8A" : "#E8EBF1"}`, borderRadius: 11, padding: "10px 12px", cursor: "pointer", background: sel ? "#F6F7FE" : "#fff" }}>
                     <input type="radio" name="sr-courier" checked={sel} onChange={() => setCourierId(c.courierId)} />
                     <span>
                       <span style={{ fontSize: 13, fontWeight: 700, display: "block" }}>{c.name}</span>
@@ -555,11 +555,11 @@ function ShipmentForm({ orderId, remaining, pending, run, shipTo, billTo, custNa
                 <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: "0.7px", color: "#8A93A6", marginBottom: 6 }}>CONFIRM ADDRESSES BEFORE BOOKING</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                   <div>
-                    <div style={{ fontSize: 10.5, fontWeight: 700, color: "#4E5BDC" }}>SHIP TO</div>
+                    <div style={{ fontSize: 10.5, fontWeight: 700, color: "#1D2F8A" }}>SHIP TO</div>
                     <div style={{ fontSize: 12, color: "#19202E", lineHeight: 1.45, whiteSpace: "pre-wrap" }}>{custName} · {custPhone}{"\n"}{shipTo}</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: 10.5, fontWeight: 700, color: "#4E5BDC" }}>BILL TO</div>
+                    <div style={{ fontSize: 10.5, fontWeight: 700, color: "#1D2F8A" }}>BILL TO</div>
                     <div style={{ fontSize: 12, color: "#19202E", lineHeight: 1.45, whiteSpace: "pre-wrap" }}>{billTo === shipTo ? "Same as shipping address" : billTo}</div>
                   </div>
                 </div>
@@ -623,7 +623,7 @@ function ShipmentRow({ s, orderId, pending, run }: { s: Shipment; orderId: strin
         <OrderStatusBadge status={s.status} size={11} />
       </div>
       <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8, flexWrap: "wrap" }}>
-        {s.tracking_url && <a href={s.tracking_url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#4E5BDC", fontWeight: 600 }}>Track →</a>}
+        {s.tracking_url && <a href={s.tracking_url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#1D2F8A", fontWeight: 600 }}>Track →</a>}
         {s.sr_shipment_id != null && <SrDocButtons orderId={s.order_id} shipmentId={s.id} />}
         {s.status !== "delivered" ? (
           <>
@@ -699,7 +699,7 @@ function nextStatuses(current: string): OrderStatus[] {
 
 const lbl: React.CSSProperties = { fontSize: 11, fontWeight: 700, color: "#8A93A6", textTransform: "uppercase", letterSpacing: "0.3px", display: "block", margin: "0 0 4px" };
 const inp: React.CSSProperties = { width: "100%", boxSizing: "border-box", border: "1px solid #E0E4ED", borderRadius: 9, padding: "8px 10px", fontSize: 13, outline: "none", marginBottom: 4, background: "#fff" };
-const primaryBtn = (busy: boolean): React.CSSProperties => ({ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 12.5, border: "none", padding: "8px 13px", borderRadius: 9, cursor: busy ? "wait" : "pointer" });
+const primaryBtn = (busy: boolean): React.CSSProperties => ({ background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 12.5, border: "none", padding: "8px 13px", borderRadius: 9, cursor: busy ? "wait" : "pointer" });
 const miniBtn: React.CSSProperties = { background: "#fff", color: "#56627A", fontWeight: 600, fontSize: 12, border: "1px solid #E0E4ED", padding: "6px 11px", borderRadius: 8, cursor: "pointer" };
 
 /** Unavailable-item resolution: similar-product suggestions, manual SKU
@@ -729,7 +729,7 @@ function SwapPanel({ orderId, item, pending, run, onDone }: { orderId: string; i
       {sugs && sugs.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 10 }}>
           {sugs.map((sp) => (
-            <label key={sp.id} style={{ display: "flex", alignItems: "baseline", gap: 8, fontSize: 12.5, cursor: "pointer", padding: "5px 8px", borderRadius: 8, background: chosen === sp.id ? "#EEF0FE" : "transparent" }}>
+            <label key={sp.id} style={{ display: "flex", alignItems: "baseline", gap: 8, fontSize: 12.5, cursor: "pointer", padding: "5px 8px", borderRadius: 8, background: chosen === sp.id ? "#E9EDF9" : "transparent" }}>
               <input type="radio" name={`swap-${item.id}`} checked={chosen === sp.id} onChange={() => { setChosen(sp.id); setManual(""); }} />
               <span style={{ flex: 1 }}>{sp.name} <span style={{ color: "#8A93A6" }}>· {sp.brand}</span></span>
               <b style={{ fontFamily: "var(--space-grotesk)" }}>{fmt(sp.price)}</b>
@@ -743,10 +743,10 @@ function SwapPanel({ orderId, item, pending, run, onDone }: { orderId: string; i
       </div>
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <button disabled={pending || !target} onClick={() => run(() => replaceItemAbsorb(orderId, item.id, target), "Item replaced at the same billed amount, customer emailed.")} style={{ ...btn, background: "#4E5BDC", color: "#fff", opacity: pending || !target ? 0.5 : 1 }}>
+        <button disabled={pending || !target} onClick={() => run(() => replaceItemAbsorb(orderId, item.id, target), "Item replaced at the same billed amount, customer emailed.")} style={{ ...btn, background: "#1D2F8A", color: "#fff", opacity: pending || !target ? 0.5 : 1 }}>
           Replace · keep the bill exactly as paid
         </button>
-        <button disabled={pending || !target} onClick={() => run(() => replaceViaNewOrder(orderId, item.id, target), "Replacement order created at current price, original cancelled, customer emailed.")} style={{ ...btn, background: "#fff", color: "#4E5BDC", border: "1.5px solid #4E5BDC", opacity: pending || !target ? 0.5 : 1 }}>
+        <button disabled={pending || !target} onClick={() => run(() => replaceViaNewOrder(orderId, item.id, target), "Replacement order created at current price, original cancelled, customer emailed.")} style={{ ...btn, background: "#fff", color: "#1D2F8A", border: "1.5px solid #1D2F8A", opacity: pending || !target ? 0.5 : 1 }}>
           Replace via new PO · re-bill at current price
         </button>
         {!confirmRefund ? (
@@ -856,7 +856,7 @@ function SrDocButtons({ orderId, shipmentId }: { orderId: string; shipmentId: st
   if (!docs) {
     return (
       <>
-        <button onClick={load} disabled={busy} style={{ fontSize: 12, color: "#4E5BDC", fontWeight: 600, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+        <button onClick={load} disabled={busy} style={{ fontSize: 12, color: "#1D2F8A", fontWeight: 600, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
           {busy ? "Fetching…" : "Shiprocket docs ↓"}
         </button>
         {err && <span style={{ fontSize: 11, color: "#C2410C" }}>{err}</span>}
@@ -864,7 +864,7 @@ function SrDocButtons({ orderId, shipmentId }: { orderId: string; shipmentId: st
     );
   }
   const link = (url: string | null, label: string) =>
-    url ? <a href={url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#4E5BDC", fontWeight: 600 }}>{label} ↗</a>
+    url ? <a href={url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#1D2F8A", fontWeight: 600 }}>{label} ↗</a>
         : <span style={{ fontSize: 12, color: "#A0A7B5" }}>{label} n/a</span>;
   return (
     <>

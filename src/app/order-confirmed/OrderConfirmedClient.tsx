@@ -32,8 +32,8 @@ export default function OrderConfirmedClient() {
           Your confirmation email has everything, and you can follow any order with its ID and your email address.
         </p>
         <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
-          <Link href="/track" style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14, padding: "11px 22px", borderRadius: 11 }}>Track an order</Link>
-          <Link href="/catalogue" style={{ background: "#EEF0FE", color: "#4E5BDC", fontWeight: 700, fontSize: 14, padding: "11px 22px", borderRadius: 11 }}>Browse the catalogue</Link>
+          <Link href="/track" style={{ background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 14, padding: "11px 22px", borderRadius: 11 }}>Track an order</Link>
+          <Link href="/catalogue" style={{ background: "#E9EDF9", color: "#1D2F8A", fontWeight: 700, fontSize: 14, padding: "11px 22px", borderRadius: 11 }}>Browse the catalogue</Link>
         </div>
       </main>
     );
@@ -49,14 +49,14 @@ export default function OrderConfirmedClient() {
         <p style={{ fontSize: 14, color: "#56627A", margin: "0 0 4px" }}>Order <b>{order.orderId}</b> · {fmt(order.total)} paid</p>
         <p style={{ fontSize: 13, color: "#8A93A6", margin: "0 0 20px" }}>We&apos;ve got it - a confirmation is on its way to {order.email}. Pan-India delivery in 3–7 working days.</p>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-          <Link href={`/track?order=${encodeURIComponent(order.orderId)}&email=${encodeURIComponent(order.email)}`} style={{ background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14, padding: "11px 22px", borderRadius: 11 }}>Track order</Link>
-          <Link href="/catalogue" style={{ background: "#EEF0FE", color: "#4E5BDC", fontWeight: 700, fontSize: 14, padding: "11px 22px", borderRadius: 11 }}>Continue shopping</Link>
+          <Link href={`/track?order=${encodeURIComponent(order.orderId)}&email=${encodeURIComponent(order.email)}`} style={{ background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 14, padding: "11px 22px", borderRadius: 11 }}>Track order</Link>
+          <Link href="/catalogue" style={{ background: "#E9EDF9", color: "#1D2F8A", fontWeight: 700, fontSize: 14, padding: "11px 22px", borderRadius: 11 }}>Continue shopping</Link>
         </div>
       </div>
 
       {/* Guests: nudge them to create an account so the order lands in their dashboard */}
       {!order.signedIn && (
-        <div style={{ marginTop: 16, background: "linear-gradient(135deg,#EEF0FE,#F7F8FB)", border: "1px solid #D9DDFB", borderRadius: 16, padding: "24px 26px" }}>
+        <div style={{ marginTop: 16, background: "linear-gradient(135deg,#E9EDF9,#F7F8FB)", border: "1px solid #D9DDFB", borderRadius: 16, padding: "24px 26px" }}>
           <div style={{ fontFamily: GROTESK, fontSize: 17, fontWeight: 600, color: "#19202E" }}>Create an account to track this order</div>
           <p style={{ fontSize: 13, color: "#56627A", lineHeight: 1.6, margin: "6px 0 14px" }}>
             We&apos;ll link order <b>{order.orderId}</b> to <b>{order.email}</b> so you can follow it to your door, and never re-type your address again.
@@ -76,7 +76,7 @@ export default function OrderConfirmedClient() {
           </div>
           <Link
             href={`/signin?mode=signup&email=${encodeURIComponent(order.email)}`}
-            style={{ display: "inline-block", background: "#4E5BDC", color: "#fff", fontWeight: 700, fontSize: 14, padding: "12px 24px", borderRadius: 11 }}
+            style={{ display: "inline-block", background: "#1D2F8A", color: "#fff", fontWeight: 700, fontSize: 14, padding: "12px 24px", borderRadius: 11 }}
           >
             Create my account →
           </Link>

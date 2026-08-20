@@ -30,7 +30,7 @@ function Shelf({
           <h2 style={{ fontFamily: GROTESK, fontSize: 22, fontWeight: 600, letterSpacing: "-0.4px", margin: 0 }}>{title}</h2>
           {sub && <p style={{ fontSize: 13, color: "#8A93A6", margin: "4px 0 0" }}>{sub}</p>}
         </div>
-        <Link href={seeAll} style={{ fontSize: 13, fontWeight: 600, color: "#4E5BDC", flexShrink: 0 }}>
+        <Link href={seeAll} style={{ fontSize: 13, fontWeight: 600, color: "#1D2F8A", flexShrink: 0 }}>
           See all →
         </Link>
       </div>
@@ -76,8 +76,12 @@ export default function HomeStorefront({ products, posts }: { products: Product[
           marginTop: 20,
           borderRadius: 10,
           padding: "36px 40px 32px",
-          background: "#161D2B",
-          border: "1px solid #232C40",
+          // The signature Factor X gradient (matching the kit's Background.png)
+          // with the kit's warm-lit interior fading in from the right: the
+          // image earns its place by showing what the wiring is FOR.
+          background:
+            "linear-gradient(90deg, #16215B 0%, #1D2F8A 40%, rgba(29,47,138,0.85) 55%, rgba(114,50,113,0.38) 74%, rgba(22,33,91,0.08) 100%), url(/assets/elume-brand/home-glow.jpg) right 88% / cover no-repeat, linear-gradient(133deg, #16215B 0%, #1D2F8A 34%, #723271 70%, #F25929 104%)",
+          border: "1px solid #2A3A7A",
           color: "#fff",
         }}
       >
@@ -91,7 +95,7 @@ export default function HomeStorefront({ products, posts }: { products: Product[
             <Link
               href="/catalogue"
               className="home-hero-cta"
-              style={{ display: "inline-block", background: "#fff", color: "#161D2B", fontSize: 14, fontWeight: 700, padding: "10px 20px", borderRadius: 8 }}
+              style={{ display: "inline-block", background: "#fff", color: "#16215B", fontSize: 14, fontWeight: 700, padding: "10px 20px", borderRadius: 8 }}
             >
               Shop the catalogue
             </Link>
@@ -118,7 +122,7 @@ export default function HomeStorefront({ products, posts }: { products: Product[
                 minWidth: 0,
               }}
             >
-              <span style={{ color: "#4E5BDC", display: "inline-flex", flexShrink: 0 }}><CategoryIcon cat={cat} size={19} /></span>
+              <span style={{ color: "#1D2F8A", display: "inline-flex", flexShrink: 0 }}><CategoryIcon cat={cat} size={19} /></span>
               <span className="home-cat-label" style={{ fontSize: 13, fontWeight: 600, color: "#19202E", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{cat}</span>
             </Link>
           ))}
@@ -196,7 +200,7 @@ export default function HomeStorefront({ products, posts }: { products: Product[
       <section style={{ marginTop: 36, borderTop: "1px solid #E8EBF1", paddingTop: 18 }}>
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 10 }}>
           <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "1.4px", textTransform: "uppercase", color: "#8A93A6" }}>Buying guides</div>
-          <Link href="/blog" style={{ fontSize: 13, fontWeight: 600, color: "#4E5BDC" }}>
+          <Link href="/blog" style={{ fontSize: 13, fontWeight: 600, color: "#1D2F8A" }}>
             All guides →
           </Link>
         </div>
@@ -230,7 +234,7 @@ export default function HomeStorefront({ products, posts }: { products: Product[
           Business accounts get wholesale rates, GST invoicing and order tracking to site.
         </p>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <Link href="/app" style={{ background: "#4E5BDC", color: "#fff", fontSize: 13.5, fontWeight: 700, padding: "10px 18px", borderRadius: 8 }}>
+          <Link href="/app" style={{ background: "#1D2F8A", color: "#fff", fontSize: 13.5, fontWeight: 700, padding: "10px 18px", borderRadius: 8 }}>
             Open the workspace
           </Link>
           <Link href="/business" style={{ border: "1px solid #D8DCE6", color: "#19202E", fontSize: 13.5, fontWeight: 600, padding: "10px 18px", borderRadius: 8 }}>

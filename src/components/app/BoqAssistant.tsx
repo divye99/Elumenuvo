@@ -156,7 +156,7 @@ export default function BoqAssistant({ company, admin = false }: { company?: str
 
   return (
     <div style={{ maxWidth: 1140, margin: "0 auto", padding: "26px 22px 80px" }}>
-      <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "1.4px", textTransform: "uppercase", color: "#4E5BDC", marginBottom: 8 }}>
+      <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "1.4px", textTransform: "uppercase", color: "#1D2F8A", marginBottom: 8 }}>
         Smart BOM · {admin ? "admin console" : "business beta"}{company ? ` · ${company}` : ""}
       </div>
       <h1 style={{ fontFamily: GROTESK, fontSize: 30, fontWeight: 600, letterSpacing: "-0.8px", margin: "0 0 6px" }}>
@@ -180,11 +180,11 @@ export default function BoqAssistant({ company, admin = false }: { company?: str
             <button
               onClick={submitPaste}
               disabled={busy || !text.trim()}
-              style={{ background: busy || !text.trim() ? "#C9CFDD" : "#4E5BDC", color: "#fff", fontSize: 14, fontWeight: 700, padding: "11px 22px", borderRadius: 10, border: "none", cursor: busy ? "wait" : "pointer" }}
+              style={{ background: busy || !text.trim() ? "#C9CFDD" : "#1D2F8A", color: "#fff", fontSize: 14, fontWeight: 700, padding: "11px 22px", borderRadius: 10, border: "none", cursor: busy ? "wait" : "pointer" }}
             >
               {busy ? "Matching…" : "Match my BOQ"}
             </button>
-            <label style={{ fontSize: 13.5, fontWeight: 600, color: "#4E5BDC", cursor: "pointer" }}>
+            <label style={{ fontSize: 13.5, fontWeight: 600, color: "#1D2F8A", cursor: "pointer" }}>
               or upload CSV / Excel
               <input type="file" accept=".csv,.xlsx,.xls,text/csv" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); }} />
             </label>
@@ -210,7 +210,7 @@ export default function BoqAssistant({ company, admin = false }: { company?: str
               </div>
             ))}
             <div style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center" }}>
-              <button onClick={() => acceptAll(0.85)} style={{ background: "#EEF0FE", color: "#4E5BDC", border: "none", fontSize: 13, fontWeight: 700, padding: "10px 16px", borderRadius: 10, cursor: "pointer" }}>
+              <button onClick={() => acceptAll(0.85)} style={{ background: "#E9EDF9", color: "#1D2F8A", border: "none", fontSize: 13, fontWeight: 700, padding: "10px 16px", borderRadius: 10, cursor: "pointer" }}>
                 Approve all high-confidence
               </button>
               <button onClick={() => { setResult(null); setDecisions({}); }} style={{ background: "none", border: "1px solid #E8EBF1", fontSize: 13, fontWeight: 600, color: "#56627A", padding: "10px 16px", borderRadius: 10, cursor: "pointer" }}>
@@ -251,7 +251,7 @@ export default function BoqAssistant({ company, admin = false }: { company?: str
                           </select>
                         )}
                         <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                          <button onClick={() => setDecisions((x) => ({ ...x, [l.position]: { ...x[l.position], state: "not_stocked" } }))} style={{ fontSize: 12, fontWeight: 700, border: "1px solid #E8EBF1", background: d?.state === "not_stocked" ? "#EEF0FE" : "#fff", color: "#4E5BDC", padding: "6px 12px", borderRadius: 8, cursor: "pointer" }}>
+                          <button onClick={() => setDecisions((x) => ({ ...x, [l.position]: { ...x[l.position], state: "not_stocked" } }))} style={{ fontSize: 12, fontWeight: 700, border: "1px solid #E8EBF1", background: d?.state === "not_stocked" ? "#E9EDF9" : "#fff", color: "#1D2F8A", padding: "6px 12px", borderRadius: 8, cursor: "pointer" }}>
                             {d?.state === "not_stocked" ? "Reported ✓" : "Report as missing"}
                           </button>
                         </div>
@@ -292,7 +292,7 @@ export default function BoqAssistant({ company, admin = false }: { company?: str
                         style={{ width: 64, fontSize: 13, border: "1px solid #E8EBF1", borderRadius: 8, padding: "7px 8px", textAlign: "center" }}
                       />
                       <span style={{ fontSize: 11.5, color: "#8A93A6" }}>{p?.unit ?? ""}</span>
-                      <button onClick={() => setDecisions((x) => ({ ...x, [l.position]: { ...x[l.position], state: x[l.position].state === "accepted" ? "pending" : "accepted" } }))} style={{ fontSize: 12.5, fontWeight: 700, border: "none", background: d?.state === "accepted" ? "#1F9D63" : "#EEF0FE", color: d?.state === "accepted" ? "#fff" : "#4E5BDC", padding: "8px 14px", borderRadius: 8, cursor: "pointer" }}>
+                      <button onClick={() => setDecisions((x) => ({ ...x, [l.position]: { ...x[l.position], state: x[l.position].state === "accepted" ? "pending" : "accepted" } }))} style={{ fontSize: 12.5, fontWeight: 700, border: "none", background: d?.state === "accepted" ? "#1F9D63" : "#E9EDF9", color: d?.state === "accepted" ? "#fff" : "#1D2F8A", padding: "8px 14px", borderRadius: 8, cursor: "pointer" }}>
                         {d?.state === "accepted" ? "Approved ✓" : "Approve"}
                       </button>
                       <button onClick={() => setDecisions((x) => ({ ...x, [l.position]: { ...x[l.position], state: "rejected" } }))} style={{ fontSize: 12.5, fontWeight: 600, border: "1px solid #E8EBF1", background: d?.state === "rejected" ? "#F4F5F8" : "#fff", color: "#8A93A6", padding: "8px 12px", borderRadius: 8, cursor: "pointer" }}>
@@ -350,7 +350,7 @@ export default function BoqAssistant({ company, admin = false }: { company?: str
                   setReviewed(true);
                 }}
                 disabled={!rating}
-                style={{ marginTop: 10, background: rating ? "#4E5BDC" : "#C9CFDD", color: "#fff", fontSize: 13, fontWeight: 700, padding: "9px 18px", borderRadius: 9, border: "none", cursor: rating ? "pointer" : "default" }}
+                style={{ marginTop: 10, background: rating ? "#1D2F8A" : "#C9CFDD", color: "#fff", fontSize: 13, fontWeight: 700, padding: "9px 18px", borderRadius: 9, border: "none", cursor: rating ? "pointer" : "default" }}
               >
                 Send feedback
               </button>
