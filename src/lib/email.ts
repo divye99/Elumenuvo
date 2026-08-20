@@ -34,7 +34,7 @@ type OrderLike = {
   gstin?: string | null;
 };
 
-async function send(to: string, subject: string, html: string, opts?: { bcc?: string; scheduledAt?: string }): Promise<EmailResult> {
+async function send(to: string, subject: string, html: string, opts?: { bcc?: string; cc?: string; replyTo?: string; scheduledAt?: string }): Promise<EmailResult> {
   const key = (process.env.RESEND_API_KEY || "").trim();
   if (!key) {
     console.log(`[email] RESEND_API_KEY unset - skipped "${subject}" → ${to}`);
@@ -43,10 +43,11 @@ async function send(to: string, subject: string, html: string, opts?: { bcc?: st
   try {
     // Never BCC an address to itself (Resend dedupes, but keep it clean).
     const bcc = opts?.bcc && opts.bcc.toLowerCase() !== to.toLowerCase() ? [opts.bcc] : undefined;
+    const cc = opts?.cc && opts.cc.toLowerCase() !== to.toLowerCase() ? [opts.cc] : undefined;
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: FROM, to, subject, html, ...(bcc ? { bcc } : {}), ...(opts?.scheduledAt ? { scheduled_at: opts.scheduledAt } : {}) }),
+      body: JSON.stringify({ from: FROM, to, subject, html, ...(bcc ? { bcc } : {}), ...(cc ? { cc } : {}), ...(opts?.replyTo ? { reply_to: [opts.replyTo] } : {}), ...(opts?.scheduledAt ? { scheduled_at: opts.scheduledAt } : {}) }),
     });
     if (!res.ok) {
       const body = await res.text();
@@ -577,4 +578,35 @@ export async function sendBoqInvite(email: string, company: string | null): Prom
      </p>`
   );
   return send(email, "Smart BOM: paste your BOQ, get it priced and carted in minutes", html, { bcc: BCC_SELF });
+}
+
+/** ── Bulk enquiry (/bulk-enquiry form) ──
+ *  The enquiry goes TO the business inbox with the requester in CC, so both
+ *  sides hold the same thread and a plain "Reply all" starts the quote
+ *  conversation. reply_to is the requester for the same reason. */
+export async function sendBulkEnquiryEmail(lead: {
+  name: string;
+  company?: string | null;
+  phone?: string | null;
+  email: string;
+  message: string;
+}): Promise<EmailResult> {
+  const html = shell(
+    "New bulk enquiry",
+    `<p style="font-size:14px;line-height:1.65;color:#2c3550;margin:0 0 12px">
+       A bulk / project enquiry just came in from <b>${escapeHtml(lead.name)}</b>${lead.company ? ` at <b>${escapeHtml(lead.company)}</b>` : ""}.
+     </p>
+     <table style="width:100%;border-collapse:collapse;font-size:13.5px;color:#2c3550">
+       <tr><td style="padding:6px 10px;border:1px solid #E8EBF1;background:#F7F8FB;width:160px">Contact person</td><td style="padding:6px 10px;border:1px solid #E8EBF1">${escapeHtml(lead.name)}</td></tr>
+       <tr><td style="padding:6px 10px;border:1px solid #E8EBF1;background:#F7F8FB">Company</td><td style="padding:6px 10px;border:1px solid #E8EBF1">${escapeHtml(lead.company || "-")}</td></tr>
+       <tr><td style="padding:6px 10px;border:1px solid #E8EBF1;background:#F7F8FB">Mobile</td><td style="padding:6px 10px;border:1px solid #E8EBF1">${escapeHtml(lead.phone || "-")}</td></tr>
+       <tr><td style="padding:6px 10px;border:1px solid #E8EBF1;background:#F7F8FB">Email</td><td style="padding:6px 10px;border:1px solid #E8EBF1">${escapeHtml(lead.email)}</td></tr>
+     </table>
+     <p style="font-size:13px;font-weight:700;color:#19202E;margin:16px 0 6px">Requirement</p>
+     <p style="font-size:13.5px;line-height:1.65;color:#2c3550;white-space:pre-wrap;margin:0">${escapeHtml(lead.message)}</p>
+     <p style="font-size:12.5px;color:#8A93A6;margin:16px 0 0">
+       The customer is in CC and expects a response within 24 hours. Reply all to start the quote.
+     </p>`
+  );
+  return send("info@elumenuvo.com", `Bulk enquiry: ${lead.company || lead.name}`, html, { cc: lead.email, replyTo: lead.email });
 }

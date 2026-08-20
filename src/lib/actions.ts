@@ -4,6 +4,7 @@
  *  Both insert via the anon key under explicit insert-only RLS policies. */
 import { revalidatePath } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
+import { sendBulkEnquiryEmail } from "@/lib/email";
 
 function client() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -137,7 +138,7 @@ export async function joinWaitlist(_prev: FormState, form: FormData): Promise<Fo
 
 /** Shared insert for the public lead forms (Sell on Elume / product requests).
  *  Core fields go to columns; everything else lands in `details` jsonb. */
-export async function submitPartnerLead(kind: "seller" | "product-request" | "metals-data", _prev: FormState, form: FormData): Promise<FormState> {
+export async function submitPartnerLead(kind: "seller" | "product-request" | "metals-data" | "bulk-enquiry", _prev: FormState, form: FormData): Promise<FormState> {
   const email = String(form.get("email") ?? "").trim();
   const name = String(form.get("name") ?? "").trim();
   const phone = String(form.get("phone") ?? "").trim();
@@ -154,6 +155,8 @@ export async function submitPartnerLead(kind: "seller" | "product-request" | "me
     if (val) details[k] = val.slice(0, 500);
   }
 
+  if (kind === "bulk-enquiry" && !message) return { ok: false, message: "Please describe your requirement so we can quote it." };
+
   const c = client();
   if (!c) return { ok: false, message: "This form isn't available right now - email us at info@elumenuvo.com." };
   const { error } = await c.from("partner_leads").insert({
@@ -165,6 +168,13 @@ export async function submitPartnerLead(kind: "seller" | "product-request" | "me
     message: message ? message.slice(0, 4000) : null,
     details,
   });
+  if (kind === "bulk-enquiry") {
+    // The email IS the enquiry (to our inbox, customer in CC), so it must go
+    // out even if the lead insert failed (e.g. migration 0130 not yet run).
+    const sent = await sendBulkEnquiryEmail({ name, company, phone, email, message: message.slice(0, 4000) });
+    if (!sent.ok && error) return { ok: false, message: "Couldn't submit right now - please email us directly at info@elumenuvo.com." };
+    return { ok: true, message: "Enquiry received. Our team will get back to you within 24 hours; a copy has been emailed to you." };
+  }
   if (error) return { ok: false, message: "Couldn't submit right now - please try again, or email info@elumenuvo.com." };
   if (kind === "seller") return { ok: true, message: "Thanks - our partnerships team will reach out within 2 working days." };
   if (kind === "metals-data") return { ok: true, message: "Noted - we'll reach out as always-on metals data access rolls out." };

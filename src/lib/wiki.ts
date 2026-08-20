@@ -267,7 +267,8 @@ Pincode to zone mapping is offline (no per-request API): a bundled pincode datas
     title: "SEO: how we earn search traffic",
     summary: "Structured data, the blog programme, price-list pages, IndexNow.",
     tags: ["growth"],
-    body: `- Structured data: WebSite + Organization JSON-LD sitewide, Product JSON-LD on PDPs (price, availability, ratings), FAQ schema on policy pages. This is what gets our name and prices shown in result snippets.
+    body: `- Structured data: Organization JSON-LD sitewide; WebSite JSON-LD on the HOMEPAGE ONLY (Google reads the site name from the root document; a site-wide duplicate with conflicting fields was the bug that kept "Elume" from showing, fixed Aug 2026 - never re-add it to the layout); Product JSON-LD on PDPs (price, availability, ratings); FAQ schema on policy pages.
+- Brand SERP (Aug 2026): homepage title is "Elume - India's Premier Electrical Marketplace" (title.absolute, or the layout template doubles the brand), the H1 carries "Elume", alternateName includes "Elumenuvo" (kills Google's elumelu typo-correction), the manifest short_name is Elume, and the footer carries server-rendered category links (sitelinks anchors: the header mega-menu is hover-gated client state Google never sees).
 - Blog: 50 buyer-question guides written for queries electricians and buyers actually type. Guides interlink and link into category and price-list pages.
 - Price-list pages: 41 brand/category price-list pages generated from OUR live prices (never scraped tables), refreshed with the catalogue.
 - IndexNow: every publish pings search engines the same day; weekly full re-ping.
@@ -275,6 +276,22 @@ Pincode to zone mapping is offline (no per-request API): a bundled pincode datas
 - Directory presence: Google Business (Hapur, Noida), IndiaMART, TradeIndia, Justdial, ExportersIndia, Sulekha.
 
 KAM note: rankings compound slowly; the honest answer to "why are we not #1" is domain age and backlinks, both of which these programmes grow.`,
+  },
+  {
+    slug: "bulk-enquiry",
+    title: "Bulk enquiry: the header's B2B front door",
+    summary: "The /bulk-enquiry form, where its submissions go, and the 24-hour promise.",
+    tags: ["operations"],
+    body: `/bulk-enquiry replaced "For business" in the header (Aug 2026; the business pitch page stays in the footer). One form: contact person, company, mobile, email, requirement.
+
+## What a submission does
+1. Emails info@elumenuvo.com with the CUSTOMER IN CC and reply-to set to them, so a plain "Reply all" starts the quote thread and the customer always holds a copy (lib/email.ts sendBulkEnquiryEmail).
+2. Best-effort writes a partner_leads row with kind "bulk-enquiry" (migration 0130 widens the kind check). The email is the primary channel: it sends even if the insert fails.
+
+## The promise
+The page commits to a response WITHIN 24 HOURS, and the email footer repeats it. Whoever owns the inbox owns that clock.
+
+KAM note: quote from the live price list; the automatic 15-unit wholesale rate is the floor, project volumes can go sharper line by line.`,
   },
   {
     slug: "analytics-bots",

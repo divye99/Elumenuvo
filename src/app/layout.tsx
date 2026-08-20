@@ -33,11 +33,11 @@ const SITE = "https://elumenuvo.com";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: {
-    default: "Elume - India's procurement backbone for FMEG",
+    default: "Elume - India's Premier Electrical Marketplace",
     template: "%s · Elume",
   },
   description:
-    "The dedicated B2B storefront for electrical goods in India - multi-brand catalogue (wires, switchgear, fans, lighting), transparent pricing, wholesale rates and project-level procurement tools.",
+    "India's premier marketplace for wires, cables, switchgear, lighting, fans and modular electrical products - 24+ brands at transparent, market-checked prices with GST invoice, wholesale rates and pan-India delivery.",
   keywords: [
     "FMEG procurement", "electrical goods India", "house wires", "switchgear", "MCB", "RCCB",
     "modular switches", "distribution boards", "ceiling fans", "LED lighting", "B2B electrical",
@@ -45,16 +45,18 @@ export const metadata: Metadata = {
   ],
   applicationName: "Elume",
   authors: [{ name: "Elume Nuvotech Private Limited" }],
-  alternates: { canonical: SITE },
+  // No root-level canonical: pages that skip `alternates` were inheriting
+  // canonical = homepage, telling Google they are duplicates of "/". Every
+  // indexable page declares its own canonical already.
   openGraph: {
     type: "website",
     siteName: "Elume",
-    title: "Elume - India's procurement backbone for FMEG",
-    description: "Multi-brand electrical goods catalogue with transparent pricing and wholesale rates.",
+    title: "Elume - India's Premier Electrical Marketplace",
+    description: "Wires, cables, switchgear, lighting, fans and modular from 24+ brands at one transparent price list.",
     url: SITE,
     images: [{ url: `${SITE}/og.png`, width: 1200, height: 630, alt: "Elume" }],
   },
-  twitter: { card: "summary_large_image", title: "Elume - FMEG procurement, India", description: "Multi-brand electrical goods with transparent pricing.", images: [`${SITE}/og.png`] },
+  twitter: { card: "summary_large_image", title: "Elume - India's Premier Electrical Marketplace", description: "Multi-brand electrical goods with transparent pricing.", images: [`${SITE}/og.png`] },
   robots: { index: true, follow: true },
 };
 
@@ -65,22 +67,10 @@ const ORG_JSONLD = {
   areaServed: "IN",
 };
 
-// Google reads the site name shown in search results ("Elume" instead of
-// "elumenuvo.com") from WebSite structured data on the homepage - the
-// Organization block alone does not set it. SearchAction additionally makes
-// the catalogue search eligible for a sitelinks search box.
-const WEBSITE_JSONLD = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: "Elume",
-  alternateName: ["Elume Nuvotech", "Elumenuvo"],
-  url: SITE,
-  potentialAction: {
-    "@type": "SearchAction",
-    target: { "@type": "EntryPoint", urlTemplate: `${SITE}/catalogue?q={search_term_string}` },
-    "query-input": "required name=search_term_string",
-  },
-};
+// NOTE: the WebSite node lives ONLY on the homepage (lib/seo.ts WEBSITE,
+// emitted by (marketing)/page.tsx). It used to be duplicated here site-wide
+// with conflicting fields, which is exactly what Google's site-name docs warn
+// against - never re-add it to the layout.
 
 export default function RootLayout({
   children,
@@ -99,7 +89,6 @@ export default function RootLayout({
         <Analytics />
         <GoogleTag />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLd(ORG_JSONLD) }} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLd(WEBSITE_JSONLD) }} />
         {children}
         <Toaster richColors position="top-center" />
       </body>

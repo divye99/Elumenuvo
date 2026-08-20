@@ -67,8 +67,10 @@ export default function StoreChrome({ children }: { children: React.ReactNode })
             <Link href="/blog" className="hdr-navlink" style={{ fontSize: 14, fontWeight: 500, color: "#56627A" }}>
               Blog
             </Link>
-            <Link href="/business" className="hdr-navlink" style={{ fontSize: 14, fontWeight: 500, color: "#56627A" }}>
-              For business
+            {/* Header B2B entry = the bulk-enquiry form; the business pitch
+                page lives in the footer (owner, Aug 2026). */}
+            <Link href="/bulk-enquiry" className="hdr-navlink" style={{ fontSize: 14, fontWeight: 500, color: "#56627A" }}>
+              Bulk enquiry
             </Link>
             <CartButton />
             <AccountButton />
@@ -131,6 +133,14 @@ export default function StoreChrome({ children }: { children: React.ReactNode })
             <div className="ft-col">
               <div className="ft-h">Shop</div>
               <Link href="/catalogue">Catalogue</Link>
+              {/* Server-rendered category anchors: the header menu is
+                  hover-gated client state Google never sees, and crawlable
+                  nav links are a documented sitelinks input. */}
+              <Link href="/category/wires-cables">Wires &amp; Cables</Link>
+              <Link href="/category/switchgear">Switchgear</Link>
+              <Link href="/category/lighting">Lighting</Link>
+              <Link href="/category/fans">Fans</Link>
+              <Link href="/category/modular">Modular switches</Link>
               <Link href="/metals">Metals</Link>
               <Link href="/collections/best-prices">Top deals</Link>
               <Link href="/collections/best-sellers">Best sellers</Link>
@@ -145,6 +155,7 @@ export default function StoreChrome({ children }: { children: React.ReactNode })
             </div>
             <div className="ft-col">
               <div className="ft-h">For business</div>
+              <Link href="/bulk-enquiry">Bulk enquiry</Link>
               <Link href="/business">Elume for business</Link>
               <Link href="/credit">30-day credit</Link>
               <Link href="/sell">Sell on Elume</Link>

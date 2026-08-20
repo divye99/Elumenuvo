@@ -14,14 +14,18 @@ import { shippingFeeFor, isHeavy, HEAVY_FREIGHT_FEE } from "./pricing";
  *  looks for exactly that. Both appear as soon as they are set in company.ts. */
 export const ORG = {
   "@type": "Organization",
+  "@id": `${SITE}/#organization`,
   // `name` is the BRAND, `legalName` the registered entity. They were both the
   // legal name, which left Google with no confident brand string and it fell
   // back to showing the bare domain in search results.
   name: "Elume",
   legalName: "Elume Nuvotech Private Limited",
-  alternateName: "Elume Nuvotech",
+  // "Elumenuvo" teaches Google the domain string is OUR brand, not a typo of
+  // something else (it was autocorrecting "elumenuvo" to a person's name).
+  alternateName: ["Elume Nuvotech", "Elumenuvo"],
   url: SITE,
-  logo: `${SITE}/assets/elume-mark.png`,
+  // Square export of the mark: Google's logo guidance wants square-ish.
+  logo: `${SITE}/assets/elume-mark-square.png`,
   email: "info@elumenuvo.com",
   telephone: "+919818821175",
   contactPoint: {
@@ -67,11 +71,22 @@ export const ORG = {
  * typically days to a few weeks.
  */
 export const WEBSITE = {
+  // The missing @context made this node invalid JSON-LD for months (Google
+  // ignored it entirely) while a second, conflicting WebSite in the root
+  // layout ran site-wide - the exact opposite of rule 1. This is now the ONLY
+  // WebSite node, and it lives on the homepage alone.
+  "@context": "https://schema.org",
   "@type": "WebSite",
+  "@id": `${SITE}/#website`,
   name: "Elume",
-  alternateName: "Elume Nuvotech",
+  alternateName: ["Elumenuvo", "Elume Nuvotech", "elumenuvo.com"],
   url: `${SITE}/`,
-  publisher: { "@type": "Organization", name: "Elume", url: SITE },
+  publisher: { "@id": `${SITE}/#organization` },
+  potentialAction: {
+    "@type": "SearchAction",
+    target: { "@type": "EntryPoint", urlTemplate: `${SITE}/catalogue?q={search_term_string}` },
+    "query-input": "required name=search_term_string",
+  },
 };
 
 /** Standard merchant policies (pan-India, free shipping, 7-day free returns). */

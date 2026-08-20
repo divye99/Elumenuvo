@@ -19,14 +19,17 @@ import { jsonLd as toJsonLd } from "@/lib/jsonld";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "Elume - Buy electrical goods online in India | Wires, MCBs, Switches, Fans, Lights",
+  // `absolute` beats the "%s · Elume" template - a plain string here rendered
+  // "...Fans, Lights · Elume" with the brand doubled, which is the lacklustre
+  // title Google was showing for brand searches (owner, Aug 2026).
+  title: { absolute: "Elume - India's Premier Electrical Marketplace" },
   description:
-    "India's FMEG store: house wires, MCBs & switchgear, modular switches, distribution boards, fans and LED lighting from Havells, Polycab, Finolex, CMI and more. MRP, Elume price and wholesale rates on every product.",
+    "India's premier marketplace for wires, cables, switchgear, lighting, fans, modular electrical products and more. 24+ trusted brands at transparent, market-checked prices with GST invoice on every order, wholesale rates and free pan-India delivery above ₹4,000.",
   alternates: { canonical: "https://elumenuvo.com" },
   openGraph: {
     siteName: "Elume",
     images: [{ url: "https://elumenuvo.com/og.png", width: 1200, height: 630, alt: "Elume" }],
-    title: "Elume - Buy electrical goods online in India",
+    title: "Elume - India's Premier Electrical Marketplace",
     description: "Every electrical brand. One transparent price list.",
     url: "https://elumenuvo.com",
     type: "website",

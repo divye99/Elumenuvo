@@ -82,8 +82,10 @@ export default function HomeStorefront({ products, posts }: { products: Product[
         }}
       >
         <div style={{ maxWidth: 640 }}>
+          {/* The brand in the visible H1 is a documented Google site-name
+              input (owner ask + SEO audit, Aug 2026). */}
           <h1 style={{ fontFamily: GROTESK, fontSize: "clamp(26px, 5vw, 32px)", fontWeight: 600, letterSpacing: "-0.7px", lineHeight: 1.16, margin: 0 }}>
-            India&apos;s premier FMEG marketplace
+            Elume - India&apos;s premier electrical marketplace
           </h1>
           <div className="home-hero-ctawrap" style={{ marginTop: 18 }}>
             <Link
