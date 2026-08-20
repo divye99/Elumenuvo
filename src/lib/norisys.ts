@@ -23,10 +23,10 @@ export const NORISYS_FINISH: Record<string, string> = {
   "02": "Quartz Gray",
   "04": "Solid Aluminium",
   "05": "Solid Aluminium Black",
-  "06": "Solid Wood Light",
-  "07": "Solid Wood Dark",
+  "06": "Solid Wood Dark Mahogany",
+  "07": "Solid Wood Pinewood",
   "08": "Solid Glass Ice White",
-  "09": "Solid Glass Gray",
+  "09": "Solid Glass Metal Gray",
   "10": "White",
   "11": "Terra Beige",
   "12": "White",
@@ -38,11 +38,12 @@ export const NORISYS_FINISH: Record<string, string> = {
   "19": "Solid Glass Black",
   "26": "Silver Dust",
   "29": "Solid Wood Walnut",
+  "48": "Solid Glass Frosted Ultra White",
   "31": "Metal Chrome Glossy",
   "32": "Metal Chrome Matt",
   "33": "Metal Black Glossy",
   "34": "Metal Mellow Gold",
-  "38": "Solid Glass White",
+  "38": "Solid Glass Ultra White",
 };
 
 /** Swatch colours for the finish dots (merged into the variant picker). */
@@ -52,14 +53,15 @@ export const NORISYS_FINISH_HEX: Record<string, string> = {
   "Solid Aluminium": "#C7CAD1",
   "Solid Aluminium Black": "#3A3D42",
   "Solid Aluminium Bronze": "#8A6A4F",
-  "Solid Wood Light": "#B78B5E",
-  "Solid Wood Dark": "#6B4A32",
+  "Solid Wood Dark Mahogany": "#5C3A28",
+  "Solid Wood Pinewood": "#C9A16B",
   "Solid Wood Walnut": "#5A3E2B",
   "Solid Glass Ice White": "#EFF3F4",
-  "Solid Glass Gray": "#9BA1A8",
+  "Solid Glass Metal Gray": "#9BA1A8",
   "Solid Glass Smoked Silver": "#A8ABB3",
   "Solid Glass Black": "#23262B",
-  "Solid Glass White": "#F2F4F5",
+  "Solid Glass Ultra White": "#F2F4F5",
+  "Solid Glass Frosted Ultra White": "#EDF1F2",
   "Terra Beige": "#CBB49A",
   "Matt Gold": "#C9A24B",
   "Charcoal Black": "#2B2E33",
@@ -86,12 +88,29 @@ export function norisysSeries(stem: string): "TG9" | "CUBE" {
 /** Finish label for one product: its own name first (it usually states the
  *  finish), the suffix legend as fallback. */
 export function norisysFinishLabel(p: { name: string }, code: NorisysCode): string {
+  const legend = NORISYS_FINISH[code.suffix];
   const n = p.name;
   const fromName = n.match(
     /\b(Solid Glass [A-Z][a-z]+(?: [A-Z][a-z]+)?|Solid Aluminium(?: [A-Z][a-z]+)?|Solid Wood(?: [A-Z][a-z]+)?|Solid Marble(?: [A-Z][a-z]+)?|Ice White|Frost White|Smoked Silver|Silver Dust|Charcoal Black|Glossy Black|Matt Gold|Mellow Gold|Quartz Gr[ae]y|Terra Beige|Metal Chrome (?:Glossy|Matt)|Metal Black Glossy|Chrome Glossy|Chrome Matt)\b/
   );
-  if (fromName) return fromName[0].replace("Quartz Grey", "Quartz Gray");
-  return NORISYS_FINISH[code.suffix] ?? `Finish .${code.suffix}`;
+  if (fromName) {
+    // Clean the raw capture: plate-words are not finishes, and grey/gray
+    // must not split one finish into two facet rows.
+    const label = fromName[0]
+      .replace(/\s+(Cover(\s+Plates?)?|Plates?)$/i, "")
+      .replace("Solid Glass Solid", "Solid Glass")
+      .replace(/Grey/g, "Gray")
+      .trim();
+    // The catalogue legend wins whenever the name's words are a subset of
+    // it: "Solid Wood" -> "Solid Wood Dark Mahogany", "Glossy Black" ->
+    // "Metal Black Glossy", "Chrome Matt" -> "Metal Chrome Matt".
+    if (legend && legend !== label) {
+      const lw = new Set(legend.split(/\s+/));
+      if (label.split(/\s+/).every((w) => lw.has(w))) return legend;
+    }
+    return label;
+  }
+  return legend ?? `Finish .${code.suffix}`;
 }
 
 /* ── Engineering story: one set of three bullets per series, distilled from
