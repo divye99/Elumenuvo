@@ -33,7 +33,7 @@ export const WIKI: WikiArticle[] = [
 - Synonyms: per-token expansions from the SYNONYMS map (mcb, rccb, chokes, elcb and friends). This is the main extension point: when a real query fails, the fix is usually one SYNONYMS line.
 - Unit canonicalization: "63a", "30ma", "45mts", "12switches" and similar are split into number + unit ("63 a", "30 ma", "45 m") so they match spec text written either way.
 - Singularization: plural tokens also try their singular ("isolators" finds "isolator").
-- Fuzzy correction: a token that matches nothing tries edit-distance up to 2 against the catalogue vocabulary. Results banner says "Including close spellings" when this fires.
+- Fuzzy correction: a token that matches nothing tries edit-distance up to 2 against the catalogue vocabulary. Applied silently: the corrected results speak for themselves, no banner (owner call, Aug 2026).
 
 ## Rules of thumb
 - Never special-case one product. Fix the class of query in the lexicon.
@@ -276,7 +276,7 @@ Engagement (an identity, an add-to-cart, or a tap plus measured dwell) always pr
 
 ## Bot defense, three layers
 - Ingest: /api/track, /api/search-log and /api/explore-log all reject requests matching the bot user-agent list or known crawler IP ranges (src/lib/bots.ts, ~60 patterns plus Googlebot/Bingbot IP prefixes).
-- Classifier + rollup (migration 0124): classify_bot_sessions writes verdicts into the bot_sessions table on objective evidence only: bot UA, crawler IP, a frozen browser version no auto-updating human still runs (thresholds move forward yearly), the fleet signature (8+ sessions sharing one exact UA, zero engaged), or heavy crawling (10+ pageviews, zero interaction). rollup_product_metrics excludes those sids, so product_metrics_daily and therefore EMS stay clean. The nightly cron classifies, then rolls.
+- Classifier + rollup (migrations 0124/0128): classify_bot_sessions writes verdicts into the bot_sessions table on objective evidence only: bot UA, crawler IP, a frozen browser version no auto-updating human still runs (thresholds move forward yearly), the fleet-UA signature (8+ sessions sharing one exact UA, zero engaged), the fleet-IP signature (one IP minting 4+ device tokens, zero engaged anywhere: one real tap clears the whole IP, so office networks never trip it), or heavy crawling (10+ pageviews, zero interaction). rollup_product_metrics excludes those sids, so product_metrics_daily and therefore EMS stay clean. The nightly cron classifies, then rolls; the daily-traffic tab also classifies the current day on load.
 - Display: the same evidence rules classify sessions in the analytics UI; an engaged session is never flagged. The Searches tab drops rows from bot sessions too, including historic pre-gate rows. "Include likely bots" in the filter shows them on demand.
 
 Verified Aug 2026: the evidence rules caught 94% of the wave while keeping every current-browser bounce, Indian or foreign. The few percent that are indistinguishable from real bounces stay counted, by design: when we cannot prove machine, we count the view.`,

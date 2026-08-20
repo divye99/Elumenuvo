@@ -37,29 +37,56 @@ async function call(body: Record<string, unknown>) {
   else window.location.reload();
 }
 
-export default function MeritPanel({ rows, promoterBrands, milestoneCr, paidGmv, milestoneReached, promoterExploreEdge }: {
+export type CatStat = { n: number; views30: number; viewsPerDay: number; cartRate: number; buyRate: number; avgStars: number };
+
+const NUMERIC_COLS = [
+  ["ems", "EMS"], ["velocity", "Velocity"], ["pickRate", "Pick"], ["cartRate", "Cart"],
+  ["buyRate", "Buy 30d"], ["review", "Review"], ["value", "Value"],
+] as const;
+type SortKey = (typeof NUMERIC_COLS)[number][0];
+
+export default function MeritPanel({ rows, promoterBrands, milestoneCr, paidGmv, milestoneReached, promoterExploreEdge, catStats }: {
   rows: MeritRow[];
   promoterBrands: string[];
   milestoneCr: number;
   paidGmv: number;
   milestoneReached: boolean;
   promoterExploreEdge: number;
+  catStats: Record<string, CatStat>;
 }) {
   const [q, setQ] = useState("");
   const [view, setView] = useState<"all" | "explored" | "cooldown" | "overridden">("all");
+  const [cat, setCat] = useState("");
+  const [brandFilter, setBrandFilter] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("ems");
+  const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
+  const [showCats, setShowCats] = useState(false);
   const [brandsText, setBrandsText] = useState(promoterBrands.join(", "));
   const [edgePct, setEdgePct] = useState(String(Math.round(promoterExploreEdge * 100)));
   const [shown, setShown] = useState(100);
+
+  const cats = useMemo(() => [...new Set(rows.map((r) => r.cat))].sort(), [rows]);
+  const rowBrands = useMemo(() => [...new Set(rows.map((r) => r.brand))].sort(), [rows]);
+
+  // Click a numeric header to sort by it: first click = highest first
+  // (down arrow), second click flips to lowest first.
+  const onSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+    else { setSortKey(key); setSortDir("desc"); }
+  };
 
   const filtered = useMemo(() => {
     let list = rows;
     if (view === "explored") list = list.filter((r) => r.exploreShows > 0);
     if (view === "cooldown") list = list.filter((r) => r.cooldown);
     if (view === "overridden") list = list.filter((r) => r.override !== 0 || r.suppressed);
+    if (cat) list = list.filter((r) => r.cat === cat);
+    if (brandFilter) list = list.filter((r) => r.brand === brandFilter);
     const needle = q.trim().toLowerCase();
     if (needle) list = list.filter((r) => `${r.name} ${r.brand} ${r.id}`.toLowerCase().includes(needle));
-    return list;
-  }, [rows, q, view]);
+    const dir = sortDir === "desc" ? -1 : 1;
+    return [...list].sort((a, b) => dir * ((a[sortKey] ?? 0) - (b[sortKey] ?? 0)));
+  }, [rows, q, view, cat, brandFilter, sortKey, sortDir]);
 
   return (
     <div>
@@ -94,30 +121,68 @@ export default function MeritPanel({ rows, promoterBrands, milestoneCr, paidGmv,
         </div>
       </div>
 
+      {/* ── Category averages: what "par" (0.5) means in real numbers ── */}
+      <div style={{ marginBottom: 14 }}>
+        <button onClick={() => setShowCats((v) => !v)} style={{ fontSize: 12.5, fontWeight: 700, color: "#4E5BDC", background: "#EEF0FE", border: "none", borderRadius: 9, padding: "8px 14px", cursor: "pointer" }}>
+          {showCats ? "Hide category averages" : "Show category averages"}
+        </button>
+        {showCats && (
+          <div style={{ marginTop: 10, overflowX: "auto", border: "1px solid #E8EBF1", borderRadius: 12, background: "#fff" }}>
+            <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 720 }}>
+              <thead><tr>
+                {["Category", "Products", "30d views", "Views/day per product", "Cart rate", "Buy rate", "Avg stars"].map((h) => <th key={h} style={th}>{h}</th>)}
+              </tr></thead>
+              <tbody>
+                {Object.entries(catStats).sort((a, b) => b[1].views30 - a[1].views30).map(([name, c]) => (
+                  <tr key={name} style={{ background: cat === name ? "#F3F7FF" : undefined }}>
+                    <td style={{ ...td, fontWeight: 700 }}>{name}</td>
+                    <td style={td}>{c.n.toLocaleString("en-IN")}</td>
+                    <td style={td}>{c.views30.toLocaleString("en-IN")}</td>
+                    <td style={td}>{c.viewsPerDay.toFixed(4)}</td>
+                    <td style={td}>{(c.cartRate * 100).toFixed(1)}%</td>
+                    <td style={td}>{(c.buyRate * 100).toFixed(1)}%</td>
+                    <td style={td}>{c.avgStars.toFixed(1)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div style={{ padding: "9px 12px", fontSize: 11, color: "#8A93A6" }}>
+              These are the smoothing priors: a product with no data of its own scores exactly these rates, which is what a 0.50 pillar value means.
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* ── Table controls ── */}
       <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 10, flexWrap: "wrap" }}>
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search product / brand / id…" style={{ fontSize: 13, padding: "9px 12px", borderRadius: 9, border: "1px solid #E0E4ED", minWidth: 260 }} />
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search product / brand / id…" style={{ fontSize: 13, padding: "9px 12px", borderRadius: 9, border: "1px solid #E0E4ED", minWidth: 240 }} />
+        <select value={cat} onChange={(e) => setCat(e.target.value)} style={{ fontSize: 12.5, padding: "8px 10px", borderRadius: 9, border: "1px solid #E0E4ED", background: "#fff" }}>
+          <option value="">All categories</option>
+          {cats.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <select value={brandFilter} onChange={(e) => setBrandFilter(e.target.value)} style={{ fontSize: 12.5, padding: "8px 10px", borderRadius: 9, border: "1px solid #E0E4ED", background: "#fff" }}>
+          <option value="">All brands</option>
+          {rowBrands.map((b) => <option key={b} value={b}>{b}</option>)}
+        </select>
         {(["all", "explored", "cooldown", "overridden"] as const).map((v) => (
           <button key={v} onClick={() => setView(v)} style={{ fontSize: 12, fontWeight: 700, padding: "7px 12px", borderRadius: 999, border: `1px solid ${view === v ? "#4E5BDC" : "#E0E4ED"}`, background: view === v ? "#4E5BDC" : "#fff", color: view === v ? "#fff" : "#3A4358", cursor: "pointer" }}>
             {v === "all" ? `All (${rows.length})` : v === "explored" ? "Explored 21d" : v === "cooldown" ? "In cooldown" : "Overridden"}
           </button>
         ))}
-        <span style={{ fontSize: 12, color: "#8A93A6" }}>{filtered.length.toLocaleString("en-IN")} rows · sorted by EMS</span>
+        <span style={{ fontSize: 12, color: "#8A93A6" }}>{filtered.length.toLocaleString("en-IN")} rows</span>
       </div>
 
-      {/* ── The ranking, transparent ── */}
+      {/* ── The ranking, transparent. Click a numeric header to sort. ── */}
       <div style={{ overflowX: "auto", border: "1px solid #E8EBF1", borderRadius: 12, background: "#fff", maxHeight: 640, overflowY: "auto" }}>
         <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 1080 }}>
           <thead>
             <tr>
               <th style={th}>Product</th>
-              <th style={th}>EMS</th>
-              <th style={th}>Velocity</th>
-              <th style={th}>Pick</th>
-              <th style={th}>Cart</th>
-              <th style={th}>Buy 30d</th>
-              <th style={th}>Review</th>
-              <th style={th}>Value</th>
+              {NUMERIC_COLS.map(([key, label]) => (
+                <th key={key} style={{ ...th, cursor: "pointer", userSelect: "none", color: sortKey === key ? "#4E5BDC" : th.color }} onClick={() => onSort(key)}>
+                  {label}{sortKey === key ? (sortDir === "desc" ? " ▼" : " ▲") : ""}
+                </th>
+              ))}
               <th style={th}>Flags</th>
               <th style={th}>Actions</th>
             </tr>

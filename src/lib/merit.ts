@@ -123,6 +123,15 @@ async function fetchInputs() {
   return { metrics, config, overrides, paidGmv, exploreShows, pickedIds };
 }
 
+export type CategoryStats = {
+  n: number;            // products in the category
+  views30: number;      // total human glance views, last 30 days
+  viewsPerDay: number;  // the velocity prior: views/day per product-day live
+  cartRate: number;     // category cart adds / views
+  buyRate: number;      // category units / views
+  avgStars: number;     // review prior
+};
+
 export type MeritData = {
   ems: Record<string, number>;
   parts: Record<string, MeritParts>;
@@ -132,6 +141,8 @@ export type MeritData = {
   /** product ids currently in exploration cooldown (temporary, timestamped) */
   cooldownIds: string[];
   exploreShows: Record<string, number>;
+  /** The smoothing priors per category - what 0.5 (par) means in real terms. */
+  catStats: Record<string, CategoryStats>;
 };
 
 /** Pure EMS computation - exported for the harness and the admin panel. */
@@ -231,11 +242,24 @@ export function computeMerit(
     else if ((exploreShows.get(p.id) ?? 0) >= 8 && !pickedIds.has(p.id)) cooldownIds.push(p.id);
   }
 
+  const catStats: Record<string, CategoryStats> = {};
+  for (const [cat, c] of cats) {
+    catStats[cat] = {
+      n: c.n,
+      views30: c.views,
+      viewsPerDay: c.days > 0 ? c.views / c.days : 0,
+      cartRate: c.views > 0 ? c.carts / c.views : 0,
+      buyRate: c.views > 0 ? c.units / c.views : 0,
+      avgStars: c.ratings ? c.stars / c.ratings : 3.8,
+    };
+  }
+
   return {
     ems, parts,
     config, paidGmv, milestoneReached,
     cooldownIds,
     exploreShows: Object.fromEntries(exploreShows),
+    catStats,
   };
 }
 

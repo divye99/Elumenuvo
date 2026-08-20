@@ -1,5 +1,5 @@
 import { adminClient } from "@/lib/supabase/admin";
-import { BOT_RE, BOT_IP_PREFIXES, isStaleBrowser, FLEET_MIN_SESSIONS } from "@/lib/bots";
+import { BOT_RE, BOT_IP_PREFIXES, isStaleBrowser, FLEET_MIN_SESSIONS, FLEET_IP_MIN_SIDS } from "@/lib/bots";
 
 /** Server-side reads for the admin Analytics pages (service role only). */
 
@@ -259,14 +259,27 @@ export function toVisitors(events: SiteEvent[]): Visitor[] {
     uaGroups.set(v.ua, g);
   }
   const fleetUAs = new Set([...uaGroups.entries()].filter(([, g]) => g.n >= FLEET_MIN_SESSIONS && g.engaged === 0).map(([ua]) => ua));
+  // Fleet-IP signal (0128): one exit IP minting many device tokens with not
+  // one engagement anywhere is automation; a single engaged session clears
+  // the whole IP (so office NATs and campuses never trip it).
+  const ipGroups = new Map<string, { n: number; engaged: number }>();
+  for (const v of all) {
+    if (!v.ip) continue;
+    const g = ipGroups.get(v.ip) ?? { n: 0, engaged: 0 };
+    g.n += 1;
+    if (engagedOf(v)) g.engaged += 1;
+    ipGroups.set(v.ip, g);
+  }
+  const fleetIPs = new Set([...ipGroups.entries()].filter(([, g]) => g.n >= FLEET_IP_MIN_SIDS && g.engaged === 0).map(([ip]) => ip));
   for (const v of all) {
     if (engagedOf(v)) { v.likelyBot = false; continue; }
     const uaBot = !!v.ua && (BOT_RE.test(v.ua) || LOOSE_AGENT_RE.test(v.ua));
     const ipBot = !!v.ip && BOT_IP_PREFIXES.some((p) => v.ip!.startsWith(p));
     const staleBot = isStaleBrowser(v.ua);
     const fleetBot = !!v.ua && fleetUAs.has(v.ua);
+    const fleetIpBot = !!v.ip && fleetIPs.has(v.ip);
     const heavyCrawler = v.pageviews >= 10 && v.clicks === 0 && v.totalMs === 0 && v.addToCarts === 0;
-    v.likelyBot = uaBot || ipBot || staleBot || fleetBot || heavyCrawler;
+    v.likelyBot = uaBot || ipBot || staleBot || fleetBot || fleetIpBot || heavyCrawler;
   }
   return all.sort((a, b) => (a.lastSeen < b.lastSeen ? 1 : -1));
 }

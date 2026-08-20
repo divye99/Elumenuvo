@@ -68,3 +68,9 @@ export function isStaleBrowser(ua: string | null | undefined): boolean {
 /** Minimum sessions sharing one exact UA string, with zero of them engaged,
  *  before the whole group reads as a crawl fleet. */
 export const FLEET_MIN_SESSIONS = 8;
+
+/** Minimum distinct sessions from one IP, with zero of them engaged, before
+ *  the IP reads as an automation fleet (fresh device token per hit). A real
+ *  shared IP - office NAT, campus - always has SOMEONE who engages, and one
+ *  engaged session clears the whole IP. Lockstep with migration 0128. */
+export const FLEET_IP_MIN_SIDS = 4;

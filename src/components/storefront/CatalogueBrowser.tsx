@@ -105,7 +105,7 @@ export default function CatalogueBrowser({
   const dq = useDeferredValue(q);
   useEffect(() => { setShown(PAGE); }, [dq, cat, picked, sort]);
 
-  const { filtered, correctedTo, relaxedNote, brandCount, catCount, explored } = useMemo(() => {
+  const { filtered, relaxedNote, brandCount, catCount, explored } = useMemo(() => {
     const facetCounts = (matched: Product[]) => {
       // Facet counts describe THIS result set, not the whole catalogue -
       // a brand that would give zero results for the query never advertises
@@ -602,14 +602,10 @@ export default function CatalogueBrowser({
       )}
 
       {/* Grid */}
-      {/* Typo rescue is announced, never silent: the shopper typed one thing
-          and is seeing another, and Amazon's wording for this is the pattern
-          buyers already know. */}
-      {correctedTo && (
-        <div style={{ fontSize: 13.5, color: "#3A4358", background: "#F2FBF6", border: "1px solid #DCEDE3", borderRadius: 10, padding: "10px 14px", margin: "0 0 14px" }}>
-          Including close spellings: <b>{correctedTo}</b>
-        </div>
-      )}
+      {/* Typo rescue happens silently (owner call, Aug 2026): the corrected
+          results speak for themselves, and announcing the rewrite sometimes
+          surfaced embarrassing corrections. correctedTo still flows through
+          the memo so search logging stays accurate. */}
       {relaxedNote && (
         <div style={{ fontSize: 13.5, color: "#3A4358", background: "#FFF9EE", border: "1px solid #F0DFC0", borderRadius: 10, padding: "10px 14px", margin: "0 0 14px" }}>
           {relaxedNote}
