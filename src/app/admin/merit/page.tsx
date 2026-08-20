@@ -46,6 +46,8 @@ export default async function MeritPage() {
         suppressed: parts?.suppressed ?? false,
         cooldown: cooldown.has(p.id),
         exploreShows: merit.exploreShows[p.id] ?? 0,
+        explorePicks: merit.explorePicks[p.id] ?? 0,
+        explorePickRate: (merit.exploreShows[p.id] ?? 0) > 0 ? (merit.explorePicks[p.id] ?? 0) / (merit.exploreShows[p.id] ?? 1) : 0,
       };
     })
     .sort((a, b) => b.ems - a.ems);
@@ -63,7 +65,6 @@ export default async function MeritPage() {
         paidGmv={merit.paidGmv}
         milestoneReached={merit.milestoneReached}
         promoterExploreEdge={merit.config.promoterExploreEdge}
-        catStats={merit.catStats}
       />
     </div>
   );

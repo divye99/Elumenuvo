@@ -100,8 +100,8 @@ async function fetchInputs() {
     db.from("app_kv").select("v").eq("k", CONFIG_KEY).maybeSingle(),
     db.from("merit_overrides").select("*"),
     db.from("orders").select("total").in("status", PAID_STATES).limit(20000),
-    db.from("explore_log").select("product_id").gte("created_at", exploreSince).limit(5000),
-    db.from("search_queries").select("picked").like("picked", "product:%").gte("created_at", exploreSince).limit(5000),
+    db.from("explore_log").select("product_id, query_norm").gte("created_at", exploreSince).limit(5000),
+    db.from("search_queries").select("picked, query").like("picked", "product:%").gte("created_at", exploreSince).limit(5000),
   ]);
 
   const stored = (cfgRes.data?.v ?? null) as Partial<MeritConfig> | null;
@@ -115,12 +115,27 @@ async function fetchInputs() {
   const paidGmv = (gmvRes.data ?? []).reduce((a: number, r: any) => a + Number(r.total ?? 0), 0);
 
   // Exploration shows + whether the product earned ANY search pick in the
-  // same window - the cooldown evidence.
+  // same window (cooldown evidence), plus WILDCARD-ATTRIBUTED picks: a pick
+  // counts for the slot when the same product was explored on the same
+  // normalized query in the window - i.e. the click the wildcard placement
+  // itself earned.
   const exploreShows = new Map<string, number>();
-  for (const r of exploreRes.data ?? []) exploreShows.set(r.product_id, (exploreShows.get(r.product_id) ?? 0) + 1);
-  const pickedIds = new Set((pickedRes.data ?? []).map((r: any) => String(r.picked).slice(8)));
+  const exploreQueries = new Map<string, Set<string>>();
+  for (const r of (exploreRes.data ?? []) as { product_id: string; query_norm: string | null }[]) {
+    exploreShows.set(r.product_id, (exploreShows.get(r.product_id) ?? 0) + 1);
+    if (r.query_norm) (exploreQueries.get(r.product_id) ?? exploreQueries.set(r.product_id, new Set()).get(r.product_id)!).add(r.query_norm);
+  }
+  const pickedIds = new Set<string>();
+  const explorePicks = new Map<string, number>();
+  for (const r of (pickedRes.data ?? []) as { picked: string; query: string | null }[]) {
+    const pid = String(r.picked).slice(8);
+    pickedIds.add(pid);
+    // explore_log stores the raw query lowercased; mirror that exactly.
+    const qn = (r.query ?? "").trim().toLowerCase().slice(0, 160);
+    if (qn && exploreQueries.get(pid)?.has(qn)) explorePicks.set(pid, (explorePicks.get(pid) ?? 0) + 1);
+  }
 
-  return { metrics, config, overrides, paidGmv, exploreShows, pickedIds };
+  return { metrics, config, overrides, paidGmv, exploreShows, explorePicks, pickedIds };
 }
 
 export type CategoryStats = {
@@ -141,6 +156,8 @@ export type MeritData = {
   /** product ids currently in exploration cooldown (temporary, timestamped) */
   cooldownIds: string[];
   exploreShows: Record<string, number>;
+  /** search picks earned ON queries where the product held the wildcard slot */
+  explorePicks: Record<string, number>;
   /** The smoothing priors per category - what 0.5 (par) means in real terms. */
   catStats: Record<string, CategoryStats>;
 };
@@ -154,7 +171,8 @@ export function computeMerit(
   paidGmv: number,
   exploreShows: Map<string, number>,
   pickedIds: Set<string>,
-  pickTotals: Record<string, number> = {}
+  pickTotals: Record<string, number> = {},
+  explorePicks: Map<string, number> = new Map()
 ): MeritData {
   const milestoneReached = paidGmv >= config.milestoneCr * 1_00_00_000;
   const now = Date.now();
@@ -259,6 +277,7 @@ export function computeMerit(
     config, paidGmv, milestoneReached,
     cooldownIds,
     exploreShows: Object.fromEntries(exploreShows),
+    explorePicks: Object.fromEntries(explorePicks),
     catStats,
   };
 }
@@ -275,7 +294,8 @@ export async function loadMerit(products: Product[], pickTotals: Record<string, 
     inputs.paidGmv,
     new Map(Object.entries(inputs.exploreShows)),
     new Set(inputs.pickedIds),
-    pickTotals
+    pickTotals,
+    new Map(Object.entries(inputs.explorePicks ?? {}))
   );
 }
 
@@ -289,6 +309,7 @@ const cachedInputs = unstable_cache(
       overrides: Object.fromEntries(raw.overrides),
       paidGmv: raw.paidGmv,
       exploreShows: Object.fromEntries(raw.exploreShows),
+      explorePicks: Object.fromEntries(raw.explorePicks),
       pickedIds: [...raw.pickedIds],
     };
   },

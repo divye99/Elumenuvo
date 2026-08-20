@@ -134,7 +134,7 @@ At most ONE slot in positions 3 to 12 (position picked deterministically from th
 The winner is drawn by lottery: every qualifying product holds 1 ticket, and Brand Promoter products hold 1.2 tickets (a 20% edge, configurable in /admin/merit). With one Rajdhani and one other product qualifying, Rajdhani wins about 55 times in 100. The edge scales fairly as more brands join the promoter network, and every qualifying product always keeps a real chance.
 
 ## Cooldowns
-Every exploration impression is logged (explore_log). A product shown 8+ times in 21 days with zero search picks enters cooldown and stops being explored. Cooldowns are ALWAYS temporary: either an admin timestamp or the 21-day evidence window expiring. Admins can set or clear cooldowns in /admin/merit.`,
+Every exploration impression is logged (explore_log): an impression means the slot SHOWED the product, nothing more. A product shown 8+ times in a rolling 21 days with zero search picks enters cooldown and stops being explored. Cooldowns are ALWAYS temporary: either an admin timestamp or the 21-day evidence window expiring. The merit panel shows each product's wildcard impressions and the pick rate earned on those exact queries; being explored never changes EMS by itself.`,
   },
   {
     slug: "self-learning-search",

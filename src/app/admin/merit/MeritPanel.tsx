@@ -23,12 +23,18 @@ export type MeritRow = {
   suppressed: boolean;
   cooldown: boolean;
   exploreShows: number;
+  explorePicks: number;
+  explorePickRate: number;
 };
 
 const th: React.CSSProperties = { textAlign: "left", padding: "8px 9px", fontSize: 11, fontWeight: 700, color: "#56627A", borderBottom: "2px solid #E8EBF1", whiteSpace: "nowrap", position: "sticky", top: 0, background: "#fff" };
 const td: React.CSSProperties = { padding: "7px 9px", fontSize: 12, borderBottom: "1px solid #EEF0F4", whiteSpace: "nowrap" };
 const num = (v: number) => v.toFixed(2);
 const chip = (bg: string, fg: string): React.CSSProperties => ({ fontSize: 10, fontWeight: 800, borderRadius: 6, padding: "2px 7px", background: bg, color: fg });
+
+function Info({ tip }: { tip: string }) {
+  return <span className="mtip" onClick={(e) => e.stopPropagation()}>ⓘ<span className="mtipbox">{tip}</span></span>;
+}
 
 async function call(body: Record<string, unknown>) {
   const r = await fetch("/api/admin/merit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -37,22 +43,28 @@ async function call(body: Record<string, unknown>) {
   else window.location.reload();
 }
 
-export type CatStat = { n: number; views30: number; viewsPerDay: number; cartRate: number; buyRate: number; avgStars: number };
+/** Column headers with their hover explanations (owner ask: a small info
+ *  cloud per header, brief, with the maths where there is any). */
+const NUMERIC_COLS: [key: string, label: string, tip: string][] = [
+  ["ems", "EMS", "Elume Merit Score = 0.6 x Demand + 0.3 x Reviews + 0.1 x Value, + 0.06 if Brand Promoter, + any manual boost. Breaks ties in featured ordering."],
+  ["velocity", "Velocity", "PDP glance views per day live, smoothed toward the category average, squashed to 0-1. 0.50 = exactly category average."],
+  ["pickRate", "Pick", "Search picks (result clicks) per view, smoothed vs category with a 25-view prior, squashed to 0-1. 0.50 = par."],
+  ["cartRate", "Cart", "Cart adds per glance view over 30 days, smoothed vs category (25-view prior), squashed to 0-1. 0.50 = par."],
+  ["buyRate", "Buy 30d", "Units bought per glance view, last 30 days, smoothed and squashed. Lightest demand weight today; flips to heaviest at Rs 10 Cr paid GMV."],
+  ["review", "Review", "Average stars smoothed toward the category average with a 5-review prior, squashed to 0-1. 0.50 = par (few or no reviews)."],
+  ["value", "Value", "(1 + savings vs MRP + 0.3 if at/below tracked market low) / (2 + the same). 0.50 = no discount; deeper savings push higher."],
+  ["exploreShows", "Explored Impr.", "Times the search wildcard slot SHOWED this product in the rolling last 21 days. An impression, not a click; does not change EMS."],
+  ["explorePickRate", "Explore PR", "Picks earned on the same queries where it held the wildcard slot, over those impressions. 8+ impressions with zero picks = automatic temporary cooldown."],
+];
+type SortKey = string;
 
-const NUMERIC_COLS = [
-  ["ems", "EMS"], ["velocity", "Velocity"], ["pickRate", "Pick"], ["cartRate", "Cart"],
-  ["buyRate", "Buy 30d"], ["review", "Review"], ["value", "Value"],
-] as const;
-type SortKey = (typeof NUMERIC_COLS)[number][0];
-
-export default function MeritPanel({ rows, promoterBrands, milestoneCr, paidGmv, milestoneReached, promoterExploreEdge, catStats }: {
+export default function MeritPanel({ rows, promoterBrands, milestoneCr, paidGmv, milestoneReached, promoterExploreEdge }: {
   rows: MeritRow[];
   promoterBrands: string[];
   milestoneCr: number;
   paidGmv: number;
   milestoneReached: boolean;
   promoterExploreEdge: number;
-  catStats: Record<string, CatStat>;
 }) {
   const [q, setQ] = useState("");
   const [view, setView] = useState<"all" | "explored" | "cooldown" | "overridden">("all");
@@ -85,7 +97,7 @@ export default function MeritPanel({ rows, promoterBrands, milestoneCr, paidGmv,
     const needle = q.trim().toLowerCase();
     if (needle) list = list.filter((r) => `${r.name} ${r.brand} ${r.id}`.toLowerCase().includes(needle));
     const dir = sortDir === "desc" ? -1 : 1;
-    return [...list].sort((a, b) => dir * ((a[sortKey] ?? 0) - (b[sortKey] ?? 0)));
+    return [...list].sort((a, b) => dir * ((Number((a as any)[sortKey]) || 0) - (Number((b as any)[sortKey]) || 0)));
   }, [rows, q, view, cat, brandFilter, sortKey, sortDir]);
 
   return (
@@ -121,33 +133,40 @@ export default function MeritPanel({ rows, promoterBrands, milestoneCr, paidGmv,
         </div>
       </div>
 
-      {/* ── Category averages: what "par" (0.5) means in real numbers ── */}
+      {/* ── Category averages: the number the owner reads - average EMS ── */}
       <div style={{ marginBottom: 14 }}>
         <button onClick={() => setShowCats((v) => !v)} style={{ fontSize: 12.5, fontWeight: 700, color: "#4E5BDC", background: "#EEF0FE", border: "none", borderRadius: 9, padding: "8px 14px", cursor: "pointer" }}>
           {showCats ? "Hide category averages" : "Show category averages"}
         </button>
         {showCats && (
-          <div style={{ marginTop: 10, overflowX: "auto", border: "1px solid #E8EBF1", borderRadius: 12, background: "#fff" }}>
-            <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 720 }}>
+          <div style={{ marginTop: 10, overflowX: "auto", border: "1px solid #E8EBF1", borderRadius: 12, background: "#fff", maxWidth: 560 }}>
+            <table style={{ borderCollapse: "collapse", width: "100%" }}>
               <thead><tr>
-                {["Category", "Products", "30d views", "Views/day per product", "Cart rate", "Buy rate", "Avg stars"].map((h) => <th key={h} style={th}>{h}</th>)}
+                {["Category", "Products", "Average EMS"].map((h) => <th key={h} style={th}>{h}</th>)}
               </tr></thead>
               <tbody>
-                {Object.entries(catStats).sort((a, b) => b[1].views30 - a[1].views30).map(([name, c]) => (
-                  <tr key={name} style={{ background: cat === name ? "#F3F7FF" : undefined }}>
-                    <td style={{ ...td, fontWeight: 700 }}>{name}</td>
-                    <td style={td}>{c.n.toLocaleString("en-IN")}</td>
-                    <td style={td}>{c.views30.toLocaleString("en-IN")}</td>
-                    <td style={td}>{c.viewsPerDay.toFixed(4)}</td>
-                    <td style={td}>{(c.cartRate * 100).toFixed(1)}%</td>
-                    <td style={td}>{(c.buyRate * 100).toFixed(1)}%</td>
-                    <td style={td}>{c.avgStars.toFixed(1)}</td>
-                  </tr>
-                ))}
+                {(() => {
+                  const agg = new Map<string, { n: number; sum: number }>();
+                  for (const r of rows) {
+                    const a = agg.get(r.cat) ?? { n: 0, sum: 0 };
+                    a.n += 1; a.sum += r.ems;
+                    agg.set(r.cat, a);
+                  }
+                  return [...agg.entries()]
+                    .map(([name, a]) => ({ name, n: a.n, avg: a.sum / a.n }))
+                    .sort((x, y) => y.avg - x.avg)
+                    .map((c) => (
+                      <tr key={c.name} style={{ background: cat === c.name ? "#F3F7FF" : undefined }}>
+                        <td style={{ ...td, fontWeight: 700 }}>{c.name}</td>
+                        <td style={td}>{c.n.toLocaleString("en-IN")}</td>
+                        <td style={{ ...td, fontWeight: 800 }}>{c.avg.toFixed(3)}</td>
+                      </tr>
+                    ));
+                })()}
               </tbody>
             </table>
             <div style={{ padding: "9px 12px", fontSize: 11, color: "#8A93A6" }}>
-              These are the smoothing priors: a product with no data of its own scores exactly these rates, which is what a 0.50 pillar value means.
+              Mean EMS across every product in the category. A value near 0.45-0.50 means mostly at-par products with little data yet; higher means real demand is concentrating there.
             </div>
           </div>
         )}
@@ -166,25 +185,34 @@ export default function MeritPanel({ rows, promoterBrands, milestoneCr, paidGmv,
         </select>
         {(["all", "explored", "cooldown", "overridden"] as const).map((v) => (
           <button key={v} onClick={() => setView(v)} style={{ fontSize: 12, fontWeight: 700, padding: "7px 12px", borderRadius: 999, border: `1px solid ${view === v ? "#4E5BDC" : "#E0E4ED"}`, background: view === v ? "#4E5BDC" : "#fff", color: view === v ? "#fff" : "#3A4358", cursor: "pointer" }}>
-            {v === "all" ? `All (${rows.length})` : v === "explored" ? "Explored 21d" : v === "cooldown" ? "In cooldown" : "Overridden"}
+            {v === "all" ? `All (${rows.length})` : v === "explored" ? "Explored (last 21 days)" : v === "cooldown" ? "In cooldown" : "Overridden"}
           </button>
         ))}
         <span style={{ fontSize: 12, color: "#8A93A6" }}>{filtered.length.toLocaleString("en-IN")} rows</span>
       </div>
 
-      {/* ── The ranking, transparent. Click a numeric header to sort. ── */}
+      {/* ── The ranking, transparent. Click a numeric header to sort;
+             hover the i for the definition and maths. ── */}
+      <style>{`
+        .mtip { position: relative; display: inline-block; margin-left: 4px; color: #A0A7B5; font-weight: 400; cursor: help; }
+        .mtip .mtipbox { display: none; position: absolute; z-index: 40; top: 130%; left: -8px; width: 240px;
+          background: #161D2B; color: #fff; font-size: 11px; font-weight: 400; line-height: 1.45;
+          padding: 8px 11px; border-radius: 9px; white-space: normal; text-transform: none; letter-spacing: normal; }
+        .mtip:hover .mtipbox { display: block; }
+        th:nth-last-child(-n+3) .mtip .mtipbox { left: auto; right: -8px; }
+      `}</style>
       <div style={{ overflowX: "auto", border: "1px solid #E8EBF1", borderRadius: 12, background: "#fff", maxHeight: 640, overflowY: "auto" }}>
-        <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 1080 }}>
+        <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 1220 }}>
           <thead>
             <tr>
-              <th style={th}>Product</th>
-              {NUMERIC_COLS.map(([key, label]) => (
+              <th style={th}>Product<Info tip="Name, brand, category and product id. Click a name to open its live product page." /></th>
+              {NUMERIC_COLS.map(([key, label, tip]) => (
                 <th key={key} style={{ ...th, cursor: "pointer", userSelect: "none", color: sortKey === key ? "#4E5BDC" : th.color }} onClick={() => onSort(key)}>
-                  {label}{sortKey === key ? (sortDir === "desc" ? " ▼" : " ▲") : ""}
+                  {label}{sortKey === key ? (sortDir === "desc" ? " ▼" : " ▲") : ""}<Info tip={tip} />
                 </th>
               ))}
-              <th style={th}>Flags</th>
-              <th style={th}>Actions</th>
+              <th style={th}>Flags<Info tip="PROMOTER = Brand Promoter term active. SUPPRESSED = pinned to the bottom of featured ordering. COOLDOWN = wildcard exploration paused (always temporary)." /></th>
+              <th style={th}>Actions<Info tip="Manual interventions: additive boost on EMS, hard suppression, or a temporary exploration cooldown. Every change takes effect within 5 minutes." /></th>
             </tr>
           </thead>
           <tbody>
@@ -201,12 +229,15 @@ export default function MeritPanel({ rows, promoterBrands, milestoneCr, paidGmv,
                 <td style={td}>{num(r.buyRate)}</td>
                 <td style={td}>{num(r.review)}</td>
                 <td style={td}>{num(r.value)}</td>
+                <td style={{ ...td, fontWeight: r.exploreShows ? 700 : 400, color: r.exploreShows ? "#137a4b" : "#A0A7B5" }}>{r.exploreShows || "-"}</td>
+                <td style={{ ...td, fontWeight: r.exploreShows ? 700 : 400, color: r.explorePickRate > 0 ? "#137a4b" : r.exploreShows ? "#B7791F" : "#A0A7B5" }}>
+                  {r.exploreShows ? `${Math.round(r.explorePickRate * 100)}%` : "-"}
+                </td>
                 <td style={td}>
                   {r.promoter > 0 && <span style={{ ...chip("#EEF0FE", "#4E5BDC"), marginRight: 4 }}>PROMOTER</span>}
                   {r.override !== 0 && <span style={{ ...chip("#FFF4E0", "#9A6B0F"), marginRight: 4 }}>{r.override > 0 ? "+" : ""}{r.override}</span>}
                   {r.suppressed && <span style={{ ...chip("#FDE8E8", "#B42318"), marginRight: 4 }}>SUPPRESSED</span>}
-                  {r.cooldown && <span style={{ ...chip("#F3F5F9", "#56627A"), marginRight: 4 }}>COOLDOWN</span>}
-                  {r.exploreShows > 0 && <span style={chip("#F2FBF6", "#137a4b")}>explored ×{r.exploreShows}</span>}
+                  {r.cooldown && <span style={chip("#F3F5F9", "#56627A")}>COOLDOWN</span>}
                 </td>
                 <td style={td}>
                   <button onClick={() => { const v = prompt("Boost (e.g. 0.2, -0.3, 0 to clear):", String(r.override)); if (v !== null) call({ op: "override", productId: r.id, boost: Number(v) || 0, suppressed: r.suppressed, note: prompt("Note (why):") || undefined }); }} style={mini}>boost</button>
