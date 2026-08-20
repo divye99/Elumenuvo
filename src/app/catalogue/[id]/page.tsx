@@ -14,6 +14,8 @@ import CompetitorPriceChart from "@/components/storefront/CompetitorPriceChart";
 import MetalsRateChart from "@/components/metals/MetalsRateChart";
 import MetalsMarketCharts from "@/components/metals/MetalsMarketCharts";
 import ElumeFlagship from "@/components/storefront/ElumeFlagship";
+import NorisysCraft from "@/components/storefront/NorisysCraft";
+import { fetchNorisysFinishSiblings, fetchNorisysPairings, norisysCode, norisysSeries } from "@/lib/norisys";
 import { productDescription } from "@/lib/seo-description";
 import { getAllPosts, CATEGORY_TO_CATALOGUE } from "@/lib/blog";
 import PublicProductView from "@/components/storefront/PublicProductView";
@@ -98,7 +100,8 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
   // Family = parent + all variations, whichever member this page is.
   const isMetal = isMetalCategory(product.cat);
-  const [siblings, reviews, priceHistory, fullHistory, compare] = await Promise.all([
+  const isNorisys = product.brand === "Norisys";
+  const [familySiblings, reviews, priceHistory, fullHistory, compare, norisysPairing] = await Promise.all([
     fetchFamily(product),
     fetchReviews(product.id),
     isMetal ? Promise.resolve([]) : fetchPriceHistory(product.id, product.price),
@@ -106,7 +109,20 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     // design, so the 24h chart needs every point, and 5Y needs the whole run.
     isMetal ? fetchFullPriceHistory(product.id, product.price) : Promise.resolve([]),
     isMetal ? Promise.resolve(null) : fetchCompareRail(product.id),
+    isNorisys ? fetchNorisysPairings(product) : Promise.resolve(null),
   ]);
+  // Norisys finish swatches: when parent-child grouping has no family, the
+  // catalogue-code stem does (same mechanism, different finish suffix). The
+  // synthesized siblings carry a Finish attr so the standard picker renders
+  // them as swatches. Norisys-only.
+  let siblings = familySiblings;
+  if (isNorisys && siblings.length <= 1) {
+    const finishSibs = await fetchNorisysFinishSiblings(product);
+    if (finishSibs.length >= 2) siblings = finishSibs;
+  }
+  // The picker highlights the CURRENT product's value per dimension, so the
+  // page product must carry the same synthetic Finish attr as its siblings.
+  const pdpProduct = siblings.find((s) => s.id === product.id) ?? product;
   const guide = getAllPosts().find((post) => CATEGORY_TO_CATALOGUE[post.category] === product.cat) ?? null;
 
   const jsonLd = {
@@ -159,7 +175,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLd(breadcrumbLd) }} />
       <PdpTelemetry pid={product.id} />
       <PublicProductView
-        p={product}
+        p={pdpProduct}
         siblings={siblings}
         abovePrice={pick ? (
           // Explicit key: this element is passed as a PROP and rendered inside
@@ -175,6 +191,14 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           <ElumeFlagship p={product} />
         </div>
       )}
+      {isNorisys && (() => {
+        const code = norisysCode(product);
+        return (
+          <div className="pdp-wrap" style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px" }}>
+            <NorisysCraft series={code ? norisysSeries(code.stem) : "CUBE"} pairing={norisysPairing} />
+          </div>
+        );
+      })()}
       {isMetal ? (
         <div data-pdp-sec="price-history" className="pdp-wrap" style={{ maxWidth: 1120, margin: "18px auto 0", padding: "0 30px", display: "flex", flexDirection: "column", gap: 18 }}>
           <MetalsRateChart

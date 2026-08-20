@@ -201,6 +201,24 @@ For brands with official online stores we sync list prices per SKU on a schedule
 Tracks competitor prices over time per SKU, flags where we have drifted above market, and feeds market_low. GST note: prices are stored inclusive and displayed ex-GST per category rules (Lighting 12%, most else 18%).`,
   },
   {
+    slug: "norisys-premium",
+    title: "Norisys: the premium brand treatment",
+    summary: "Finish swatches, complete-the-plate pairing, engineering blocks and catalogue photography - Norisys-only.",
+    tags: ["catalogue"],
+    body: `Norisys (CUBE and TG9 series) gets a premium treatment no other brand has (owner call, Aug 2026). Everything is driven by the brand's own catalogue code system: <STEM>.<FINISH>, e.g. C5281.02 - the stem is the mechanism, the two-digit suffix is the finish.
+
+## What is special, and where it lives (src/lib/norisys.ts)
+- Finish swatches on PDPs: products sharing a stem are one family; a synthetic Finish attribute feeds the standard variant picker, so every Norisys listing shows its colour/material siblings one tap apart.
+- Complete the plate: modules suggest same-series, same-module-count plates (finish-matched first); plates suggest mechanisms. Modular is a SYSTEM - this is the biggest basket and wrong-purchase lever.
+- Engineering trust block: three bullets per series plus the catalogue exploded view, stored once per series, never per product. CE / RoHS / IS marks ride along.
+- Photography: 102 SKU photos were replaced with exact-finish renders lifted from the catalogues via an OCR + geometry pipeline (scripts in the session archive; originals backed up and kept as second gallery image).
+- Two guides carry the long-form story: the CUBE vs TG9 series guide and the designer-finishes lookbook.
+
+## Rules
+- Norisys-only: never apply the treatment or its assets to another brand.
+- The finish legend lives in NORISYS_FINISH; unknown suffixes fall back to the product's own name.`,
+  },
+  {
     slug: "elin",
     title: "ELIN: the Elume Listing Identifier",
     summary: "Our ASIN equivalent: stable short codes for every listing.",

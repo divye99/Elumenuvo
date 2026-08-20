@@ -34,6 +34,8 @@ import mcbTripping from "@/content/blog/mcb-keeps-tripping-guide.json";
 import rccbSensitivity from "@/content/blog/rccb-30ma-vs-100ma-guide.json";
 import fanSize from "@/content/blog/ceiling-fan-size-guide.json";
 import exhaustSize from "@/content/blog/exhaust-fan-size-guide.json";
+import norisysSeries from "@/content/blog/norisys-cube-vs-tg9-guide.json";
+import finishLookbook from "@/content/blog/designer-switch-finishes-lookbook.json";
 import lumens from "@/content/blog/lumens-not-watts-led-brightness-guide.json";
 import wireBrands from "@/content/blog/havells-vs-polycab-vs-kei-wires.json";
 import wiringCost from "@/content/blog/house-wiring-cost-2bhk-3bhk.json";
@@ -78,7 +80,7 @@ export const CATEGORY_TO_CATALOGUE: Record<string, string> = {
   "Extension Boards": "Extension Boards",
 };
 
-const ALL = [wires, switchgear, modular, dbs, fans, lighting, bldcFans, battens, panels, mcbRccb, exhaust, floodLights, pumps, bulbs, wireSize, wireGrades, mcbRating, bldcSavings, coilLength, checklist, protection, colourTemp, extBoards, sixteenAmp, plateSizes, waterHeaters, contactors, earthing, stabilizerInverter, surgeProtection, wireColours, cuVsAl, mcbTripping, rccbSensitivity, fanSize, exhaustSize, lumens, wireBrands, wiringCost, dbWays, geyserSize, instantVsStorage, acSizing, flickering, twoWay, pumpSize, ipRatings, switchgearBrands, billSavings, pointHeights] as unknown as BlogPost[];
+const ALL = [wires, switchgear, modular, dbs, fans, lighting, bldcFans, battens, panels, mcbRccb, exhaust, floodLights, pumps, bulbs, wireSize, wireGrades, mcbRating, bldcSavings, coilLength, checklist, protection, colourTemp, extBoards, sixteenAmp, plateSizes, waterHeaters, contactors, earthing, stabilizerInverter, surgeProtection, wireColours, cuVsAl, mcbTripping, rccbSensitivity, fanSize, exhaustSize, lumens, wireBrands, norisysSeries, finishLookbook, wiringCost, dbWays, geyserSize, instantVsStorage, acSizing, flickering, twoWay, pumpSize, ipRatings, switchgearBrands, billSavings, pointHeights] as unknown as BlogPost[];
 
 export function getAllPosts(): BlogPost[] {
   return [...ALL].sort((a, b) => (a.date < b.date ? 1 : -1));
