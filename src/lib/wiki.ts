@@ -179,8 +179,9 @@ Bot traffic never enters any loop (see the analytics article). Rate limits cap l
 
 ## How matching works
 - Line parsing extracts quantity, unit, size, brand hints and free text.
-- Matching uses the same lexicon as search, then scores candidates on spec fit.
-- Unmatched or low-confidence lines go to a review list; the reviewer confirms or swaps before anything is finalised.
+- Part numbers match first: exact SKU codes (98%), then model codes mined from product names like "CR-M230AC4" (95%), then unambiguous code prefixes ("AF305-30" against our fuller variant codes, 90%). A name-derived code only counts when it belongs to exactly one product, so family codes shared by fifty variants can never fake certainty.
+- Everything else scores on spec fit through the search lexicon.
+- The honesty gate: a weak match (below 50%, or a different brand than the line names without a strong score) is reported as NOT STOCKED instead of guessed. The near misses stay attached as a one-click "closest we have" substitute dropdown, and rescuing one teaches the matcher an alias. Worked example: an ABB enquiry line for a panel heater must say "not stocked", never "Orient water heater, 52%".
 - Confirmed matches are remembered (boq learning tables), so the next BOQ auto-matches better. Admin corrections train the same matcher.
 
 Fully homegrown: no external AI calls. Leads from unmatched lines land in the admin Leads console under boq_unmatched (admin-run ones are labeled "Elume admin console").`,

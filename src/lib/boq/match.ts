@@ -58,24 +58,41 @@ type Indexed = {
 
 export type BoqIndex = {
   items: Indexed[];
-  byCode: Map<string, string>;   // codeNorm -> product id
+  byCode: Map<string, string>;   // codeNorm -> product id (SKU fields)
+  /** Model codes mined from product NAMES (e.g. "CR-M230AC4" living only in
+   *  the title, not the sku column). Indexed ONLY when the code is unique to
+   *  one product: family codes like "SB200M" that appear across fifty
+   *  variant names must never produce a confident single match. Kept as a
+   *  sorted array too, for prefix matching ("AF305-30" in a BOQ line vs our
+   *  full "AF305-30-11-13"). */
+  byNameCode: Map<string, string>;
+  nameCodes: [string, string][];  // [code, product id], for prefix scans
+  /** normalized brand -> canonical brand, for brand-intent detection */
+  brandNorms: Map<string, string>;
   byId: Map<string, Product>;
   vocab: SearchVocab;
 };
 
 const codeNorm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+// A name token counts as a model code when it mixes letters and digits and
+// is long enough to be unambiguous ("CR-M230AC4", "PSTX370", not "4p"/"2M").
+const isModelToken = (n: string) => n.length >= 6 && /[a-z]/.test(n) && /\d/.test(n);
 
 /** Build the in-memory matching index from the (cached) catalogue. */
 export function buildBoqIndex(products: Product[]): BoqIndex {
   const items: Indexed[] = [];
   const byCode = new Map<string, string>();
   const byId = new Map<string, Product>();
+  const nameCodeOwners = new Map<string, Set<string>>();
+  const brandNorms = new Map<string, string>();
   for (const p of products) {
     if (p.inStock === false) continue; // never match a BOQ to dead stock
     // Commodity metals (lakh-scale lots) are never what a BOQ line means -
     // "copper wire" is a house wire, not a CCR rod.
     if (isMetalCategory(p.cat)) continue;
     byId.set(p.id, p);
+    const bn = normalizeSearchText(p.brand);
+    if (bn.length >= 3) brandNorms.set(bn, p.brand);
     const codes: string[] = [];
     for (const c of [p.sku, p.brandSku, p.elin]) {
       if (!c) continue;
@@ -85,6 +102,12 @@ export function buildBoqIndex(products: Product[]): BoqIndex {
       const n = codeNorm(String(c));
       if (n.length >= 5) { codes.push(n); byCode.set(n, p.id); }
     }
+    for (const word of decodeEntities(p.name).split(/[\s,;|·()]+/)) {
+      const n = codeNorm(word);
+      if (isModelToken(n)) {
+        (nameCodeOwners.get(n) ?? nameCodeOwners.set(n, new Set()).get(n)!).add(p.id);
+      }
+    }
     const fp = fingerprintProduct({ name: decodeEntities(p.name), spec: p.spec, category: p.cat, attrs: p.attrs });
     items.push({
       p,
@@ -93,8 +116,17 @@ export function buildBoqIndex(products: Product[]): BoqIndex {
       fpKey: fp?.key ?? null,
     });
   }
+  const byNameCode = new Map<string, string>();
+  const nameCodes: [string, string][] = [];
+  for (const [code, owners] of nameCodeOwners) {
+    if (owners.size === 1 && !byCode.has(code)) {
+      const pid = [...owners][0];
+      byNameCode.set(code, pid);
+      nameCodes.push([code, pid]);
+    }
+  }
   const vocab = buildSearchVocab(items.map((i) => i.norm));
-  return { items, byCode, byId, vocab };
+  return { items, byCode, byNameCode, nameCodes, brandNorms, byId, vocab };
 }
 
 /** Convert the BOQ quantity into the matched product's sell unit. */
@@ -153,6 +185,32 @@ export function matchBoqLine(line: BoqParsedLine, index: BoqIndex, aliases: Alia
         const q = sellQty(p, line);
         return { line, productId: hit, confidence: 0.98, method: "code", alternates: [], finalQty: q.qty, qtyNote: q.note };
       }
+    }
+  }
+  // Layer 1b: model codes mined from product names ("CR-M230AC4" lives in
+  // the title, not the sku column). Exact hit first; then prefix in either
+  // direction ("AF305-30" in the line vs our "AF305-30-11-13", or the line
+  // carrying a longer suffix than the name does) - but only when the prefix
+  // resolves to exactly ONE product.
+  for (const word of text.split(/[\s,;|]+/)) {
+    const n = codeNorm(word);
+    if (!isModelToken(n)) continue;
+    const exact = index.byNameCode.get(n);
+    if (exact) {
+      const p = index.byId.get(exact)!;
+      const q = sellQty(p, line);
+      return { line, productId: exact, confidence: 0.95, method: "code", alternates: [], finalQty: q.qty, qtyNote: q.note };
+    }
+    const owners = new Set<string>();
+    for (const [code, pid] of index.nameCodes) {
+      if (code.startsWith(n) || n.startsWith(code)) owners.add(pid);
+      if (owners.size > 1) break;
+    }
+    if (owners.size === 1) {
+      const pid = [...owners][0];
+      const p = index.byId.get(pid)!;
+      const q = sellQty(p, line);
+      return { line, productId: pid, confidence: 0.9, method: "code", alternates: [], finalQty: q.qty, qtyNote: q.note };
     }
   }
 
@@ -246,8 +304,20 @@ export function matchBoqLine(line: BoqParsedLine, index: BoqIndex, aliases: Alia
   if (relaxed.length) {
     const top = relaxed[0];
     const p = index.byId.get(top.id)!;
-    const q = sellQty(p, line);
     const conf = Math.max(0.35, Math.min(0.8, top.score / 100));
+    // Honesty gate (owner rule, Aug 2026: a bad guess is worse than "not
+    // stocked"). A vague token match is reported as NOT STOCKED - with the
+    // near misses kept as one-click substitutes - when:
+    //   * the score is simply too weak, or
+    //   * the line names a brand we carry and the pick is a DIFFERENT brand
+    //     without a strong score (an ABB enquiry line must not "match" an
+    //     Orient water heater at 52%).
+    const namedBrand = [...index.brandNorms.keys()].find((bn) => ` ${norm} `.includes(` ${bn} `));
+    const brandMismatch = !!namedBrand && normalizeSearchText(p.brand) !== namedBrand;
+    if (conf < 0.5 || (brandMismatch && conf < 0.6)) {
+      return { line, productId: null, confidence: conf, method: null, alternates: relaxed.slice(0, 5), finalQty: null, qtyNote: null };
+    }
+    const q = sellQty(p, line);
     return { line, productId: top.id, confidence: conf, method: "tokens", alternates: relaxed.slice(1, 6), finalQty: q.qty, qtyNote: q.note };
   }
 

@@ -93,7 +93,8 @@ export default function BoqAssistant({ company, admin = false }: { company?: str
     return {
       total: lines.length,
       matched: lines.filter((l) => l.productId).length,
-      high: lines.filter((l) => l.confidence >= 0.85).length,
+      notStocked: lines.filter((l) => !l.productId).length,
+      high: lines.filter((l) => l.productId && l.confidence >= 0.85).length,
       accepted: dec.filter((d) => d.state === "accepted").length,
       value: dec.filter((d) => d.state === "accepted").reduce((a, d) => a + (summaryOf(d.productId)?.price ?? 0) * d.qty, 0),
     };
@@ -198,6 +199,7 @@ export default function BoqAssistant({ company, admin = false }: { company?: str
             {[
               [`${stats.total}`, "lines parsed"],
               [`${stats.matched}`, "matched"],
+              [`${stats.notStocked}`, "not stocked"],
               [`${stats.high}`, "high confidence"],
               [`${stats.accepted}`, "approved"],
               [fmt(stats.value), "approved value"],
@@ -221,7 +223,9 @@ export default function BoqAssistant({ company, admin = false }: { company?: str
             {result.lines.map((l) => {
               const d = decisions[l.position];
               const p = summaryOf(d?.productId ?? null);
-              const unmatched = !l.productId;
+              // A line stays in the "not stocked" lane until a substitute is
+              // picked from the near-miss dropdown (then it behaves matched).
+              const unmatched = !l.productId && !d?.productId;
               return (
                 <div key={l.position} style={{ borderTop: l.position ? "1px solid #F0F2F6" : "none", padding: "14px 18px", display: "flex", gap: 14, alignItems: "flex-start", flexWrap: "wrap", background: d?.state === "accepted" ? "#F7FCF9" : d?.state === "rejected" || d?.state === "not_stocked" ? "#FAFAFB" : "#fff" }}>
                   <div style={{ flex: "1 1 240px", minWidth: 220 }}>
@@ -233,7 +237,19 @@ export default function BoqAssistant({ company, admin = false }: { company?: str
                   <div style={{ flex: "1 1 340px", minWidth: 300 }}>
                     {unmatched ? (
                       <div style={{ fontSize: 13, color: "#B7791F", fontWeight: 600 }}>
-                        No catalogue match. Not something we stock yet?
+                        {l.alternates.length ? "No confident match - likely not something we stock." : "No catalogue match. Not something we stock yet?"}
+                        {l.alternates.length > 0 && (
+                          <select
+                            value=""
+                            onChange={(e) => { const id = e.target.value; if (id) setDecisions((x) => ({ ...x, [l.position]: { ...x[l.position], productId: id, state: "pending" } })); }}
+                            style={{ display: "block", marginTop: 8, fontSize: 12.5, border: "1px solid #E8EBF1", borderRadius: 8, padding: "6px 8px", maxWidth: "100%", color: "#3A4358", background: "#fff", fontWeight: 400 }}
+                          >
+                            <option value="">Closest we have - pick a substitute…</option>
+                            {l.alternates.map((id) => (
+                              <option key={id} value={id}>{summaryOf(id)?.name.slice(0, 70) ?? id}</option>
+                            ))}
+                          </select>
+                        )}
                         <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
                           <button onClick={() => setDecisions((x) => ({ ...x, [l.position]: { ...x[l.position], state: "not_stocked" } }))} style={{ fontSize: 12, fontWeight: 700, border: "1px solid #E8EBF1", background: d?.state === "not_stocked" ? "#EEF0FE" : "#fff", color: "#4E5BDC", padding: "6px 12px", borderRadius: 8, cursor: "pointer" }}>
                             {d?.state === "not_stocked" ? "Reported ✓" : "Report as missing"}
@@ -257,8 +273,7 @@ export default function BoqAssistant({ company, admin = false }: { company?: str
                             onChange={(e) => setDecisions((x) => ({ ...x, [l.position]: { ...x[l.position], productId: e.target.value, state: "pending" } }))}
                             style={{ marginTop: 8, fontSize: 12.5, border: "1px solid #E8EBF1", borderRadius: 8, padding: "6px 8px", maxWidth: "100%", color: "#3A4358", background: "#fff" }}
                           >
-                            <option value={l.productId!}>{summaryOf(l.productId)?.name.slice(0, 70)}</option>
-                            {l.alternates.map((id) => (
+                            {[...new Set([l.productId, ...l.alternates].filter(Boolean) as string[])].map((id) => (
                               <option key={id} value={id}>{summaryOf(id)?.name.slice(0, 70) ?? id}</option>
                             ))}
                           </select>
