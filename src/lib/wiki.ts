@@ -264,6 +264,8 @@ KAM note: rankings compound slowly; the honest answer to "why are we not #1" is 
     body: `## Pipeline
 The /api/track beacon logs page views, product glances, PDP section funnels and cart events into events tables, rolled up nightly into product_metrics_daily (per product per day: glance views, unique viewers, cart adds, units, orders, revenue). That rollup feeds admin analytics AND the merit engine.
 
+Daily traffic is aggregated IN the database (migration 0127, analytics_daily): the page never ships raw events for it, any window costs the same, and today can never fall off a fetch cap (the old in-app aggregation silently dropped the newest day once a window crossed 20,000 rows). Raw events are fetched, newest first and columns-only, just for the visitor journeys and product views actually shown. The analytics page defaults to 7 days, offers a rolling 24-hour view with hourly bars, shows top PRODUCT pages (resolved to name and brand), and filters by brand: sessions that viewed at least one product of that brand.
+
 ## Know the enemy
 The hard case is not Googlebot (it announces itself). It is the residential-proxy crawl wave seen in Aug 2026: 74% of a week's sessions, spoofed desktop user agents, IPs scattered across Baghdad, Lahore, Karachi, Guyancourt. These bots execute JavaScript and even fire the leave-timer, so they produce fake "time on page". What they cannot fake: browser freshness (real browsers auto-update; the wave shipped frozen Chrome 118-121 and Firefox 120-121 from late 2023 while every engaged human ran current builds) and UA diversity (the wave reused 11 exact UA strings across ~1,000 sessions, none of which ever engaged).
 

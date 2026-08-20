@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 /** Dropdown filter bar for the analytics page. Every select writes its value
  *  into the URL, so filtered views are shareable and survive refresh. */
-export default function Filters({ countries, states, devices }: { countries: string[]; states: string[]; devices: string[] }) {
+export default function Filters({ countries, states, devices, brands }: { countries: string[]; states: string[]; devices: string[]; brands: string[] }) {
   const router = useRouter();
   const sp = useSearchParams();
 
@@ -39,10 +39,13 @@ export default function Filters({ countries, states, devices }: { countries: str
         <option value="">All sources</option>
         <option value="google">From Google</option>
         <option value="email">From an email (any)</option>
-        <option value="outreach">Cold outreach only</option>
         <option value="campaign">Campaign / UTM</option>
         <option value="referral">Other referral</option>
         <option value="direct">Direct</option>
+      </select>
+      <select style={sel} value={sp.get("brand") ?? ""} onChange={(e) => set("brand", e.target.value)}>
+        <option value="">All brands</option>
+        {brands.map((b) => <option key={b} value={b}>{b}</option>)}
       </select>
       <select style={sel} value={sp.get("min") ?? ""} onChange={(e) => set("min", e.target.value)}>
         <option value="">Any activity</option>
@@ -55,8 +58,8 @@ export default function Filters({ countries, states, devices }: { countries: str
         <option value="1">Include likely bots</option>
         <option value="only">Likely bots only</option>
       </select>
-      {(sp.get("identity") || sp.get("device") || sp.get("country") || sp.get("state") || sp.get("src") || sp.get("min") || sp.get("bots")) && (
-        <button onClick={() => router.push(`/admin/analytics?days=${sp.get("days") ?? "14"}`)} style={{ border: "none", background: "none", color: "#4E5BDC", fontSize: 12.5, fontWeight: 700, cursor: "pointer" }}>
+      {(sp.get("identity") || sp.get("device") || sp.get("country") || sp.get("state") || sp.get("src") || sp.get("min") || sp.get("bots") || sp.get("brand")) && (
+        <button onClick={() => router.push(`/admin/analytics?days=${sp.get("days") ?? "7"}`)} style={{ border: "none", background: "none", color: "#4E5BDC", fontSize: 12.5, fontWeight: 700, cursor: "pointer" }}>
           Clear filters
         </button>
       )}

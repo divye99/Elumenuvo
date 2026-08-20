@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin/auth";
-import { fetchEvents, fetchAllSearches, fetchSurveyResponses, companyKey, toVisitors, buildJourney, type SiteEvent } from "@/lib/admin/analytics-data";
-import { OUTREACH_ROSTER, outreachByEmail, outreachName } from "@/lib/admin/outreach-roster";
-import OutreachTable, { type OutreachStat } from "./OutreachTable";
+import { fetchEvents, fetchBotSids, fetchDailyTraffic, fetchAllSearches, toVisitors, buildJourney, type SiteEvent } from "@/lib/admin/analytics-data";
+import { fetchProductsLite } from "@/lib/products";
 import SearchPanel from "./SearchPanel";
 import { fetchSearchAnalytics } from "@/lib/admin/search-analytics";
 import { istDateTime, istDate, istTime, istDayKey, istWeekday, shiftDayKey } from "@/lib/admin/ist";
@@ -20,23 +19,43 @@ const hostOf = (url: string | null): string => {
   try { return new URL(url).hostname; } catch { return url.slice(0, 40); }
 };
 
-export default async function AdminAnalytics({ searchParams }: { searchParams: Promise<{ days?: string; identity?: string; device?: string; country?: string; state?: string; src?: string; min?: string; bots?: string; view?: string }> }) {
+export default async function AdminAnalytics({ searchParams }: { searchParams: Promise<{ days?: string; identity?: string; device?: string; country?: string; state?: string; src?: string; min?: string; bots?: string; brand?: string; view?: string }> }) {
   await requireAdmin();
-  const { days: d, identity, device, country, state, src, min, bots, view } = await searchParams;
-  const days = Math.min(90, Math.max(1, Number(d) || 14));
-  // The traffic tab compares each day with the same weekday a week earlier, so
-  // it has to see one extra week behind the selected window.
+  const { days: d, identity, device, country, state, src, min, bots, brand, view } = await searchParams;
+  // days=1 is the rolling LAST 24 HOURS view; everything else is IST days.
+  const days = Math.min(90, Math.max(1, Number(d) || 7));
+  const is24h = days === 1;
   const isTraffic = view === "traffic";
-  const fetchDays = isTraffic ? Math.min(97, days + 7) : days;
-  const isOutreach = view === "outreach";
   const isSearch = view === "search";
-  const [events, searchesBySid, surveys] = await Promise.all([
-    fetchEvents(fetchDays),
+  const showingBots = bots === "1" || bots === "only";
+
+  // Daily traffic is aggregated IN the database (migration 0127): the 90-day
+  // view costs the same as the 7-day one, and today can never fall off a
+  // fetch cap again. Raw events are only pulled for the window actually
+  // shown (plus the comparison week on the 24h traffic view).
+  const daily = isTraffic && !is24h
+    ? await fetchDailyTraffic(shiftDayKey(istDayKey(new Date()), -(days + 6)), istDayKey(new Date()))
+    : null;
+  const needEvents = !isTraffic || is24h || daily === null;
+  const hours = is24h ? (isTraffic ? 48 : 24) : days * 24; // 24h traffic compares with the previous 24h
+  const [events, knownBotSids, searchesBySid, productsLite] = await Promise.all([
+    needEvents ? fetchEvents(isTraffic && daily === null ? Math.min(97, days + 7) * 24 : hours) : Promise.resolve([]),
+    fetchBotSids(),
     fetchAllSearches(days),
-    isOutreach ? fetchSurveyResponses() : Promise.resolve([]),
+    fetchProductsLite(),
   ]);
-  const allVisitors = toVisitors(events);
-  const botSids = new Set(allVisitors.filter((v) => v.likelyBot).map((v) => v.sid));
+  // Sessions the 0124 classifier already flagged are dropped before any
+  // in-memory work - unless bots were explicitly requested.
+  const prefiltered = showingBots ? events : events.filter((e) => !knownBotSids.has(e.sid));
+  const allVisitors = toVisitors(prefiltered);
+  const botSids = new Set([...knownBotSids, ...allVisitors.filter((v) => v.likelyBot).map((v) => v.sid)]);
+
+  // Brand filter: path -> product -> brand, from the cached catalogue fetch.
+  const productByPath = new Map(productsLite.map((p) => [`/catalogue/${p.id}`, p]));
+  const brands = [...new Set(productsLite.map((p) => p.brand))].sort();
+  const brandSidSet = brand
+    ? new Set(prefiltered.filter((e) => e.type === "pageview" && productByPath.get((e.path ?? "").split("?")[0])?.brand === brand).map((e) => e.sid))
+    : null;
   // Search analytics runs after visitor classification (not in the batch
   // above) because it needs the bot session set: historic crawler rows
   // predate the ingest gate and must not shape the query cloud or the
@@ -46,7 +65,6 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
   // Dropdown options come from the data itself (humans only, unless bots are
   // explicitly shown - a country only crawlers come from is not a filter
   // anyone needs). India leads the country list.
-  const showingBots = bots === "1" || bots === "only";
   const optionBase = showingBots ? allVisitors : allVisitors.filter((v) => !v.likelyBot);
   const countries = [...new Set(optionBase.map((v) => v.country).filter(Boolean) as string[])]
     .sort((a, b) => (a === "IN" ? -1 : b === "IN" ? 1 : a.localeCompare(b)));
@@ -66,27 +84,28 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
       const ref = (v.landingReferrer ?? "").toLowerCase();
       if (src === "google" && !ref.includes("google")) return false;
       if (src === "email" && v.utmSource !== "email") return false;
-      // Cold outreach is medium=outreach; order/status mails are medium=email.
-      // Without this split both land in "From an email" and the campaign can't
-      // be read on its own.
-      if (src === "outreach" && v.utmMedium !== "outreach") return false;
       if (src === "campaign" && (!v.utm || v.utmSource === "email")) return false;
       if (src === "referral" && (!ref || ref.includes("google") || v.utm)) return false;
       if (src === "direct" && (ref || v.utm)) return false;
     }
     if (min === "cart" && !v.addToCarts) return false;
     if (min && min !== "cart" && v.pageviews < Number(min)) return false;
+    if (brandSidSet && !brandSidSet.has(v.sid)) return false;
     return true;
   });
   const identified = visitors.filter((v) => v.identity.email).length;
 
-  // Top pages: pageview counts across the filtered sessions only, so the
-  // bot-hiding and dropdown filters shape this view too.
+  // Top PRODUCT pages (owner, Aug 2026: the pages that matter are PDPs):
+  // pageview counts across the filtered sessions, restricted to catalogue
+  // product paths and resolved to product name + brand.
   const keptSids = new Set(visitors.map((v) => v.sid));
   const pageAgg = new Map<string, { views: number; sids: Set<string>; ms: number }>();
   for (const e of events) {
     if (!keptSids.has(e.sid)) continue;
-    const path = e.path ?? "/";
+    const path = (e.path ?? "/").split("?")[0];
+    const prod = productByPath.get(path);
+    if (!prod) continue;
+    if (brand && prod.brand !== brand) continue;
     if (e.type === "pageview") {
       const a = pageAgg.get(path) ?? { views: 0, sids: new Set<string>(), ms: 0 };
       a.views += 1; a.sids.add(e.sid);
@@ -97,55 +116,79 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
       pageAgg.set(path, a);
     }
   }
-  // ── Daily traffic: UNIQUE VISITORS per IST day ──
-  // A visitor is one device token (sid). Someone who visits three times in a
-  // day counts once; someone who visits on Monday and Tuesday counts on both.
-  const dayAgg = new Map<string, { sids: Set<string>; views: number; carts: Set<string>; identified: Set<string> }>();
-  const bucket = (k: string) => {
-    let a = dayAgg.get(k);
-    if (!a) { a = { sids: new Set(), views: 0, carts: new Set(), identified: new Set() }; dayAgg.set(k, a); }
-    return a;
-  };
-  const emailBySid = new Map(visitors.filter((v) => v.identity.email).map((v) => [v.sid, v.identity.email!]));
-  for (const e of events) {
-    if (!keptSids.has(e.sid)) continue;
-    const k = istDayKey(e.created_at);
-    if (e.type === "pageview") { const a = bucket(k); a.sids.add(e.sid); a.views += 1; if (emailBySid.has(e.sid)) a.identified.add(e.sid); }
-    else if (e.type === "add_to_cart") bucket(k).carts.add(e.sid);
-  }
-  // Every day in the selected window, newest first, even the empty ones - a
-  // zero-traffic day is information, and skipping it would hide a gap.
+
+  // ── Traffic rows ──
+  // Daily windows come pre-aggregated from the database (humans only, whole
+  // site: the dropdown filters do not apply here). The 24h view buckets the
+  // last day's events per hour, compared with the same hour yesterday.
   const todayKey = istDayKey(new Date());
-  // Tracking only began in July, so a 30- or 90-day window reaches back past
-  // the first event we ever recorded. Comparing against those days would read
-  // "down 12" when the truth is "we were not counting yet", so anything older
-  // than the first event we hold gets no comparison at all.
-  const earliestKey = events.length ? istDayKey(events[events.length - 1].created_at) : todayKey;
-  const firstDataKey = events.reduce((min, e) => {
-    const k = istDayKey(e.created_at);
-    return k < min ? k : min;
-  }, earliestKey);
-  const trafficRows = Array.from({ length: days }, (_, i) => {
-    const key = shiftDayKey(todayKey, -i);
-    const prevKey = shiftDayKey(key, -7);
-    const cur = dayAgg.get(key);
-    const prev = dayAgg.get(prevKey);
-    const visitorsToday = cur?.sids.size ?? 0;
-    const visitorsPrev = prev?.sids.size ?? 0;
-    // A comparison only exists if we actually hold data for that earlier day.
-    const hasPrev = prevKey >= firstDataKey;
-    return {
-      key, prevKey,
-      weekday: istWeekday(`${key}T06:00:00Z`),
-      visitors: visitorsToday,
-      views: cur?.views ?? 0,
-      carts: cur?.carts.size ?? 0,
-      identified: cur?.identified.size ?? 0,
-      prevVisitors: visitorsPrev,
-      delta: hasPrev ? visitorsToday - visitorsPrev : null,
-      pct: hasPrev && visitorsPrev > 0 ? Math.round(((visitorsToday - visitorsPrev) / visitorsPrev) * 100) : null,
-    };
-  });
+  type TrafficRow = { key: string; prevKey: string; weekday: string; visitors: number; views: number; carts: number; identified: number; prevVisitors: number; delta: number | null; pct: number | null };
+  let trafficRows: TrafficRow[] = [];
+  if (isTraffic && is24h) {
+    const hourAgg = new Map<number, { sids: Set<string>; views: number; carts: Set<string> }>();
+    const now = Date.now();
+    for (const e of events) {
+      if (botSids.has(e.sid) && !showingBots) continue;
+      const age = now - new Date(e.created_at).getTime();
+      const hoursAgo = Math.floor(age / 3600_000); // 0..47
+      if (e.type !== "pageview" && e.type !== "add_to_cart") continue;
+      const a = hourAgg.get(hoursAgo) ?? { sids: new Set<string>(), views: 0, carts: new Set<string>() };
+      if (e.type === "pageview") { a.sids.add(e.sid); a.views += 1; } else a.carts.add(e.sid);
+      hourAgg.set(hoursAgo, a);
+    }
+    trafficRows = Array.from({ length: 24 }, (_, i) => {
+      const cur = hourAgg.get(i);
+      const prev = hourAgg.get(i + 24);
+      const label = new Date(now - i * 3600_000).toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", hour12: true });
+      const visitorsNow = cur?.sids.size ?? 0;
+      const visitorsPrev = prev?.sids.size ?? 0;
+      return {
+        key: label, prevKey: "same hour yesterday", weekday: i === 0 ? "now" : `-${i}h`,
+        visitors: visitorsNow, views: cur?.views ?? 0, carts: cur?.carts.size ?? 0, identified: 0,
+        prevVisitors: visitorsPrev, delta: visitorsNow - visitorsPrev,
+        pct: visitorsPrev > 0 ? Math.round(((visitorsNow - visitorsPrev) / visitorsPrev) * 100) : null,
+      };
+    });
+  } else if (isTraffic) {
+    // Pre-0127 fallback: aggregate the (newest-first, capped) events fetch in
+    // JS. Once the migration runs, `daily` is set and this branch is skipped.
+    const fallback: typeof daily = daily ?? (() => {
+      const agg = new Map<string, { sids: Set<string>; views: number; carts: Set<string>; idents: Set<string> }>();
+      for (const e of events) {
+        if (botSids.has(e.sid)) continue;
+        const k = istDayKey(e.created_at);
+        let a = agg.get(k);
+        if (!a) { a = { sids: new Set(), views: 0, carts: new Set(), idents: new Set() }; agg.set(k, a); }
+        if (e.type === "pageview") { a.sids.add(e.sid); a.views += 1; }
+        else if (e.type === "add_to_cart") a.carts.add(e.sid);
+        else if (e.type === "identify") a.idents.add(e.sid);
+      }
+      return [...agg.entries()].sort((x, y) => (x[0] < y[0] ? -1 : 1))
+        .map(([day, a]) => ({ day, visitors: a.sids.size, pageviews: a.views, carts: a.carts.size, identified: a.idents.size }));
+    })();
+    const byDay = new Map(fallback.map((r) => [r.day, r]));
+    const firstDataKey = fallback.length ? fallback[0].day : todayKey;
+    trafficRows = Array.from({ length: days }, (_, i) => {
+      const key = shiftDayKey(todayKey, -i);
+      const prevKey = shiftDayKey(key, -7);
+      const cur = byDay.get(key);
+      const prev = byDay.get(prevKey);
+      const visitorsToday = cur?.visitors ?? 0;
+      const visitorsPrev = prev?.visitors ?? 0;
+      const hasPrev = prevKey >= firstDataKey;
+      return {
+        key, prevKey,
+        weekday: istWeekday(`${key}T06:00:00Z`),
+        visitors: visitorsToday,
+        views: cur?.pageviews ?? 0,
+        carts: cur?.carts ?? 0,
+        identified: cur?.identified ?? 0,
+        prevVisitors: visitorsPrev,
+        delta: hasPrev ? visitorsToday - visitorsPrev : null,
+        pct: hasPrev && visitorsPrev > 0 ? Math.round(((visitorsToday - visitorsPrev) / visitorsPrev) * 100) : null,
+      };
+    });
+  }
   const peakVisitors = Math.max(1, ...trafficRows.map((r) => r.visitors));
   const windowTotal = trafficRows.reduce((s, r) => s + r.visitors, 0);
   const prevWindowTotal = trafficRows.reduce((s, r) => s + r.prevVisitors, 0);
@@ -154,7 +197,7 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
   const topPages = [...pageAgg.entries()]
     .filter(([, a]) => a.views > 0)
     .sort((a, b) => b[1].views - a[1].views)
-    .slice(0, 10);
+    .slice(0, 15);
   const maxViews = topPages[0]?.[1].views ?? 1;
   const durTxt = (ms: number) => (ms < 60000 ? `${Math.round(ms / 1000)}s` : `${Math.floor(ms / 60000)}m ${Math.round((ms % 60000) / 1000)}s`);
   const showPages = view === "pages";
@@ -182,6 +225,7 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
       if (!keptSids.has(e.sid)) continue;
       const path = (e.path ?? "").split("?")[0];
       if (!isPdpPath(path)) continue;
+      if (brand && productByPath.get(path)?.brand !== brand) continue;
       const key = `${e.sid}|${path}`;
       const prod = () => {
         let a = perProduct.get(path);
@@ -206,74 +250,6 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
     .sort((a, b) => b[1].views - a[1].views)
     .slice(0, 20);
   const IMG_ACT_LABEL: Record<string, string> = { open: "Opened the viewer", thumb: "Switched thumbnails", arrow: "Browsed photos", zoom: "Zoomed in", hover: "Hover-magnified" };
-  /* ── Cold-outreach attribution ──
-     Two routes to name the firm behind a session:
-       link   - utm_content carries the company slug (future campaigns).
-       domain - the visitor identified with an email on that firm's domain.
-     The August 2026 batch was sent before link tagging existed, so only the
-     domain route can fire for it; anonymous browsing from those emails stays
-     campaign-level (utm_medium=outreach) and is reachable from the Visitors
-     tab's source filter. Sessions are grouped per company - two people at one
-     firm can both click - then joined to the full roster so the firms that
-     have NOT engaged stay visible: that list is the phone-follow-up list. ── */
-  const outreachStats = new Map<string, OutreachStat>();
-  if (isOutreach) {
-    for (const v of allVisitors) {
-      if (v.likelyBot) continue;
-      // Two attribution routes. The August batch shipped before per-company
-      // link tagging, so for it only the domain route can fire; tagged links
-      // take precedence whenever both are available.
-      const dom = outreachByEmail(v.identity.email);
-      const hit = v.utmContent
-        ? { key: v.utmContent, via: "link" as const }
-        : dom
-          ? { key: dom.slug, via: "domain" as const }
-          : null;
-      if (!hit) continue;
-      const a = outreachStats.get(hit.key) ?? { sessions: 0, pageviews: 0, carts: 0, ms: 0, lastSeen: null, email: null, via: hit.via };
-      a.sessions += 1;
-      a.pageviews += v.pageviews;
-      a.carts += v.addToCarts;
-      a.ms += v.totalMs;
-      if (hit.via === "link") a.via = "link";
-      if (!a.lastSeen || v.lastSeen > a.lastSeen) a.lastSeen = v.lastSeen;
-      if (!a.email && v.identity.email) a.email = v.identity.email;
-      outreachStats.set(hit.key, a);
-    }
-  }
-  // Survey responses are matched on a loosened company name, since a firm may
-  // type "Bhutani Infra Pvt Ltd" where the roster holds "Bhutani Infra".
-  const surveyByKey = new Map(surveys.map((s) => [companyKey(s.company), s]));
-  const findSurvey = (company: string) => {
-    const k = companyKey(company);
-    const exact = surveyByKey.get(k);
-    if (exact) return exact;
-    if (k.length < 5) return undefined;
-    for (const [sk, row] of surveyByKey) if (sk.includes(k) || (sk.length >= 5 && k.includes(sk))) return row;
-    return undefined;
-  };
-  const OUTREACH_STAGE = (st: OutreachStat | undefined, surveyed: boolean, bounced?: boolean) => {
-    if (!st) {
-      if (surveyed) return { label: "Survey only", rank: 3, color: "#1F9D63" };
-      // A bounced address never received the email, so its silence is not a
-      // signal about the firm - keep it out of the follow-up list.
-      return bounced ? { label: "Bounced", rank: -1, color: "#B4341C" } : { label: "No response yet", rank: 0, color: "#A0A7B5" };
-    }
-    if (st.email) return { label: "Identified", rank: 5, color: "#137a4b" };
-    if (st.carts) return { label: "Added to cart", rank: 4, color: "#1F9D63" };
-    if (surveyed) return { label: "Took survey", rank: 3, color: "#1F9D63" };
-    if (st.pageviews >= 3) return { label: "Browsing", rank: 2, color: "#C77700" };
-    return { label: "Opened site", rank: 1, color: "#4E5BDC" };
-  };
-  const outreachRows = OUTREACH_ROSTER.map((c) => {
-    const st = outreachStats.get(c.slug);
-    const survey = findSurvey(c.company);
-    return { ...c, st, survey, stage: OUTREACH_STAGE(st, !!survey, c.bounced) };
-  }).sort((a, b) => b.stage.rank - a.stage.rank || (b.st?.pageviews ?? 0) - (a.st?.pageviews ?? 0) || a.company.localeCompare(b.company));
-  // Anyone who arrived on an outreach link that is NOT in the roster (a
-  // forwarded email, a slug we never generated) still deserves a row.
-  const strayOutreach = [...outreachStats.entries()].filter(([slug]) => !OUTREACH_ROSTER.some((c) => c.slug === slug));
-  const clickedCount = outreachRows.filter((r) => r.st).length;
 
   // Switching tab or day range must not silently drop the filters someone has
   // set - rebuild the query string instead of writing a fresh one.
@@ -282,7 +258,7 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
     q.set("days", String(over.days ?? days));
     const v = over.view !== undefined ? over.view : view ?? "";
     if (v) q.set("view", v);
-    for (const [k, val] of Object.entries({ identity, device, country, state, src, min, bots })) {
+    for (const [k, val] of Object.entries({ identity, device, country, state, src, min, bots, brand })) {
       if (val) q.set(k, String(val));
     }
     return `/admin/analytics?${q.toString()}`;
@@ -301,9 +277,9 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
       </p>
 
       <div style={{ display: "flex", gap: 8, marginBottom: 16, alignItems: "center", flexWrap: "wrap" }}>
-        {[7, 14, 30, 90].map((n) => (
+        {[1, 7, 14, 30, 90].map((n) => (
           <Link key={n} href={linkTo({ days: n })} style={{ fontSize: 13, fontWeight: 600, padding: "6px 13px", borderRadius: 8, background: days === n ? "#161D2B" : "#fff", color: days === n ? "#fff" : "#56627A", border: "1px solid #E8EBF1" }}>
-            {n} days
+            {n === 1 ? "24 hours" : `${n} days`}
           </Link>
         ))}
         <span style={{ fontSize: 12.5, color: "#8A93A6" }}>{visitors.length} visitors · {identified} identified</span>
@@ -311,7 +287,7 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
       </div>
 
       <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-        {([["", "Visitors"], ["traffic", "Daily traffic"], ["pages", "Top pages"], ["pdp", "Product page"], ["search", "Searches"], ["outreach", "Email outreach"]] as [string, string][]).map(([key, label]) => {
+        {([["", "Visitors"], ["traffic", "Daily traffic"], ["pages", "Top products"], ["pdp", "Product page"], ["search", "Searches"]] as [string, string][]).map(([key, label]) => {
           const active = (view ?? "") === key;
           return (
             <Link key={label} href={linkTo({ view: key })} style={{ fontSize: 13, fontWeight: 600, padding: "6px 14px", borderRadius: 8, background: active ? "#161D2B" : "#fff", color: active ? "#fff" : "#56627A", border: "1px solid #E8EBF1" }}>
@@ -322,21 +298,21 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
       </div>
 
       <div style={{ marginBottom: 16 }}>
-        <Filters countries={countries} states={states} devices={deviceOSes} />
+        <Filters countries={countries} states={states} devices={deviceOSes} brands={brands} />
       </div>
 
       {isTraffic && (
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflow: "hidden", marginBottom: 20 }}>
           <div style={{ padding: "15px 18px", borderBottom: "1px solid #F0F2F6", display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-            <span style={{ fontWeight: 700, fontSize: 14.5 }}>Unique visitors per day</span>
+            <span style={{ fontWeight: 700, fontSize: 14.5 }}>{is24h ? "Unique visitors per hour" : "Unique visitors per day"}</span>
             <span style={{ color: "#8A93A6", fontWeight: 400, fontSize: 12.5 }}>
-              · last {days} days · each bar is one IST day · humans in current filter
+              {is24h ? "· last 24 hours · each bar is one hour · humans, whole site" : `· last ${days} days · each bar is one IST day · humans, whole site (aggregated in-database)`}
             </span>
             <span style={{ marginLeft: "auto", fontSize: 12.5, color: "#56627A" }}>
-              <b style={{ color: "#19202E" }}>{windowTotal}</b> visitor-days
+              <b style={{ color: "#19202E" }}>{windowTotal}</b> {is24h ? "visitor-hours" : "visitor-days"}
               {windowDelta != null && (
                 <span style={{ color: windowDelta > 0 ? "#1F9D63" : windowDelta < 0 ? "#B43A16" : "#8A93A6", fontWeight: 700 }}>
-                  {" "}· {windowDelta > 0 ? "▲" : windowDelta < 0 ? "▼" : "="} {Math.abs(windowDelta)}% vs previous {days} days
+                  {" "}· {windowDelta > 0 ? "▲" : windowDelta < 0 ? "▼" : "="} {Math.abs(windowDelta)}% vs {is24h ? "the previous 24 hours" : `previous ${days} days`}
                 </span>
               )}
             </span>
@@ -360,17 +336,17 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
             })}
           </div>
           <div style={{ padding: "0 18px 14px", fontSize: 11, color: "#A0A7B5" }}>
-            Green = up on the same weekday last week · orange = down · blue = no comparison yet
+            {is24h ? "Green = up on the same hour yesterday · orange = down" : "Green = up on the same weekday last week · orange = down · blue = no comparison yet"}
           </div>
 
           {/* Table: newest first, because that is what you check in the morning. */}
           <div style={{ display: "grid", gridTemplateColumns: "150px 1fr 90px 90px 90px 150px", gap: 10, padding: "10px 18px", fontSize: 11, fontWeight: 700, color: "#8A93A6", textTransform: "uppercase", letterSpacing: "0.4px", borderTop: "1px solid #F0F2F6", borderBottom: "1px solid #F0F2F6" }}>
-            <span>Day</span><span /><span style={{ textAlign: "right" }}>Visitors</span><span style={{ textAlign: "right" }}>Pageviews</span><span style={{ textAlign: "right" }}>Carts</span><span style={{ textAlign: "right" }}>vs same day last week</span>
+            <span>{is24h ? "Hour" : "Day"}</span><span /><span style={{ textAlign: "right" }}>Visitors</span><span style={{ textAlign: "right" }}>Pageviews</span><span style={{ textAlign: "right" }}>Carts</span><span style={{ textAlign: "right" }}>{is24h ? "vs same hour yesterday" : "vs same day last week"}</span>
           </div>
           {trafficRows.map((r, i) => (
             <div key={r.key} style={{ display: "grid", gridTemplateColumns: "150px 1fr 90px 90px 90px 150px", gap: 10, padding: "10px 18px", alignItems: "center", borderTop: i ? "1px solid #F5F6F9" : undefined, fontSize: 13 }}>
               <span style={{ fontWeight: 600, color: "#19202E" }}>
-                {istDate(`${r.key}T06:00:00Z`)} <span style={{ color: "#A0A7B5", fontWeight: 400 }}>{r.weekday}</span>
+                {is24h ? r.key : istDate(`${r.key}T06:00:00Z`)} <span style={{ color: "#A0A7B5", fontWeight: 400 }}>{r.weekday}</span>
                 {r.key === todayKey && <span style={{ marginLeft: 6, fontSize: 10, color: "#4E5BDC", fontWeight: 700 }}>today</span>}
               </span>
               <span>
@@ -396,8 +372,8 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
             </div>
           ))}
           <div style={{ padding: "12px 18px", borderTop: "1px solid #F0F2F6", fontSize: 11.5, color: "#8A93A6" }}>
-            A unique visitor is one device in one IST day: three visits in a day count once, and a visitor who returns
-            the next day counts on both days. The same filters above apply here, so bots stay out unless you ask for them.
+            A unique visitor is one device in one {is24h ? "hour" : "IST day"}. Bot sessions are excluded in the database
+            (migration 0127); this tab shows whole-site human traffic and ignores the dropdown filters.
           </div>
         </div>
       )}
@@ -405,19 +381,25 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
       {showPages && (
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, overflow: "hidden", marginBottom: 20 }}>
           <div style={{ padding: "15px 18px", borderBottom: "1px solid #F0F2F6", fontWeight: 700, fontSize: 14.5 }}>
-            Top 10 pages <span style={{ color: "#8A93A6", fontWeight: 400 }}>· last {days} days · humans in current filter</span>
+            Top product pages <span style={{ color: "#8A93A6", fontWeight: 400 }}>· {is24h ? "last 24 hours" : `last ${days} days`}{brand ? ` · ${brand}` : ""} · humans in current filter</span>
           </div>
-          {topPages.length === 0 && <div style={{ padding: "36px 20px", textAlign: "center", color: "#8A93A6", fontSize: 13.5 }}>No pageviews in this window.</div>}
-          {topPages.map(([path, a], i) => (
-            <div key={path} style={{ display: "flex", alignItems: "center", gap: 14, padding: "11px 18px", borderTop: i ? "1px solid #F5F6F9" : undefined, position: "relative" }}>
-              <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${Math.round((a.views / maxViews) * 100)}%`, background: "#F0F2FE", zIndex: 0 }} />
-              <span style={{ zIndex: 1, width: 22, fontFamily: "var(--space-mono)", fontSize: 12, fontWeight: 700, color: "#8A93A6" }}>{i + 1}</span>
-              <a href={path} target="_blank" style={{ zIndex: 1, flex: 1, fontSize: 13.5, fontWeight: 600, color: "#19202E", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{path}</a>
-              <span style={{ zIndex: 1, fontSize: 12.5, color: "#56627A", whiteSpace: "nowrap" }}><b style={{ color: "#19202E" }}>{a.views}</b> views</span>
-              <span style={{ zIndex: 1, fontSize: 12.5, color: "#56627A", whiteSpace: "nowrap" }}>{a.sids.size} visitor{a.sids.size === 1 ? "" : "s"}</span>
-              <span style={{ zIndex: 1, fontSize: 12, color: "#8A93A6", whiteSpace: "nowrap" }}>{a.ms > 0 ? `${durTxt(Math.round(a.ms / Math.max(a.views, 1)))} avg` : ""}</span>
-            </div>
-          ))}
+          {topPages.length === 0 && <div style={{ padding: "36px 20px", textAlign: "center", color: "#8A93A6", fontSize: 13.5 }}>No product views in this window.</div>}
+          {topPages.map(([path, a], i) => {
+            const prod = productByPath.get(path);
+            return (
+              <div key={path} style={{ display: "flex", alignItems: "center", gap: 14, padding: "11px 18px", borderTop: i ? "1px solid #F5F6F9" : undefined, position: "relative" }}>
+                <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${Math.round((a.views / maxViews) * 100)}%`, background: "#F0F2FE", zIndex: 0 }} />
+                <span style={{ zIndex: 1, width: 22, fontFamily: "var(--space-mono)", fontSize: 12, fontWeight: 700, color: "#8A93A6" }}>{i + 1}</span>
+                <a href={path} target="_blank" style={{ zIndex: 1, flex: 1, fontSize: 13.5, fontWeight: 600, color: "#19202E", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {prod ? prod.name : path}
+                  {prod && <span style={{ color: "#8A93A6", fontWeight: 400 }}> · {prod.brand}</span>}
+                </a>
+                <span style={{ zIndex: 1, fontSize: 12.5, color: "#56627A", whiteSpace: "nowrap" }}><b style={{ color: "#19202E" }}>{a.views}</b> views</span>
+                <span style={{ zIndex: 1, fontSize: 12.5, color: "#56627A", whiteSpace: "nowrap" }}>{a.sids.size} visitor{a.sids.size === 1 ? "" : "s"}</span>
+                <span style={{ zIndex: 1, fontSize: 12, color: "#8A93A6", whiteSpace: "nowrap" }}>{a.ms > 0 ? `${durTxt(Math.round(a.ms / Math.max(a.views, 1)))} avg` : ""}</span>
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -505,11 +487,7 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
 
       {isSearch && searchStats && <SearchPanel data={searchStats} />}
 
-      {isOutreach && (
-        <OutreachTable rows={outreachRows} stray={strayOutreach} surveyCount={surveys.length} />
-      )}
-
-      {showPages || isTraffic || showPdp || isOutreach || isSearch ? null : visitors.length === 0 ? (
+      {showPages || isTraffic || showPdp || isSearch ? null : visitors.length === 0 ? (
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "44px 20px", textAlign: "center", color: "#8A93A6", fontSize: 14 }}>
           No visits recorded yet. Data starts flowing once migration 0051 is run and the site is redeployed.
         </div>
@@ -532,12 +510,7 @@ export default async function AdminAnalytics({ searchParams }: { searchParams: P
                   <span style={{ fontSize: 12, color: "#56627A" }}>
                     {v.pageviews} pages · {v.clicks} taps{v.addToCarts ? ` · ${v.addToCarts} add-to-cart` : ""} · {dur(v.totalMs)}
                   </span>
-                  {v.utmMedium === "outreach" && v.utmContent ? (
-                    // Cold outreach: name the firm we emailed, not the raw UTM.
-                    <span style={{ fontSize: 11.5, fontWeight: 700, color: "#C77700" }}>
-                      ✉ {outreachName(v.utmContent)}
-                    </span>
-                  ) : (v.utm || v.landingReferrer) && (
+                  {(v.utm || v.landingReferrer) && (
                     <span style={{ fontSize: 11.5, color: "#C77700" }}>{v.utm ?? hostOf(v.landingReferrer)}</span>
                   )}
                   <span style={{ marginLeft: "auto", fontSize: 11.5, color: "#A0A7B5", whiteSpace: "nowrap" }}>{istDateTime(v.lastSeen)}</span>

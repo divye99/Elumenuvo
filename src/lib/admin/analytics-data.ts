@@ -46,20 +46,59 @@ const LOOSE_AGENT_RE = /python|curl|go-http|java\/|okhttp|libwww|scrapy|phantomj
 
 const PAGE = 1000;
 
-export async function fetchEvents(days: number, sid?: string): Promise<SiteEvent[]> {
+// Only the columns the analytics page actually reads - site_events rows
+// carry fat ua/detail payloads and select("*") was a large share of the
+// page's load time.
+const EVENT_COLS = "id, sid, type, path, detail, device, ip, ua, country, region, city, duration_ms, email, name, created_at";
+
+/** Events for the last `hours`, NEWEST FIRST. The fetch is capped, and
+ *  newest-first means a window that overflows the cap loses its OLDEST days,
+ *  never today (the old ascending fetch silently dropped the current day
+ *  once the window crossed 20k rows - "Thursday shows 2 visitors").
+ *  Returned in ascending order for the aggregation code. */
+export async function fetchEvents(hours: number, sid?: string): Promise<SiteEvent[]> {
   const db = adminClient();
   if (!db) return [];
-  const since = new Date(Date.now() - days * 86400000).toISOString();
+  const since = new Date(Date.now() - hours * 3600_000).toISOString();
   const out: SiteEvent[] = [];
-  for (let from = 0; from < 20000; from += PAGE) {
-    let q = db.from("site_events").select("*").gte("created_at", since).order("created_at", { ascending: true }).range(from, from + PAGE - 1);
+  for (let from = 0; from < 30000; from += PAGE) {
+    let q = db.from("site_events").select(EVENT_COLS).gte("created_at", since).order("created_at", { ascending: false }).range(from, from + PAGE - 1);
     if (sid) q = q.eq("sid", sid);
     const { data, error } = await q;
     if (error || !data?.length) break;
-    out.push(...(data as SiteEvent[]));
+    out.push(...(data as unknown as SiteEvent[]));
     if (data.length < PAGE) break;
   }
-  return out;
+  return out.reverse();
+}
+
+/** Every session the 0124 classifier has flagged. Dropping these BEFORE the
+ *  in-memory visitor build keeps the page fast and the numbers human. */
+export async function fetchBotSids(): Promise<Set<string>> {
+  const db = adminClient();
+  if (!db) return new Set();
+  const sids = new Set<string>();
+  for (let from = 0; from < 50000; from += PAGE) {
+    const { data, error } = await db.from("bot_sessions").select("sid").range(from, from + PAGE - 1).then((r) => r, () => ({ data: null, error: true as const }));
+    if (error || !data?.length) break;
+    for (const r of data) sids.add(r.sid);
+    if (data.length < PAGE) break;
+  }
+  return sids;
+}
+
+export type DailyTrafficRow = { day: string; visitors: number; pageviews: number; carts: number; identified: number };
+
+/** Daily traffic aggregated IN the database (migration 0127): humans only,
+ *  any window at constant cost. Falls back to null pre-migration. */
+export async function fetchDailyTraffic(fromDay: string, toDay: string): Promise<DailyTrafficRow[] | null> {
+  const db = adminClient();
+  if (!db) return null;
+  // Keep today bot-clean: classify the last two days before aggregating.
+  try { await db.rpc("classify_bot_sessions", { from_day: fromDay > toDay ? toDay : new Date(new Date(toDay).getTime() - 86400000).toISOString().slice(0, 10), to_day: toDay }); } catch { /* pre-0124 */ }
+  const { data, error } = await db.rpc("analytics_daily", { from_day: fromDay, to_day: toDay });
+  if (error) return null;
+  return (data ?? []).map((r: any) => ({ day: String(r.day), visitors: r.visitors ?? 0, pageviews: r.pageviews ?? 0, carts: r.carts ?? 0, identified: r.identified ?? 0 }));
 }
 
 export async function fetchAllSearches(days: number): Promise<Map<string, SearchRow[]>> {

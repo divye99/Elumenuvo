@@ -16,7 +16,7 @@ const esc = (v: unknown) => {
 export async function GET(request: Request) {
   if (!(await isAdmin())) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
   const days = Math.min(90, Math.max(1, Number(new URL(request.url).searchParams.get("days")) || 30));
-  const events = await fetchEvents(days);
+  const events = await fetchEvents(days * 24);
 
   const istOf = (v: string) => new Date(v).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "medium" });
   const cols = ["created_at_ist", "created_at", "sid", "email", "name", "type", "path", "detail", "referrer", "device", "ip", "country", "region", "city", "duration_ms"];
