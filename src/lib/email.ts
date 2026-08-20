@@ -154,6 +154,49 @@ export async function sendCustomerStatusUpdate(
   return send(order.email, `Order ${order.id} - ${label.title}`, html, { bcc: BCC_SELF });
 }
 
+/** Delivery issue: tell the customer what happened and hand them the
+ *  decision link (redeliver as-is / corrected address / cancel). The fee
+ *  line is the owner's call per incident: a rupee amount, or explicitly
+ *  free with the service framing. */
+export async function sendDeliveryIssueEmail(
+  order: OrderLike,
+  issue: { reason: string; redeliveryFee: number; feeNote?: string | null; decisionUrl: string }
+): Promise<EmailResult> {
+  const feeLine = issue.redeliveryFee > 0
+    ? `Redelivery carries a charge of <b>${fmt(issue.redeliveryFee)}</b>${issue.feeNote ? ` (${escapeHtml(issue.feeNote)})` : ""}.`
+    : `Redelivery is <b>free</b> - ${escapeHtml(issue.feeNote || "on us")}.`;
+  const html = shell(
+    "We could not deliver your order",
+    `<p style="font-size:14px;color:#56627A;margin:0 0 10px">Hi ${escapeHtml(order.name || "there")}, your order <b>${order.id}</b> could not be delivered.</p>
+     <p style="font-size:13.5px;color:#19202E;margin:0 0 10px;background:#FFF6ED;border:1px solid #F5DEC4;border-radius:10px;padding:10px 14px"><b>What the courier reported:</b> ${escapeHtml(issue.reason)}</p>
+     <p style="font-size:13.5px;color:#56627A;margin:0 0 10px">${feeLine}</p>
+     <p style="font-size:13.5px;color:#56627A;margin:0 0 6px">Tell us how you would like to proceed - it takes under a minute:</p>
+     ${btn(withUtm(issue.decisionUrl, "delivery-issue"), "Choose what happens next →")}
+     <p style="font-size:12.5px;color:#8A93A6;margin:14px 0 0">You can redeliver to the same address, give us a corrected address, or cancel. Reply to this email or WhatsApp us if anything is unclear.</p>`
+  );
+  return send(order.email, `Order ${order.id} - delivery attempt failed, action needed`, html, { bcc: BCC_SELF });
+}
+
+/** Alert the owner that the customer has made their redelivery decision. */
+export async function sendDeliveryDecisionAlert(
+  order: OrderLike,
+  decision: { choice: string; newAddress?: string | null; note?: string | null }
+): Promise<EmailResult> {
+  const CHOICE: Record<string, string> = {
+    redeliver: "Redeliver to the SAME address",
+    redeliver_new_address: "Redeliver to a CORRECTED address",
+    cancel_order: "Cancel the order",
+  };
+  const html = shell(
+    `Delivery decision on ${order.id}`,
+    `<p style="font-size:14px;color:#56627A;margin:0 0 8px">${escapeHtml(order.name || order.email)} chose: <b>${CHOICE[decision.choice] ?? decision.choice}</b></p>
+     ${decision.newAddress ? `<p style="font-size:13px;color:#19202E;margin:0 0 8px;background:#F7F8FB;border:1px solid #E8EBF1;border-radius:10px;padding:10px 14px"><b>Corrected address:</b><br>${escapeHtml(decision.newAddress).replace(/\n/g, "<br>")}</p>` : ""}
+     ${decision.note ? `<p style="font-size:13px;color:#56627A;margin:0 0 8px"><b>Customer note:</b> ${escapeHtml(decision.note)}</p>` : ""}
+     ${btn(`${SITE}/admin/orders/${encodeURIComponent(order.id)}`, "Open the order →")}`
+  );
+  return send(ADMIN_EMAIL, `📦 Delivery decision on ${order.id}: ${CHOICE[decision.choice] ?? decision.choice}`, html);
+}
+
 /** Post-delivery review request: reviews are purchase-verified (order ID +
  *  email checked in the database), so we hand the customer both up front.
  *  Real reviews also light up star ratings on Google for that product. */

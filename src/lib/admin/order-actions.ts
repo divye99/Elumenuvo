@@ -358,3 +358,100 @@ export async function shipViaShiprocket(input: {
 export async function markShipmentDelivered(shipmentId: string, orderId: string, proofUrl?: string): Promise<ActionResult> {
   return safely("Marking delivered", () => _markShipmentDelivered(shipmentId, orderId, proofUrl));
 }
+
+/* ── Delivery issues (migration 0126): failed delivery / RTO workflow ── */
+
+export type DeliveryIssueInput = {
+  orderId: string;
+  shipmentId?: string | null;
+  kind: string;            // undelivered | rto | address_issue | refused | not_reachable | damaged | lost | other
+  fault: string;           // buyer | courier | ops | unknown
+  reason: string;          // exact reason, in words
+  courier?: string | null; // scorecard snapshot
+  awb?: string | null;
+  redeliveryFee: number;   // 0 = free
+  feeNote?: string | null; // customer-facing framing of the fee (or the free)
+  notifyCustomer: boolean; // send the decision email now
+};
+
+async function _reportDeliveryIssue(input: DeliveryIssueInput): Promise<{ ok: true; decisionUrl: string } | { ok: false; error: string }> {
+  const { db, err } = await guard();
+  if (!db) return { ok: false, error: err };
+  const order = await loadOrder(db, input.orderId);
+  if (!order) return { ok: false, error: "Order not found." };
+  const reason = (input.reason ?? "").trim();
+  if (!reason) return { ok: false, error: "Write the exact reason - it drives the courier scorecard." };
+
+  const { randomBytes } = await import("crypto");
+  const token = randomBytes(18).toString("base64url");
+  const { error } = await db.from("delivery_issues").insert({
+    order_id: input.orderId,
+    shipment_id: input.shipmentId ?? null,
+    kind: input.kind,
+    fault: input.fault,
+    reason: reason.slice(0, 600),
+    courier: input.courier ?? null,
+    awb: input.awb ?? null,
+    redelivery_fee: Math.max(0, Number(input.redeliveryFee) || 0),
+    fee_note: (input.feeNote ?? "").slice(0, 300) || null,
+    status: input.notifyCustomer ? "awaiting_customer" : "open",
+    decision_token: token,
+  });
+  if (error) return { ok: false, error: error.code === "42P01" ? "Run migration 0126 (delivery_issues) first." : error.message };
+
+  const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://elumenuvo.com").replace(/\/+$/, "");
+  const decisionUrl = `${site}/delivery/${token}`;
+  try { await db.from("order_events").insert({ order_id: input.orderId, status: "delivery_issue", note: `Delivery failed (${input.kind}, ${input.fault} fault): ${reason.slice(0, 200)}` }); } catch { /* optional */ }
+  if (input.notifyCustomer && order.email) {
+    const { sendDeliveryIssueEmail } = await import("@/lib/email");
+    try {
+      await sendDeliveryIssueEmail(order, { reason, redeliveryFee: Math.max(0, Number(input.redeliveryFee) || 0), feeNote: input.feeNote, decisionUrl });
+    } catch (e) { console.warn("[delivery-issue email]", e instanceof Error ? e.message : e); }
+  }
+  revalidatePath(`/admin/orders/${input.orderId}`);
+  return { ok: true, decisionUrl };
+}
+
+export async function reportDeliveryIssue(input: DeliveryIssueInput): Promise<{ ok: true; decisionUrl: string } | { ok: false; error: string }> {
+  try { return await _reportDeliveryIssue(input); } catch (e) {
+    console.error("[order-action:delivery-issue]", e);
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+/** Move an issue through its lifecycle: redelivery_booked / resolved /
+ *  cancelled. Resolution notes land in the order timeline. */
+async function _setDeliveryIssueStatus(issueId: string, orderId: string, status: "redelivery_booked" | "resolved" | "cancelled", note?: string): Promise<ActionResult> {
+  const { db, err } = await guard();
+  if (!db) return { ok: false, error: err };
+  const patch: Record<string, any> = { status };
+  if (status === "resolved" || status === "cancelled") patch.resolved_at = new Date().toISOString();
+  const { error } = await db.from("delivery_issues").update(patch).eq("id", issueId);
+  if (error) return { ok: false, error: error.message };
+  try { await db.from("order_events").insert({ order_id: orderId, status: "delivery_issue", note: note || `Delivery issue ${status.replace(/_/g, " ")}` }); } catch { /* optional */ }
+  revalidatePath(`/admin/orders/${orderId}`);
+  return { ok: true };
+}
+
+export async function setDeliveryIssueStatus(issueId: string, orderId: string, status: "redelivery_booked" | "resolved" | "cancelled", note?: string): Promise<ActionResult> {
+  return safely("Updating delivery issue", () => _setDeliveryIssueStatus(issueId, orderId, status, note));
+}
+
+/** Apply the customer's corrected address to the order itself, so the next
+ *  booking (Shiprocket panel reads the order address) ships to the right
+ *  place. Explicit button in the issue panel - never automatic. */
+async function _applyIssueAddress(issueId: string, orderId: string): Promise<ActionResult> {
+  const { db, err } = await guard();
+  if (!db) return { ok: false, error: err };
+  const { data: issue } = await db.from("delivery_issues").select("new_address").eq("id", issueId).maybeSingle();
+  if (!issue?.new_address) return { ok: false, error: "No corrected address on this issue." };
+  const failed = await patchOrder(db, orderId, { shipping_address: issue.new_address, updated_at: new Date().toISOString() });
+  if (failed) return { ok: false, error: failed };
+  try { await db.from("order_events").insert({ order_id: orderId, status: "delivery_issue", note: `Shipping address replaced with the customer's corrected address (delivery issue).` }); } catch { /* optional */ }
+  revalidatePath(`/admin/orders/${orderId}`);
+  return { ok: true };
+}
+
+export async function applyIssueAddress(issueId: string, orderId: string): Promise<ActionResult> {
+  return safely("Applying corrected address", () => _applyIssueAddress(issueId, orderId));
+}

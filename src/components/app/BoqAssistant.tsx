@@ -302,11 +302,11 @@ export default function BoqAssistant({ company, admin = false }: { company?: str
             </button>
             {added && (admin ? (
               <a href={`/admin/cart-links?items=${encodeURIComponent(itemsParam)}`} style={{ fontSize: 14, fontWeight: 700, color: "#1F9D63" }}>
-                Confirmed ✓ — build the cart link →
+                Confirmed ✓ · build the cart link →
               </a>
             ) : (
               <Link href="/cart" style={{ fontSize: 14, fontWeight: 700, color: "#1F9D63" }}>
-                Added ✓ — review your cart →
+                Added ✓ · review your cart →
               </Link>
             ))}
           </div>

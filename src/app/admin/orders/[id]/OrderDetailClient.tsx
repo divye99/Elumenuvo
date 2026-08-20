@@ -11,8 +11,9 @@ const exGstOf = (it: { price?: number; qty: number; cat?: string; gstRate?: numb
   (it.price ?? 0) * it.qty / (1 + gstRateFor(it.cat, it.gstRate));
 const fmt2 = (n: number) => "₹" + n.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 import OrderStatusBadge, { STATUS_LABEL } from "@/components/admin/OrderStatusBadge";
-import type { OrderRow, Shipment, OrderEvent, OrderItem } from "@/lib/admin/data";
+import type { OrderRow, Shipment, OrderEvent, OrderItem, DeliveryIssue } from "@/lib/admin/data";
 import type { OrderStatus } from "@/lib/admin/order-actions";
+import DeliveryIssuesPanel from "./DeliveryIssuesPanel";
 
 /* Admin mutations go through a fixed API route, NOT server actions: action ids
  * rotate every deploy (many per day here), which made confirm/cancel throw
@@ -46,7 +47,7 @@ async function uploadDeliveryProof(fd: FormData): Promise<{ ok: true; url: strin
   try { return await r.json(); } catch { return { ok: false, error: `Upload failed (${r.status}).` }; }
 }
 
-export default function OrderDetailClient({ order, shipments, events, customer }: { order: OrderRow; shipments: Shipment[]; events: OrderEvent[]; customer: { hasAccount: boolean; orderCount: number } }) {
+export default function OrderDetailClient({ order, shipments, events, customer, issues = [] }: { order: OrderRow; shipments: Shipment[]; events: OrderEvent[]; customer: { hasAccount: boolean; orderCount: number }; issues?: DeliveryIssue[] }) {
   const [pending, start] = useTransition();
   const [err, setErr] = useState<string | null>(null);
   const [inviteMsg, setInviteMsg] = useState<string | null>(null);
@@ -181,6 +182,9 @@ export default function OrderDetailClient({ order, shipments, events, customer }
               <ShipmentRow key={s.id} s={s} orderId={order.id} pending={pending} run={run} />
             ))}
           </Card>
+
+          {/* Delivery issues: failed deliveries / RTO / redelivery workflow */}
+          <DeliveryIssuesPanel orderId={order.id} phone={order.phone ?? ""} shipments={shipments} issues={issues} />
 
           {/* Timeline */}
           <Card title="Timeline">

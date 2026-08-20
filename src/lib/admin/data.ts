@@ -240,6 +240,29 @@ export type Shipment = {
 };
 export type OrderEvent = { id: string; order_id: string; status: string; note: string | null; created_at: string };
 
+/** One delivery incident (migration 0126): failed delivery / RTO with fault
+ *  classification, redelivery pricing, and the customer's tokened decision. */
+export type DeliveryIssue = {
+  id: string;
+  order_id: string;
+  shipment_id: string | null;
+  kind: string;
+  fault: "buyer" | "courier" | "ops" | "unknown";
+  reason: string;
+  courier: string | null;
+  awb: string | null;
+  redelivery_fee: number;
+  fee_note: string | null;
+  status: "open" | "awaiting_customer" | "customer_decided" | "redelivery_booked" | "resolved" | "cancelled";
+  decision_token: string | null;
+  customer_choice: "redeliver" | "redeliver_new_address" | "cancel_order" | null;
+  customer_note: string | null;
+  new_address: string | null;
+  decided_at: string | null;
+  resolved_at: string | null;
+  created_at: string;
+};
+
 const OPEN_ORDER_STATUSES = ["placed", "confirmed", "packed", "shipped", "partially_shipped", "out_for_delivery"];
 
 export async function listOrders(): Promise<OrderRow[]> {
@@ -265,16 +288,18 @@ export async function countInFlightShipments(): Promise<number> {
   return count ?? 0;
 }
 
-export async function getOrderDetail(id: string): Promise<{ order: OrderRow; shipments: Shipment[]; events: OrderEvent[] } | null> {
+export async function getOrderDetail(id: string): Promise<{ order: OrderRow; shipments: Shipment[]; events: OrderEvent[]; issues: DeliveryIssue[] } | null> {
   const db = reader();
   if (!db) return null;
   const { data: order } = await db.from("orders").select("*").eq("id", id).maybeSingle();
   if (!order) return null;
-  const [{ data: shipments }, { data: events }] = await Promise.all([
+  const [{ data: shipments }, { data: events }, issuesRes] = await Promise.all([
     db.from("order_shipments").select("*").eq("order_id", id).order("created_at", { ascending: true }),
     db.from("order_events").select("*").eq("order_id", id).order("created_at", { ascending: true }),
+    // Tolerates the table being absent (pre-0126): issues just render empty.
+    db.from("delivery_issues").select("*").eq("order_id", id).order("created_at", { ascending: false }).then((r) => r, () => ({ data: [] as DeliveryIssue[] })),
   ]);
-  return { order: order as OrderRow, shipments: (shipments ?? []) as Shipment[], events: (events ?? []) as OrderEvent[] };
+  return { order: order as OrderRow, shipments: (shipments ?? []) as Shipment[], events: (events ?? []) as OrderEvent[], issues: (issuesRes.data ?? []) as DeliveryIssue[] };
 }
 
 /** Whether the order's customer already has a login, plus how many real

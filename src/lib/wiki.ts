@@ -236,6 +236,9 @@ Bookings go from the admin order page (courier choice + address confirmation gat
 ## Rate intelligence
 Delivery fees are quoted from real courier rate cards by weight slab and zone, with our shipping fee engine deciding what the customer pays vs what we absorb. GST applies on delivery fees like any service.
 
+## Failed deliveries and redelivery
+When a parcel bounces (RTO, wrong address, refused, no attempt), the order page's Delivery issues panel records the incident: what happened, the EXACT reason, and whose fault it was. Fault matters: buyer faults never count against the courier on the scorecard; only courier faults do. The customer gets a tokened decision link (email and/or WhatsApp) and chooses on the platform: redeliver as-is, redeliver to a corrected address (one click applies it to the order), or cancel. Redelivery pricing is per incident: a fee, or explicitly free with the "on us" framing. Every incident and its reason shows in Logistics under "Failed deliveries and why".
+
 ## Geocoding
 Pincode to zone mapping is offline (no per-request API): a bundled pincode dataset resolves zone and serviceability instantly at checkout.`,
   },

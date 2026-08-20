@@ -21,7 +21,7 @@ export default async function AdminOrderDetail({ params }: { params: Promise<{ i
     );
   }
   const customer = await customerAccountInfo(detail.order.email, detail.order.user_id);
-  return <OrderDetailClient order={detail.order} shipments={detail.shipments} events={detail.events} customer={customer} />;
+  return <OrderDetailClient order={detail.order} shipments={detail.shipments} events={detail.events} customer={customer} issues={detail.issues} />;
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {

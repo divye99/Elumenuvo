@@ -44,10 +44,13 @@ export default async function LogisticsPage() {
   const db = adminClient();
   if (!db) return <p style={{ color: "#8A93A6" }}>Service key missing.</p>;
 
-  const [shipsRes, balance, quotesRes] = await Promise.all([
+  const [shipsRes, balance, quotesRes, issuesRes] = await Promise.all([
     db.from("order_shipments").select("*").not("awb", "is", null).order("created_at", { ascending: false }).limit(1000),
     walletBalance().catch(() => null),
     db.from("courier_quotes").select("courier_name, delivery_state, mode, rate, est_days, charge_weight_kg, distance_km, chosen").order("created_at", { ascending: false }).limit(5000),
+    // Delivery incidents (0126): the reason-classified failures. Tolerates
+    // the table being absent pre-migration.
+    db.from("delivery_issues").select("order_id, courier, kind, fault, reason, status, created_at").order("created_at", { ascending: false }).limit(2000).then((r) => r, () => ({ data: [] as any[] })),
   ]);
   let ships = shipsRes.data;
   if (shipsRes.error) ({ data: ships } = await db.from("order_shipments").select("*").order("created_at", { ascending: false }).limit(1000));
@@ -83,11 +86,23 @@ export default async function LogisticsPage() {
     const k = s.courier || "Unknown";
     byCourier.set(k, [...(byCourier.get(k) ?? []), s]);
   }
+  // Fault-classified delivery incidents (0126). The scorecard blames a
+  // courier ONLY for courier-fault incidents: a buyer who gave a wrong
+  // address or refused the parcel is never the delivery partner's failure.
+  type Issue = { order_id: string; courier: string | null; kind: string; fault: string; reason: string; status: string; created_at: string };
+  const issues = (issuesRes.data ?? []) as Issue[];
+  const issuesByCourier = new Map<string, Issue[]>();
+  for (const i of issues) {
+    const k = i.courier || "Unknown";
+    issuesByCourier.set(k, [...(issuesByCourier.get(k) ?? []), i]);
+  }
+
   const scorecard = [...byCourier.entries()].map(([name, list]) => {
     const delivered = list.filter((s) => s.delivered_at);
     const judged = delivered.filter((s) => s.onTime != null);
     const promised = avg(list.map((s) => s.promised));
     const actual = avg(delivered.map((s) => s.transitDays));
+    const courierIssues = issuesByCourier.get(name) ?? [];
     return {
       name,
       count: list.length,
@@ -96,6 +111,8 @@ export default async function LogisticsPage() {
       slip: promised != null && actual != null ? actual - promised : null,
       onTime: judged.length ? judged.filter((s) => s.onTime).length / judged.length : null,
       rto: list.length ? list.filter((s) => s.sr_status === "rto").length / list.length : null,
+      courierFaults: courierIssues.filter((i) => i.fault === "courier").length,
+      otherFaults: courierIssues.filter((i) => i.fault !== "courier").length,
       freight: avg(list.map((s) => (s.freight_charge != null ? Number(s.freight_charge) : null))),
       perKg: avg(list.map((s) => (s.freight_charge != null && s.entered_weight_kg ? Number(s.freight_charge) / Number(s.entered_weight_kg) : null))),
     };
@@ -178,10 +195,10 @@ export default async function LogisticsPage() {
       <div style={card}>
         <h2 style={h2}>Courier scorecard</h2>
         <p style={sub}>Promise = ETD at booking; actual = pickup to delivery. Slip above +1d, on-time under 80% or RTO above 5% is a courier to stop using for that lane.</p>
-        <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 720 }}>
-          <thead><tr>{["Courier", "Parcels", "Delivered", "Promised d", "Actual d", "Slip d", "On-time", "RTO", "Avg freight", "₹/kg"].map((h) => <th key={h} style={th}>{h}</th>)}</tr></thead>
+        <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 780 }}>
+          <thead><tr>{["Courier", "Parcels", "Delivered", "Promised d", "Actual d", "Slip d", "On-time", "RTO", "Fails (their fault)", "Avg freight", "₹/kg"].map((h) => <th key={h} style={th}>{h}</th>)}</tr></thead>
           <tbody>
-            {scorecard.length === 0 && <tr><td style={td} colSpan={10}>No shipments yet - book the first parcel from an order page.</td></tr>}
+            {scorecard.length === 0 && <tr><td style={td} colSpan={11}>No shipments yet - book the first parcel from an order page.</td></tr>}
             {scorecard.map((c) => (
               <tr key={c.name}>
                 <td style={{ ...td, fontWeight: 700 }}>{c.name}</td>
@@ -192,6 +209,9 @@ export default async function LogisticsPage() {
                 <td style={{ ...td, color: c.slip != null && c.slip > 1 ? "#C2410C" : c.slip != null && c.slip <= 0 ? "#1F9D63" : undefined, fontWeight: 700 }}>{c.slip == null ? "-" : (c.slip > 0 ? "+" : "") + c.slip.toFixed(1)}</td>
                 <td style={{ ...td, color: c.onTime != null && c.onTime < 0.8 ? "#C2410C" : undefined }}>{pct(c.onTime)}</td>
                 <td style={{ ...td, color: c.rto != null && c.rto > 0.05 ? "#C2410C" : undefined }}>{pct(c.rto)}</td>
+                <td style={{ ...td, color: c.courierFaults > 0 ? "#C2410C" : "#1F9D63", fontWeight: 700 }}>
+                  {c.courierFaults}{c.otherFaults > 0 ? <span style={{ color: "#8A93A6", fontWeight: 400 }}> (+{c.otherFaults} not their fault)</span> : null}
+                </td>
                 <td style={td}>{rs(c.freight)}</td>
                 <td style={td}>{rs(c.perKg)}</td>
               </tr>
@@ -199,6 +219,33 @@ export default async function LogisticsPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Failed deliveries + the reason metric (0126) */}
+      {issues.length > 0 && (
+        <div style={card}>
+          <h2 style={h2}>Failed deliveries and why ({issues.length})</h2>
+          <p style={sub}>
+            Every incident carries its exact reason and whose fault it was. Buyer faults (wrong address, unreachable, refused)
+            NEVER count against the courier; only courier-fault incidents feed the scorecard column.
+          </p>
+          <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 680 }}>
+            <thead><tr>{["Order", "Courier", "What happened", "Fault", "Exact reason", "Status", "When"].map((h) => <th key={h} style={th}>{h}</th>)}</tr></thead>
+            <tbody>
+              {issues.slice(0, 40).map((i, idx) => (
+                <tr key={idx}>
+                  <td style={td}><Link href={`/admin/orders/${i.order_id}`} style={{ color: "#4E5BDC", fontWeight: 600 }}>{i.order_id}</Link></td>
+                  <td style={td}>{i.courier ?? "-"}</td>
+                  <td style={td}>{i.kind.replace(/_/g, " ")}</td>
+                  <td style={{ ...td, fontWeight: 700, color: i.fault === "courier" ? "#C2410C" : i.fault === "buyer" ? "#B7791F" : "#8A93A6" }}>{i.fault}</td>
+                  <td style={{ ...td, whiteSpace: "normal", maxWidth: 300, fontSize: 12, color: "#56627A" }}>{i.reason}</td>
+                  <td style={td}>{i.status.replace(/_/g, " ")}</td>
+                  <td style={td}>{new Date(i.created_at).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short" })}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Cost + weight audit */}
       <div style={card}>

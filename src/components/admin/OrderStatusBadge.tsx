@@ -11,6 +11,8 @@ const STYLES: Record<string, { bg: string; fg: string; label: string }> = {
   out_for_delivery: { bg: "#E7F3EC", fg: "#1F8F5B", label: "Out for delivery" },
   delivered: { bg: "#1F9D63", fg: "#fff", label: "Delivered" },
   cancelled: { bg: "#FBE9E4", fg: "#B43A16", label: "Cancelled" },
+  // Timeline-only marker written by the delivery-issue workflow (0126).
+  delivery_issue: { bg: "#FFF6ED", fg: "#B7791F", label: "Delivery issue" },
 };
 
 export default function OrderStatusBadge({ status, size = 12 }: { status: string; size?: number }) {
