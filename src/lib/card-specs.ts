@@ -149,6 +149,35 @@ export function cardHighlights(p: Product): string[] {
     }
   }
 
+  // Norisys rows have no imported spec table, so their cards were bare. The
+  // catalogue documents real engineering facts per product type; surface the
+  // 2-3 that the name doesn't already state (Norisys only - owner, Aug 2026).
+  if (p.brand === "Norisys" && out.length < 3) {
+    const n = p.name;
+    if (/\b(plate|cover)\b/i.test(n)) {
+      if (/solid glass/i.test(n)) push("Tempered, toughened glass");
+      else if (/solid wood/i.test(n)) push("Seasoned wood, hardened surface");
+      else if (/solid marble|solid aluminium|solid metal/i.test(n)) push("Machined from a solid block");
+      else push("UV-stable virgin polycarbonate");
+      push("Snaps on after wall painting");
+      push("Steel-cored bi-material frame");
+    } else if (/usb|charger/i.test(n)) {
+      push("Flame-proof thermoset body");
+      push("Snap-fit module mounting");
+    } else if (/socket/i.test(n)) {
+      push("Child-protected safety shutters");
+      push("Ring-spring grip, spark-free");
+      push("Flame-proof thermoset body");
+    } else if (/switch|regulator|dimmer|bell/i.test(n)) {
+      push("Silver-rich contacts, low arcing");
+      push("Snap action, spark-free life");
+      push("Flame-proof thermoset body");
+    } else {
+      push("Flame-proof thermoset body");
+      push("Snap-fit module mounting");
+    }
+  }
+
   // Fallback: reuse the legacy spec line's leading segments (curated rows have
   // hand-written short specs; noisy import keys are skipped).
   if (out.length < 2 && p.spec) {

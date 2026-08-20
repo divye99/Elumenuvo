@@ -27,10 +27,10 @@ export const NORISYS_FINISH: Record<string, string> = {
   "07": "Solid Wood Pinewood",
   "08": "Solid Glass Ice White",
   "09": "Solid Glass Metal Gray",
-  "10": "White",
-  "11": "Terra Beige",
-  "12": "White",
-  "13": "White",
+  "10": "Solid Marble Sparkle White",
+  "11": "Solid Marble Terra Beige",
+  "12": "Solid Marble Salt White",
+  "13": "Solid Marble Onyx White",
   "14": "Solid Aluminium Bronze",
   "16": "Matt Gold",
   "17": "Charcoal Black",
@@ -39,10 +39,10 @@ export const NORISYS_FINISH: Record<string, string> = {
   "26": "Silver Dust",
   "29": "Solid Wood Walnut",
   "48": "Solid Glass Frosted Ultra White",
-  "31": "Metal Chrome Glossy",
-  "32": "Metal Chrome Matt",
-  "33": "Metal Black Glossy",
-  "34": "Metal Mellow Gold",
+  "31": "Solid Metal Chrome Glossy",
+  "32": "Solid Metal Chrome Matt",
+  "33": "Solid Metal Black Glossy",
+  "34": "Solid Metal Mellow Gold",
   "38": "Solid Glass Ultra White",
 };
 
@@ -70,6 +70,14 @@ export const NORISYS_FINISH_HEX: Record<string, string> = {
   "Metal Chrome Matt": "#B9BDC4",
   "Metal Black Glossy": "#1E2126",
   "Metal Mellow Gold": "#CFA860",
+  "Solid Metal Chrome Glossy": "#D5D8DE",
+  "Solid Metal Chrome Matt": "#B9BDC4",
+  "Solid Metal Black Glossy": "#1E2126",
+  "Solid Metal Mellow Gold": "#CFA860",
+  "Solid Marble Sparkle White": "#EAE6DE",
+  "Solid Marble Terra Beige": "#CBB49A",
+  "Solid Marble Salt White": "#F0EDE6",
+  "Solid Marble Onyx White": "#E5E2DB",
   White: "#FFFFFF",
 };
 
@@ -111,6 +119,21 @@ export function norisysFinishLabel(p: { name: string }, code: NorisysCode): stri
     return label;
   }
   return legend ?? `Finish .${code.suffix}`;
+}
+
+/** Material family + tone for one finish label, for the two-level Finish
+ *  filter: "Solid Wood Walnut" -> { family: "Solid Wood", tone: "Walnut" }.
+ *  Single-colour thermoplastic finishes group under "Colours". */
+export const NORISYS_FAMILIES = ["Solid Glass", "Solid Aluminium", "Solid Wood", "Solid Marble", "Solid Metal"] as const;
+export function norisysFinishFamily(label: string): { family: string; tone: string } {
+  for (const fam of NORISYS_FAMILIES) {
+    if (label.startsWith(fam)) {
+      const tone = label.slice(fam.length).trim();
+      return { family: fam, tone: tone || (fam === "Solid Aluminium" ? "Natural" : "") };
+    }
+  }
+  if (label.startsWith("Metal ")) return { family: "Solid Metal", tone: label.slice(6).trim() };
+  return { family: "Colours", tone: label };
 }
 
 /* ── Engineering story: one set of three bullets per series, distilled from

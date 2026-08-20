@@ -301,6 +301,11 @@ input[type="range"].elume-range::-moz-range-thumb {
 @media (max-width: 1060px) {
   .hdr-inner { flex-wrap: wrap; height: auto; padding: 8px 12px 10px; gap: 8px; }
   .hdr-search { order: 3; flex-basis: 100%; }
+  /* The search form carries an inline desktop max-width (560px). On its own
+     wrapped row - and especially in the scroll-collapsed state where it is
+     the ONLY thing pinned - a half-empty row looks broken (owner, Aug 2026),
+     so let it span the full row here. */
+  .hdr-search form { max-width: 100% !important; }
   .hdr-navlink { display: none; }
   .hdr-actions { gap: 10px; }
   /* smaller logo, pinned top-left after the hamburger */

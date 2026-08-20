@@ -211,12 +211,13 @@ Tracks competitor prices over time per SKU, flags where we have drifted above ma
 - Finish swatches on PDPs: products sharing a stem are one family; a synthetic Finish attribute feeds the standard variant picker, so every Norisys listing shows its colour/material siblings one tap apart.
 - Complete the plate: modules suggest same-series, same-module-count plates (finish-matched first); plates suggest mechanisms. Modular is a SYSTEM - this is the biggest basket and wrong-purchase lever.
 - Engineering trust block: three bullets per series plus the catalogue exploded view, stored once per series, never per product. CE / RoHS / IS marks ride along.
-- Photography: 102 SKU photos were replaced with exact-finish renders lifted from the catalogues via an OCR + geometry pipeline (scripts in the session archive; originals backed up and kept as second gallery image).
+- Photography: 60 SKU photos use exact-finish renders lifted from the catalogues via an OCR + geometry pipeline (scripts in the session archive; originals backed up and kept as second gallery image). 42 more were tried and reverted: the TG9 plate pages use one grey layout diagram for every material, so wood/marble/black SKUs kept their original true-finish photos. Never re-replace those from the catalogue.
+- Card bullets: Norisys rows have no imported spec table, so cardHighlights (src/lib/card-specs.ts) adds catalogue-grounded engineering facts per product type (plates, sockets, switches, chargers).
 - Two guides carry the long-form story: the CUBE vs TG9 series guide and the designer-finishes lookbook.
 
 ## Rules
 - Norisys-only: never apply the treatment or its assets to another brand.
-- The finish legend lives in NORISYS_FINISH; unknown suffixes fall back to the product's own name.`,
+- The finish legend lives in NORISYS_FINISH; unknown suffixes fall back to the product's own name. Marble tones: .10 Sparkle White, .11 Terra Beige, .12 Salt White, .13 Onyx White. norisysFinishFamily groups labels into the material families used by the brand page's two-level Finish filter.`,
   },
   {
     slug: "elin",
