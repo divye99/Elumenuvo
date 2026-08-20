@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getProfile, isBusiness } from "@/lib/profile";
+import { isAdmin } from "@/lib/admin/auth";
 import { adminClient } from "@/lib/supabase/admin";
 import { normalizeSearchText } from "@/lib/search-normalize";
 
@@ -29,9 +30,12 @@ type Body = {
 };
 
 export async function POST(req: Request) {
-  const profile = await getProfile();
-  if (!profile) return NextResponse.json({ ok: false }, { status: 401 });
-  if (!isBusiness(profile)) return NextResponse.json({ ok: false }, { status: 403 });
+  const admin = await isAdmin();
+  const profile = admin ? null : await getProfile();
+  if (!admin) {
+    if (!profile) return NextResponse.json({ ok: false }, { status: 401 });
+    if (!isBusiness(profile)) return NextResponse.json({ ok: false }, { status: 403 });
+  }
   const db = adminClient();
   if (!db) return NextResponse.json({ ok: false, error: "Not configured." }, { status: 503 });
 
@@ -40,9 +44,10 @@ export async function POST(req: Request) {
   const lines = (body.lines ?? []).slice(0, 250);
   if (!body.uploadId || !lines.length) return NextResponse.json({ ok: false }, { status: 400 });
 
-  // The upload must belong to the caller - the service role bypasses RLS.
+  // The upload must belong to the caller (admin may touch any) - the
+  // service role bypasses RLS, so this check is the ownership gate.
   const { data: upload } = await db.from("boq_uploads").select("id, user_id").eq("id", body.uploadId).maybeSingle();
-  if (!upload || upload.user_id !== profile.id) return NextResponse.json({ ok: false }, { status: 403 });
+  if (!upload || (!admin && upload.user_id !== profile!.id)) return NextResponse.json({ ok: false }, { status: 403 });
 
   let aliasWrites = 0, leads = 0;
   for (const l of lines) {
@@ -70,8 +75,10 @@ export async function POST(req: Request) {
     if (l.action === "unmatched_confirmed" && l.description) {
       await db.from("partner_leads").insert({
         kind: "boq_unmatched",
-        email: profile.email || "unknown@boq.local",
-        company: profile.company ?? null,
+        // Admin-run BOQs are enquiries the owner is fulfilling: label them
+        // so the Requests tab shows where the demand signal came from.
+        email: profile?.email || "admin@elumenuvo.com",
+        company: profile?.company ?? (admin ? "Elume admin console" : null),
         message: l.description.slice(0, 500),
         details: { uploadId: body.uploadId, position: l.position },
       });

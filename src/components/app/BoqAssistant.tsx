@@ -9,7 +9,7 @@
  */
 import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
-import { useCart } from "@/lib/cart";
+import { useCartOptional } from "@/lib/cart";
 import { GROTESK, MONO } from "@/lib/fonts";
 
 type LineResult = {
@@ -32,8 +32,12 @@ type Decision = { productId: string | null; qty: number; state: "pending" | "acc
 
 const fmt = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
 
-export default function BoqAssistant({ company }: { company?: string }) {
-  const { add } = useCart();
+/** admin: the console variant (/admin/boq). Same matcher, same learning
+ *  loop, but the finish line is a shareable cart LINK for the customer
+ *  instead of a push into the visitor's own cart, and the self-rating
+ *  prompt is skipped (the owner rating their own tool is noise). */
+export default function BoqAssistant({ company, admin = false }: { company?: string; admin?: boolean }) {
+  const cart = useCartOptional();
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -119,7 +123,7 @@ export default function BoqAssistant({ company }: { company?: string }) {
       if (d.state === "accepted" && d.productId) {
         const p = summaryOf(d.productId);
         if (p) {
-          add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.mrp, unit: p.unit, cat: p.cat, gstRate: p.gstRate, image: p.image }, Math.max(1, d.qty));
+          if (!admin) cart?.add({ id: p.id, name: p.name, brand: p.brand, price: p.price, mrp: p.mrp, unit: p.unit, cat: p.cat, gstRate: p.gstRate, image: p.image }, Math.max(1, d.qty));
           count++;
           feedback.push({ position: l.position, description: l.description, action: d.productId === l.productId ? "confirmed" : "swapped", productId: d.productId, finalQty: d.qty });
         }
@@ -140,15 +144,27 @@ export default function BoqAssistant({ company }: { company?: string }) {
     return <span style={{ fontSize: 10, fontWeight: 700, background: bg, color: fg, padding: "2px 7px", borderRadius: 6, textTransform: "uppercase", letterSpacing: "0.4px" }}>{Math.round(c * 100)}% {label}</span>;
   };
 
+  // Admin finish line: the approved lines as a /admin/cart-links prefill.
+  const itemsParam = useMemo(() => {
+    if (!result) return "";
+    return Object.values(decisions)
+      .filter((d) => d.state === "accepted" && d.productId)
+      .map((d) => `${d.productId}:${Math.max(1, d.qty)}`)
+      .join(",");
+  }, [result, decisions]);
+
   return (
-    <main style={{ maxWidth: 1140, margin: "0 auto", padding: "26px 22px 80px" }}>
+    <div style={{ maxWidth: 1140, margin: "0 auto", padding: "26px 22px 80px" }}>
       <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: "1.4px", textTransform: "uppercase", color: "#4E5BDC", marginBottom: 8 }}>
-        Smart BOM · business beta{company ? ` · ${company}` : ""}
+        Smart BOM · {admin ? "admin console" : "business beta"}{company ? ` · ${company}` : ""}
       </div>
-      <h1 style={{ fontFamily: GROTESK, fontSize: 30, fontWeight: 600, letterSpacing: "-0.8px", margin: "0 0 6px" }}>Turn your BOQ into a cart</h1>
+      <h1 style={{ fontFamily: GROTESK, fontSize: 30, fontWeight: 600, letterSpacing: "-0.8px", margin: "0 0 6px" }}>
+        {admin ? "Turn a customer's BOQ into a cart link" : "Turn your BOQ into a cart"}
+      </h1>
       <p style={{ fontSize: 14.5, color: "#56627A", margin: "0 0 22px", maxWidth: 640, lineHeight: 1.6 }}>
-        Paste the line items or drop a CSV/Excel sheet. We match every line to the catalogue, convert quantities
-        (metres to coils included), and flag anything we do not stock. Nothing is added until you approve it.
+        {admin
+          ? "Paste the enquiry's line items or drop their CSV/Excel sheet. Approve the matches, then hand the result to the cart-link builder to send on WhatsApp. Your corrections train the matcher for everyone."
+          : "Paste the line items or drop a CSV/Excel sheet. We match every line to the catalogue, convert quantities (metres to coils included), and flag anything we do not stock. Nothing is added until you approve it."}
       </p>
 
       {!result && (
@@ -280,18 +296,25 @@ export default function BoqAssistant({ company }: { company?: string }) {
               disabled={stats.accepted === 0}
               style={{ background: stats.accepted ? "#1F9D63" : "#C9CFDD", color: "#fff", fontSize: 14.5, fontWeight: 700, padding: "12px 24px", borderRadius: 11, border: "none", cursor: stats.accepted ? "pointer" : "default" }}
             >
-              Add {stats.accepted} approved line{stats.accepted === 1 ? "" : "s"} to cart · {fmt(stats.value)}
+              {admin
+                ? `Confirm ${stats.accepted} approved line${stats.accepted === 1 ? "" : "s"} · ${fmt(stats.value)}`
+                : `Add ${stats.accepted} approved line${stats.accepted === 1 ? "" : "s"} to cart · ${fmt(stats.value)}`}
             </button>
-            {added && (
+            {added && (admin ? (
+              <a href={`/admin/cart-links?items=${encodeURIComponent(itemsParam)}`} style={{ fontSize: 14, fontWeight: 700, color: "#1F9D63" }}>
+                Confirmed ✓ — build the cart link →
+              </a>
+            ) : (
               <Link href="/cart" style={{ fontSize: 14, fontWeight: 700, color: "#1F9D63" }}>
                 Added ✓ — review your cart →
               </Link>
-            )}
+            ))}
           </div>
 
           {/* Post-use feedback (owner ask): the tool is self-learning and so
-              are we - ask for a rating right after the BOQ lands in the cart. */}
-          {added && !reviewed && (
+              are we - ask for a rating right after the BOQ lands in the cart.
+              Skipped on the admin console. */}
+          {added && !admin && !reviewed && (
             <section style={{ marginTop: 20, background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: "16px 20px", maxWidth: 560 }}>
               <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>How did Smart BOM do?</div>
               <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
@@ -321,6 +344,6 @@ export default function BoqAssistant({ company }: { company?: string }) {
           {reviewed && <div style={{ marginTop: 16, fontSize: 13.5, fontWeight: 600, color: "#1F9D63" }}>Thank you - your feedback trains the matcher directly.</div>}
         </>
       )}
-    </main>
+    </div>
   );
 }

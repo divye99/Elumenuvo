@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getProfile, isBusiness, hasPurchases } from "@/lib/profile";
+import { isAdmin } from "@/lib/admin/auth";
 import { adminClient } from "@/lib/supabase/admin";
 import { fetchProducts } from "@/lib/products";
 import { parseBoqText, parseBoqRows } from "@/lib/boq/parse";
@@ -21,12 +22,17 @@ export const maxDuration = 60;
 type Body = { source?: "paste" | "csv" | "xlsx"; name?: string; text?: string; rows?: string[][] };
 
 export async function POST(req: Request) {
-  const profile = await getProfile();
-  if (!profile) return NextResponse.json({ ok: false, error: "Sign in to use Smart BOM." }, { status: 401 });
-  if (!isBusiness(profile)) return NextResponse.json({ ok: false, error: "Smart BOM is available on business accounts." }, { status: 403 });
-  // Owner gate (Aug 2026): early access for business customers WITH a record
-  // of purchase - the tool is not public yet.
-  if (!(await hasPurchases(profile.email))) return NextResponse.json({ ok: false, error: "Smart BOM unlocks after your first order." }, { status: 403 });
+  // Two doors: the admin cookie (/admin/boq console, owner fulfilling
+  // enquiries on a customer's behalf) or a business account with purchases.
+  const admin = await isAdmin();
+  const profile = admin ? null : await getProfile();
+  if (!admin) {
+    if (!profile) return NextResponse.json({ ok: false, error: "Sign in to use Smart BOM." }, { status: 401 });
+    if (!isBusiness(profile)) return NextResponse.json({ ok: false, error: "Smart BOM is available on business accounts." }, { status: 403 });
+    // Owner gate (Aug 2026): early access for business customers WITH a
+    // record of purchase - the tool is not public yet.
+    if (!(await hasPurchases(profile.email))) return NextResponse.json({ ok: false, error: "Smart BOM unlocks after your first order." }, { status: 403 });
+  }
 
   let body: Body;
   try { body = await req.json(); } catch { return NextResponse.json({ ok: false, error: "Bad request." }, { status: 400 }); }
@@ -56,11 +62,12 @@ export async function POST(req: Request) {
 
   const matches = lines.map((line) => matchBoqLine(line, index, aliases));
 
-  // Persist the upload + lines (owner-scoped) so feedback and history work.
+  // Persist the upload + lines so feedback and history work. Admin-run BOQs
+  // carry user_id null (migration 0125 relaxed the column).
   let uploadId: string | null = null;
   if (db) {
     const { data: up, error } = await db.from("boq_uploads").insert({
-      user_id: profile.id,
+      user_id: profile?.id ?? null,
       name: (body.name ?? "").slice(0, 120) || null,
       source: body.source ?? "paste",
       line_count: lines.length,
@@ -69,7 +76,7 @@ export async function POST(req: Request) {
       uploadId = up.id;
       await db.from("boq_lines").insert(matches.map((m) => ({
         upload_id: up.id,
-        user_id: profile.id,
+        user_id: profile?.id ?? null,
         position: m.line.position,
         raw_line: m.line.raw.slice(0, 500),
         qty: m.line.qty,

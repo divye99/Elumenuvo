@@ -151,6 +151,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   return <CartCtx.Provider value={value}>{children}</CartCtx.Provider>;
 }
 
+/** Like useCart, but tolerates rendering outside CartProvider (returns null).
+ *  For components that also mount in the admin shell, which has no cart. */
+export function useCartOptional(): Ctx | null {
+  return useContext(CartCtx);
+}
+
 export function useCart(): Ctx {
   const ctx = useContext(CartCtx);
   if (!ctx) throw new Error("useCart must be used within CartProvider");

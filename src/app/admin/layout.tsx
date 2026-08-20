@@ -17,6 +17,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 <Link href="/admin/orders" style={{ color: "rgba(255,255,255,0.75)" }}>Orders</Link>
                 <Link href="/admin/logistics" style={{ color: "rgba(255,255,255,0.75)" }}>Logistics</Link>
                 <Link href="/admin/cart-links" style={{ color: "rgba(255,255,255,0.75)" }}>Cart links</Link>
+                <Link href="/admin/boq" style={{ color: "rgba(255,255,255,0.75)" }}>BOQ</Link>
                 <Link href="/admin/reviews" style={{ color: "rgba(255,255,255,0.75)" }}>Reviews</Link>
                 <Link href="/admin/compare" style={{ color: "rgba(255,255,255,0.75)" }}>Compare</Link>
                 <Link href="/admin/customers" style={{ color: "rgba(255,255,255,0.75)" }}>Customers</Link>

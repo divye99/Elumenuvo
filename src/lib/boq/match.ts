@@ -195,11 +195,16 @@ export function matchBoqLine(line: BoqParsedLine, index: BoqIndex, aliases: Alia
       }
       // Switchgear: the key's trailing form-factor segment (din vs mini) is a
       // compare-engine safety gate a BOQ line never specifies - "MCB 32A SP C"
-      // must match both Havells Mini and DIN series. Retry with the form
-      // segment wildcarded (everything else must still be equal).
-      if (!fpMatches.length && lineFp.key.startsWith("switchgear|")) {
+      // must match both Havells Mini and DIN series. ALWAYS widen to the
+      // form-wildcarded pool (not just when the exact pool is empty): the
+      // line inherits a default form it never asked for, and an exact-only
+      // pool can exclude the very brand the line names ("Havells MCB 32A C
+      // SP" matching only DIN-series LK, live bug Aug 2026). The brand and
+      // token scoring below ranks the widened pool correctly.
+      if (lineFp.key.startsWith("switchgear|")) {
         const prefix = lineFp.key.split("|").slice(0, -1).join("|") + "|";
-        fpMatches = index.items.filter((i) => i.fpKey?.startsWith(prefix));
+        const widened = index.items.filter((i) => i.fpKey?.startsWith(prefix));
+        if (widened.length) fpMatches = widened;
       }
     }
   }

@@ -171,15 +171,19 @@ Bot traffic never enters any loop (see the analytics article). Rate limits cap l
     title: "Smart BOM assistant",
     summary: "Business-only beta: paste a BOQ, get a matched cart with review controls.",
     tags: ["b2b"],
-    body: `The Smart BOM assistant (business accounts only, beta) parses a pasted or uploaded bill of quantities, matches each line to catalogue products, and builds a reviewable cart.
+    body: `The Smart BOM assistant parses a pasted or uploaded bill of quantities, matches each line to catalogue products, and builds a reviewable cart.
+
+## Who can use it
+- Customers: business accounts that have ordered at least once (early-access gate). Everyone else is redirected.
+- The team: /admin/boq runs the same tool on a customer's behalf, for fulfilling BOQ enquiries. Its finish line is a shareable cart LINK (via Admin, then Cart links) sent on WhatsApp, instead of a cart push.
 
 ## How matching works
 - Line parsing extracts quantity, unit, size, brand hints and free text.
 - Matching uses the same lexicon as search, then scores candidates on spec fit.
-- Unmatched or low-confidence lines go to a review list; the buyer confirms or swaps before anything enters the cart.
-- Confirmed matches are remembered (boq learning tables), so the same customer's next BOQ auto-matches better.
+- Unmatched or low-confidence lines go to a review list; the reviewer confirms or swaps before anything is finalised.
+- Confirmed matches are remembered (boq learning tables), so the next BOQ auto-matches better. Admin corrections train the same matcher.
 
-Fully homegrown: no external AI calls. Leads from unmatched lines land in the admin Leads console under boq_unmatched.`,
+Fully homegrown: no external AI calls. Leads from unmatched lines land in the admin Leads console under boq_unmatched (admin-run ones are labeled "Elume admin console").`,
   },
   {
     slug: "price-sync-radar",

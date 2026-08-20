@@ -1,14 +1,18 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getProfile, isBusiness, hasPurchases } from "@/lib/profile";
+import { isAdmin } from "@/lib/admin/auth";
 import BoqAssistant from "@/components/app/BoqAssistant";
 
 /** Smart BOM - the BOQ assistant. Owner gate (Aug 2026): business accounts
  *  WITH a record of purchase only - not public, not zero-order businesses.
- *  Enforced here AND in the match API; this page is the friendly front door. */
+ *  Enforced here AND in the match API; this page is the friendly front door.
+ *  The owner's own way in is the admin console: an admin cookie routes to
+ *  /admin/boq instead of bouncing off the business gate. */
 export const dynamic = "force-dynamic";
 
 export default async function BoqPage() {
+  if (await isAdmin()) redirect("/admin/boq");
   const profile = await getProfile();
   if (!profile) redirect("/signin?next=/app/boq");
   if (!isBusiness(profile)) redirect("/business?from=boq");
