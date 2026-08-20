@@ -25,9 +25,36 @@ type Rail = { key: string; label: string; blurb: string; items: Product[] };
 export type StripItem = { label: string; href: string; img?: string | null; emoji?: string; cat?: string };
 type Sort = "featured" | "price-asc" | "price-desc" | "save-desc" | "top-sellers" | "new";
 
-export default function HubBrowser({ title, subtitle, rails, products, facetLabel, facets, strip, stripTitle }:
-  { title: string; subtitle: string; rails: Rail[]; products: Product[]; facetLabel: string; facets: string[]; strip?: StripItem[]; stripTitle?: string }) {
+export type FacetTreeGroup = { group: string; subs: { value: string; label: string }[] };
+
+export default function HubBrowser({ title, subtitle, hideHeader, rails, products, facetLabel, facets, strip, stripTitle, facet2Label, facets2, facet2Of, facetTreeLabel, facetTree, facetTreeOf }:
+  { title: string; subtitle: string;
+    /** Skip the h1+subtitle header (a brand-experience hero above already
+     *  introduces the page and carries the h1). */
+    hideHeader?: boolean;
+    rails: Rail[]; products: Product[]; facetLabel: string; facets: string[]; strip?: StripItem[]; stripTitle?: string;
+    /** Optional second filter dimension (e.g. Norisys "Series"): values +
+     *  a product-id -> value map, rendered as a second checklist. */
+    facet2Label?: string; facets2?: string[]; facet2Of?: Record<string, string>;
+    /** Optional two-level filter dimension (e.g. Norisys "Finish"): compact
+     *  top-level groups; ticking a group reveals its tone checkboxes. */
+    facetTreeLabel?: string; facetTree?: FacetTreeGroup[]; facetTreeOf?: Record<string, string> }) {
   const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [picked2, setPicked2] = useState<Set<string>>(new Set());
+  const [pickedG, setPickedG] = useState<Set<string>>(new Set()); // tree groups
+  const [pickedS, setPickedS] = useState<Set<string>>(new Set()); // tree sub values
+
+  // Lookup maps for the tree facet: full value -> group, group -> its values.
+  const treeMaps = useMemo(() => {
+    const valueGroup: Record<string, string> = {};
+    const groupValues: Record<string, string[]> = {};
+    for (const g of facetTree ?? []) {
+      groupValues[g.group] = g.subs.map((s) => s.value);
+      for (const s of g.subs) valueGroup[s.value] = g.group;
+      if (g.subs.length === 0) { valueGroup[g.group] = g.group; groupValues[g.group] = [g.group]; }
+    }
+    return { valueGroup, groupValues };
+  }, [facetTree]);
 
   // "?facet=Fans" arriving from a Shop-by-brand / Shop-by-category circle
   // preseeds the filter, so brand+category act as one combined filter.
@@ -45,14 +72,28 @@ export default function HubBrowser({ title, subtitle, rails, products, facetLabe
     });
 
   const facetOf = (p: Product) => (facetLabel === "Brand" ? p.brand : p.cat);
+  const passesTree = (p: Product) => {
+    if (pickedG.size === 0) return true;
+    const v = facetTreeOf?.[p.id];
+    const g = v ? treeMaps.valueGroup[v] : undefined;
+    if (!v || !g || !pickedG.has(g)) return false;
+    // Tones narrow within their group; a group with no ticked tone takes all.
+    const groupHasPickedSub = (treeMaps.groupValues[g] ?? []).some((x) => pickedS.has(x));
+    return groupHasPickedSub ? pickedS.has(v) : true;
+  };
+  const passes = (p: Product) =>
+    (picked.size === 0 || picked.has(facetOf(p))) &&
+    (picked2.size === 0 || picked2.has(facet2Of?.[p.id] ?? "")) &&
+    passesTree(p);
 
+  const noFilters = picked.size === 0 && picked2.size === 0 && pickedG.size === 0;
   const shownRails = useMemo(() => {
-    const scoped = picked.size === 0 ? rails : rails.map((r) => ({ ...r, items: r.items.filter((p) => picked.has(facetOf(p))) }));
+    const scoped = noFilters ? rails : rails.map((r) => ({ ...r, items: r.items.filter(passes) }));
     return scoped.filter((r) => r.items.length >= 3);
-  }, [rails, picked]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [rails, picked, picked2, pickedG, pickedS]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const list = useMemo(() => {
-    let l = picked.size === 0 ? products : products.filter((p) => picked.has(facetOf(p)));
+    let l = products.filter(passes);
     // OOS always sinks, whatever the sort.
     const stockRank = (a: Product, b: Product) => Number(a.inStock === false) - Number(b.inStock === false);
     switch (sort) {
@@ -64,16 +105,18 @@ export default function HubBrowser({ title, subtitle, rails, products, facetLabe
       default: break; // featured = server trending order (already OOS-sunk)
     }
     return l;
-  }, [products, picked, sort]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [products, picked, picked2, pickedG, pickedS, sort]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const anchor = (k: string) => `hub-${k}`;
 
   return (
     <main style={{ maxWidth: 1360, margin: "0 auto", padding: "26px 24px 64px" }}>
-      <header style={{ marginBottom: 18 }}>
-        <h1 style={{ fontFamily: GROTESK, fontSize: 27, fontWeight: 700, margin: "0 0 6px" }}>{title}</h1>
-        <p style={{ fontSize: 14, color: "#56627A", margin: 0, maxWidth: 720 }}>{subtitle}</p>
-      </header>
+      {!hideHeader && (
+        <header style={{ marginBottom: 18 }}>
+          <h1 style={{ fontFamily: GROTESK, fontSize: 27, fontWeight: 700, margin: "0 0 6px" }}>{title}</h1>
+          <p style={{ fontSize: 14, color: "#56627A", margin: 0, maxWidth: 720 }}>{subtitle}</p>
+        </header>
+      )}
 
       {strip && strip.length > 0 && (
         <section style={{ marginBottom: 22 }}>
@@ -118,8 +161,56 @@ export default function HubBrowser({ title, subtitle, rails, products, facetLabe
               </label>
             ))}
           </div>
-          {picked.size > 0 && (
-            <button onClick={() => setPicked(new Set())} style={{ marginTop: 12, border: "none", background: "none", color: "#4E5BDC", fontSize: 12.5, fontWeight: 700, cursor: "pointer", padding: 0 }}>
+          {facet2Label && facets2 && facets2.length > 0 && (
+            <>
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: "#8A93A6", textTransform: "uppercase", letterSpacing: "0.5px", margin: "16px 0 8px" }}>{facet2Label}</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                {facets2.map((f) => (
+                  <label key={f} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#3A4358", cursor: "pointer" }}>
+                    <input type="checkbox" checked={picked2.has(f)} onChange={() => setPicked2((prev) => { const n = new Set(prev); if (n.has(f)) n.delete(f); else n.add(f); return n; })} style={{ accentColor: "#4E5BDC" }} />
+                    {f}
+                  </label>
+                ))}
+              </div>
+            </>
+          )}
+          {facetTreeLabel && facetTree && facetTree.length > 0 && (
+            <>
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: "#8A93A6", textTransform: "uppercase", letterSpacing: "0.5px", margin: "16px 0 8px" }}>{facetTreeLabel}</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                {facetTree.map((g) => (
+                  <div key={g.group}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#3A4358", cursor: "pointer" }}>
+                      <input type="checkbox" checked={pickedG.has(g.group)} onChange={() => {
+                        setPickedG((prev) => {
+                          const n = new Set(prev);
+                          if (n.has(g.group)) {
+                            n.delete(g.group);
+                            // Unticking a group also drops its tone picks.
+                            setPickedS((ps) => { const m = new Set(ps); for (const s of g.subs) m.delete(s.value); return m; });
+                          } else n.add(g.group);
+                          return n;
+                        });
+                      }} style={{ accentColor: "#4E5BDC" }} />
+                      {g.group}
+                    </label>
+                    {pickedG.has(g.group) && g.subs.length > 1 && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 3, margin: "4px 0 4px 24px" }}>
+                        {g.subs.map((s) => (
+                          <label key={s.value} style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12.5, color: "#56627A", cursor: "pointer" }}>
+                            <input type="checkbox" checked={pickedS.has(s.value)} onChange={() => setPickedS((prev) => { const n = new Set(prev); if (n.has(s.value)) n.delete(s.value); else n.add(s.value); return n; })} style={{ accentColor: "#4E5BDC" }} />
+                            {s.label}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+          {!noFilters && (
+            <button onClick={() => { setPicked(new Set()); setPicked2(new Set()); setPickedG(new Set()); setPickedS(new Set()); }} style={{ marginTop: 12, border: "none", background: "none", color: "#4E5BDC", fontSize: 12.5, fontWeight: 700, cursor: "pointer", padding: 0 }}>
               Clear filters
             </button>
           )}
@@ -135,7 +226,7 @@ export default function HubBrowser({ title, subtitle, rails, products, facetLabe
               </div>
               <div style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 10, scrollSnapType: "x proximity" }}>
                 {r.items.map((p, i) => (
-                  <div key={p.id} style={{ flex: "0 0 216px", scrollSnapAlign: "start", position: "relative" }}>
+                  <div key={p.id} className="prail-card" style={{ flex: "0 0 216px", scrollSnapAlign: "start", position: "relative", display: "flex" }}>
                     <div style={{ position: "absolute", top: -1, left: 8, zIndex: 2, background: i === 0 ? "#B8860B" : "#161D2B", color: "#fff", fontFamily: "var(--space-mono)", fontSize: 11, fontWeight: 700, borderRadius: "0 0 7px 7px", padding: "3px 8px" }}>
                       #{i + 1}
                     </div>
@@ -148,7 +239,9 @@ export default function HubBrowser({ title, subtitle, rails, products, facetLabe
 
           {/* ── Full scope catalogue with floating sort header ── */}
           <section id={anchor("all")} style={{ scrollMarginTop: 90 }}>
-            <div style={{ position: "sticky", top: 78, zIndex: 5, background: "#F7F8FB", padding: "8px 0 10px", display: "flex", alignItems: "center", gap: 12, borderBottom: "1px solid #E8EBF1", marginBottom: 14 }}>
+            {/* Plain (non-sticky) section header: a bar frozen mid-scroll read
+                as broken (owner, Aug 2026); the rail already floats the tools. */}
+            <div style={{ padding: "8px 0 10px", display: "flex", alignItems: "center", gap: 12, borderBottom: "1px solid #E8EBF1", marginBottom: 14 }}>
               <h2 style={{ fontFamily: GROTESK, fontSize: 18.5, fontWeight: 700, margin: 0 }}>All products</h2>
               <span style={{ fontSize: 12.5, color: "#8A93A6" }}>{list.length} item{list.length === 1 ? "" : "s"}</span>
               <label style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: "#56627A", fontWeight: 600 }}>
@@ -167,11 +260,11 @@ export default function HubBrowser({ title, subtitle, rails, products, facetLabe
             {/* Keyed on the filter state: filter changes fade-bounce the grid
                 back in; nothing else on the page re-renders. */}
             <div
-              key={`${[...picked].sort().join("+")}|${sort}`}
+              key={`${[...picked, ...picked2, ...pickedG, ...pickedS].sort().join("+")}|${sort}`}
               style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(218px, 1fr))", gap: 14 }}
             >
               {list.map((p, i) => (
-                <div key={p.id} className="pgrid-in" style={{ "--gi": Math.min(i, 20) } as React.CSSProperties}>
+                <div key={p.id} className="pgrid-in" style={{ "--gi": Math.min(i, 20), display: "flex" } as React.CSSProperties}>
                   <ProductCard p={p} />
                 </div>
               ))}
@@ -186,6 +279,9 @@ export default function HubBrowser({ title, subtitle, rails, products, facetLabe
       </div>
 
       <style>{`
+        /* Equal-height cards: the wrapper is a flex box, so the card anchor
+           stretches to the tallest sibling in its rail row / grid row. */
+        .prail-card > a, .pgrid-in > a { flex: 1 1 auto; min-width: 0; }
         @media (max-width: 860px) {
           .col-shell { grid-template-columns: 1fr !important; }
           /* Phones get no filter rail at all - the brand/category strip and
