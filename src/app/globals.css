@@ -3,10 +3,8 @@
 /* ── Theme tokens (Tailwind 4, CSS-first) ────────────────────────── */
 @theme {
   /* Elume (FMEG) prototype fonts */
-  /* General Sans (brand face, Factor X kit) backs both the old body and
-     heading variables, so every inline font-family resolves to it. */
-  --font-sans: var(--font-general-sans), "General Sans", sans-serif;
-  --font-grotesk: var(--font-general-sans), "General Sans", sans-serif;
+  --font-sans: var(--font-hanken), "Hanken Grotesk", sans-serif;
+  --font-grotesk: var(--font-space-grotesk), "Space Grotesk", sans-serif;
   --font-mono: var(--font-space-mono), "Space Mono", monospace;
   --font-inter: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
 
@@ -22,8 +20,8 @@
 /* Font-family CSS values used by the Elume design components via inline styles
    (lib/fonts.ts → GROTESK/MONO). Backed by next/font variables from layout.tsx. */
 :root {
-  --hanken: var(--font-general-sans), "General Sans", sans-serif;
-  --space-grotesk: var(--font-general-sans), "General Sans", sans-serif;
+  --hanken: var(--font-hanken), "Hanken Grotesk", sans-serif;
+  --space-grotesk: var(--font-space-grotesk), "Space Grotesk", sans-serif;
   --space-mono: var(--font-space-mono), "Space Mono", monospace;
 }
 
@@ -39,7 +37,7 @@ html {
   scroll-behavior: smooth;
 }
 body {
-  font-family: var(--hanken), "General Sans", sans-serif;
+  font-family: var(--hanken), "Hanken Grotesk", sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   color: #19202e;

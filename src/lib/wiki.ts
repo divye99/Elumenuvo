@@ -228,7 +228,7 @@ Tracks competitor prices over time per SKU, flags where we have drifted above ma
 
 ## Identity tokens
 - Palette: Azule Blue #1D2F8A (primary accent), Midnight Blue #16215B (dark surfaces), Bright Orange #F25929 (highlight), Violet #723271, Spark Gold #D2AE6D (premium accents), Black #121212. Signature gradient: linear-gradient(133deg, #16215B, #1D2F8A 34%, #723271 70%, #F25929 104%).
-- Fonts: General Sans sitewide (local woff2 in src/fonts, Fontshare license alongside); Space Mono for SKU chips. Tw Cen MT is PRINT ONLY (Monotype license) - never embed it on the web.
+- Fonts: the SITE stays on Hanken Grotesk (body) + Space Grotesk (headings) + Space Mono (SKU chips) - the kit's General Sans was tried sitewide and reverted (owner call, Aug 2026); General Sans remains the PRINT/collateral face (brochures, og image). Tw Cen MT is PRINT ONLY (Monotype license) - never embed either on the web.
 - Logos: /assets/elume-mark.png (mark + gold star), elume-wordmark(.png/-white.png), elume-mark-square.png (SEO), elume-star.png (spark accent). App icons and og.png are generated from the kit.
 - TAGLINE RULE: "Current ka naya standard" belongs to the HOUSEWIRES range only - the brand page and wire surfaces, never the marketplace chrome.
 

@@ -4,24 +4,25 @@ import SiteTracker from "@/components/SiteTracker";
 import { Suspense } from "react";
 import GoogleTag from "@/components/GoogleTag";
 import type { Metadata } from "next";
-import { Space_Mono } from "next/font/google";
-import localFont from "next/font/local";
+import { Hanken_Grotesk, Space_Grotesk, Space_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import { ORG } from "@/lib/seo";
 import "./globals.css";
 
-// General Sans is the brand face from the Factor X identity kit (licensed
-// under the Fontshare Free Font License, see src/fonts/GeneralSans-LICENSE.txt).
-// It feeds BOTH legacy font variables (--font-hanken for body text and
-// --font-space-grotesk for headings) via globals.css, so every inline
-// font-family in the storefront picks it up without edits. Space Mono stays
-// for SKU chips and technical annotations.
-const generalSans = localFont({
-  src: [
-    { path: "../fonts/GeneralSans-Variable.woff2", style: "normal", weight: "200 700" },
-    { path: "../fonts/GeneralSans-VariableItalic.woff2", style: "italic", weight: "200 700" },
-  ],
-  variable: "--font-general-sans",
+// Typography stays on the original stack (owner call, Aug 2026: the identity
+// kit's General Sans was tried sitewide and reverted): Hanken Grotesk for
+// body text, Space Grotesk for headings, Space Mono for SKU chips. General
+// Sans remains the PRINT/collateral face (brochures, og image).
+const hanken = Hanken_Grotesk({
+  variable: "--font-hanken",
+  weight: ["400", "500", "600", "700", "800"],
+  subsets: ["latin"],
+  display: "swap",
+});
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
   display: "swap",
 });
 const spaceMono = Space_Mono({
@@ -83,7 +84,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${generalSans.variable} ${spaceMono.variable}`}
+      className={`${hanken.variable} ${spaceGrotesk.variable} ${spaceMono.variable}`}
     >
       <body>
         <Suspense fallback={null}>
