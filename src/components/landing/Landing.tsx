@@ -189,7 +189,7 @@ export default function Landing({ content }: { content: SiteContent }) {
             place. Priced fair.
           </h1>
           <p style={{ fontSize: 17.5, lineHeight: 1.6, color: "#56627A", margin: "0 0 24px", maxWidth: 470 }}>
-            The dedicated B2B storefront for electrical goods - 20,000+ SKUs, transparent pricing, and a year of price
+            The dedicated B2B storefront for electrical goods - 9,000+ SKUs, transparent pricing, and daily price
             history on every product.
           </p>
           {/* storefront search */}
@@ -285,7 +285,7 @@ export default function Landing({ content }: { content: SiteContent }) {
             </div>
           </div>
           <div style={{ display: "flex", gap: 30, marginTop: 40 }}>
-            <Stat value="20,000+" label="SKUs across top brands" />
+            <Stat value="9,000+" label="SKUs across 24 brands" />
             <div style={{ width: 1, background: "#EEF0F4" }} />
             <Stat value="~8%" label="avg landed-price saving" />
             <div style={{ width: 1, background: "#EEF0F4" }} />
@@ -405,7 +405,7 @@ export default function Landing({ content }: { content: SiteContent }) {
               The storefront
             </div>
             <h2 style={{ fontFamily: GROTESK, fontSize: 38, lineHeight: 1.1, letterSpacing: "-1px", margin: "0 0 12px", color: "#161D2B" }}>
-              20,000+ SKUs. Every brand, one cart.
+              9,000+ SKUs. Every brand, one cart.
             </h2>
             <p style={{ fontSize: 16, lineHeight: 1.6, color: "#56627A", margin: 0, maxWidth: 520 }}>
               From 2.5 mm² wire to BLDC fans and modular switches - browse live stock and transparent pricing across the
@@ -543,8 +543,8 @@ export default function Landing({ content }: { content: SiteContent }) {
               Know the real price. Every single day.
             </h2>
             <p style={{ fontSize: 16, lineHeight: 1.6, color: "#56627A", margin: 0 }}>
-              Elume captures the market price of every SKU daily - a full year of history per product. See where prices
-              are heading, and exactly how far below market you&apos;re buying, before you commit a PO.
+              Elume captures the market price of every SKU daily and charts the history on every product page. See
+              where prices are heading, and exactly how far below market you&apos;re buying, before you commit a PO.
             </p>
           </div>
 
