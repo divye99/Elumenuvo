@@ -2,14 +2,18 @@
 -- 0128 · Bot classifier v2: the fleet-IP signal
 --
 -- Owner (Aug 2026): "bot filtering needs to get strengthened, don't think
--- we're capturing it all." The remaining leak: crawlers on CURRENT browser
--- versions with fresh device tokens per hit. Their tell: one exit IP
--- minting many distinct session ids, none of which ever engages. A real
--- shared IP (office NAT, campus) also carries many sids, but real people
--- tap things - one engaged session anywhere on the IP clears the whole IP.
+-- we're capturing it all" AND "engagement is not equal to views - people
+-- just viewing must never be filtered out." Both honored: viewing alone
+-- NEVER flags anyone; engagement is only ever exculpatory evidence.
 --
--- Adds reason 'fleet-ip' to classify_bot_sessions: an IP with 4+ distinct
--- sids in the window, ZERO of them engaged, flags all its sessions.
+-- The remaining leak: crawlers on CURRENT browser versions minting a fresh
+-- device token per hit. Their tell: one exit IP, MANY distinct session ids,
+-- and not one tap anywhere - our tracker records every real tap as a click
+-- event, and across 6+ sessions from one place, real humans always tap
+-- something. Fleet-ip therefore fires only when an IP has 6+ distinct sids
+-- AND zero clicks AND zero carts AND zero sign-ins across ALL of them. A
+-- lone quiet reader (1 sid from their IP) can never trip it; a small office
+-- clears itself the moment anyone taps anything at all.
 -- Keep in lockstep with FLEET_IP_MIN_SIDS in src/lib/bots.ts.
 --
 -- Then re-classifies all history and re-rolls product metrics so EMS sheds
@@ -68,12 +72,18 @@ begin
     having count(*) >= 8 and bool_and(not engaged)
   ),
   fleet_ip as (
-    -- One exit IP, many fresh device tokens, not one engagement anywhere:
-    -- an automation fleet. A single engaged session clears the whole IP.
+    -- One exit IP, 6+ fresh device tokens, and not a single tap, cart or
+    -- sign-in across ANY of them: an automation fleet. Any click anywhere
+    -- on the IP clears it entirely (dwell is deliberately NOT enough to
+    -- clear - the proxy wave fakes leave-timers - but it is never used
+    -- against anyone either).
     select ip from _sess
     where ip is not null
     group by ip
-    having count(*) >= 4 and bool_and(not engaged)
+    having count(*) >= 6
+       and coalesce(sum(clicks), 0) = 0
+       and coalesce(sum(carts), 0) = 0
+       and not bool_or(identified)
   )
   insert into bot_sessions (sid, reason)
   select

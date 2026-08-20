@@ -252,6 +252,7 @@ Pincode to zone mapping is offline (no per-request API): a bundled pincode datas
 - Blog: 50 buyer-question guides written for queries electricians and buyers actually type. Guides interlink and link into category and price-list pages.
 - Price-list pages: 41 brand/category price-list pages generated from OUR live prices (never scraped tables), refreshed with the catalogue.
 - IndexNow: every publish pings search engines the same day; weekly full re-ping.
+- Merchant Center: products flow via the /api/merchant-feed link Google fetches daily; promotions flow the same way via /api/merchant-promotions, managed in Admin, then Promotions (shared codes or no-code offers, never the one-time discount codes).
 - Directory presence: Google Business (Hapur, Noida), IndiaMART, TradeIndia, Justdial, ExportersIndia, Sulekha.
 
 KAM note: rankings compound slowly; the honest answer to "why are we not #1" is domain age and backlinks, both of which these programmes grow.`,
@@ -276,7 +277,7 @@ Engagement (an identity, an add-to-cart, or a tap plus measured dwell) always pr
 
 ## Bot defense, three layers
 - Ingest: /api/track, /api/search-log and /api/explore-log all reject requests matching the bot user-agent list or known crawler IP ranges (src/lib/bots.ts, ~60 patterns plus Googlebot/Bingbot IP prefixes).
-- Classifier + rollup (migrations 0124/0128): classify_bot_sessions writes verdicts into the bot_sessions table on objective evidence only: bot UA, crawler IP, a frozen browser version no auto-updating human still runs (thresholds move forward yearly), the fleet-UA signature (8+ sessions sharing one exact UA, zero engaged), the fleet-IP signature (one IP minting 4+ device tokens, zero engaged anywhere: one real tap clears the whole IP, so office networks never trip it), or heavy crawling (10+ pageviews, zero interaction). rollup_product_metrics excludes those sids, so product_metrics_daily and therefore EMS stay clean. The nightly cron classifies, then rolls; the daily-traffic tab also classifies the current day on load.
+- Classifier + rollup (migrations 0124/0128): classify_bot_sessions writes verdicts into the bot_sessions table on objective evidence only: bot UA, crawler IP, a frozen browser version no auto-updating human still runs (thresholds move forward yearly), the fleet-UA signature (8+ sessions sharing one exact UA, zero engaged), the fleet-IP signature (one IP minting 6+ device tokens with zero taps, carts or sign-ins across all of them: quiet viewing alone never flags anyone, and one tap anywhere clears the whole IP, so office networks never trip it), or heavy crawling (10+ pageviews, zero interaction). rollup_product_metrics excludes those sids, so product_metrics_daily and therefore EMS stay clean. The nightly cron classifies, then rolls; the daily-traffic tab also classifies the current day on load.
 - Display: the same evidence rules classify sessions in the analytics UI; an engaged session is never flagged. The Searches tab drops rows from bot sessions too, including historic pre-gate rows. "Include likely bots" in the filter shows them on demand.
 
 Verified Aug 2026: the evidence rules caught 94% of the wave while keeping every current-browser bounce, Indian or foreign. The few percent that are indistinguishable from real bounces stay counted, by design: when we cannot prove machine, we count the view.`,

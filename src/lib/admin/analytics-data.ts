@@ -259,18 +259,21 @@ export function toVisitors(events: SiteEvent[]): Visitor[] {
     uaGroups.set(v.ua, g);
   }
   const fleetUAs = new Set([...uaGroups.entries()].filter(([, g]) => g.n >= FLEET_MIN_SESSIONS && g.engaged === 0).map(([ua]) => ua));
-  // Fleet-IP signal (0128): one exit IP minting many device tokens with not
-  // one engagement anywhere is automation; a single engaged session clears
-  // the whole IP (so office NATs and campuses never trip it).
-  const ipGroups = new Map<string, { n: number; engaged: number }>();
+  // Fleet-IP signal (0128): one exit IP minting 6+ device tokens with zero
+  // clicks, zero carts and zero sign-ins across ALL of them is automation.
+  // Quiet viewing alone never flags anyone; any single tap anywhere on the
+  // IP clears the whole IP (so office NATs and campuses never trip it).
+  const ipGroups = new Map<string, { n: number; clicks: number; carts: number; idents: number }>();
   for (const v of all) {
     if (!v.ip) continue;
-    const g = ipGroups.get(v.ip) ?? { n: 0, engaged: 0 };
+    const g = ipGroups.get(v.ip) ?? { n: 0, clicks: 0, carts: 0, idents: 0 };
     g.n += 1;
-    if (engagedOf(v)) g.engaged += 1;
+    g.clicks += v.clicks;
+    g.carts += v.addToCarts;
+    if (v.identity.email) g.idents += 1;
     ipGroups.set(v.ip, g);
   }
-  const fleetIPs = new Set([...ipGroups.entries()].filter(([, g]) => g.n >= FLEET_IP_MIN_SIDS && g.engaged === 0).map(([ip]) => ip));
+  const fleetIPs = new Set([...ipGroups.entries()].filter(([, g]) => g.n >= FLEET_IP_MIN_SIDS && g.clicks === 0 && g.carts === 0 && g.idents === 0).map(([ip]) => ip));
   for (const v of all) {
     if (engagedOf(v)) { v.likelyBot = false; continue; }
     const uaBot = !!v.ua && (BOT_RE.test(v.ua) || LOOSE_AGENT_RE.test(v.ua));
