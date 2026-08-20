@@ -22,7 +22,7 @@ export const ORG = {
   legalName: "Elume Nuvotech Private Limited",
   // "Elumenuvo" teaches Google the domain string is OUR brand, not a typo of
   // something else (it was autocorrecting "elumenuvo" to a person's name).
-  alternateName: ["Elume Nuvotech", "Elumenuvo"],
+  alternateName: ["Elume Nuvotech", "Elumenuvo", "Elume Electrical"],
   url: SITE,
   // Square export of the mark: Google's logo guidance wants square-ish.
   logo: `${SITE}/assets/elume-mark-square.png`,
@@ -79,7 +79,7 @@ export const WEBSITE = {
   "@type": "WebSite",
   "@id": `${SITE}/#website`,
   name: "Elume",
-  alternateName: ["Elumenuvo", "Elume Nuvotech", "elumenuvo.com"],
+  alternateName: ["Elumenuvo", "Elume Nuvotech", "Elume Electrical", "elumenuvo.com"],
   url: `${SITE}/`,
   publisher: { "@id": `${SITE}/#organization` },
   potentialAction: {
