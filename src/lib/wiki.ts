@@ -187,7 +187,7 @@ Bot traffic never enters any loop (see the analytics article). Rate limits cap l
 Fully homegrown: no external AI calls. Leads from unmatched lines land in the admin Leads console under boq_unmatched (admin-run ones are labeled "Elume admin console").
 
 ## Quotation export (.docx)
-/admin/quotation (also reachable from the console's approved lines via "export a quotation") turns an enquiry into the standard Elume quotation as an EDITABLE Word file: enquiry email + RFQ lines in, docx out. The format is owner-specified (Aug 2026): every figure EXCLUSIVE of GST, manufacturer MRP (ex-GST) next to the Elume price (ex-GST) with the discount computed between them, GST added once at the bottom (IGST or CGST/SGST), lean terms (no documents/specification rows), optional "This is our best offer." line. Edit the Word file, then print to PDF.`,
+/admin/quotation (also reachable from the console's approved lines via "export a quotation") turns an enquiry into the standard Elume quotation as an EDITABLE Word file: enquiry email + RFQ lines in, docx out. The format is owner-specified (Aug 2026): every figure EXCLUSIVE of GST, manufacturer MRP (ex-GST) next to the Elume price (ex-GST) with the discount computed between them, GST added once at the bottom (IGST or CGST/SGST), lean terms (no documents/specification rows), optional "This is our best offer." line. The Factor X letterhead (public/assets/letterhead.png, fetched from our CDN at build time) sits behind the text on every page, with the body margins set inside its logo band and footer rule; a single-item quote fits one page, multi-item quotes flow on. Edit the Word file, then print to PDF.`,
   },
   {
     slug: "price-sync-radar",
