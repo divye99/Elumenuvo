@@ -9,6 +9,7 @@
  * can at worst trigger an extra read.
  */
 import { createClient } from "@supabase/supabase-js";
+import { timeoutFetch } from "@/lib/supabase/fetch-timeout";
 import { trackByAwb } from "@/lib/shiprocket";
 import { sendCustomerStatusUpdate } from "@/lib/email";
 
@@ -16,7 +17,7 @@ function service() {
   const url = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim();
   const key = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
   if (!url || !key) return null;
-  return createClient(url, key, { auth: { persistSession: false } });
+  return createClient(url, key, { auth: { persistSession: false }, global: { fetch: timeoutFetch } });
 }
 
 const FINAL = new Set(["delivered", "rto", "lost"]);

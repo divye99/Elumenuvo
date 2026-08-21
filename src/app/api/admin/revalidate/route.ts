@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { isAdmin } from "@/lib/admin/auth";
 import { PRODUCTS_CACHE_TAG, forgetCatalogueMemo } from "@/lib/products";
@@ -38,5 +38,14 @@ export async function POST(request: Request) {
   if (!bySecret && !byScript && !(await isAdmin())) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   revalidateTag(PRODUCTS_CACHE_TAG, "max");
   forgetCatalogueMemo();
-  return NextResponse.json({ ok: true, tag: PRODUCTS_CACHE_TAG, at: new Date().toISOString() });
+  // Product pages are ISR for a day and read their own row directly, so the
+  // catalogue tag does not reach them: callers that changed specific products
+  // pass their ids and each page is purged by path.
+  let purged = 0;
+  try {
+    const body = (await request.json().catch(() => null)) as { ids?: unknown } | null;
+    const ids = Array.isArray(body?.ids) ? body!.ids.filter((x): x is string => typeof x === "string" && /^[\w.-]{1,120}$/.test(x)).slice(0, 1000) : [];
+    for (const id of ids) { revalidatePath(`/catalogue/${id}`); purged++; }
+  } catch { /* no body */ }
+  return NextResponse.json({ ok: true, tag: PRODUCTS_CACHE_TAG, pages: purged, at: new Date().toISOString() });
 }

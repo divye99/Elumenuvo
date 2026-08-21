@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { timeoutFetch } from "@/lib/supabase/fetch-timeout";
 import { cookies } from "next/headers";
 
 /* Server Supabase client (RSC / route handlers). Reads & writes the
@@ -15,7 +16,8 @@ export async function createClient() {
   }
 
   return createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
+    global: { fetch: timeoutFetch },
+      cookies: {
       getAll() {
         return cookieStore.getAll();
       },

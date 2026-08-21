@@ -80,9 +80,21 @@ function client() {
 
 // Select with embedded review ratings; falls back to a plain select if the
 // reviews table doesn't exist yet (SQL not run).
+/** A PostgREST result that never reached the database: the fetch aborted at
+ *  our ceiling, DNS/TLS failed, or the Supabase gateway answered 5xx. Such a
+ *  result must surface as an ERROR, never as "no rows": a product page that
+ *  treated it as "no such product" would cache a 404 for a day, and a list
+ *  page would cache an empty catalogue (21 Aug 2026 review finding). It also
+ *  stops the column fallback ladders, which would otherwise stack the
+ *  ceiling once per rung. */
+const isTransportFailure = (res: { error: unknown; status?: number }) => !!res.error && (!res.status || res.status >= 500);
+export class CatalogueUnavailable extends Error {
+  constructor(msg?: string) { super(msg || "catalogue unavailable"); this.name = "CatalogueUnavailable"; }
+}
+
 async function selectProducts(c: NonNullable<ReturnType<typeof client>>, applyFilter: (q: any) => any) {
   let res = await applyFilter(c.from("products").select("*, reviews(rating)"));
-  if (res.error) res = await applyFilter(c.from("products").select("*"));
+  if (res.error && !isTransportFailure(res)) res = await applyFilter(c.from("products").select("*"));
   return res;
 }
 
@@ -127,18 +139,36 @@ const VERSION_MEMO_MS = 60_000;
  *  and new cache entries are written only when the catalogue actually
  *  changed. Before 0133 (table missing) the value stays "0" and the time
  *  window plus the "products" tag govern freshness exactly as before. */
-export async function catalogueVersion(): Promise<string> {
-  if (versionMemo && Date.now() - versionMemo.at < VERSION_MEMO_MS) return versionMemo.v;
+let versionInflight: Promise<string> | null = null;
+const VERSION_PROBE_MS = 3_000;
+/** Quantised to 5-minute buckets: a row-by-row script bumps the trigger
+ *  hundreds of times, and each new value would otherwise rewrite the whole
+ *  chunk set on every warm instance. One rebuild per bucket at most, a
+ *  freshness lag of at most ~6 minutes. */
+const VERSION_BUCKET_MS = 5 * 60_000;
+
+async function probeVersion(): Promise<string> {
   let v = versionMemo?.v ?? "0";
   const c = client();
   if (c) {
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), VERSION_PROBE_MS);
     try {
-      const { data, error } = await c.from("catalogue_version").select("version").eq("singleton", true).maybeSingle();
-      if (!error && data?.version != null) v = String(data.version);
-    } catch { /* keep the last known version */ }
+      const { data, error } = await c.from("catalogue_version").select("version").eq("singleton", true).abortSignal(ctl.signal).maybeSingle();
+      if (!error && data?.version != null) v = String(Math.floor(Number(data.version) / VERSION_BUCKET_MS));
+    } catch { /* keep the last known version */ } finally { clearTimeout(timer); }
   }
   versionMemo = { at: Date.now(), v };
   return v;
+}
+
+export async function catalogueVersion(): Promise<string> {
+  if (versionMemo && Date.now() - versionMemo.at < VERSION_MEMO_MS) return versionMemo.v;
+  if (!versionInflight) versionInflight = probeVersion().finally(() => { versionInflight = null; });
+  // A known value is served at once and refreshed in the background; only a
+  // cold instance waits, and then for at most VERSION_PROBE_MS.
+  if (versionMemo) return versionMemo.v;
+  return versionInflight;
 }
 export function forgetCatalogueMemo() { cardsMemo = null; liteMemo = null; versionMemo = null; }
 
@@ -166,11 +196,12 @@ async function selectCards(c: NonNullable<ReturnType<typeof client>>, applyFilte
   // the join if the relationship is unavailable rather than losing the grid,
   // then without ship_weight_kg on pre-0110 databases.
   let res = await applyFilter(c.from("products").select(`${CARD_COLS}, reviews(rating)`));
-  if (res.error) res = await applyFilter(c.from("products").select(CARD_COLS));
-  if (res.error) res = await applyFilter(c.from("products").select(`${CARD_COLS_NO_ELIN}, reviews(rating)`));
-  if (res.error) res = await applyFilter(c.from("products").select(CARD_COLS_NO_ELIN));
-  if (res.error) res = await applyFilter(c.from("products").select(`${CARD_COLS_LEGACY}, reviews(rating)`));
-  if (res.error) res = await applyFilter(c.from("products").select(CARD_COLS_LEGACY));
+  const retry = (r: { error: unknown; status?: number }) => !!r.error && !isTransportFailure(r);
+  if (retry(res)) res = await applyFilter(c.from("products").select(CARD_COLS));
+  if (retry(res)) res = await applyFilter(c.from("products").select(`${CARD_COLS_NO_ELIN}, reviews(rating)`));
+  if (retry(res)) res = await applyFilter(c.from("products").select(CARD_COLS_NO_ELIN));
+  if (retry(res)) res = await applyFilter(c.from("products").select(`${CARD_COLS_LEGACY}, reviews(rating)`));
+  if (retry(res)) res = await applyFilter(c.from("products").select(CARD_COLS_LEGACY));
   return res;
 }
 
@@ -181,10 +212,12 @@ export async function fetchProductByElin(elin: string): Promise<Product | null> 
   const c = client();
   if (!c) return null;
   try {
-    const { data, error } = await selectProducts(c, (q) => q.eq("elin", elin.trim().toUpperCase()).maybeSingle());
-    if (error || !data) return null;
-    return toProduct(data as Row);
-  } catch {
+    const res = await selectProducts(c, (q) => q.eq("elin", elin.trim().toUpperCase()).maybeSingle());
+    if (isTransportFailure(res)) throw new CatalogueUnavailable(res.error?.message);
+    if (res.error || !res.data) return null;
+    return toProduct(res.data as Row);
+  } catch (e) {
+    if (e instanceof CatalogueUnavailable) throw e; // let the render fail; ISR keeps the last good page
     return null;
   }
 }
@@ -194,7 +227,7 @@ export async function fetchProductByElin(elin: string): Promise<Product | null> 
  *  production - the fetch just runs uncached on every request, which is the
  *  exact egress leak this exists to stop). The whole catalogue serializes
  *  past that line, so each 1500-row chunk is its own comfortably-small cache
- *  entry sharing the same tag and 5-minute window. */
+ *  entry sharing the same tag, watermark key and six-hour window. */
 // EXACTLY 1000: PostgREST hard-caps every response at 1000 rows no matter
 // what range is requested. A larger chunk silently comes back as 1000, the
 // "short chunk = last chunk" check fires early, and the whole storefront
@@ -211,7 +244,7 @@ const cardRowsChunk = unstable_cache(
     // batches, and an unstable tie order differs between the HTML and RSC
     // renders, causing a hydration mismatch on the home shelves.
     // THROW on failure - a thrown error is never cached, while returning []
-    // would cache "catalogue ends here" for 5 minutes.
+    // would cache "catalogue ends here" for the whole window.
     const from = page * ROW_CHUNK;
     const { data, error } = await selectCards(c, (q) => q.eq("is_active", true).order("sort_order").order("id").range(from, from + ROW_CHUNK - 1));
     if (error) throw new Error(error.message);
@@ -243,18 +276,22 @@ async function fetchProductsUncached(): Promise<Product[]> {
   } catch {
     // Cache layer unavailable: serve the catalogue uncached rather than empty.
     const c = client();
-    if (!c) return [];
+    if (!c) throw new CatalogueUnavailable("no client");
     try {
       const all: Row[] = [];
       for (let from = 0; ; from += 1000) {
-        const { data, error } = await selectCards(c, (q) => q.eq("is_active", true).order("sort_order").order("id").range(from, from + 999));
+        const res = await selectCards(c, (q) => q.eq("is_active", true).order("sort_order").order("id").range(from, from + 999));
+        if (isTransportFailure(res)) throw new CatalogueUnavailable(res.error?.message);
+        const { data, error } = res;
         if (error || !data?.length) break;
         all.push(...(data as Row[]));
         if (data.length < 1000) break;
       }
       return all.map(toProduct);
-    } catch {
-      return [];
+    } catch (e) {
+      // Never hand back an empty catalogue: a throw keeps the last good ISR
+      // page on screen, an empty array would be cached as "no products".
+      throw e instanceof CatalogueUnavailable ? e : new CatalogueUnavailable();
     }
   }
 }
@@ -305,18 +342,22 @@ async function fetchProductsLiteUncached(): Promise<Product[]> {
   } catch {
     // Cache layer unavailable: serve uncached rather than empty.
     const c = client();
-    if (!c) return [];
+    if (!c) throw new CatalogueUnavailable("no client");
     try {
       const all: Row[] = [];
       for (let from = 0; ; from += 1000) {
-        const { data, error } = await c.from("products").select(LITE_COLS).eq("is_active", true).order("sort_order").order("id").range(from, from + 999);
+        const res = await c.from("products").select(LITE_COLS).eq("is_active", true).order("sort_order").order("id").range(from, from + 999);
+        if (isTransportFailure(res)) throw new CatalogueUnavailable(res.error?.message);
+        const { data, error } = res;
         if (error || !data?.length) break;
         all.push(...(data as unknown as Row[]));
         if (data.length < 1000) break;
       }
       return all.map(toProduct);
-    } catch {
-      return [];
+    } catch (e) {
+      // Never hand back an empty catalogue: a throw keeps the last good ISR
+      // page on screen, an empty array would be cached as "no products".
+      throw e instanceof CatalogueUnavailable ? e : new CatalogueUnavailable();
     }
   }
 }
@@ -325,10 +366,12 @@ export async function fetchProduct(id: string): Promise<Product | null> {
   const c = client();
   if (!c) return null;
   try {
-    const { data, error } = await selectProducts(c, (q) => q.eq("id", id).maybeSingle());
-    if (error || !data) return null;
-    return toProduct(data as Row);
-  } catch {
+    const res = await selectProducts(c, (q) => q.eq("id", id).maybeSingle());
+    if (isTransportFailure(res)) throw new CatalogueUnavailable(res.error?.message);
+    if (res.error || !res.data) return null;
+    return toProduct(res.data as Row);
+  } catch (e) {
+    if (e instanceof CatalogueUnavailable) throw e; // let the render fail; ISR keeps the last good page
     return null;
   }
 }
@@ -345,12 +388,15 @@ export async function fetchFamily(p: Pick<Product, "id" | "parentId">): Promise<
     // Card columns: the family feeds the variant picker (attrs) and the
     // range rail (ProductCard) - neither reads tech_specs or galleries, and
     // a 37-colour family at full weight was real per-PDP-render tonnage.
-    const { data, error } = await selectCards(c, (q) =>
+    const res = await selectCards(c, (q) =>
       q.or(`id.eq.${root},parent_id.eq.${root}`).eq("is_active", true).order("sort_order")
     );
+    if (isTransportFailure(res)) throw new CatalogueUnavailable(res.error?.message);
+    const { data, error } = res;
     if (error || !data || data.length < 2) return [];
     return (data as Row[]).map(toProduct);
-  } catch {
+  } catch (e) {
+    if (e instanceof CatalogueUnavailable) throw e;
     return [];
   }
 }

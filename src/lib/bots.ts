@@ -78,33 +78,37 @@ export const FLEET_IP_MIN_SIDS = 6;
 
 /* ── Edge bouncer (src/proxy.ts), owner rules 21 Aug 2026 ──
    Block DISGUISES, never a real person on an old device. India has plenty of
-   Windows 7 PCs (Chrome stops at 109 there), UC Browser (reports Chrome 78),
-   JioPhones on KaiOS (Firefox 48) and old iPhones; all of them must get in.
+   Windows 7 PCs (Chrome stops at 109 there), UC Browser (reports Chrome 78
+   or, in v15, "Version/4.0 Chrome/100"), the U4-kernel browsers that ship as
+   default on Oppo/Realme/OnePlus (HeyTap), Vivo and Quark, Huawei/Honor,
+   JioPages, JioPhones on KaiOS (Firefox 48) and old iPhones; all must get in.
    What is refused:
    - a scraper toolkit that says so (Lightpanda, Puppeteer, Playwright,
      PhantomJS), and plain HeadlessChrome unless it also names an honest
      service (Vercel's deployment screenshot, Lighthouse, a previewer);
-   - a request CLAIMING to be Chromium 89 or newer without the Sec-CH-UA
-     client-hint header. Every real Chromium 89+ (Chrome, Edge, Opera, Brave,
-     Samsung Internet, Vivaldi, Yandex) sends it on HTTPS automatically; the
-     scraper fleet of 19 Aug typed "Chrome/120" into a script that sends no
-     hints at all. In-app browsers and WebViews are exempt because some apps
-     rewrite the UA and hint behaviour varies;
-   - a request claiming Firefox 116 to 124, a version band that no real
-     browser sits in: 115 ESR is the last Firefox for Windows 7 and stays
-     allowed, 125+ is a current auto-updating Firefox, 116 to 124 were only
-     ever six-week releases from 2023-24 that auto-updated themselves away.
-     The 19 Aug fleet used Firefox 120 and 121.
+   - a request CLAIMING to be Google Chrome/Chromium 89+ without the Sec-CH-UA
+     client-hint header. Real Chrome, Edge, Opera, Brave, Samsung Internet,
+     Vivaldi and Yandex send it on HTTPS automatically; the 19 Aug fleet typed
+     "Chrome/120" into a script that sends no hints. WebViews, in-app browsers
+     and the OEM/kernel browsers above are exempt (IN_APP_RE): they carry a
+     Chrome token but are not Chrome, and some do not send hints;
+   - a request claiming Firefox 116 to 124 that sends NO Fetch Metadata at
+     all (a script). A real Firefox in that band (Portable builds, IT-pinned
+     offices, Iceraven) sends Sec-Fetch-Mode and is served, logged as "soft".
+     115 ESR (the last Firefox for Windows 7) and 125+ are never questioned.
    Self-identified crawlers, monitors and link previewers (BOT_RE) are always
-   let through; robots.txt governs them, not the bouncer. */
-/** Scraper toolkits: refused even when they say who they are. */
+   let through; robots.txt governs them, not the bouncer. Anyone signed in,
+   or who once pressed "I am a person" on the refusal page, skips all of it
+   (src/proxy.ts). Corpus: scripts/test-bouncer.ts. */
 const TOOLKIT_RE = /lightpanda|phantomjs|puppeteer|playwright/i;
-/** Plain headless Chrome: refused unless the request also names an honest
- *  service (Vercel's deployment screenshots, Lighthouse, previewers), which
- *  BOT_RE recognises. */
 export const HEADLESS_RE = /headlesschrome/i;
-const IN_APP_RE = /\bwv\b|FBAN|FBAV|FB_IAB|Instagram|Snapchat|Line\/|MicroMessenger|GSA\/|DuckDuckGo\/|Electron\//i;
-export type BouncerVerdict = "ok" | "headless" | "spoofed-chromium" | "stale-firefox";
+/** Shells and browsers that carry a Chrome/ token but are NOT Google Chrome.
+ *  "Version/x.y" is the give-away for WebView-derived engines (real Chrome
+ *  never sends it); the vendor tokens cover the ones that drop it. */
+const IN_APP_RE = /\bwv\b|\bVersion\/\d+\.\d+\b|Linux; U; Android|FBAN|FBAV|FB_IAB|Instagram|Snapchat|Line\/|MicroMessenger|GSA\/|DuckDuckGo\/|Electron\/|UCBrowser|UCWEB|HeyTapBrowser|VivoBrowser|MiuiBrowser|XiaoMi\/|HuaweiBrowser|HonorBrowser|JioPages|Quark\/|PHX\/|Silk\/|Puffin\/|QtWebEngine\/|Opera Mini|SMART-TV|SmartTV|Web0S|WebAppManager|Tizen/i;
+export type BouncerVerdict = "ok" | "headless" | "spoofed-chromium" | "stale-firefox" | "stale-firefox-soft";
+/** Verdicts that are SERVED. The soft one is only logged. */
+export const BOUNCER_SERVES: ReadonlySet<BouncerVerdict> = new Set<BouncerVerdict>(["ok", "stale-firefox-soft"]);
 
 export function bouncerVerdict(h: { get(name: string): string | null }): BouncerVerdict {
   const ua = h.get("user-agent") ?? "";
@@ -120,7 +124,7 @@ export function bouncerVerdict(h: { get(name: string): string | null }): Bouncer
   const ff = ua.match(/\bFirefox\/(\d+)/);
   if (ff) {
     const v = Number(ff[1]);
-    if (v >= 116 && v <= 124) return "stale-firefox";
+    if (v >= 116 && v <= 124) return h.get("sec-fetch-mode") ? "stale-firefox-soft" : "stale-firefox";
   }
   return "ok";
 }

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requireAdmin } from "@/lib/admin/auth";
-import { loadHealthSummary, SLOW_DB_MS, SLOW_PAGE_MS, type HealthRow } from "@/lib/health";
+import { loadHealthSummary, SLOW_DB_MS, SLOW_PAGE_MS, RECOVERY_GAP_MS, type HealthRow } from "@/lib/health";
 import HealthCheckNow from "@/components/admin/HealthCheckNow";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +20,9 @@ export default async function HealthPage() {
   await requireAdmin();
   const s = await loadHealthSummary();
   const latest = s.latest;
+  // No stored check for a long time means the database is down or the cron
+  // stopped: say so, instead of showing a stale "Healthy".
+  const stale = !!latest && Date.now() - Date.parse(latest.at) > RECOVERY_GAP_MS;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
       <div>
@@ -33,8 +36,11 @@ export default async function HealthPage() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14 }}>
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: 18 }}>
           <div style={{ fontSize: 13, color: "#8A93A6" }}>Right now</div>
-          <div style={{ fontSize: 26, fontWeight: 700, color: latest ? COLOR[latest.status] : "#8A93A6" }}>{latest ? LABEL[latest.status] : "No checks yet"}</div>
-          <div style={{ fontSize: 12.5, color: "#6B7280", marginTop: 4 }}>{latest ? `${ist(latest.at)} IST${latest.note ? " · " + latest.note : ""}` : "Run migration 0134, then press Check now."}</div>
+          <div style={{ fontSize: 26, fontWeight: 700, color: stale ? "#C62828" : latest ? COLOR[latest.status] : "#8A93A6" }}>{stale ? "No recent check" : latest ? LABEL[latest.status] : s.error ? "Unavailable" : "No checks yet"}</div>
+          <div style={{ fontSize: 12.5, color: "#6B7280", marginTop: 4 }}>
+            {stale ? `Nothing stored since ${ist(latest!.at)} IST: the database is down or the hourly check is not running.` : latest ? `${ist(latest.at)} IST${latest.note ? " · " + latest.note : ""}` : s.error ? `Could not read history: ${s.error}.` : "Run migration 0134, then press Check now."}
+          </div>
+          <div style={{ marginTop: 8, fontSize: 12, fontWeight: 600, color: s.alertsConfigured ? "#1F9D63" : "#C62828" }}>{s.alertsConfigured ? "Email alerts on" : "Email alerts off (RESEND_API_KEY missing)"}</div>
         </div>
         <div style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: 18 }}>
           <div style={{ fontSize: 13, color: "#8A93A6" }}>Uptime, 24 h / 7 d</div>
@@ -61,7 +67,7 @@ export default async function HealthPage() {
           </thead>
           <tbody>
             {s.rows.slice(0, 300).map((r) => (
-              <tr key={r.at} style={{ borderBottom: "1px solid #F1F3F8" }}>
+              <tr key={r.id ?? r.at} style={{ borderBottom: "1px solid #F1F3F8" }}>
                 <td style={{ padding: "8px 10px", whiteSpace: "nowrap" }}>{ist(r.at)}</td>
                 <td style={{ padding: "8px 10px", fontWeight: 700, color: COLOR[r.status] }}>{LABEL[r.status]}</td>
                 {cell(r.db_ok ? 200 : null, r.db_ms, SLOW_DB_MS)}
@@ -72,7 +78,7 @@ export default async function HealthPage() {
                 <td style={{ padding: "8px 10px", color: "#6B7280" }}>{r.note ?? ""}</td>
               </tr>
             ))}
-            {!s.rows.length && <tr><td colSpan={8} style={{ padding: 18, color: "#8A93A6" }}>No checks recorded yet.</td></tr>}
+            {!s.rows.length && <tr><td colSpan={8} style={{ padding: 18, color: "#8A93A6" }}>{s.error ? `Could not read health history: ${s.error}.` : "No checks recorded yet."}</td></tr>}
           </tbody>
         </table>
       </div>

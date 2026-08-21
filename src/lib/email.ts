@@ -554,19 +554,19 @@ export async function sendRefundVoucherEmail(
 
 /** Uptime monitor mails (src/lib/health.ts): down / slow with a 15-minute
  *  cooldown, then one "recovered". Tells the owner what to look at. */
-export async function sendHealthAlert(a: { kind: "down" | "slow" | "recovered"; row: import("@/lib/health").HealthRow; since: string | null }): Promise<EmailResult> {
+export async function sendHealthAlert(a: { kind: "down" | "slow" | "recovered"; row: import("@/lib/health").HealthRow; since: string | null; reconstructed?: boolean }): Promise<EmailResult> {
   const { row } = a;
   const fmtMs = (v: number | null) => (v == null ? "-" : v >= 1000 ? `${(v / 1000).toFixed(1)} s` : `${v} ms`);
   const line = (label: string, ok: boolean, detail: string) =>
     `<tr><td style="padding:6px 10px;border-bottom:1px solid #EEF0F5">${label}</td><td style="padding:6px 10px;border-bottom:1px solid #EEF0F5;color:${ok ? "#1F9D63" : "#C62828"};font-weight:600">${detail}</td></tr>`;
   const page = (label: string, status: number | null, ms: number | null) => line(label, status === 200, status == null ? "no response" : status !== 200 ? `HTTP ${status}` : fmtMs(ms));
   const mins = a.since ? Math.max(1, Math.round((Date.now() - Date.parse(a.since)) / 60_000)) : null;
-  const heading = a.kind === "recovered" ? `elumenuvo.com recovered${mins ? ` after about ${mins} min` : ""}` : a.kind === "down" ? `elumenuvo.com is down: ${row.note ?? "check failed"}` : `elumenuvo.com is slow: ${row.note ?? "slow responses"}`;
+  const heading = a.kind === "recovered" ? (a.reconstructed ? `elumenuvo.com is back: no check could be stored for about ${mins ?? "?"} min` : `elumenuvo.com recovered${mins ? ` after about ${mins} min` : ""}`) : a.kind === "down" ? `elumenuvo.com is down: ${row.note ?? "check failed"}` : `elumenuvo.com is slow: ${row.note ?? "slow responses"}`;
   const advice = a.kind === "recovered"
-    ? "Nothing to do. The alerts stop now; the history is on the admin Health page."
+    ? (a.reconstructed ? "The database could not store checks during that window (it was most likely down); one reconstructed row marks it in the history. Nothing else to do." : "Nothing to do. The alerts stop now; the history is on the admin Health page.")
     : !row.db_ok
       ? "The database is not answering. Supabase dashboard, project jfgsigpadpewfktsohmc: if it shows Unhealthy, Settings, General, Restart project. Pages served from cache keep working meanwhile; checkout and sign-in do not."
-      : "The database answers but pages do not. Check the Vercel dashboard (latest deployment, Firewall tab) and the admin Health page. If a deployment just went out, the previous one can be promoted."
+      : "The database answers but pages do not. Check the Vercel dashboard (latest deployment, Firewall tab) and the admin Health page. If every page shows HTTP 403, the firewall is challenging the monitor: add a Bypass rule for the ElumeHealthMonitor user agent. If a deployment just went out, the previous one can be promoted."
   const html = shell(
     heading,
     `<p style="font-size:14px;line-height:1.65;color:#2c3550;margin:0 0 12px">Checked at ${new Date(row.at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST${mins && a.kind !== "recovered" ? `, failing for about ${mins} min` : ""}.</p>
@@ -580,7 +580,7 @@ export async function sendHealthAlert(a: { kind: "down" | "slow" | "recovered"; 
      <p style="font-size:14px;line-height:1.65;color:#2c3550;margin:0 0 12px">${advice}</p>
      ${btn(`${SITE}/admin/health`, "Open site health →")}`
   );
-  const subject = a.kind === "recovered" ? `🟢 elumenuvo.com recovered${mins ? ` after ${mins} min` : ""}` : a.kind === "down" ? `🔴 elumenuvo.com is DOWN: ${row.note ?? "check failed"}` : `🟠 elumenuvo.com is slow: ${row.note ?? ""}`;
+  const subject = a.kind === "recovered" ? (a.reconstructed ? `🟢 elumenuvo.com is back (no checks stored for ~${mins ?? "?"} min)` : `🟢 elumenuvo.com recovered${mins ? ` after ${mins} min` : ""}`) : a.kind === "down" ? `🔴 elumenuvo.com is DOWN: ${row.note ?? "check failed"}` : `🟠 elumenuvo.com is slow: ${row.note ?? ""}`;
   return send(ADMIN_EMAIL, subject, html, { bcc: BCC_SELF });
 }
 

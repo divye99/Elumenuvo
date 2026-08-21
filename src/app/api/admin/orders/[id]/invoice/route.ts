@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { timeoutFetch } from "@/lib/supabase/fetch-timeout";
 import { createClient } from "@supabase/supabase-js";
 import { isAdmin } from "@/lib/admin/auth";
 import { buildInvoiceModel, renderInvoicePdf, fyLabel, type InvoiceOrder } from "@/lib/invoice";
@@ -21,7 +22,7 @@ function service() {
   const url = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim();
   const key = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
   if (!url || !key) return null;
-  return createClient(url, key, { auth: { persistSession: false } });
+  return createClient(url, key, { auth: { persistSession: false }, global: { fetch: timeoutFetch } });
 }
 
 export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {

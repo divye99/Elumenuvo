@@ -49,9 +49,14 @@ export async function GET(request: Request) {
     const yday = new Date(istNow.getTime() - 86_400_000).toISOString().slice(0, 10);
     const startUtc = new Date(`${yday}T00:00:00+05:30`).toISOString();
     const endUtc = new Date(`${to}T00:00:00+05:30`).toISOString();
-    const { count } = await db.from("site_events").select("id", { count: "exact", head: true }).gte("created_at", startUtc).lt("created_at", endUtc);
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 10_000);
+    const { count, error: countError } = await db.from("site_events").select("id", { count: "exact", head: true }).gte("created_at", startUtc).lt("created_at", endUtc).abortSignal(ctl.signal);
+    clearTimeout(timer);
     const events = count ?? 0;
-    if (events > TRAFFIC_ALERT_THRESHOLD) {
+    if (countError) {
+      alert = `count failed: ${countError.message}`;
+    } else if (events > TRAFFIC_ALERT_THRESHOLD) {
       const r = await sendTrafficAlert({ day: yday, events, threshold: TRAFFIC_ALERT_THRESHOLD });
       alert = r.ok ? `sent (${events} events on ${yday})` : `failed: ${r.error ?? "unknown"}`;
     } else {

@@ -40,3 +40,11 @@ order by migration, object;
 -- ⚠️  Do NOT blindly re-run 0012 — it starts with `drop table ... cascade`
 --     and would WIPE competitor_map / competitor_prices / sync_log. Only run
 --     0012 if the probe above shows those three tables MISSING.
+
+
+-- ── 21 Aug 2026 additions (0131 to 0134) ──
+select '0131 custom_orders'        as migration, to_regclass('public.custom_orders')        is not null as applied
+union all select '0132 products_active_sort_idx', exists (select 1 from pg_indexes where schemaname = 'public' and indexname = 'products_active_sort_idx')
+union all select '0133 catalogue_version',        to_regclass('public.catalogue_version')      is not null
+union all select '0134 site_health_checks',       to_regclass('public.site_health_checks')     is not null
+union all select '0134 site_health_state',        to_regclass('public.site_health_state')      is not null;

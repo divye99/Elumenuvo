@@ -37,7 +37,7 @@ const geo = (h: Headers, k: string) => {
 };
 
 
-import { BOT_RE, BOT_IP_PREFIXES, bouncerVerdict } from "@/lib/bots";
+import { BOT_RE, BOT_IP_PREFIXES, bouncerVerdict, BOUNCER_SERVES } from "@/lib/bots";
 
 export async function POST(request: Request) {
   let body: { sid?: unknown; events?: unknown };
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
   // interesting stream is humans. (Most bots never run the client tracker,
   // but Googlebot and preview bots execute JS.)
   const uaHdr = h.get("user-agent") ?? "";
-  if (BOT_RE.test(uaHdr) || bouncerVerdict(h) !== "ok") return ok();
+  if (BOT_RE.test(uaHdr) || !BOUNCER_SERVES.has(bouncerVerdict(h))) return ok();
   const ip = (h.get("x-forwarded-for") ?? "").split(",")[0].trim().slice(0, 60) || null;
   if (ip && BOT_IP_PREFIXES.some((p) => ip.startsWith(p))) return ok();
   const uaRaw = (h.get("user-agent") ?? "").slice(0, 300);

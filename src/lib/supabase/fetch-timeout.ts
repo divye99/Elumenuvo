@@ -14,7 +14,7 @@
  *  - The abort must surface as an AbortError. postgrest-js 2.108 retries GET
  *    failures up to three times with backoff and only short-circuits on
  *    name === "AbortError"; AbortSignal.timeout() rejects with a
- *    TimeoutError, which would turn a 20 s ceiling into ~90 s of retries.
+ *    TimeoutError, which would turn a 60 s ceiling into ~4 min of retries.
  *    So we abort an AbortController ourselves.
  *  - Passing any signal opts the call out of Next's per-render fetch
  *    de-duplication. Accepted: the catalogue has its own data cache and

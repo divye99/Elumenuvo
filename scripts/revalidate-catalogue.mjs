@@ -2,6 +2,7 @@
 // Drop the production catalogue cache after a backfill script or raw SQL.
 //   node scripts/revalidate-catalogue.mjs            (targets https://elumenuvo.com)
 //   SITE=http://localhost:3006 node scripts/revalidate-catalogue.mjs
+//   node scripts/revalidate-catalogue.mjs id1 id2 ...   (also purges those product pages)
 // Reads SUPABASE_SERVICE_ROLE_KEY from .env.local (same key the scripts use)
 // and mints a 5-minute token; the key itself never leaves this machine.
 import { createHmac } from "node:crypto";
@@ -17,6 +18,7 @@ if (!key) { console.error("SUPABASE_SERVICE_ROLE_KEY missing"); process.exit(1);
 const exp = Date.now() + 5 * 60_000;
 const token = `${exp}.${createHmac("sha256", key).update(`revalidate.${exp}`).digest("base64url")}`;
 const site = process.env.SITE || "https://elumenuvo.com";
-const r = await fetch(`${site}/api/admin/revalidate`, { method: "POST", headers: { "x-revalidate-token": token } });
+const ids = process.argv.slice(2);
+const r = await fetch(`${site}/api/admin/revalidate`, { method: "POST", headers: { "x-revalidate-token": token, "content-type": "application/json" }, body: JSON.stringify({ ids }) });
 console.log(r.status, await r.text());
 process.exit(r.ok ? 0 : 1);

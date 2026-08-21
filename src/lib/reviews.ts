@@ -3,6 +3,7 @@
  *  the orders ledger (see supabase/migrations/0008_verified-reviews.sql). Reviewer emails and
  *  order ids are column-restricted and never selected. */
 import { createClient } from "@supabase/supabase-js";
+import { timeoutFetch } from "@/lib/supabase/fetch-timeout";
 
 export type Review = {
   id: string;
@@ -23,7 +24,7 @@ function client() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return null;
-  return createClient(url, key, { auth: { persistSession: false } });
+  return createClient(url, key, { auth: { persistSession: false }, global: { fetch: timeoutFetch } });
 }
 
 export async function fetchReviews(productId: string): Promise<Review[]> {

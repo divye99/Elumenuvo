@@ -3,6 +3,7 @@
  *  codes); reads go through the anon client. Competitor identity is aggregated
  *  away server-side: the storefront only ever sees an AVG market price. */
 import { createClient } from "@supabase/supabase-js";
+import { timeoutFetch } from "@/lib/supabase/fetch-timeout";
 
 export type CompetitorPoint = { source: string; comparable: number | null; net: number | null; list: number | null; our: number | null; at: string };
 
@@ -20,7 +21,7 @@ function client() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return null;
-  return createClient(url, key, { auth: { persistSession: false } });
+  return createClient(url, key, { auth: { persistSession: false }, global: { fetch: timeoutFetch } });
 }
 
 const day = (iso: string) => iso.slice(0, 10);
