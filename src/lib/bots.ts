@@ -109,7 +109,11 @@ export type BouncerVerdict = "ok" | "headless" | "spoofed-chromium" | "stale-fir
 export function bouncerVerdict(h: { get(name: string): string | null }): BouncerVerdict {
   const ua = h.get("user-agent") ?? "";
   if (TOOLKIT_RE.test(ua)) return "headless";
-  if (BOT_RE.test(ua)) return "ok";
+  // Honest = names a known service. The "headless" token itself is in BOT_RE
+  // (analytics exclusion), so strip it before asking: anonymous HeadlessChrome
+  // must not count as honest, Vercel's "HeadlessChrome ... vercel-screenshot"
+  // must.
+  if (BOT_RE.test(ua.replace(HEADLESS_RE, ""))) return "ok";
   if (HEADLESS_RE.test(ua)) return "headless";
   const chrome = ua.match(/\b(?:Chrome|Chromium)\/(\d+)/);
   if (chrome && Number(chrome[1]) >= 89 && !IN_APP_RE.test(ua) && !h.get("sec-ch-ua")) return "spoofed-chromium";
