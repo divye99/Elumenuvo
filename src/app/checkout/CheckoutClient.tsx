@@ -9,7 +9,7 @@ import { GROTESK } from "@/lib/fonts";
 import { fmt } from "@/lib/format";
 import { unitPriceFor, baseExGst, shippingFeeFor, amountToFreeShipping, heavyFreightFor } from "@/lib/pricing";
 import { COUNTRIES, DEFAULT_COUNTRY, countryByIso, maxDigits, nationalDigits, normalisePhoneE164, phoneError, toE164 } from "@/lib/phone";
-import { useCart } from "@/lib/cart";
+import { useCart, type CartItem } from "@/lib/cart";
 import { startOnlinePayment, confirmOnlinePayment } from "@/lib/order-actions";
 import { identify } from "@/lib/analytics";
 import { openRazorpay } from "@/lib/razorpay-checkout";
@@ -66,13 +66,25 @@ function addressError(a: Address, label: string): string | null {
   return null;
 }
 
+/** An admin-prepared order (/order/<token>): the items and prices are fixed
+ *  server-side; the customer only supplies details and pays. */
+export type CustomCheckout = { token: string; items: CartItem[]; shippingFee: number | null; discountAmount: number; note?: string | null };
+
 export default function CheckoutClient({
-  prefill, onlineEnabled, saved = [], savedGstins = [], savedPhones = [],
+  prefill, onlineEnabled, saved = [], savedGstins = [], savedPhones = [], custom,
 }: {
   prefill: Prefill; onlineEnabled: boolean; saved?: SavedEntry[];
-  savedGstins?: PickerOption[]; savedPhones?: PickerOption[];
+  savedGstins?: PickerOption[]; savedPhones?: PickerOption[]; custom?: CustomCheckout;
 }) {
-  const { items, total, baseTotal, gstTotal, clear, ready } = useCart();
+  const cart = useCart();
+  // A custom order replaces the cart wholesale: its lines are priced as agreed
+  // (no wholesale tiering, no promo codes) and nothing here edits them.
+  const items = custom ? custom.items : cart.items;
+  const total = custom ? Math.round(custom.items.reduce((s, i) => s + i.price * i.qty, 0) * 100) / 100 : cart.total;
+  const baseTotal = custom ? Math.round(custom.items.reduce((s, i) => s + baseExGst(i.price, i.cat, i.gstRate) * i.qty, 0) * 100) / 100 : cart.baseTotal;
+  const gstTotal = custom ? Math.round((total - baseTotal) * 100) / 100 : cart.gstTotal;
+  const { clear } = cart;
+  const ready = custom ? true : cart.ready;
   const router = useRouter();
   const [pending, start] = useTransition();
   const [code, setCode] = useState("");
@@ -205,7 +217,8 @@ export default function CheckoutClient({
     gstin: gstOnFile ? prefill.gstin : f.wantGst ? f.gstin : undefined,
     payment_method: "online", // pay-on-delivery is retired; Razorpay only
     items: items.map((i) => ({ id: i.id, name: i.name, qty: i.qty, price: i.price, cat: i.cat })),
-    discount_code: codeState.status === "ok" ? code.trim().toUpperCase() : undefined,
+    discount_code: custom ? undefined : codeState.status === "ok" ? code.trim().toUpperCase() : undefined,
+    custom_token: custom?.token,
     // Structured billing + shipping ride along so each can be auto-saved
     // separately (flagged by use) once the order is PAID.
     address_details: {
@@ -224,12 +237,12 @@ export default function CheckoutClient({
       setCodeState(d.ok ? { status: "ok", percent: d.percent } : { status: "err", msg: d.error });
     } catch { setCodeState({ status: "err", msg: "Couldn't check the code - try again." }); }
   };
-  const discount = codeState.status === "ok" ? Math.round(total * ((codeState.percent ?? 0) / 100) * 100) / 100 : 0;
+  const discount = custom ? Math.max(0, custom.discountAmount) : codeState.status === "ok" ? Math.round(total * ((codeState.percent ?? 0) / 100) * 100) / 100 : 0;
   // Shipping mirrors the server exactly (order-actions runs the same
   // function on the same post-discount goods total), so the figure shown is
   // the figure charged.
   const goodsPayable = Math.round((total - discount) * 100) / 100;
-  const shipping = shippingFeeFor(goodsPayable) + heavyFreightFor(items);
+  const shipping = custom && custom.shippingFee != null ? custom.shippingFee : shippingFeeFor(goodsPayable) + heavyFreightFor(items);
   const toFree = amountToFreeShipping(goodsPayable);
   const payable = Math.round((goodsPayable + shipping) * 100) / 100;
 
@@ -287,7 +300,7 @@ export default function CheckoutClient({
           signedIn: prefill.signedIn,
           items: items.map((i) => ({ id: i.id, name: i.name, qty: i.qty, price: i.price })),
         });
-        clear();
+        if (!custom) clear();
         clearCheckoutDraft(); // paid: the draft has served its purpose
         router.replace(`/order-confirmed?order=${encodeURIComponent(res.orderId)}`);
       }
@@ -297,7 +310,7 @@ export default function CheckoutClient({
   // Only announce an empty cart once the stored cart has actually been read.
   // Before that, `items` is [] purely because state starts empty, and telling
   // someone mid-purchase that their cart is empty is alarming and wrong.
-  if (!ready) {
+  if (!ready && !custom) {
     return <main style={{ maxWidth: 640, margin: "0 auto", padding: "48px 28px", textAlign: "center", color: "#8A93A6", fontSize: 14 }}>Loading your cart…</main>;
   }
   if (items.length === 0) {
@@ -566,20 +579,26 @@ export default function CheckoutClient({
 
         {/* Order summary (sticky beside the form on desktop) */}
         <div className="co-summary" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 10, padding: "18px 20px", position: "sticky", top: 84 }}>
+          {custom && (
+            <div style={{ background: "#E9EDF9", border: "1px solid #C9D2F2", borderRadius: 9, padding: "9px 12px", marginBottom: 12, fontSize: 12.5, color: "#16215B" }}>
+              <b>Prepared for you by Elume.</b> Items and prices are as agreed; confirm your details and pay to place the order.
+              {custom.note ? <div style={{ marginTop: 4, color: "#3A4358" }}>{custom.note}</div> : null}
+            </div>
+          )}
           <div style={{ fontFamily: GROTESK, fontWeight: 600, fontSize: 15, marginBottom: 12 }}>Order summary</div>
           {items.map((it) => (
             <div key={it.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12.5, marginBottom: 7 }}>
               <span style={{ color: "#56627A", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{it.qty}× {it.name}</span>
-              <span style={{ fontFamily: GROTESK, fontWeight: 600 }}>{fmt(baseExGst(unitPriceFor(it.price, it.qty, it.cat), it.cat, it.gstRate) * it.qty)}</span>
+              <span style={{ fontFamily: GROTESK, fontWeight: 600 }}>{fmt(baseExGst(custom ? it.price : unitPriceFor(it.price, it.qty, it.cat), it.cat, it.gstRate) * it.qty)}</span>
             </div>
           ))}
           <div style={{ borderTop: "1px solid #F0F2F6", marginTop: 8, paddingTop: 10 }}>
             {/* Prices are quoted ex-GST, so always show the taxable value + GST. */}
             <SumRow label="Subtotal (excl. GST)" value={fmt(gst.base)} muted />
             <SumRow label="GST" value={fmt(gst.tax)} muted />
-            {discount > 0 && <SumRow label={`Discount (${codeState.percent}% · ${code.trim().toUpperCase()})`} value={`− ${fmt(discount)}`} green />}
+            {discount > 0 && <SumRow label={custom ? "Discount (as agreed)" : `Discount (${codeState.percent}% · ${code.trim().toUpperCase()})`} value={`− ${fmt(discount)}`} green />}
             <SumRow label={heavyFreightFor(items) > 0 ? "Delivery + heavy-item freight" : "Delivery"} value={shipping > 0 ? fmt(shipping) : "Free"} muted={shipping > 0} green={shipping === 0} />
-            {shipping > 0 && (
+            {shipping > 0 && !(custom && custom.shippingFee != null) && (
               <div style={{ fontSize: 11.5, color: "#137a4b", background: "#F2FBF6", border: "1px solid #DCEDE3", borderRadius: 8, padding: "7px 10px", margin: "2px 0 4px" }}>
                 Add {fmt(toFree)} more for free delivery
               </div>
@@ -592,7 +611,7 @@ export default function CheckoutClient({
           {/* Discount code */}
           <div style={{ marginTop: 10 }}>
             <div style={{ display: "flex", gap: 7 }}>
-              <input value={code} onChange={(e) => { setCode(e.target.value.toUpperCase()); setCodeState({ status: "idle" }); }} placeholder="Discount code" style={{ flex: 1, border: "1px solid #E0E4ED", borderRadius: 9, padding: "9px 11px", fontSize: 12.5, textTransform: "uppercase" }} />
+              <input value={code} disabled={!!custom} onChange={(e) => { setCode(e.target.value.toUpperCase()); setCodeState({ status: "idle" }); }} placeholder={custom ? "Price agreed, no code needed" : "Discount code"} style={{ flex: 1, border: "1px solid #E0E4ED", borderRadius: 9, padding: "9px 11px", fontSize: 12.5, textTransform: "uppercase" }} />
               <button onClick={applyCode} disabled={codeState.status === "checking" || !code.trim()} style={{ border: "1.5px solid #1D2F8A", background: "#fff", color: "#1D2F8A", fontWeight: 700, fontSize: 12.5, borderRadius: 9, padding: "0 14px", cursor: "pointer", opacity: codeState.status === "checking" ? 0.6 : 1 }}>
                 {codeState.status === "checking" ? "…" : codeState.status === "ok" ? "✓" : "Apply"}
               </button>

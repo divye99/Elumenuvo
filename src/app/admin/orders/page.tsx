@@ -47,6 +47,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
     <div>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 6 }}>
         <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Orders</h1>
+        <Link href="/admin/orders/new" style={{ fontSize: 13, fontWeight: 700, padding: "8px 14px", borderRadius: 9, background: "#1D2F8A", color: "#fff" }}>+ Create custom order</Link>
         <Link href="/admin" style={{ fontSize: 13, color: "#8A93A6" }}>← Dashboard</Link>
       </div>
       <p style={{ fontSize: 14, color: "#56627A", margin: "0 0 18px" }}>Incoming orders and fulfilment. Click an order to pack, ship and track it.</p>

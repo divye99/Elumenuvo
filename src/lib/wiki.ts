@@ -269,6 +269,24 @@ KAM note: ELIN is the code to quote in tickets and with logistics partners; bran
 - These are OUR documents. Shiprocket's label, manifest and courier invoice are separate downloads on the order page (see logistics).`,
   },
   {
+    slug: "custom-orders",
+    title: "Custom orders: phone and WhatsApp orders, completed by the customer",
+    summary: "The admin prepares items and prices; the customer pays through a link in the normal checkout. Offline-paid orders can be recorded directly.",
+    tags: ["operations"],
+    body: `Customers call for specific or customised products that are not on the website. Admin, then Orders, then "Create custom order" (Aug 2026, migration 0131).
+
+## Two paths
+- PAYMENT LINK (default): the admin enters lines (catalogue items with a price override, or fully custom lines: name as it should read on the invoice, HSN, GST %, ex-GST unit price) plus optional customer prefill and a message. The customer opens elumenuvo.com/order/<token>, which is the real /checkout with the cart replaced by the prepared lines: signed-in and repeat buyers see their saved addresses, GSTINs and phones; guests fill the form; payment is Razorpay. The token is single-use and expires (default 14 days). On payment the row becomes an ordinary order (order_kind custom, custom_token set) and the link closes.
+- RECORD OFFLINE: the customer already paid (UPI, NEFT, cash) or is on credit terms: the order is inserted directly with status, payment method and paid flag, and opens in the order console.
+
+## Rules
+- Prices are entered EX-GST and stored GST-inclusive, exactly like web checkout, so invoices are unchanged. Custom-order lines are never re-priced, re-tiered or discounted by promo codes; a fixed rupee discount and a fixed or standard delivery fee are set by the admin.
+- Custom lines carry a synthetic id (custom-...) that no product rollup matches: analytics and merit are unaffected.
+- "Recent payment links" on the builder shows open, expired and paid links; paid ones deep-link to the order.
+
+KAM note: for an accepted quotation, build the link from the quoted lines and pick source "Accepted quotation"; the customer then pays without any re-keying.`,
+  },
+  {
     slug: "logistics",
     title: "Logistics: Shiprocket, rate intelligence, geocoding",
     summary: "Booking, tracking, documents, and how we quote delivery fees.",

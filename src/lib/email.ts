@@ -614,3 +614,18 @@ export async function sendBulkEnquiryEmail(lead: {
   );
   return send("info@elumenuvo.com", `Bulk enquiry: ${lead.company || lead.name}`, html, { cc: lead.email, replyTo: lead.email });
 }
+
+/** ── Custom order link (admin-prepared order the customer completes online) ── */
+export async function sendCustomOrderLink(to: { email: string; name?: string | null }, link: { url: string; total: number; note?: string | null; expiresLabel: string }): Promise<EmailResult> {
+  const html = shell(
+    "Your order is ready to complete",
+    `<p style="font-size:14px;line-height:1.65;color:#2c3550;margin:0 0 12px">
+       ${to.name ? `Hi ${escapeHtml(to.name)},` : "Hello,"} we have prepared your order as discussed. Open the link below to confirm your delivery details and pay securely online (UPI, cards, net banking).
+     </p>
+     ${link.note ? `<p style="font-size:13.5px;line-height:1.6;color:#2c3550;background:#F7F8FB;border:1px solid #E8EBF1;border-radius:10px;padding:10px 12px;margin:0 0 12px">${escapeHtml(link.note)}</p>` : ""}
+     <p style="font-size:14px;color:#2c3550;margin:0 0 14px">Order total: <b>${fmt(link.total)}</b> incl. GST</p>
+     ${btn(link.url, "Review and pay →")}
+     <p style="font-size:12.5px;color:#8A93A6;margin:14px 0 0">This link is valid until ${escapeHtml(link.expiresLabel)}. Reply to this email for any change before paying.</p>`
+  );
+  return send(to.email, "Your Elume order is ready to complete", html, { bcc: BCC_SELF });
+}

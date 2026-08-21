@@ -6,6 +6,7 @@ import { exGst, gstPart, baseExGst, unitPriceFor, shippingFeeFor, heavyFreightFo
 import { isMetalCategory } from "@/lib/metals";
 import { DEFAULT_COUNTRY, phoneError, normalisePhoneE164 } from "@/lib/phone";
 import { sendAdminNewOrder, sendCustomerOrderConfirmation } from "@/lib/email";
+import { getCustomOrder, isPayable, type CustomOrderRow } from "@/lib/custom-orders";
 import { saveAddressFromOrder } from "@/lib/addresses";
 import { rememberGstin, rememberPhone } from "@/lib/saved-fields";
 import { createRazorpayOrder, verifyPaymentSignature, razorpayConfigured, razorpayKeyId } from "@/lib/razorpay";
@@ -26,6 +27,9 @@ export type PlaceOrderInput = {
   payment_method: string; // 'cod' | 'online'
   items: CheckoutItem[];
   discount_code?: string;
+  /** Admin-prepared custom order (migration 0131): items and prices come
+   *  from that row, never from the browser and never re-priced. */
+  custom_token?: string;
   // Structured addresses: what saved_addresses is built from once the order
   // is paid (the composed strings above cannot repopulate a form). Billing
   // and shipping are kept separate - developers bill to the office and ship
@@ -50,9 +54,9 @@ function orderId(): string {
 async function validate(
   db: NonNullable<ReturnType<typeof adminClient>>,
   input: PlaceOrderInput
-): Promise<{ ok: true; items: CheckoutItem[]; total: number } | { ok: false; error: string }> {
+): Promise<{ ok: true; items: CheckoutItem[]; total: number; custom?: CustomOrderRow } | { ok: false; error: string }> {
   const raw = (input.items ?? []).filter((i) => i.id && Number.isFinite(i.qty) && i.qty > 0);
-  if (raw.length === 0) return { ok: false, error: "Your cart is empty." };
+  if (raw.length === 0 && !input.custom_token) return { ok: false, error: "Your cart is empty." };
   if (!input.name.trim()) return { ok: false, error: "Please enter your name." };
   // The browser sends E.164 ("+919876543210"); pick the country back out of it
   // and re-check the length here, because a form can be bypassed.
@@ -61,6 +65,23 @@ async function validate(
   if (!/^\S+@\S+\.\S+$/.test(input.email.trim())) return { ok: false, error: "Please enter a valid email." };
   if (!input.billing_address.trim()) return { ok: false, error: "Please enter a billing address." };
   if (!input.shipping_address.trim()) return { ok: false, error: "Please enter a shipping address." };
+
+  // Custom order: the admin-prepared row IS the cart. Prices, quantities and
+  // GST rates are taken verbatim (that is the point of the tool); only the
+  // customer's details come from the form.
+  if (input.custom_token) {
+    const co = await getCustomOrder(input.custom_token);
+    if (!co) return { ok: false, error: "We couldn't find this prepared order. Please ask us for a fresh link." };
+    if (co.status === "converted") return { ok: false, error: "This order has already been completed." };
+    if (!isPayable(co)) return { ok: false, error: "This order link has expired. Please ask us for a fresh one." };
+    const items: CheckoutItem[] = co.items.map((i) => ({
+      id: i.id, name: i.name, qty: Math.max(1, Math.floor(Number(i.qty))), price: Number(i.price),
+      ...(i.cat ? { cat: i.cat } : {}), ...(i.gstRate != null ? { gstRate: Number(i.gstRate) } : {}),
+      ...(i.hsn ? { hsn: i.hsn } : {}), ...(i.shipWeightKg != null ? { shipWeightKg: Number(i.shipWeightKg) } : {}),
+    }));
+    const total = Math.round(items.reduce((s, i) => s + i.price * i.qty, 0) * 100) / 100;
+    return { ok: true, items, total, custom: co };
+  }
 
   const ids = [...new Set(raw.map((i) => i.id))];
   let { data, error } = await db.from("products").select("id,name,category,elume_price,is_active,gst_rate,hsn,in_stock,ship_weight_kg").in("id", ids);
@@ -142,7 +163,8 @@ async function insertPendingOrder(
   razorpayOrderId: string,
   discountCode: string | null = null,
   discountAmount = 0,
-  shippingFee = 0
+  shippingFee = 0,
+  extra: Record<string, unknown> = {}
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   // `total` is the amount actually charged (goods + shipping). All goods-GST
   // arithmetic below must run on the goods portion alone: shipping is a flat
@@ -186,9 +208,15 @@ async function insertPendingOrder(
     status: "awaiting_payment",
     razorpay_order_id: razorpayOrderId,
     ...(input.address_details?.shipping?.line1 ? { address_details: input.address_details } : {}),
+    ...extra,
   };
 
   let { error } = await db.from("orders").insert(row);
+  // Optional columns from `extra` (order_kind, custom_token: migration 0131)
+  // must never block an order on a schema gap.
+  for (const k of Object.keys(extra)) {
+    if (error && k in row && new RegExp(k).test(error.message)) { delete row[k]; ({ error } = await db.from("orders").insert(row)); }
+  }
   // The address_details column ships in migration 0076; until it is run,
   // retry without it so ordering never breaks on the schema gap.
   if (error && "address_details" in row && /address_details/.test(error.message)) {
@@ -303,6 +331,10 @@ export async function markOrderPaid(
   }
 
   try { await db.from("order_events").insert({ order_id: orderId, status: "placed", note: "Order placed · paid online" }); } catch { /* table may not exist */ }
+  // An admin-prepared order link is single-use: close it now that it is paid.
+  if (order.custom_token) {
+    try { await db.from("custom_orders").update({ status: "converted", converted_order_id: orderId, converted_at: new Date().toISOString() }).eq("token", order.custom_token); } catch { /* best-effort */ }
+  }
   // Money landed: remember this delivery address + phone for one-tap reuse
   // on the next checkout. Best-effort, never blocks the payment.
   await saveAddressFromOrder(db, order);
@@ -369,7 +401,10 @@ export async function startOnlinePayment(input: PlaceOrderInput): Promise<StartP
   // Apply a discount code AFTER re-pricing - always on OUR numbers.
   let discount = 0;
   let appliedCode: string | null = null;
-  if (input.discount_code?.trim()) {
+  if (v.custom) {
+    // Agreed price: a fixed rupee discount (if any) and no promo codes.
+    discount = Math.max(0, Math.round(Number(v.custom.discount_amount || 0) * 100) / 100);
+  } else if (input.discount_code?.trim()) {
     const dc = await checkDiscountCode(input.discount_code, input.email);
     if (!dc.ok) return { ok: false, error: dc.error };
     discount = Math.round(v.total * (dc.percent / 100) * 100) / 100;
@@ -383,14 +418,17 @@ export async function startOnlinePayment(input: PlaceOrderInput): Promise<StartP
   // order past 4,000 still earns free delivery.
   // Value-tiered delivery PLUS heavy-item freight (owner rule, Aug 2026):
   // every unit over 10 kg adds a flat fee; free delivery never waives it.
-  const shipping = shippingFeeFor(goodsPayable) + heavyFreightFor(v.items);
+  const shipping = v.custom && v.custom.shipping_fee != null
+    ? Math.max(0, Number(v.custom.shipping_fee))
+    : shippingFeeFor(goodsPayable) + heavyFreightFor(v.items);
   const payable = Math.round((goodsPayable + shipping) * 100) / 100;
 
   const id = orderId();
   const rp = await createRazorpayOrder(Math.round(payable * 100), id, { orderId: id, email: input.email.trim().toLowerCase() });
   if (!rp.ok) return { ok: false, error: rp.error };
 
-  const pending = await insertPendingOrder(db, id, input, v.items, payable, rp.id, appliedCode, discount, shipping);
+  const pending = await insertPendingOrder(db, id, input, v.items, payable, rp.id, appliedCode, discount, shipping,
+    v.custom ? { order_kind: "custom", custom_token: v.custom.token } : {});
   if (!pending.ok) return { ok: false, error: pending.error };
 
   return {
