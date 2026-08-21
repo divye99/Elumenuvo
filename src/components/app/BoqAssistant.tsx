@@ -316,9 +316,14 @@ export default function BoqAssistant({ company, admin = false }: { company?: str
                 : `Add ${stats.accepted} approved line${stats.accepted === 1 ? "" : "s"} to cart · ${fmt(stats.value)}`}
             </button>
             {added && (admin ? (
-              <a href={`/admin/cart-links?items=${encodeURIComponent(itemsParam)}`} style={{ fontSize: 14, fontWeight: 700, color: "#1F9D63" }}>
-                Confirmed ✓ · build the cart link →
-              </a>
+              <>
+                <a href={`/admin/cart-links?items=${encodeURIComponent(itemsParam)}`} style={{ fontSize: 14, fontWeight: 700, color: "#1F9D63" }}>
+                  Confirmed ✓ · build the cart link →
+                </a>
+                <a href={`/admin/quotation?items=${encodeURIComponent(itemsParam)}`} style={{ fontSize: 14, fontWeight: 700, color: "#1D2F8A" }}>
+                  or export a quotation (.docx) →
+                </a>
+              </>
             ) : (
               <Link href="/cart" style={{ fontSize: 14, fontWeight: 700, color: "#1F9D63" }}>
                 Added ✓ · review your cart →
