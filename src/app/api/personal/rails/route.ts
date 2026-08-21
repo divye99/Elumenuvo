@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getProfile } from "@/lib/profile";
 import { buildRails } from "@/lib/personal/engine";
-import { BOT_RE, isStaleBrowser } from "@/lib/bots";
+import { BOT_RE, bouncerVerdict } from "@/lib/bots";
 
 /**
  * Personal rails for a surface: /api/personal/rails?ctx=home|foryou|pdp:<id>&sid=<device token>
@@ -18,7 +18,7 @@ export async function GET(request: Request) {
     // Bots and frozen-UA scrapers get no personalisation: this endpoint is
     // uncached and reads site_events per call, so it must only serve humans.
     const ua = request.headers.get("user-agent") ?? "";
-    if (BOT_RE.test(ua) || isStaleBrowser(ua)) return NextResponse.json({ rails: [] });
+    if (BOT_RE.test(ua) || bouncerVerdict(request.headers) !== "ok") return NextResponse.json({ rails: [] });
     const url = new URL(request.url);
     const ctx = (url.searchParams.get("ctx") ?? "home").slice(0, 60);
     const sid = url.searchParams.get("sid")?.slice(0, 60) ?? null;

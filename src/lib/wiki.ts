@@ -338,6 +338,33 @@ An admin changes a Havells fan price at 11:02. The trigger bumps the version; th
 - Product cards prefetch their pages as Next normally does (instant clicks); the bot-driven fan-out is stopped at the edge instead, by the bouncer in src/proxy.ts.`,
   },
   {
+    slug: "site-health",
+    title: "Site health: the uptime monitor",
+    summary: "A five-minute check of database, auth and key pages, with email alerts and a seven-day history at /admin/health.",
+    tags: ["ops"],
+    body: `## What runs
+Every five minutes a Vercel cron calls /api/cron/health (src/lib/health.ts). One run times the database through PostgREST, Supabase Auth, the home page, the catalogue page and the best-selling product page (chosen live, so a deactivated SKU never raises a false alarm). Pages are fetched as "ElumeHealthMonitor", which the edge bouncer lets through.
+
+## Verdicts
+- Healthy: everything answers 200 within limits.
+- Slow: a page over 8 s, the database over 3 s, or auth unhealthy.
+- Down: the database does not answer, or a key page is not 200.
+
+## Alerts
+- Down or slow: an email to the owner (ADMIN_EMAIL, BCC the house inbox) with what failed and what to look at (Supabase restart vs Vercel deployment), repeated at most every 15 minutes while it lasts.
+- Recovered: one email with the outage duration.
+- While the database is down the cooldown cannot be stored, so alerts are bucketed to one per quarter hour by the clock.
+
+## Where to look
+/admin/health: current status, uptime for 24 h and 7 days, number of outages, slowest-5% timings, the full check history (seven days, migration 0134), and a "Check now" button for an on-demand run.
+
+## Limits
+The monitor runs on Vercel. If Vercel itself is down, no check runs and no mail goes out; an outside checker (for example UptimeRobot, free, pinging / and one product page every five minutes) covers that case and is recommended as a second opinion.
+
+## Worked example
+21 Aug 2026, 14:45 IST: the database stalls. 14:45 check: database timed out, pages served from cache still 200, verdict Down, mail sent. 15:00 and 15:15: mails repeat. 15:37: the owner restarts the project; the 15:40 check is Healthy, a "recovered after about 55 min" mail goes out, the history shows a red band from 14:45 to 15:37.`,
+  },
+  {
     slug: "analytics-bots",
     title: "Analytics: tracking and bot filtering",
     summary: "What we track, and the three layers that keep bots out of every number.",
@@ -356,12 +383,12 @@ The hard case is not Googlebot (it announces itself). It is the residential-prox
 Engagement (an identity, an add-to-cart, or a tap plus measured dwell) always proves a human; its absence proves nothing by itself.
 
 ## Bot defense, four layers
-- Edge (added after the 21 Aug 2026 database outage): src/proxy.ts answers a plain 403, before any render or query, to storefront pages and the beacon/personalisation APIs when the user agent is a frozen bot-toolkit browser (the same stale-version rule the classifier uses, src/lib/bots.ts isStaleBrowser) or a headless toolkit (Lightpanda, HeadlessChrome, Puppeteer, Playwright). Why: the residential-proxy fleet ran our JavaScript, so each of its 11,000 daily product-page hits also fired /api/personal/rails (an uncached per-visitor read) against Postgres on the smallest compute tier until it stalled. Googlebot and Bingbot carry evergreen Chrome versions and never match; a human on a 2.5-year-old browser is the accepted false-positive. Fleets that rotate CURRENT browser versions pass this layer; those are the Vercel Firewall's job (bot protection and per-IP rate limits on /catalogue), not code.
-- Ingest: /api/track, /api/search-log and /api/explore-log all reject requests matching the bot user-agent list or known crawler IP ranges (src/lib/bots.ts, ~60 patterns plus Googlebot/Bingbot IP prefixes); /api/track and /api/personal/rails also refuse frozen-browser UAs. The rails endpoint's compare_key lookup is now one cached read per 5 minutes instead of 4,000 rows per visitor.
+- Edge (the bouncer, src/proxy.ts, rules in src/lib/bots.ts bouncerVerdict): refuses DISGUISES before any render or query, never a real person on an old device. Refused: headless toolkits that say so (Lightpanda, HeadlessChrome, Puppeteer, Playwright); requests claiming Chromium 89+ that send no Sec-CH-UA client-hint header (every real Chrome, Edge, Opera, Brave, Samsung Internet sends it; a script wearing "Chrome/120" does not); and Firefox 116 to 124, a band no real browser sits in (115 ESR, the last for Windows 7, passes; 125+ passes). Windows 7 PCs, UC Browser (Chrome 78), JioPhone KaiOS (Firefox 48), old iPhones, in-app browsers and every self-identified crawler, AI answer engine, previewer or monitor pass. A refused request gets a short page with our phone and email, status 403. Owner rule (21 Aug 2026): no blanket old-browser or Windows 7 block, ever. Corpus test: scripts/test-bouncer.ts. Fleets that send real client hints pass this layer; those are the Vercel Firewall's job (Challenge, rate limits)
+- Ingest: /api/track, /api/search-log and /api/explore-log all reject requests matching the bot user-agent list or known crawler IP ranges (src/lib/bots.ts, ~60 patterns plus Googlebot/Bingbot IP prefixes); /api/track and /api/personal/rails refuse whatever the bouncer would refuse. The rails endpoint's compare_key lookup is now one cached read per 5 minutes instead of 4,000 rows per visitor.
 - Classifier + rollup (migrations 0124/0128): classify_bot_sessions writes verdicts into the bot_sessions table on objective evidence only: bot UA, crawler IP, a frozen browser version no auto-updating human still runs (thresholds move forward yearly), the fleet-UA signature (8+ sessions sharing one exact UA, zero engaged), the fleet-IP signature (one IP minting 6+ device tokens with zero taps, carts or sign-ins across all of them: quiet viewing alone never flags anyone, and one tap anywhere clears the whole IP, so office networks never trip it), or heavy crawling (10+ pageviews, zero interaction). rollup_product_metrics excludes those sids, so product_metrics_daily and therefore EMS stay clean. The nightly cron classifies, then rolls; the daily-traffic tab also classifies the current day on load.
 - Display: the same evidence rules classify sessions in the analytics UI; an engaged session is never flagged. The Searches tab drops rows from bot sessions too, including historic pre-gate rows. "Include likely bots" in the filter shows them on demand.
 
-Daily watch: the nightly rollup also counts yesterday's raw events and emails the owner when they exceed 2,500 (a normal day is a few hundred), so a new wave is noticed the next morning. The edge bouncer serves blocked visitors a short page explaining how to update their browser and how to reach us, and the retired Smart BOM and quotation URLs redirect to the bulk-enquiry page and the custom-order builder.
+Daily watch: the nightly rollup also counts yesterday's raw events and emails the owner when they exceed 2,500 (a normal day is a few hundred), so a new wave is noticed the next morning. The edge bouncer serves refused requests a short page explaining that the browser could not be verified and how to reach us, and the retired Smart BOM and quotation URLs redirect to the bulk-enquiry page and the custom-order builder.
 
 Verified Aug 2026: the evidence rules caught 94% of the wave while keeping every current-browser bounce, Indian or foreign. The few percent that are indistinguishable from real bounces stay counted, by design: when we cannot prove machine, we count the view.`,
   },

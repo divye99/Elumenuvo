@@ -552,6 +552,38 @@ export async function sendRefundVoucherEmail(
   return send(order.email, `Order ${order.id} - refund of ${fmt(amount)} + 10% off your next order`, html, { bcc: BCC_SELF });
 }
 
+/** Uptime monitor mails (src/lib/health.ts): down / slow with a 15-minute
+ *  cooldown, then one "recovered". Tells the owner what to look at. */
+export async function sendHealthAlert(a: { kind: "down" | "slow" | "recovered"; row: import("@/lib/health").HealthRow; since: string | null }): Promise<EmailResult> {
+  const { row } = a;
+  const fmtMs = (v: number | null) => (v == null ? "-" : v >= 1000 ? `${(v / 1000).toFixed(1)} s` : `${v} ms`);
+  const line = (label: string, ok: boolean, detail: string) =>
+    `<tr><td style="padding:6px 10px;border-bottom:1px solid #EEF0F5">${label}</td><td style="padding:6px 10px;border-bottom:1px solid #EEF0F5;color:${ok ? "#1F9D63" : "#C62828"};font-weight:600">${detail}</td></tr>`;
+  const page = (label: string, status: number | null, ms: number | null) => line(label, status === 200, status == null ? "no response" : status !== 200 ? `HTTP ${status}` : fmtMs(ms));
+  const mins = a.since ? Math.max(1, Math.round((Date.now() - Date.parse(a.since)) / 60_000)) : null;
+  const heading = a.kind === "recovered" ? `elumenuvo.com recovered${mins ? ` after about ${mins} min` : ""}` : a.kind === "down" ? `elumenuvo.com is down: ${row.note ?? "check failed"}` : `elumenuvo.com is slow: ${row.note ?? "slow responses"}`;
+  const advice = a.kind === "recovered"
+    ? "Nothing to do. The 15-minute alerts stop now; the history is on the admin Health page."
+    : !row.db_ok
+      ? "The database is not answering. Supabase dashboard, project jfgsigpadpewfktsohmc: if it shows Unhealthy, Settings, General, Restart project. Pages served from cache keep working meanwhile; checkout and sign-in do not."
+      : "The database answers but pages do not. Check the Vercel dashboard (latest deployment, Firewall tab) and the admin Health page. If a deployment just went out, the previous one can be promoted."
+  const html = shell(
+    heading,
+    `<p style="font-size:14px;line-height:1.65;color:#2c3550;margin:0 0 12px">Checked at ${new Date(row.at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST${mins && a.kind !== "recovered" ? `, failing for about ${mins} min` : ""}.</p>
+     <table style="border-collapse:collapse;font-size:13px;margin:0 0 14px">
+       ${line("Database", row.db_ok, row.db_ok ? fmtMs(row.db_ms) : row.db_ms != null && row.db_ms >= 15_000 ? "timed out" : "unreachable")}
+       ${line("Auth", row.auth_ok, row.auth_ok ? fmtMs(row.auth_ms) : "unhealthy")}
+       ${page("Home page", row.home_status, row.home_ms)}
+       ${page("Catalogue page", row.catalogue_status, row.catalogue_ms)}
+       ${row.pdp_path ? page("Product page", row.pdp_status, row.pdp_ms) : ""}
+     </table>
+     <p style="font-size:14px;line-height:1.65;color:#2c3550;margin:0 0 12px">${advice}</p>
+     ${btn(`${SITE}/admin/health`, "Open site health →")}`
+  );
+  const subject = a.kind === "recovered" ? `🟢 elumenuvo.com recovered${mins ? ` after ${mins} min` : ""}` : a.kind === "down" ? `🔴 elumenuvo.com is DOWN: ${row.note ?? "check failed"}` : `🟠 elumenuvo.com is slow: ${row.note ?? ""}`;
+  return send(ADMIN_EMAIL, subject, html, { bcc: BCC_SELF });
+}
+
 /** Daily traffic alert (after the 21 Aug 2026 scraper wave): the nightly
  *  rollup counts yesterday's raw events and mails the owner when the count
  *  is far above the normal few hundred, so a new bot wave is noticed the

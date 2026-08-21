@@ -75,3 +75,41 @@ export const FLEET_MIN_SESSIONS = 8;
  *  viewing alone never flags anyone (owner rule), and any single tap
  *  anywhere on the IP clears the whole IP. Lockstep with migration 0128. */
 export const FLEET_IP_MIN_SIDS = 6;
+
+/* ── Edge bouncer (src/proxy.ts), owner rules 21 Aug 2026 ──
+   Block DISGUISES, never a real person on an old device. India has plenty of
+   Windows 7 PCs (Chrome stops at 109 there), UC Browser (reports Chrome 78),
+   JioPhones on KaiOS (Firefox 48) and old iPhones; all of them must get in.
+   What is refused:
+   - a headless toolkit that says so (Lightpanda, HeadlessChrome, Puppeteer,
+     Playwright, PhantomJS);
+   - a request CLAIMING to be Chromium 89 or newer without the Sec-CH-UA
+     client-hint header. Every real Chromium 89+ (Chrome, Edge, Opera, Brave,
+     Samsung Internet, Vivaldi, Yandex) sends it on HTTPS automatically; the
+     scraper fleet of 19 Aug typed "Chrome/120" into a script that sends no
+     hints at all. In-app browsers and WebViews are exempt because some apps
+     rewrite the UA and hint behaviour varies;
+   - a request claiming Firefox 116 to 124, a version band that no real
+     browser sits in: 115 ESR is the last Firefox for Windows 7 and stays
+     allowed, 125+ is a current auto-updating Firefox, 116 to 124 were only
+     ever six-week releases from 2023-24 that auto-updated themselves away.
+     The 19 Aug fleet used Firefox 120 and 121.
+   Self-identified crawlers, monitors and link previewers (BOT_RE) are always
+   let through; robots.txt governs them, not the bouncer. */
+export const HEADLESS_RE = /lightpanda|headlesschrome|phantomjs|puppeteer|playwright/i;
+const IN_APP_RE = /\bwv\b|FBAN|FBAV|FB_IAB|Instagram|Snapchat|Line\/|MicroMessenger|GSA\/|DuckDuckGo\/|Electron\//i;
+export type BouncerVerdict = "ok" | "headless" | "spoofed-chromium" | "stale-firefox";
+
+export function bouncerVerdict(h: { get(name: string): string | null }): BouncerVerdict {
+  const ua = h.get("user-agent") ?? "";
+  if (HEADLESS_RE.test(ua)) return "headless";
+  if (BOT_RE.test(ua)) return "ok";
+  const chrome = ua.match(/\b(?:Chrome|Chromium)\/(\d+)/);
+  if (chrome && Number(chrome[1]) >= 89 && !IN_APP_RE.test(ua) && !h.get("sec-ch-ua")) return "spoofed-chromium";
+  const ff = ua.match(/\bFirefox\/(\d+)/);
+  if (ff) {
+    const v = Number(ff[1]);
+    if (v >= 116 && v <= 124) return "stale-firefox";
+  }
+  return "ok";
+}

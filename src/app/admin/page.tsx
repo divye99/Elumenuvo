@@ -88,6 +88,11 @@ export default async function AdminHome() {
           <div style={{ fontSize: 28, fontWeight: 700 }}>→</div>
           <div style={{ fontSize: 13, color: "#1D2F8A", fontWeight: 600, marginTop: 6 }}>Waitlist · business · sellers →</div>
         </Link>
+        <Link href="/admin/health" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: 20 }}>
+          <div style={{ fontSize: 13, color: "#8A93A6" }}>Site health</div>
+          <div style={{ fontSize: 28, fontWeight: 700 }}>💓</div>
+          <div style={{ fontSize: 13, color: "#1D2F8A", fontWeight: 600, marginTop: 6 }}>Uptime, speed, alerts →</div>
+        </Link>
         <Link href="/admin/analytics" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: 20 }}>
           <div style={{ fontSize: 13, color: "#8A93A6" }}>Analytics</div>
           <div style={{ fontSize: 28, fontWeight: 700 }}>👁</div>
