@@ -7,6 +7,7 @@
  * at the family's parent product (parent_id NULL = parent/standalone).
  */
 import { createClient } from "@supabase/supabase-js";
+import { timeoutFetch } from "@/lib/supabase/fetch-timeout";
 import { unstable_cache } from "next/cache";
 import type { Product, TechSpecs } from "@/lib/data";
 
