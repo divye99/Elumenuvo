@@ -44,15 +44,18 @@ export async function POST(req: Request) {
     if (!q || !q.items?.length || !q.company || !q.subject) {
       return NextResponse.json({ ok: false, error: "Company, subject and at least one item are required." }, { status: 422 });
     }
-    // Letterhead logo from our own CDN (public/ is not in the serverless
-    // bundle); a miss just renders the text letterhead.
-    let logo: Uint8Array | undefined;
-    try {
-      const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://elumenuvo.com").replace(/\/+$/, "");
-      const res = await fetch(`${site}/assets/elume-horizontal.png`);
-      if (res.ok) logo = new Uint8Array(await res.arrayBuffer());
-    } catch { /* text letterhead */ }
-    const buf = await buildQuotationDocx(q, logo);
+    // Letterhead artwork (and the logo for the text fallback) from our own
+    // CDN - public/ is not in the serverless bundle. Any miss degrades
+    // gracefully: no letterhead -> text identity block.
+    const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://elumenuvo.com").replace(/\/+$/, "");
+    const grab = async (path: string): Promise<Uint8Array | undefined> => {
+      try {
+        const res = await fetch(`${site}${path}`);
+        return res.ok ? new Uint8Array(await res.arrayBuffer()) : undefined;
+      } catch { return undefined; }
+    };
+    const [letterhead, logo] = await Promise.all([grab("/assets/letterhead.png"), grab("/assets/elume-horizontal.png")]);
+    const buf = await buildQuotationDocx(q, { letterhead, logo });
     const fname = `Elume-Quotation-${q.ref.replace(/[^\w-]+/g, "-")}.docx`;
     return new NextResponse(new Uint8Array(buf), {
       headers: {
