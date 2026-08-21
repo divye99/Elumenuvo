@@ -178,8 +178,8 @@ function toProduct(r: any): Product {
   } as Product;
 }
 
-/** All in-stock Norisys rows, cached 10 min - one fetch feeds swatches and
- *  pairings for every Norisys PDP render. */
+/** All in-stock Norisys rows (~0.5 MB), cached six hours under the "products"
+ *  tag - one fetch feeds swatches and pairings for every Norisys PDP render. */
 const norisysAll = unstable_cache(
   async () => {
     const db = adminClient();
@@ -194,7 +194,7 @@ const norisysAll = unstable_cache(
     return out;
   },
   ["norisys-all"],
-  { revalidate: 600, tags: ["products"] }
+  { revalidate: 6 * 3600, tags: ["products"] }
 );
 
 /** Finish siblings for one product: same stem, different suffix. Returned as

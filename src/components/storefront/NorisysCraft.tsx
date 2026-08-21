@@ -39,7 +39,7 @@ export default function NorisysCraft({ series, pairing }: {
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: "0 0 12px" }}>{pairing.heading}</h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 12 }}>
             {pairing.items.map((s: Product) => (
-              <Link key={s.id} href={`/catalogue/${s.id}`} style={{ border: "1px solid #EEF0F4", borderRadius: 12, padding: 10, background: "#FBFCFE", display: "block" }}>
+              <Link prefetch={false} key={s.id} href={`/catalogue/${s.id}`} style={{ border: "1px solid #EEF0F4", borderRadius: 12, padding: 10, background: "#FBFCFE", display: "block" }}>
                 <div style={{ height: 86, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
                   {s.image
                     // eslint-disable-next-line @next/next/no-img-element

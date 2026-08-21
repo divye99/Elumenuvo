@@ -40,7 +40,10 @@ const FAQS: [string, string][] = [
  * a transparent daily rate (updated 2-3x/day against MCX/LME); every other
  * metal is enquiry-first. Same ISR posture as the rest of the store.
  */
-export const revalidate = 300;
+// Hourly, not every 5 minutes: each regeneration reads the whole catalogue
+// cache (ten ~0.8 MB entries, billed per unit). The rate charts are live
+// client-side embeds and do not depend on this window.
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Metals at transparent daily rates - copper, aluminium, steel & more",

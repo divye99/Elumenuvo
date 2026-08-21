@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath, revalidateTag } from "next/cache";
-import { PRODUCTS_CACHE_TAG } from "@/lib/products";
+import { PRODUCTS_CACHE_TAG, forgetCatalogueMemo } from "@/lib/products";
 
 /** Drop the cached listing AND the cached page of each product touched.
  *  Product pages are ISR (see catalogue/[id]); without this a price edit would
@@ -12,6 +12,7 @@ function revalidateProducts(ids: Array<string | null | undefined>) {
   // Drop the shared 5-minute catalogue data cache FIRST: page revalidation
   // re-renders against fresh data, so an admin edit is live immediately.
   revalidateTag(PRODUCTS_CACHE_TAG, "max");
+  forgetCatalogueMemo();
   revalidatePath("/");
   revalidatePath("/catalogue");
   const unique = [...new Set(ids.filter(Boolean) as string[])];
@@ -199,6 +200,7 @@ export async function bulkUpdatePricing(edits: { id: string; mrp: number; elume_
   }
   revalidatePath("/admin/products");
   revalidateTag(PRODUCTS_CACHE_TAG, "max");
+  forgetCatalogueMemo();
   revalidatePath("/");
   revalidatePath("/catalogue");
   return { ok: true };
@@ -296,6 +298,7 @@ export async function applyImport(
   revalidatePath("/admin/products");
   revalidatePath("/admin/products/import");
   revalidateTag(PRODUCTS_CACHE_TAG, "max");
+  forgetCatalogueMemo();
   revalidatePath("/");
   revalidatePath("/catalogue");
   return { ok: true, applied: added + updated + removed };
@@ -310,6 +313,7 @@ export async function deleteProduct(formData: FormData): Promise<void> {
   if (error) redirect(`/admin/products?error=${encodeURIComponent(error.message)}`);
   revalidatePath("/admin/products");
   revalidateTag(PRODUCTS_CACHE_TAG, "max");
+  forgetCatalogueMemo();
   revalidatePath("/");
   revalidatePath("/catalogue");
   redirect("/admin/products?ok=deleted");
@@ -480,6 +484,7 @@ export async function applyRecommendedPrice(productId: string, target: number): 
   revalidatePath("/admin/radar");
   revalidatePath("/admin/products");
   revalidateTag(PRODUCTS_CACHE_TAG, "max");
+  forgetCatalogueMemo();
   revalidatePath("/");
   revalidatePath("/catalogue");
   return { ok: true };
@@ -576,6 +581,7 @@ export async function setElumePrice(productId: string, price: number): Promise<A
   revalidatePath("/admin/radar");
   revalidatePath("/admin/products");
   revalidateTag(PRODUCTS_CACHE_TAG, "max");
+  forgetCatalogueMemo();
   revalidatePath("/");
   revalidatePath("/catalogue");
   return { ok: true };

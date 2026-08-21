@@ -6,7 +6,7 @@
  * Action (which reimplements the same loop for Vashi in plain JS).
  */
 import { revalidatePath, revalidateTag } from "next/cache";
-import { PRODUCTS_CACHE_TAG } from "@/lib/products";
+import { PRODUCTS_CACHE_TAG, forgetCatalogueMemo } from "@/lib/products";
 import { getAdapter, credsFor } from "@/lib/competitors";
 import { legrandCodeFor } from "@/lib/competitors/legrandshop";
 
@@ -188,6 +188,7 @@ export async function runCompetitorSync(db: SupaLike, source: string, runSource:
 
   if (repriced.length) {
     revalidateTag(PRODUCTS_CACHE_TAG, "max");
+    forgetCatalogueMemo();
     revalidatePath("/");
     revalidatePath("/catalogue");
     for (const id of new Set(repriced)) revalidatePath(`/catalogue/${id}`);

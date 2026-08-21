@@ -73,7 +73,7 @@ export default function ProductCard({
   };
 
   return (
-    <Link
+    <Link prefetch={false}
       href={`/catalogue/${shown.id}`}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { isAdmin } from "@/lib/admin/auth";
 import { rebuildCompareKeys } from "@/lib/compare/build";
-import { PRODUCTS_CACHE_TAG } from "@/lib/products";
+import { PRODUCTS_CACHE_TAG, forgetCatalogueMemo } from "@/lib/products";
 
 /**
  * Full compare-mapping rebuild, admin-triggered ("Rebuild mappings now").
@@ -21,5 +21,6 @@ export async function POST() {
   // PDP compare rails read compare keys through the products cache - without
   // this, rebuilt groups would wait out the (now day-long) ISR window.
   revalidateTag(PRODUCTS_CACHE_TAG, "max");
+  forgetCatalogueMemo();
   return NextResponse.json({ ok: true, ...result });
 }

@@ -90,8 +90,8 @@ export type Taste = {
 /** id -> compare_key for the substitution rail. Was a 4,000-row read on
  *  EVERY personalised call (home, for-you, each PDP hydration), which a JS-
  *  running scraper fleet turned into the single heaviest query on the
- *  database (21 Aug 2026). Now one read per 5 minutes, shared, dropped by
- *  the same "products" tag every admin write already revalidates. */
+ *  database (21 Aug 2026). Now one cached read per six hours, shared, dropped
+ *  by the same "products" tag every admin write already revalidates. */
 const compareKeyPairs = unstable_cache(
   async (): Promise<[string, string][]> => {
     const db = adminClient();
@@ -100,7 +100,7 @@ const compareKeyPairs = unstable_cache(
     return ((data ?? []) as { id: string; compare_key: string }[]).map((r) => [r.id, r.compare_key]);
   },
   ["personal-compare-keys"],
-  { tags: ["products"], revalidate: 300 },
+  { tags: ["products"], revalidate: 6 * 3600 },
 );
 
 export async function sessionTaste(sidToken: string | null): Promise<Taste> {

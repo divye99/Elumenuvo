@@ -312,6 +312,30 @@ The page commits to a response WITHIN 24 HOURS, and the email footer repeats it.
 KAM note: quote from the live price list; the automatic 15-unit wholesale rate is the floor, project volumes can go sharper line by line.`,
   },
   {
+    slug: "catalogue-cache",
+    title: "Catalogue cache: how product data reaches pages, and what it costs",
+    summary: "One shared catalogue cache, six-hour window, instant drop on admin writes; why it is six hours and not five minutes.",
+    tags: ["ops"],
+    body: `## The shape
+Every page and API that needs the catalogue calls one of two fetchers in src/lib/products.ts: fetchProducts (card columns incl. attrs and the reviews join) or fetchProductsLite (grid columns). Both read the active catalogue from Supabase in 1,000-row chunks (the PostgREST cap) and store each chunk in Vercel's data cache under the tag "products". Ten chunks each, 0.6 to 0.95 MB per chunk.
+
+## Freshness
+- Every admin write path (product edits, repricing, radar accepts, imports, metals console, stock toggles) calls revalidateTag("products"): the cache is dropped instantly and the next request refills it.
+- Changes that bypass the app (backfill scripts, raw SQL in the Supabase editor) must call POST /api/admin/revalidate (admin cookie, or Authorization: Bearer CRON_SECRET from a script). Otherwise they reach the storefront only when the window expires.
+- The window is SIX HOURS (PRODUCTS_CACHE_SECONDS). Each warm function instance also keeps the mapped catalogue in memory for 60 seconds, so instances other than the one that performed a write can lag it by up to a minute.
+
+## Why six hours and not five minutes (21 Aug 2026)
+Vercel bills every data-cache write per 8 KB unit and attributes it to the page that triggered it. With a five-minute window and bot traffic keeping the site warm around the clock, the 20 chunk entries (~16 MB) were rewritten every five minutes: that alone was the "ISR Writes" line on the bill, showing up as /catalogue, / and /metals (the fetchProducts callers) and the collections pages (fetchProductsLite). Six hours cuts those writes by ~70x; the instant tag drop keeps admin edits live.
+
+## Worked example
+An admin changes a Havells fan price at 11:02. The save calls revalidateTag("products") and clears the writing instance's memo; the 11:02 request after it refills the ten chunks (one write each) and shows the new price. A different warm instance may still show the old price until 11:03. A backfill script that rewrote 700 spec sheets at 02:00 without calling /api/admin/revalidate would show the old specs until the next refill, at the latest 08:00.
+
+## Related rules
+- Keep chunk entries under 2 MB: Next's data cache silently rejects larger entries and the fetch then runs uncached on every request (measured 21 Aug: card chunks max 0.95 MB, lite 0.78 MB, Norisys 0.5 MB).
+- Pages that call the full fetch on a short revalidate (the metals page was 300 s) multiply cache READS; /metals is hourly now.
+- Deploys are not free either: each one re-renders every visited page once. Push once per work session, not per change.`,
+  },
+  {
     slug: "analytics-bots",
     title: "Analytics: tracking and bot filtering",
     summary: "What we track, and the three layers that keep bots out of every number.",

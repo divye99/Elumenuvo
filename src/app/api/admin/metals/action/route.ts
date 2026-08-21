@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
-import { PRODUCTS_CACHE_TAG } from "@/lib/products";
+import { PRODUCTS_CACHE_TAG, forgetCatalogueMemo } from "@/lib/products";
 import { isAdmin } from "@/lib/admin/auth";
 import { adminClient } from "@/lib/supabase/admin";
 import { gstRateFor } from "@/lib/pricing";
@@ -27,6 +27,7 @@ function revalidateMetals(ids: string[]) {
   // Copper moves 2-3x a day: bust the shared catalogue data cache so the
   // fresh rate is what the revalidated pages render.
   revalidateTag(PRODUCTS_CACHE_TAG, "max");
+  forgetCatalogueMemo();
   revalidatePath("/");
   revalidatePath("/admin/metals");
   revalidatePath("/catalogue");

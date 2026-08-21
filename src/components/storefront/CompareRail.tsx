@@ -98,7 +98,7 @@ export default function CompareRail({ current, items, pageSlug }: { current: Com
                     ) : (
                       <span style={{ fontSize: 10, fontWeight: 700, color: "#8A93A6" }}>{p.brand.toUpperCase()}</span>
                     )}
-                    <Link
+                    <Link prefetch={false}
                       href={`/catalogue/${p.id}`}
                       onClick={(e) => { if (isCurrent) { e.preventDefault(); return; } track("compare_pick", { detail: { from: current.id, to: p.id } }); }}
                       style={{ display: "block", cursor: isCurrent ? "default" : "pointer" }}

@@ -90,15 +90,33 @@ async function selectProducts(c: NonNullable<ReturnType<typeof client>>, applyFi
  * The full catalogue is ~1.9 MB from Supabase, and every page that used to
  * fetch it per-request (worst: the force-dynamic homepage, hammered by bots)
  * was the #1 cause of blowing the egress quota. Both catalogue fetchers are
- * now cached ONCE and shared by every page and API for up to 5 minutes.
+ * cached ONCE and shared by every page and API.
  *
- * Freshness guarantee: 5 minutes is only the ceiling for changes made with
- * raw SQL. Every admin write path (product edits, repricing, radar accepts,
- * imports, metals console, OOS toggles) calls revalidateTag("products"),
- * which drops this cache instantly - an admin price change is live on the
- * very next request.
+ * Cache window (owner, 21 Aug 2026): SIX HOURS, not five minutes. Vercel
+ * bills every data-cache write per 8 KB unit and attributes it to the page
+ * that triggered it; these 20 chunk entries are 0.6 to 0.95 MB each, so the
+ * old 5-minute ceiling rewrote ~16 MB every five minutes around the clock
+ * once bot traffic kept the site warm. That was the whole "ISR Writes" line
+ * on the Vercel bill (/catalogue, / and /metals at the top). The ceiling
+ * only matters for changes made with raw SQL or backfill scripts: every
+ * admin write path (product edits, repricing, radar accepts, imports, metals
+ * console, OOS toggles) calls revalidateTag("products") and drops the cache
+ * instantly, and scripts call POST /api/admin/revalidate when they finish.
+ *
+ * On top of the data cache, each warm function instance memoises the mapped
+ * catalogue for MEMO_MS, so a burst of requests (the rails endpoint on every
+ * product view, hub regenerations) reads the chunks once per instance
+ * instead of ten ~0.8 MB cache reads per request. Instances other than the
+ * one that performed an admin write therefore lag it by at most MEMO_MS.
  */
 export const PRODUCTS_CACHE_TAG = "products";
+export const PRODUCTS_CACHE_SECONDS = 6 * 3600;
+const MEMO_MS = 60_000;
+let cardsMemo: { at: number; p: Promise<Product[]> } | null = null;
+let liteMemo: { at: number; p: Promise<Product[]> } | null = null;
+/** Drop the per-instance memo (the admin write path calls this right after
+ *  revalidateTag so the writing instance is fresh on its very next request). */
+export function forgetCatalogueMemo() { cardsMemo = null; liteMemo = null; }
 
 /**
  * Card-level column set for LIST surfaces (homepage, catalogue, collections,
@@ -175,10 +193,19 @@ const cardRowsChunk = unstable_cache(
     return (data ?? []) as Row[];
   },
   ["products-card-chunk"],
-  { tags: [PRODUCTS_CACHE_TAG], revalidate: 300 }
+  { tags: [PRODUCTS_CACHE_TAG], revalidate: PRODUCTS_CACHE_SECONDS }
 );
 
 export async function fetchProducts(): Promise<Product[]> {
+  if (cardsMemo && Date.now() - cardsMemo.at < MEMO_MS) return cardsMemo.p;
+  const p = fetchProductsUncached();
+  cardsMemo = { at: Date.now(), p };
+  // A failed or empty load must not be memoised: the next request retries.
+  p.then((rows) => { if (!rows.length) cardsMemo = null; }, () => { cardsMemo = null; });
+  return p;
+}
+
+async function fetchProductsUncached(): Promise<Product[]> {
   try {
     const all: Row[] = [];
     for (let page = 0; ; page++) {
@@ -215,7 +242,7 @@ export async function fetchProducts(): Promise<Product[]> {
 const LITE_COLS = "id, sku, name, brand, category, spec, mrp, elume_price, unit, image_url, units_sold, is_recommended, parent_id, market_low, gst_rate, in_stock, created_at";
 
 // Same chunked-cache contract as fetchProducts (see the 2 MB note above):
-// shared for ≤5 min, dropped instantly by revalidateTag on admin writes.
+// shared for up to PRODUCTS_CACHE_SECONDS, dropped instantly by revalidateTag on admin writes.
 const liteRowsChunk = unstable_cache(
   async (page: number): Promise<Row[]> => {
     const c = client();
@@ -228,10 +255,18 @@ const liteRowsChunk = unstable_cache(
     return (data ?? []) as unknown as Row[];
   },
   ["products-lite-chunk"],
-  { tags: [PRODUCTS_CACHE_TAG], revalidate: 300 }
+  { tags: [PRODUCTS_CACHE_TAG], revalidate: PRODUCTS_CACHE_SECONDS }
 );
 
 export async function fetchProductsLite(): Promise<Product[]> {
+  if (liteMemo && Date.now() - liteMemo.at < MEMO_MS) return liteMemo.p;
+  const p = fetchProductsLiteUncached();
+  liteMemo = { at: Date.now(), p };
+  p.then((rows) => { if (!rows.length) liteMemo = null; }, () => { liteMemo = null; });
+  return p;
+}
+
+async function fetchProductsLiteUncached(): Promise<Product[]> {
   try {
     const all: Row[] = [];
     for (let page = 0; ; page++) {
