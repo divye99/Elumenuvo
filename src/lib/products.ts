@@ -101,7 +101,8 @@ async function selectProducts(c: NonNullable<ReturnType<typeof client>>, applyFi
  * only matters for changes made with raw SQL or backfill scripts: every
  * admin write path (product edits, repricing, radar accepts, imports, metals
  * console, OOS toggles) calls revalidateTag("products") and drops the cache
- * instantly, and scripts call POST /api/admin/revalidate when they finish.
+ * instantly; script and raw-SQL changes are picked up automatically through
+ * the catalogue_version watermark (migration 0133, catalogueVersion below).
  *
  * On top of the data cache, each warm function instance memoises the mapped
  * catalogue for MEMO_MS, so a burst of requests (the rails endpoint on every
@@ -116,7 +117,30 @@ let cardsMemo: { at: number; p: Promise<Product[]> } | null = null;
 let liteMemo: { at: number; p: Promise<Product[]> } | null = null;
 /** Drop the per-instance memo (the admin write path calls this right after
  *  revalidateTag so the writing instance is fresh on its very next request). */
-export function forgetCatalogueMemo() { cardsMemo = null; liteMemo = null; }
+let versionMemo: { at: number; v: string } | null = null;
+const VERSION_MEMO_MS = 60_000;
+/** Catalogue watermark (migration 0133): one row in public.catalogue_version
+ *  that statement-level triggers bump on every insert/update/delete of
+ *  products or reviews, however the change was made: console, script, raw
+ *  SQL. The chunk caches are keyed by it, so ANY change reaches the
+ *  storefront within VERSION_MEMO_MS with no buttons or manual revalidation,
+ *  and new cache entries are written only when the catalogue actually
+ *  changed. Before 0133 (table missing) the value stays "0" and the time
+ *  window plus the "products" tag govern freshness exactly as before. */
+export async function catalogueVersion(): Promise<string> {
+  if (versionMemo && Date.now() - versionMemo.at < VERSION_MEMO_MS) return versionMemo.v;
+  let v = versionMemo?.v ?? "0";
+  const c = client();
+  if (c) {
+    try {
+      const { data, error } = await c.from("catalogue_version").select("version").eq("singleton", true).maybeSingle();
+      if (!error && data?.version != null) v = String(data.version);
+    } catch { /* keep the last known version */ }
+  }
+  versionMemo = { at: Date.now(), v };
+  return v;
+}
+export function forgetCatalogueMemo() { cardsMemo = null; liteMemo = null; versionMemo = null; }
 
 /**
  * Card-level column set for LIST surfaces (homepage, catalogue, collections,
@@ -179,7 +203,8 @@ export async function fetchProductByElin(elin: string): Promise<Product | null> 
 const ROW_CHUNK = 1000;
 
 const cardRowsChunk = unstable_cache(
-  async (page: number): Promise<Row[]> => {
+  // _version is part of the cache key only: see catalogueVersion().
+  async (page: number, _version: string): Promise<Row[]> => {
     const c = client();
     if (!c) throw new Error("no client");
     // Order by sort_order THEN id - sort_order values collide across import
@@ -207,9 +232,10 @@ export async function fetchProducts(): Promise<Product[]> {
 
 async function fetchProductsUncached(): Promise<Product[]> {
   try {
+    const version = await catalogueVersion();
     const all: Row[] = [];
     for (let page = 0; ; page++) {
-      const rows = await cardRowsChunk(page);
+      const rows = await cardRowsChunk(page, version);
       all.push(...rows);
       if (rows.length < ROW_CHUNK) break;
     }
@@ -244,7 +270,7 @@ const LITE_COLS = "id, sku, name, brand, category, spec, mrp, elume_price, unit,
 // Same chunked-cache contract as fetchProducts (see the 2 MB note above):
 // shared for up to PRODUCTS_CACHE_SECONDS, dropped instantly by revalidateTag on admin writes.
 const liteRowsChunk = unstable_cache(
-  async (page: number): Promise<Row[]> => {
+  async (page: number, _version: string): Promise<Row[]> => {
     const c = client();
     if (!c) throw new Error("no client");
     // Same contract as cardRowsChunk: 1000-row chunks (the PostgREST cap),
@@ -268,9 +294,10 @@ export async function fetchProductsLite(): Promise<Product[]> {
 
 async function fetchProductsLiteUncached(): Promise<Product[]> {
   try {
+    const version = await catalogueVersion();
     const all: Row[] = [];
     for (let page = 0; ; page++) {
-      const rows = await liteRowsChunk(page);
+      const rows = await liteRowsChunk(page, version);
       all.push(...rows);
       if (rows.length < ROW_CHUNK) break;
     }

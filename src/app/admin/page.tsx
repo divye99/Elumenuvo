@@ -1,5 +1,4 @@
 import Link from "next/link";
-import RefreshCatalogueButton from "@/components/admin/RefreshCatalogueButton";
 import { requireAdmin } from "@/lib/admin/auth";
 import { countProducts, listContentRows, hasServiceRole, countPendingSuggestions, countOpenOrders, countInFlightShipments } from "@/lib/admin/data";
 import { countPendingReviews } from "@/lib/admin/review-actions";
@@ -21,9 +20,6 @@ export default async function AdminHome() {
         </div>
       )}
 
-      <div style={{ marginBottom: 16 }}>
-        <RefreshCatalogueButton />
-      </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 16 }}>
         <Link href="/admin/orders" style={{ background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: 20, position: "relative" }}>
           {openOrders > 0 && <span style={{ position: "absolute", top: 14, right: 14, fontSize: 12, fontWeight: 700, color: "#fff", background: "#F25929", borderRadius: 20, padding: "2px 9px" }}>{openOrders}</span>}

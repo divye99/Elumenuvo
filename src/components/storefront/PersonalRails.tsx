@@ -54,7 +54,7 @@ export default function PersonalRails({ ctx, heading }: { ctx: string; heading?:
               const gb = gstBreakdown(p.price, p.cat, p.gstRate);
               return (
                 <div key={p.id} style={{ width: 188, flex: "none", background: "#fff", border: "1px solid #E8EBF1", borderRadius: 14, padding: 12, scrollSnapAlign: "start", display: "flex", flexDirection: "column" }}>
-                  <Link prefetch={false} href={`/catalogue/${p.id}`} onClick={() => track("reco_pick", { detail: { rail: rail.key, to: p.id, ctx } })}>
+                  <Link href={`/catalogue/${p.id}`} onClick={() => track("reco_pick", { detail: { rail: rail.key, to: p.id, ctx } })}>
                     <div style={{ height: 108, borderRadius: 10, border: "1px solid #EEF0F4", background: p.image ? `center/contain no-repeat url(${p.image}) #fff` : "#F5F6F9", marginBottom: 8 }} />
                     <div style={{ fontSize: 10.5, fontWeight: 700, color: "#8A93A6" }}>{p.brand.toUpperCase()}</div>
                     <div style={{ fontSize: 12.5, fontWeight: 700, color: "#19202E", lineHeight: 1.35, minHeight: 34, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>

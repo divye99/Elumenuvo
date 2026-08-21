@@ -1,4 +1,5 @@
 import type { Product } from "@/lib/data";
+import { catalogueVersion } from "@/lib/products";
 import { adminClient } from "@/lib/supabase/admin";
 import { unstable_cache } from "next/cache";
 
@@ -181,7 +182,7 @@ function toProduct(r: any): Product {
 /** All in-stock Norisys rows (~0.5 MB), cached six hours under the "products"
  *  tag - one fetch feeds swatches and pairings for every Norisys PDP render. */
 const norisysAll = unstable_cache(
-  async () => {
+  async (_version: string) => {
     const db = adminClient();
     if (!db) return [] as any[];
     const out: any[] = [];
@@ -203,7 +204,7 @@ const norisysAll = unstable_cache(
 export async function fetchNorisysFinishSiblings(p: Product): Promise<Product[]> {
   const code = norisysCode(p);
   if (!code) return [];
-  const rows = await norisysAll();
+  const rows = await norisysAll(await catalogueVersion());
   const family = rows
     .map(toProduct)
     .map((s) => ({ s, c: norisysCode(s) }))
@@ -236,7 +237,7 @@ export async function fetchNorisysPairings(p: Product): Promise<NorisysPairing |
   if (!code) return null;
   const series = norisysSeries(code.stem);
   const mySize = moduleOf(p.name);
-  const rows = (await norisysAll()).map(toProduct).filter((s) => s.id !== p.id);
+  const rows = (await norisysAll(await catalogueVersion())).map(toProduct).filter((s) => s.id !== p.id);
   const inSeries = rows.filter((s) => {
     const c = norisysCode(s);
     return c && norisysSeries(c.stem) === series;

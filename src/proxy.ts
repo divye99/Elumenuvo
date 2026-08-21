@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/space/supabase/middleware";
-import { isStaleBrowser } from "@/lib/bots";
+import { BOT_RE, isStaleBrowser } from "@/lib/bots";
 
 /** Next 16 "proxy" convention (formerly middleware). Two jobs:
  *
@@ -22,8 +22,13 @@ const HEADLESS_RE = /lightpanda|headlesschrome|phantomjs|puppeteer|playwright/i;
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   if (pathname.startsWith("/app") || pathname.startsWith("/space/portal")) return await updateSession(request);
-  const ua = request.headers.get("user-agent");
-  if (HEADLESS_RE.test(ua ?? "") || isStaleBrowser(ua)) {
+  const ua = request.headers.get("user-agent") ?? "";
+  // Honest crawlers (Googlebot, Bingbot, Applebot, the AI answer engines,
+  // link previewers) say who they are and are welcome; some carry an
+  // old-looking browser token (Applebot reports Safari 13), so they are
+  // exempt from the stale-browser test. We block disguises, not bots that
+  // identify themselves; robots.txt governs those.
+  if (HEADLESS_RE.test(ua) || (!BOT_RE.test(ua) && isStaleBrowser(ua))) {
     return new NextResponse("Forbidden", { status: 403, headers: { "cache-control": "no-store" } });
   }
   return NextResponse.next();

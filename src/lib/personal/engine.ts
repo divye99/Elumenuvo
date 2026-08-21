@@ -1,6 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { adminClient } from "@/lib/supabase/admin";
-import { fetchProductsLite } from "@/lib/products";
+import { catalogueVersion, fetchProductsLite } from "@/lib/products";
 import { searchTokens, matchesAll } from "@/lib/search-normalize";
 import type { Product } from "@/lib/data";
 
@@ -93,7 +93,7 @@ export type Taste = {
  *  database (21 Aug 2026). Now one cached read per six hours, shared, dropped
  *  by the same "products" tag every admin write already revalidates. */
 const compareKeyPairs = unstable_cache(
-  async (): Promise<[string, string][]> => {
+  async (_version: string): Promise<[string, string][]> => {
     const db = adminClient();
     if (!db) return [];
     const { data } = await db.from("products").select("id, compare_key").not("compare_key", "is", null).limit(4000);
@@ -356,7 +356,7 @@ export async function buildRails(opts: { ctx: string; sid: string | null; email:
   if (taste.viewed.length > 0) {
     const keyOf = new Map<string, string>();
     try {
-      for (const [id, key] of await compareKeyPairs()) keyOf.set(id, key);
+      for (const [id, key] of await compareKeyPairs(await catalogueVersion())) keyOf.set(id, key);
     } catch { /* pre-0095: no substitution layer yet */ }
     const subs: Product[] = [];
     for (const id of taste.viewed.slice(0, 10)) {

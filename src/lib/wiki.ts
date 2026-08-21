@@ -314,27 +314,28 @@ KAM note: quote from the live price list; the automatic 15-unit wholesale rate i
   {
     slug: "catalogue-cache",
     title: "Catalogue cache: how product data reaches pages, and what it costs",
-    summary: "One shared catalogue cache, six-hour window, instant drop on admin writes; why it is six hours and not five minutes.",
+    summary: "One shared catalogue cache, keyed by an automatic change watermark; why it is no longer rewritten every five minutes.",
     tags: ["ops"],
     body: `## The shape
-Every page and API that needs the catalogue calls one of two fetchers in src/lib/products.ts: fetchProducts (card columns incl. attrs and the reviews join) or fetchProductsLite (grid columns). Both read the active catalogue from Supabase in 1,000-row chunks (the PostgREST cap) and store each chunk in Vercel's data cache under the tag "products". Ten chunks each, 0.6 to 0.95 MB per chunk.
+Every page and API that needs the catalogue calls one of two fetchers in src/lib/products.ts: fetchProducts (card columns incl. attrs and the reviews join) or fetchProductsLite (grid columns). Both read the active catalogue from Supabase in 1,000-row chunks (the PostgREST cap) and store each chunk in Vercel's data cache under the tag "products". Ten chunks each, 0.6 to 0.95 MB per chunk. Each warm function instance also keeps the mapped catalogue in memory for 60 seconds so bursts of requests read the chunks once.
 
-## Freshness
-- Every admin write path (product edits, repricing, radar accepts, imports, metals console, stock toggles) calls revalidateTag("products"): the cache is dropped instantly and the next request refills it.
-- Changes that bypass the app (backfill scripts, raw SQL in the Supabase editor) need a manual drop: the "Refresh storefront cache" button at the top of the admin dashboard, or "node scripts/revalidate-catalogue.mjs" after a script (it signs a short-lived token with the service key; POST /api/admin/revalidate also accepts the admin cookie and the cron bearer secret). Otherwise they reach the storefront only when the window expires.
-- The window is SIX HOURS (PRODUCTS_CACHE_SECONDS). Each warm function instance also keeps the mapped catalogue in memory for 60 seconds, so instances other than the one that performed a write can lag it by up to a minute.
+## Freshness, fully automatic
+- A single row in public.catalogue_version (migration 0133) is bumped by statement-level triggers on every insert, update or delete of products or reviews, no matter how the change was made: admin console, import, backfill script, raw SQL in the Supabase editor.
+- The app reads that version at most once a minute per instance and keys every chunk entry (and the Norisys and compare-key caches) by it. A new version means new entries on the next request; old entries simply expire.
+- Admin console writes additionally call revalidateTag("products") and reset the instance memo, so the console sees its own change on the very next request. Other instances and all non-console changes follow within about a minute.
+- The time window (six hours) is only a safety net in case the watermark cannot be read.
+- Fallback, normally unused: POST /api/admin/revalidate (admin cookie, cron bearer, or scripts/revalidate-catalogue.mjs) drops the tag by hand.
 
-## Why six hours and not five minutes (21 Aug 2026)
-Vercel bills every data-cache write per 8 KB unit and attributes it to the page that triggered it. With a five-minute window and bot traffic keeping the site warm around the clock, the 20 chunk entries (~16 MB) were rewritten every five minutes: that alone was the "ISR Writes" line on the bill, showing up as /catalogue, / and /metals (the fetchProducts callers) and the collections pages (fetchProductsLite). Six hours cuts those writes by ~70x; the instant tag drop keeps admin edits live.
+## Why not five minutes (21 Aug 2026)
+Vercel bills every data-cache write per 8 KB unit and attributes it to the page that triggered it. With a five-minute window and bot traffic keeping the site warm around the clock, the 20 chunk entries (~16 MB) were rewritten every five minutes: that alone was the "ISR Writes" line on the bill, showing up as /catalogue, / and /metals (the fetchProducts callers) and the collections pages (fetchProductsLite). Keying by the change watermark means a rewrite happens only when the catalogue actually changed, which is what a cache is supposed to do.
 
 ## Worked example
-An admin changes a Havells fan price at 11:02. The save calls revalidateTag("products") and clears the writing instance's memo; the 11:02 request after it refills the ten chunks (one write each) and shows the new price. A different warm instance may still show the old price until 11:03. A backfill script that rewrote 700 spec sheets at 02:00 without calling /api/admin/revalidate would show the old specs until the next refill, at the latest 08:00.
+An admin changes a Havells fan price at 11:02. The trigger bumps the version; the save also drops the tag, so the console shows the new price at once and every other server within a minute. A backfill script rewrites 700 spec sheets at 02:00: the trigger bumps the version and the storefront shows the new specs by 02:01, without anyone pressing anything.
 
 ## Related rules
 - Keep chunk entries under 2 MB: Next's data cache silently rejects larger entries and the fetch then runs uncached on every request (measured 21 Aug: card chunks max 0.95 MB, lite 0.78 MB, Norisys 0.5 MB).
-- Pages that call the full fetch on a short revalidate (the metals page was 300 s) multiply cache READS; /metals is hourly now.
-- Product-card links do not prefetch on viewport entry (the grid used to fan a single scripted view into dozens of cold renders); hover prefetch is done explicitly with router.prefetch so desktop clicks still land warm. Mobile taps lose the preload, a fraction of a second.
-- Deploys are not free either: each one re-renders every visited page once. Push once per work session, not per change.`,
+- Pages that call the full fetch on a short revalidate multiply cache reads; /metals is hourly.
+- Product cards prefetch their pages as Next normally does (instant clicks); the bot-driven fan-out is stopped at the edge instead, by the bouncer in src/proxy.ts.`,
   },
   {
     slug: "analytics-bots",
