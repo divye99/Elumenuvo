@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { sendTrafficAlert } from "@/lib/email";
 import { adminClient } from "@/lib/supabase/admin";
 
 /**
@@ -13,6 +14,9 @@ import { adminClient } from "@/lib/supabase/admin";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 60;
+
+/** A normal day is a few hundred events; the 19 Aug 2026 fleet logged 11,976. */
+const TRAFFIC_ALERT_THRESHOLD = 2_500;
 
 export async function GET(request: Request) {
   const secret = (process.env.CRON_SECRET || "").trim();
@@ -38,5 +42,21 @@ export async function GET(request: Request) {
   if (error) {
     return NextResponse.json({ error: `${error.message} (run migration 0061?)` }, { status: 500 });
   }
-  return NextResponse.json({ ok: true, from, to, rows: data, botsFlagged: cls.error ? `unavailable: ${cls.error.message}` : cls.data });
+  // Traffic watch: yesterday's raw event count (IST day), mailed to the
+  // owner when it is far above normal. Never fails the rollup.
+  let alert: string = "quiet";
+  try {
+    const yday = new Date(istNow.getTime() - 86_400_000).toISOString().slice(0, 10);
+    const startUtc = new Date(`${yday}T00:00:00+05:30`).toISOString();
+    const endUtc = new Date(`${to}T00:00:00+05:30`).toISOString();
+    const { count } = await db.from("site_events").select("id", { count: "exact", head: true }).gte("created_at", startUtc).lt("created_at", endUtc);
+    const events = count ?? 0;
+    if (events > TRAFFIC_ALERT_THRESHOLD) {
+      const r = await sendTrafficAlert({ day: yday, events, threshold: TRAFFIC_ALERT_THRESHOLD });
+      alert = r.ok ? `sent (${events} events on ${yday})` : `failed: ${r.error ?? "unknown"}`;
+    } else {
+      alert = `quiet (${events} events on ${yday})`;
+    }
+  } catch { /* watch is best-effort */ }
+  return NextResponse.json({ ok: true, from, to, rows: data, botsFlagged: cls.error ? `unavailable: ${cls.error.message}` : cls.data, alert });
 }

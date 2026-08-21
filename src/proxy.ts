@@ -19,6 +19,8 @@ import { BOT_RE, isStaleBrowser } from "@/lib/bots";
  *     Elumenuvo (space) portal. */
 const HEADLESS_RE = /lightpanda|headlesschrome|phantomjs|puppeteer|playwright/i;
 
+const BLOCKED_HTML = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Please update your browser · Elume</title><style>body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#F6F7FB;color:#16215B;display:flex;min-height:100vh;align-items:center;justify-content:center;padding:24px}main{max-width:520px;background:#fff;border:1px solid #E8EBF1;border-radius:16px;padding:32px}h1{font-size:22px;margin:0 0 12px}p{line-height:1.6;margin:0 0 12px;color:#2c3550}a{color:#1D2F8A}</style></head><body><main><h1>Please update your browser to open Elume</h1><p>This browser version is several years old, and automated traffic using the same version was recently overloading the site, so it is not served for now.</p><p>Updating Chrome, Edge, Firefox or Safari to a current version fixes this in a minute. If you cannot update, we are happy to help by phone or email:</p><p><a href="tel:+919818821175">+91 98188 21175</a> · <a href="mailto:info@elumenuvo.com">info@elumenuvo.com</a></p></main></body></html>`;
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   if (pathname.startsWith("/app") || pathname.startsWith("/space/portal")) return await updateSession(request);
@@ -29,7 +31,9 @@ export async function proxy(request: NextRequest) {
   // exempt from the stale-browser test. We block disguises, not bots that
   // identify themselves; robots.txt governs those.
   if (HEADLESS_RE.test(ua) || (!BOT_RE.test(ua) && isStaleBrowser(ua))) {
-    return new NextResponse("Forbidden", { status: 403, headers: { "cache-control": "no-store" } });
+    // A real person on a years-old, never-updated browser lands here too
+    // (rare, but office PCs exist): tell them why, and how to reach us.
+    return new NextResponse(BLOCKED_HTML, { status: 403, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
   }
   return NextResponse.next();
 }

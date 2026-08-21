@@ -552,6 +552,28 @@ export async function sendRefundVoucherEmail(
   return send(order.email, `Order ${order.id} - refund of ${fmt(amount)} + 10% off your next order`, html, { bcc: BCC_SELF });
 }
 
+/** Daily traffic alert (after the 21 Aug 2026 scraper wave): the nightly
+ *  rollup counts yesterday's raw events and mails the owner when the count
+ *  is far above the normal few hundred, so a new bot wave is noticed the
+ *  next morning instead of on the Vercel bill. */
+export async function sendTrafficAlert(a: { day: string; events: number; threshold: number }): Promise<EmailResult> {
+  const html = shell(
+    `Unusual traffic on ${a.day}: ${a.events.toLocaleString("en-IN")} events`,
+    `<p style="font-size:14px;line-height:1.65;color:#2c3550;margin:0 0 12px">
+       The site logged <b>${a.events.toLocaleString("en-IN")}</b> analytics events on ${a.day} (IST). A normal day is a few hundred;
+       the alert fires above ${a.threshold.toLocaleString("en-IN")}. The last time this happened (19 Aug 2026) it was a residential-proxy
+       scraper fleet, which eventually stalled the database.
+     </p>
+     <p style="font-size:14px;line-height:1.65;color:#2c3550;margin:0 0 12px">
+       What to check: the admin analytics Traffic tab (how much is flagged as bots), the Vercel Firewall tab, and the Supabase CPU graph.
+       If it is a fleet with current browser versions, switch Vercel Bot Protection to Challenge (with the webhook bypass rules) or add a
+       rate limit on /catalogue.
+     </p>
+     ${btn(`${SITE}/admin/analytics?view=traffic`, "Open traffic analytics →")}`
+  );
+  return send(ADMIN_EMAIL, `⚠️ Traffic alert: ${a.events.toLocaleString("en-IN")} events on ${a.day}`, html, { bcc: BCC_SELF });
+}
+
 /** ── Bulk enquiry (/bulk-enquiry form) ──
  *  The enquiry goes TO the business inbox with the requester in CC, so both
  *  sides hold the same thread and a plain "Reply all" starts the quote

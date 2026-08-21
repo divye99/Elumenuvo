@@ -46,7 +46,14 @@ const nextConfig = {
   // directory otherwise makes Next infer the wrong root).
   turbopack: { root: import.meta.dirname },
   async redirects() {
-    return outreachRedirects;
+    return [
+      ...outreachRedirects,
+      // Smart BOM and the quotation exporter were removed on 21 Aug 2026;
+      // four business customers still hold the invite link.
+      { source: "/app/boq", destination: "/bulk-enquiry", permanent: false },
+      { source: "/admin/boq", destination: "/admin/orders/new", permanent: false },
+      { source: "/admin/quotation", destination: "/admin/orders/new", permanent: false },
+    ];
   },
 };
 
