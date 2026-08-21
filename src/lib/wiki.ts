@@ -184,13 +184,13 @@ Bot traffic never enters any loop (see the analytics article). Rate limits cap l
 - The honesty gate: a weak match (below 50%, or a different brand than the line names without a strong score) is reported as NOT STOCKED instead of guessed. The near misses stay attached as a one-click "closest we have" substitute dropdown, and rescuing one teaches the matcher an alias. Worked example: an ABB enquiry line for a panel heater must say "not stocked", never "Orient water heater, 52%".
 - Confirmed matches are remembered (boq learning tables), so the next BOQ auto-matches better. Admin corrections train the same matcher.
 
-Fully homegrown: no external AI calls. Leads from unmatched lines land in the admin Leads console under boq_unmatched (admin-run ones are labeled "Elume admin console").`,
+Fully homegrown: no external AI calls. Leads from unmatched lines land in the admin Leads console under boq_unmatched (admin-run ones are labeled "Elume admin console").
+
+## Quotation export (.docx)
+/admin/quotation (also reachable from the console's approved lines via "export a quotation") turns an enquiry into the standard Elume quotation as an EDITABLE Word file: enquiry email + RFQ lines in, docx out. The format is owner-specified (Aug 2026): every figure EXCLUSIVE of GST, manufacturer MRP (ex-GST) next to the Elume price (ex-GST) with the discount computed between them, GST added once at the bottom (IGST or CGST/SGST), lean terms (no documents/specification rows), optional "This is our best offer." line. Edit the Word file, then print to PDF.`,
   },
   {
-   ## Quotation export (.docx)
-/admin/quotation (also reachable from the console's approved lines via "export a quotation") turns an enquiry into the standard Elume quotation as an EDITABLE Word file: enquiry email + RFQ lines in, docx out. The format is owner-specified (Aug 2026): every figure EXCLUSIVE of GST, manufacturer MRP (ex-GST) next to the Elume price (ex-GST) with the discount computed between them, GST added once at the bottom (IGST or CGST/SGST), lean terms (no documents/specification rows), optional "This is our best offer." line. Edit the Word file, then print to PDF.
-
- slug: "price-sync-radar",
+    slug: "price-sync-radar",
     title: "Pricing: brand syncs, market-beating, price radar",
     summary: "Where our prices come from and how we prove they are competitive.",
     tags: ["pricing"],
