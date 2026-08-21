@@ -321,7 +321,7 @@ Every page and API that needs the catalogue calls one of two fetchers in src/lib
 
 ## Freshness
 - Every admin write path (product edits, repricing, radar accepts, imports, metals console, stock toggles) calls revalidateTag("products"): the cache is dropped instantly and the next request refills it.
-- Changes that bypass the app (backfill scripts, raw SQL in the Supabase editor) must call POST /api/admin/revalidate (admin cookie, or Authorization: Bearer CRON_SECRET from a script). Otherwise they reach the storefront only when the window expires.
+- Changes that bypass the app (backfill scripts, raw SQL in the Supabase editor) need a manual drop: the "Refresh storefront cache" button at the top of the admin dashboard, or "node scripts/revalidate-catalogue.mjs" after a script (it signs a short-lived token with the service key; POST /api/admin/revalidate also accepts the admin cookie and the cron bearer secret). Otherwise they reach the storefront only when the window expires.
 - The window is SIX HOURS (PRODUCTS_CACHE_SECONDS). Each warm function instance also keeps the mapped catalogue in memory for 60 seconds, so instances other than the one that performed a write can lag it by up to a minute.
 
 ## Why six hours and not five minutes (21 Aug 2026)
