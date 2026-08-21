@@ -5,7 +5,7 @@
  * would otherwise crown random products. UA patterns + the crawl-fleet IP
  * ranges that execute JS (Googlebot, Bing) and so reach client beacons.
  */
-export const BOT_RE = /bot|crawl|spider|slurp|headless|lighthouse|pingdom|uptime|monitor|gtmetrix|preview|facebookexternalhit|whatsapp|telegram|slack|twitter|linkedin|discord|embedly|quora|python-requests|python-httpx|curl\/|wget|axios|node-fetch|go-http-client|vercel-screenshot|prerender|google-inspectiontool|googleother|google-read-aloud|google-pagespeed|apis-google|mediapartners|adsbot|feedfetcher|bingpreview|ahrefs|semrush|mj12|dotbot|petalbot|bytespider|bytedance|yandex|applebot|amazonbot|claudebot|gptbot|oai-searchbot|perplexity|ccbot|cohere|anthropic|serpstat|dataforseo|zoominfo|barkrowler|seznam|baiduspider|sogou|360spider|coccoc|duckduckgo|qwant|neevabot|timpibot|awariobot|linkfluence|brandwatch|screaming.?frog|netcraft|expanse|censys|shodan|internetmeasurement|paloalto|masscan|zgrab|lightpanda|scrapy|phantomjs/i;
+export const BOT_RE = /bot|crawl|spider|slurp|headless|lighthouse|pingdom|uptime|monitor|gtmetrix|preview|facebookexternalhit|whatsapp|telegram|slack|twitter|linkedin|discord|embedly|quora|python-requests|python-httpx|curl\/|wget|axios|node-fetch|go-http-client|vercel-screenshot|vercel|prerender|google-inspectiontool|googleother|google-read-aloud|google-pagespeed|apis-google|mediapartners|adsbot|feedfetcher|bingpreview|ahrefs|semrush|mj12|dotbot|petalbot|bytespider|bytedance|yandex|applebot|amazonbot|claudebot|gptbot|oai-searchbot|perplexity|ccbot|cohere|anthropic|serpstat|dataforseo|zoominfo|barkrowler|seznam|baiduspider|sogou|360spider|coccoc|duckduckgo|qwant|neevabot|timpibot|awariobot|linkfluence|brandwatch|screaming.?frog|netcraft|expanse|censys|shodan|internetmeasurement|paloalto|masscan|zgrab|lightpanda|scrapy|phantomjs/i;
 
 export const BOT_IP_PREFIXES = ["66.249.", "157.55.39.", "207.46.13.", "40.77.167."];
 
@@ -81,8 +81,9 @@ export const FLEET_IP_MIN_SIDS = 6;
    Windows 7 PCs (Chrome stops at 109 there), UC Browser (reports Chrome 78),
    JioPhones on KaiOS (Firefox 48) and old iPhones; all of them must get in.
    What is refused:
-   - a headless toolkit that says so (Lightpanda, HeadlessChrome, Puppeteer,
-     Playwright, PhantomJS);
+   - a scraper toolkit that says so (Lightpanda, Puppeteer, Playwright,
+     PhantomJS), and plain HeadlessChrome unless it also names an honest
+     service (Vercel's deployment screenshot, Lighthouse, a previewer);
    - a request CLAIMING to be Chromium 89 or newer without the Sec-CH-UA
      client-hint header. Every real Chromium 89+ (Chrome, Edge, Opera, Brave,
      Samsung Internet, Vivaldi, Yandex) sends it on HTTPS automatically; the
@@ -96,14 +97,20 @@ export const FLEET_IP_MIN_SIDS = 6;
      The 19 Aug fleet used Firefox 120 and 121.
    Self-identified crawlers, monitors and link previewers (BOT_RE) are always
    let through; robots.txt governs them, not the bouncer. */
-export const HEADLESS_RE = /lightpanda|headlesschrome|phantomjs|puppeteer|playwright/i;
+/** Scraper toolkits: refused even when they say who they are. */
+const TOOLKIT_RE = /lightpanda|phantomjs|puppeteer|playwright/i;
+/** Plain headless Chrome: refused unless the request also names an honest
+ *  service (Vercel's deployment screenshots, Lighthouse, previewers), which
+ *  BOT_RE recognises. */
+export const HEADLESS_RE = /headlesschrome/i;
 const IN_APP_RE = /\bwv\b|FBAN|FBAV|FB_IAB|Instagram|Snapchat|Line\/|MicroMessenger|GSA\/|DuckDuckGo\/|Electron\//i;
 export type BouncerVerdict = "ok" | "headless" | "spoofed-chromium" | "stale-firefox";
 
 export function bouncerVerdict(h: { get(name: string): string | null }): BouncerVerdict {
   const ua = h.get("user-agent") ?? "";
-  if (HEADLESS_RE.test(ua)) return "headless";
+  if (TOOLKIT_RE.test(ua)) return "headless";
   if (BOT_RE.test(ua)) return "ok";
+  if (HEADLESS_RE.test(ua)) return "headless";
   const chrome = ua.match(/\b(?:Chrome|Chromium)\/(\d+)/);
   if (chrome && Number(chrome[1]) >= 89 && !IN_APP_RE.test(ua) && !h.get("sec-ch-ua")) return "spoofed-chromium";
   const ff = ua.match(/\bFirefox\/(\d+)/);

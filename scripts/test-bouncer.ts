@@ -30,7 +30,13 @@ const CASES: [string, string, boolean, string][] = [
   ["fleet: Firefox 120", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0", false, "stale-firefox"],
   ["fleet: Firefox 121", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0", false, "stale-firefox"],
   ["fleet: Lightpanda", "Lightpanda/1.0", false, "headless"],
-  ["HeadlessChrome", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36", true, "headless"],
+  ["HeadlessChrome, anonymous", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36", true, "headless"],
+  ["Vercel deployment screenshot", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/131.0.0.0 Safari/537.36 vercel-screenshot/1.0", false, "ok"],
+  ["Google Lighthouse / PageSpeed", "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36 Chrome-Lighthouse", false, "ok"],
+  ["Facebook / Instagram link preview", "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)", false, "ok"],
+  ["Telegram link preview", "TelegramBot (like TwitterBot)", false, "ok"],
+  ["LinkedIn link preview", "LinkedInBot/1.0 (compatible; Mozilla/5.0; Apache-HttpClient +http://www.linkedin.com)", false, "ok"],
+  ["Puppeteer behind a Chrome UA that names itself", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36 Puppeteer", true, "headless"],
   ["current Firefox 153", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0", false, "ok"],
 ];
 let fail = 0;
