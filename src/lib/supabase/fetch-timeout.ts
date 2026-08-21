@@ -7,8 +7,23 @@
  *  a few seconds (the largest, a 1,000-row admin chunk, is ~3 s), so a 20 s
  *  ceiling only ever fires when the database is unhealthy. Callers already
  *  treat errors as "serve the fallback": cached catalogue, empty rails,
- *  skipped analytics. A caller-supplied signal wins over the ceiling. */
+ *  skipped analytics.
+ *
+ *  Two details that matter:
+ *  - The abort must surface as an AbortError. postgrest-js 2.108 retries GET
+ *    failures up to three times with backoff and only short-circuits on
+ *    name === "AbortError"; AbortSignal.timeout() rejects with a
+ *    TimeoutError, which would turn a 20 s ceiling into ~90 s of retries.
+ *    So we abort an AbortController ourselves.
+ *  - Passing any signal opts the call out of Next's per-render fetch
+ *    de-duplication. Accepted: the catalogue has its own data cache and
+ *    per-instance memo, and the remaining duplicates are single-row reads.
+ *  A caller-supplied signal wins over the ceiling. */
 export const SUPABASE_TIMEOUT_MS = 20_000;
 
-export const timeoutFetch: typeof fetch = (input, init) =>
-  fetch(input, { ...init, signal: init?.signal ?? AbortSignal.timeout(SUPABASE_TIMEOUT_MS) });
+export const timeoutFetch: typeof fetch = (input, init) => {
+  if (init?.signal) return fetch(input, init);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SUPABASE_TIMEOUT_MS);
+  return fetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer));
+};

@@ -34,6 +34,6 @@ export const config = {
     "/app", "/app/:path*", "/space/portal", "/space/portal/:path*",
     "/", "/catalogue/:path*", "/compare/:path*", "/brand/:path*", "/category/:path*",
     "/price-list/:path*", "/collections/:path*", "/for-you", "/search",
-    "/api/personal/:path*", "/api/track", "/api/explore-log", "/api/search-log", "/api/suggest",
+    "/api/personal/:path*", "/api/me/:path*", "/api/track", "/api/explore-log", "/api/search-log", "/api/suggest",
   ],
 };

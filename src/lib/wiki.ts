@@ -333,6 +333,7 @@ An admin changes a Havells fan price at 11:02. The save calls revalidateTag("pro
 ## Related rules
 - Keep chunk entries under 2 MB: Next's data cache silently rejects larger entries and the fetch then runs uncached on every request (measured 21 Aug: card chunks max 0.95 MB, lite 0.78 MB, Norisys 0.5 MB).
 - Pages that call the full fetch on a short revalidate (the metals page was 300 s) multiply cache READS; /metals is hourly now.
+- Product-card links do not prefetch on viewport entry (the grid used to fan a single scripted view into dozens of cold renders); hover prefetch is done explicitly with router.prefetch so desktop clicks still land warm. Mobile taps lose the preload, a fraction of a second.
 - Deploys are not free either: each one re-renders every visited page once. Push once per work session, not per change.`,
   },
   {

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import ImageSlot from "@/components/ImageSlot";
 import { Star } from "@/components/storefront/Rating";
 import { GROTESK, MONO } from "@/lib/fonts";
@@ -47,6 +48,7 @@ export default function ProductCard({
    *  which is exactly what a variant rail has to show. */
   attrsLine?: string;
 }) {
+  const router = useRouter();
   const [hover, setHover] = useState(false);
   // The variant currently shown on this card - swatch clicks swap it in place.
   const [shown, setShown] = useState(p);
@@ -75,7 +77,10 @@ export default function ProductCard({
   return (
     <Link prefetch={false}
       href={`/catalogue/${shown.id}`}
-      onMouseEnter={() => setHover(true)}
+      // Viewport prefetch is off (a scripted viewer scrolling a grid used to
+      // trigger dozens of cold product renders); hover prefetch is kept by
+      // hand so a real click still lands on a warm route.
+      onMouseEnter={() => { setHover(true); router.prefetch(`/catalogue/${shown.id}`); }}
       onMouseLeave={() => setHover(false)}
       style={{
         background: "#fff",
