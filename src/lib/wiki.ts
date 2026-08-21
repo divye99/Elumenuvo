@@ -340,10 +340,10 @@ An admin changes a Havells fan price at 11:02. The trigger bumps the version; th
   {
     slug: "site-health",
     title: "Site health: the uptime monitor",
-    summary: "A five-minute check of database, auth and key pages, with email alerts and a seven-day history at /admin/health.",
+    summary: "An hourly check of database, auth and key pages, with email alerts and a seven-day history at /admin/health.",
     tags: ["ops"],
     body: `## What runs
-Every five minutes a Vercel cron calls /api/cron/health (src/lib/health.ts). One run times the database through PostgREST, Supabase Auth, the home page, the catalogue page and the best-selling product page (chosen live, so a deactivated SKU never raises a false alarm). Pages are fetched as "ElumeHealthMonitor", which the edge bouncer lets through.
+Once an hour (owner's cadence, 21 Aug 2026) a Vercel cron calls /api/cron/health (src/lib/health.ts); the Check now button on /admin/health runs the same check on demand. One run times the database through PostgREST, Supabase Auth, the home page, the catalogue page and the best-selling product page (chosen live, so a deactivated SKU never raises a false alarm). Pages are fetched as "ElumeHealthMonitor", which the edge bouncer lets through.
 
 ## Verdicts
 - Healthy: everything answers 200 within limits.
@@ -351,9 +351,9 @@ Every five minutes a Vercel cron calls /api/cron/health (src/lib/health.ts). One
 - Down: the database does not answer, or a key page is not 200.
 
 ## Alerts
-- Down or slow: an email to the owner (ADMIN_EMAIL, BCC the house inbox) with what failed and what to look at (Supabase restart vs Vercel deployment), repeated at most every 15 minutes while it lasts.
+- Down or slow: an email to the owner (ADMIN_EMAIL, BCC the house inbox) with what failed and what to look at (Supabase restart vs Vercel deployment), once per hourly run while it lasts.
 - Recovered: one email with the outage duration.
-- While the database is down the cooldown cannot be stored, so alerts are bucketed to one per quarter hour by the clock.
+- Cost: each run behaves like one visitor opening three pages plus two tiny database reads and one row written to its own table. At hourly cadence that is about 24 function runs, 25 MB of transfer and 100 small database requests a day: invisible on both bills. It does not run JavaScript, so it never appears in analytics or product metrics.
 
 ## Where to look
 /admin/health: current status, uptime for 24 h and 7 days, number of outages, slowest-5% timings, the full check history (seven days, migration 0134), and a "Check now" button for an on-demand run.
@@ -362,7 +362,7 @@ Every five minutes a Vercel cron calls /api/cron/health (src/lib/health.ts). One
 The monitor runs on Vercel. If Vercel itself is down, no check runs and no mail goes out; an outside checker (for example UptimeRobot, free, pinging / and one product page every five minutes) covers that case and is recommended as a second opinion.
 
 ## Worked example
-21 Aug 2026, 14:45 IST: the database stalls. 14:45 check: database timed out, pages served from cache still 200, verdict Down, mail sent. 15:00 and 15:15: mails repeat. 15:37: the owner restarts the project; the 15:40 check is Healthy, a "recovered after about 55 min" mail goes out, the history shows a red band from 14:45 to 15:37.`,
+21 Aug 2026, 14:45 IST: the database stalls. 15:00 check: database timed out, pages served from cache still 200, verdict Down, mail sent. 15:37: the owner restarts the project; the 16:00 check is Healthy, a "recovered after about 60 min" mail goes out, the history shows a red band around 15:00. With hourly checks an outage can go unnoticed for up to an hour; the schedule is one line in vercel.json if that ever needs tightening.`,
   },
   {
     slug: "analytics-bots",

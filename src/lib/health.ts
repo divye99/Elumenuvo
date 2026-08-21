@@ -2,8 +2,9 @@ import { adminClient } from "@/lib/supabase/admin";
 import { sendHealthAlert } from "@/lib/email";
 
 /**
- * Uptime monitor (owner, 21 Aug 2026). Runs from /api/cron/health every five
- * minutes and from the "Check now" button on /admin/health. One run times:
+ * Uptime monitor (owner, 21 Aug 2026). Runs from /api/cron/health once an
+ * hour (owner's cadence; CHECK_INTERVAL_MS) and from the "Check now" button
+ * on /admin/health. One run times:
  *   - the database through PostgREST (and picks the product page to test:
  *     the best-selling active product, so a deactivated SKU never raises a
  *     false alarm),
@@ -12,8 +13,9 @@ import { sendHealthAlert } from "@/lib/email";
  *     self-identified monitor (the edge bouncer lets monitors through).
  * Verdict: "down" when the database or any page fails, "slow" when a page
  * takes over SLOW_PAGE_MS or the database over SLOW_DB_MS (or auth is
- * unhealthy), else "ok". Results are stored for a week; alerts go by email
- * with a 15-minute cooldown, plus one "recovered" mail.
+ * unhealthy), else "ok". Results are stored for a week; every check that
+ * finds trouble mails the owner (so hourly while it lasts), plus one
+ * "recovered" mail.
  *
  * Limit worth knowing: this runs ON Vercel. If Vercel itself is down, no
  * check runs; an outside checker (UptimeRobot or similar) covers that case.
@@ -35,8 +37,11 @@ export const HEALTH_UA = "ElumeHealthMonitor/1.0 (+https://elumenuvo.com)";
 const LIMIT_MS = 15_000;
 export const SLOW_PAGE_MS = 8_000;
 export const SLOW_DB_MS = 3_000;
-const ALERT_COOLDOWN_MS = 15 * 60_000;
-const RECOVERY_GAP_MS = 12 * 60_000;
+/** Cron cadence in vercel.json ("0 * * * *"). The recovery heuristic below
+ *  is derived from it, so change both together. */
+export const CHECK_INTERVAL_MS = 60 * 60_000;
+const ALERT_COOLDOWN_MS = CHECK_INTERVAL_MS - 10 * 60_000; // every scheduled run while trouble lasts
+const RECOVERY_GAP_MS = Math.round(CHECK_INTERVAL_MS * 2.5); // a missed run or two is not an outage
 const KEEP_DAYS = 7;
 
 type Timing = { status: number | null; ms: number; body: string };
@@ -114,16 +119,16 @@ export async function recordHealth(row: HealthRow): Promise<void> {
   const db = adminClient();
   if (!db || !row.db_ok) return;
   try { await db.from("site_health_checks").insert(row); } catch { /* pre-0134 */ }
-  if (new Date().getMinutes() < 5) {
+  {
     try { await db.from("site_health_checks").delete().lt("at", new Date(Date.now() - KEEP_DAYS * 86_400_000).toISOString()); } catch { /* best effort */ }
   }
 }
 
 type State = { last_ok_at: string | null; last_alert_at: string | null; failing_since: string | null };
 
-/** Email the owner on trouble (15-minute cooldown) and once on recovery.
- *  While the database is down the cooldown state cannot be read, so the
- *  cron's five-minute cadence is bucketed to one mail per quarter hour. */
+/** Email the owner on trouble (once per scheduled run while it lasts) and
+ *  once on recovery. While the database is down the cooldown state cannot
+ *  be read; every run then mails, which at an hourly cadence is the same. */
 export async function alertOnHealth(row: HealthRow): Promise<string> {
   const db = adminClient();
   const now = Date.now();
@@ -142,7 +147,7 @@ export async function alertOnHealth(row: HealthRow): Promise<string> {
   if (row.status !== "ok") {
     const due = state
       ? !state.last_alert_at || now - Date.parse(state.last_alert_at) > ALERT_COOLDOWN_MS
-      : new Date().getMinutes() % 15 < 5;
+      : true;
     if (!due) return `${row.status}, alert on cooldown`;
     const r = await sendHealthAlert({ kind: row.status, row, since: state?.failing_since ?? null });
     await save({ last_alert_at: new Date(now).toISOString(), failing_since: state?.failing_since ?? new Date(now).toISOString() });

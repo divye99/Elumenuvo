@@ -563,7 +563,7 @@ export async function sendHealthAlert(a: { kind: "down" | "slow" | "recovered"; 
   const mins = a.since ? Math.max(1, Math.round((Date.now() - Date.parse(a.since)) / 60_000)) : null;
   const heading = a.kind === "recovered" ? `elumenuvo.com recovered${mins ? ` after about ${mins} min` : ""}` : a.kind === "down" ? `elumenuvo.com is down: ${row.note ?? "check failed"}` : `elumenuvo.com is slow: ${row.note ?? "slow responses"}`;
   const advice = a.kind === "recovered"
-    ? "Nothing to do. The 15-minute alerts stop now; the history is on the admin Health page."
+    ? "Nothing to do. The alerts stop now; the history is on the admin Health page."
     : !row.db_ok
       ? "The database is not answering. Supabase dashboard, project jfgsigpadpewfktsohmc: if it shows Unhealthy, Settings, General, Restart project. Pages served from cache keep working meanwhile; checkout and sign-in do not."
       : "The database answers but pages do not. Check the Vercel dashboard (latest deployment, Firewall tab) and the admin Health page. If a deployment just went out, the previous one can be promoted."

@@ -25,7 +25,7 @@ export default async function HealthPage() {
       <div>
         <h1 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 6px" }}>Site health</h1>
         <p style={{ margin: 0, color: "#6B7280", fontSize: 14 }}>
-          A check runs every five minutes from Vercel: database, auth, home page, catalogue page and the best-selling product page. Trouble and recovery are emailed.
+          A check runs once an hour from Vercel (on-demand with the button): database, auth, home page, catalogue page and the best-selling product page. Trouble and recovery are emailed.
           Slow means a page over {SLOW_PAGE_MS / 1000} s or the database over {SLOW_DB_MS / 1000} s. History is kept for seven days.
         </p>
       </div>

@@ -29,7 +29,7 @@
     },
     {
       "path": "/api/cron/health",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 * * * *"
     }
   ]
 }
