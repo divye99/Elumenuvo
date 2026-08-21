@@ -167,29 +167,6 @@ Bot traffic never enters any loop (see the analytics article). Rate limits cap l
 - Card bullets: never repeat the title, never show import boilerplate. Every card renders at least one real spec bullet.`,
   },
   {
-    slug: "boq-assistant",
-    title: "Smart BOM assistant",
-    summary: "Business-only beta: paste a BOQ, get a matched cart with review controls.",
-    tags: ["b2b"],
-    body: `The Smart BOM assistant parses a pasted or uploaded bill of quantities, matches each line to catalogue products, and builds a reviewable cart.
-
-## Who can use it
-- Customers: business accounts that have ordered at least once (early-access gate). Everyone else is redirected.
-- The team: /admin/boq runs the same tool on a customer's behalf, for fulfilling BOQ enquiries. Its finish line is a shareable cart LINK (via Admin, then Cart links) sent on WhatsApp, instead of a cart push.
-
-## How matching works
-- Line parsing extracts quantity, unit, size, brand hints and free text.
-- Part numbers match first: exact SKU codes (98%), then model codes mined from product names like "CR-M230AC4" (95%), then unambiguous code prefixes ("AF305-30" against our fuller variant codes, 90%). A name-derived code only counts when it belongs to exactly one product, so family codes shared by fifty variants can never fake certainty.
-- Everything else scores on spec fit through the search lexicon.
-- The honesty gate: a weak match (below 50%, or a different brand than the line names without a strong score) is reported as NOT STOCKED instead of guessed. The near misses stay attached as a one-click "closest we have" substitute dropdown, and rescuing one teaches the matcher an alias. Worked example: an ABB enquiry line for a panel heater must say "not stocked", never "Orient water heater, 52%".
-- Confirmed matches are remembered (boq learning tables), so the next BOQ auto-matches better. Admin corrections train the same matcher.
-
-Fully homegrown: no external AI calls. Leads from unmatched lines land in the admin Leads console under boq_unmatched (admin-run ones are labeled "Elume admin console").
-
-## Quotation export (.docx)
-/admin/quotation (also reachable from the console's approved lines via "export a quotation") turns an enquiry into the standard Elume quotation as an EDITABLE Word file: enquiry email + RFQ lines in, docx out. The format is owner-specified (Aug 2026): every figure EXCLUSIVE of GST, manufacturer MRP (ex-GST) next to the Elume price (ex-GST) with the discount computed between them, GST added once at the bottom (IGST or CGST/SGST), lean terms (no documents/specification rows), optional "This is our best offer." line. The Factor X letterhead (public/assets/letterhead.png, fetched from our CDN at build time) sits behind the text on every page, with the body margins set inside its logo band and footer rule; a single-item quote fits one page, multi-item quotes flow on. Edit the Word file, then print to PDF.`,
-  },
-  {
     slug: "price-sync-radar",
     title: "Pricing: brand syncs, market-beating, price radar",
     summary: "Where our prices come from and how we prove they are competitive.",
@@ -284,7 +261,7 @@ KAM note: ELIN is the code to quote in tickets and with logistics partners; bran
 - Custom lines carry a synthetic id (custom-...) that no product rollup matches: analytics and merit are unaffected.
 - "Recent payment links" on the builder shows open, expired and paid links; paid ones deep-link to the order.
 
-KAM note: for an accepted quotation, build the link from the quoted lines and pick source "Accepted quotation"; the customer then pays without any re-keying.`,
+KAM note: for a quote accepted over email or WhatsApp, build the link from the agreed lines and pick source "Accepted quotation"; the customer then pays without any re-keying.`,
   },
   {
     slug: "logistics",
@@ -352,8 +329,9 @@ The hard case is not Googlebot (it announces itself). It is the residential-prox
 - Foreign geography. Foreign interest is real interest; nothing filters on country.
 Engagement (an identity, an add-to-cart, or a tap plus measured dwell) always proves a human; its absence proves nothing by itself.
 
-## Bot defense, three layers
-- Ingest: /api/track, /api/search-log and /api/explore-log all reject requests matching the bot user-agent list or known crawler IP ranges (src/lib/bots.ts, ~60 patterns plus Googlebot/Bingbot IP prefixes).
+## Bot defense, four layers
+- Edge (added after the 21 Aug 2026 database outage): src/proxy.ts answers a plain 403, before any render or query, to storefront pages and the beacon/personalisation APIs when the user agent is a frozen bot-toolkit browser (the same stale-version rule the classifier uses, src/lib/bots.ts isStaleBrowser) or a headless toolkit (Lightpanda, HeadlessChrome, Puppeteer, Playwright). Why: the residential-proxy fleet ran our JavaScript, so each of its 11,000 daily product-page hits also fired /api/personal/rails (an uncached per-visitor read) against Postgres on the smallest compute tier until it stalled. Googlebot and Bingbot carry evergreen Chrome versions and never match; a human on a 2.5-year-old browser is the accepted false-positive. Fleets that rotate CURRENT browser versions pass this layer; those are the Vercel Firewall's job (bot protection and per-IP rate limits on /catalogue), not code.
+- Ingest: /api/track, /api/search-log and /api/explore-log all reject requests matching the bot user-agent list or known crawler IP ranges (src/lib/bots.ts, ~60 patterns plus Googlebot/Bingbot IP prefixes); /api/track and /api/personal/rails also refuse frozen-browser UAs. The rails endpoint's compare_key lookup is now one cached read per 5 minutes instead of 4,000 rows per visitor.
 - Classifier + rollup (migrations 0124/0128): classify_bot_sessions writes verdicts into the bot_sessions table on objective evidence only: bot UA, crawler IP, a frozen browser version no auto-updating human still runs (thresholds move forward yearly), the fleet-UA signature (8+ sessions sharing one exact UA, zero engaged), the fleet-IP signature (one IP minting 6+ device tokens with zero taps, carts or sign-ins across all of them: quiet viewing alone never flags anyone, and one tap anywhere clears the whole IP, so office networks never trip it), or heavy crawling (10+ pageviews, zero interaction). rollup_product_metrics excludes those sids, so product_metrics_daily and therefore EMS stay clean. The nightly cron classifies, then rolls; the daily-traffic tab also classifies the current day on load.
 - Display: the same evidence rules classify sessions in the analytics UI; an engaged session is never flagged. The Searches tab drops rows from bot sessions too, including historic pre-gate rows. "Include likely bots" in the filter shows them on demand.
 

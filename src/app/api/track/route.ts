@@ -37,7 +37,7 @@ const geo = (h: Headers, k: string) => {
 };
 
 
-import { BOT_RE, BOT_IP_PREFIXES } from "@/lib/bots";
+import { BOT_RE, BOT_IP_PREFIXES, isStaleBrowser } from "@/lib/bots";
 
 export async function POST(request: Request) {
   let body: { sid?: unknown; events?: unknown };
@@ -55,7 +55,8 @@ export async function POST(request: Request) {
   // Crawlers, link-preview fetchers and monitors pollute journey data; the
   // interesting stream is humans. (Most bots never run the client tracker,
   // but Googlebot and preview bots execute JS.)
-  if (BOT_RE.test(h.get("user-agent") ?? "")) return ok();
+  const uaHdr = h.get("user-agent") ?? "";
+  if (BOT_RE.test(uaHdr) || isStaleBrowser(uaHdr)) return ok();
   const ip = (h.get("x-forwarded-for") ?? "").split(",")[0].trim().slice(0, 60) || null;
   if (ip && BOT_IP_PREFIXES.some((p) => ip.startsWith(p))) return ok();
   const uaRaw = (h.get("user-agent") ?? "").slice(0, 300);

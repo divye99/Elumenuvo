@@ -552,38 +552,6 @@ export async function sendRefundVoucherEmail(
   return send(order.email, `Order ${order.id} - refund of ${fmt(amount)} + 10% off your next order`, html, { bcc: BCC_SELF });
 }
 
-/** Smart BOM launch invite (owner send, Aug 2026): business customers only,
- *  free-to-try beta framing, explicit ask for feedback because the tool
- *  learns from every correction. Individual sends, BCC to the house inbox. */
-export async function sendBoqInvite(email: string, company: string | null): Promise<EmailResult> {
-  const html = shell(
-    "Your BOQ, priced in minutes - new for business customers",
-    `<p style="font-size:14px;line-height:1.65;color:#2c3550;margin:0 0 12px">${company ? `Hello ${escapeHtml(company)},` : "Hello,"}</p>
-     <p style="font-size:14px;line-height:1.65;color:#2c3550;margin:0 0 12px">
-       You know the drill: a BOQ arrives, and someone spends an evening turning it into brands,
-       catalogue numbers and phone calls. We just built <b>Smart BOM</b> to do that part for you.
-     </p>
-     <p style="font-size:14px;line-height:1.65;color:#2c3550;margin:0 0 12px">
-       Paste your BOQ or upload the Excel/CSV, and it matches every line to our catalogue of 7,500+
-       products across 22 brands - with prices, spec-checked alternatives, and quantities converted
-       (500 metres of wire becomes the right number of coils on its own). You review every line,
-       approve what is right, and the whole BOQ lands in your cart, priced with GST invoice ready.
-       Anything we do not stock gets flagged honestly instead of guessed at.
-     </p>
-     <p style="font-size:14px;line-height:1.65;color:#2c3550;margin:0 0 12px">
-       It is in early access for business customers, <b>free to use</b>, and it learns: every
-       correction you make teaches it your naming, your brands, your way of writing a BOQ. Which is
-       also why we want your honest feedback - there is a rating box right in the tool, and replies
-       to this email come straight to us.
-     </p>
-     ${btn(withUtm(`${SITE}/app/boq`, "boq-launch"), "Try Smart BOM with your next BOQ →")}
-     <p style="font-size:12.5px;color:#8A93A6;margin:14px 0 0">
-       Sign in with your business account and find Smart BOM in your workspace. English BOQs for now; more languages coming.
-     </p>`
-  );
-  return send(email, "Smart BOM: paste your BOQ, get it priced and carted in minutes", html, { bcc: BCC_SELF });
-}
-
 /** ── Bulk enquiry (/bulk-enquiry form) ──
  *  The enquiry goes TO the business inbox with the requester in CC, so both
  *  sides hold the same thread and a plain "Reply all" starts the quote

@@ -18,7 +18,7 @@ const LABELS: Record<string, string> = {
   projects: "App - portfolio projects",
   stages: "App - phased procurement stages",
   bomRows: "App - sample BOM rows",
-  parsedRows: "App - Smart BOM parsed rows",
+  parsedRows: "App - sample parsed BOQ rows",
   trackSteps: "App - delivery tracking steps",
 };
 

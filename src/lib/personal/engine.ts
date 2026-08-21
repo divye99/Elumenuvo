@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { adminClient } from "@/lib/supabase/admin";
 import { fetchProductsLite } from "@/lib/products";
 import { searchTokens, matchesAll } from "@/lib/search-normalize";
@@ -85,6 +86,22 @@ export type Taste = {
   cats: Map<string, number>;
   brands: Map<string, number>;
 };
+
+/** id -> compare_key for the substitution rail. Was a 4,000-row read on
+ *  EVERY personalised call (home, for-you, each PDP hydration), which a JS-
+ *  running scraper fleet turned into the single heaviest query on the
+ *  database (21 Aug 2026). Now one read per 5 minutes, shared, dropped by
+ *  the same "products" tag every admin write already revalidates. */
+const compareKeyPairs = unstable_cache(
+  async (): Promise<[string, string][]> => {
+    const db = adminClient();
+    if (!db) return [];
+    const { data } = await db.from("products").select("id, compare_key").not("compare_key", "is", null).limit(4000);
+    return ((data ?? []) as { id: string; compare_key: string }[]).map((r) => [r.id, r.compare_key]);
+  },
+  ["personal-compare-keys"],
+  { tags: ["products"], revalidate: 300 },
+);
 
 export async function sessionTaste(sidToken: string | null): Promise<Taste> {
   const t: Taste = { viewed: [], carted: [], searches: [], cats: new Map(), brands: new Map() };
@@ -338,13 +355,9 @@ export async function buildRails(opts: { ctx: string; sid: string | null; email:
    * on migration 0095 - before it runs this map is simply empty. */
   if (taste.viewed.length > 0) {
     const keyOf = new Map<string, string>();
-    const db = adminClient();
-    if (db) {
-      try {
-        const { data } = await db.from("products").select("id, compare_key").not("compare_key", "is", null).limit(4000);
-        for (const r of (data ?? []) as { id: string; compare_key: string }[]) keyOf.set(r.id, r.compare_key);
-      } catch { /* pre-0095: no substitution layer yet */ }
-    }
+    try {
+      for (const [id, key] of await compareKeyPairs()) keyOf.set(id, key);
+    } catch { /* pre-0095: no substitution layer yet */ }
     const subs: Product[] = [];
     for (const id of taste.viewed.slice(0, 10)) {
       const key = keyOf.get(id);

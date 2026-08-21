@@ -14,7 +14,7 @@ type Modal = false | "form" | "success";
 const FEATURES = [
   { title: "One catalogue, every brand", iconBg: "#EEF0FD", iconFg: "#1D2F8A" },
   { title: "Transparent pricing", iconBg: "#E6F5EE", iconFg: "#1F9D63" },
-  { title: "Smart BOM & phased POs", iconBg: "#F1ECFB", iconFg: "#7B5BDC" },
+  { title: "Projects & phased POs", iconBg: "#F1ECFB", iconFg: "#7B5BDC" },
   { title: "Credit, built in", iconBg: "#FBEDE4", iconFg: "#F25929" },
 ];
 

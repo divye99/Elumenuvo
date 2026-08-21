@@ -7,7 +7,7 @@ export type Product = {
   spec: string;
   sku: string;
   /** Manufacturer catalogue number (products.brand_sku) - contractor BOQs
-   *  quote these, so the Smart BOM matcher indexes them. Shopify-synced
+   *  quote these, so search and imports index them. Shopify-synced
    *  brands carry "handle::variantId" here (not a real catalogue number). */
   brandSku?: string;
   /** ELIN - our permanent ASIN-style identifier (migration 0116). */
@@ -178,7 +178,7 @@ export const HOME_BRANDS = [
 ];
 
 export const STEPS = [
-  { n: "1", kicker: "Plan", title: "Build the BOM", body: "Upload your BOQ or build it from the catalogue. Smart BOM matches and flags every line." },
+  { n: "1", kicker: "Plan", title: "Build the BOM", body: "Send your BOQ or build it from the catalogue. Our team matches and flags every line." },
   { n: "2", kicker: "Source & price", title: "Compare & lock", body: "See every brand priced against market. Pick on spec, stock and landed cost." },
   { n: "3", kicker: "Order & finance", title: "Release with credit", body: "POs auto-release by stage. Pay on delivery or take 30-day credit - your call." },
   { n: "4", kicker: "Receive & manage", title: "Track to site", body: "Live tracking, GRN on arrival, and a portfolio view across all your sites." },

@@ -664,7 +664,7 @@ export default function CatalogueBrowser({
                   // Self-learning inlet #2: a card clicked on a query page is
                   // a human confirming "this query means this product" - the
                   // same signal as a dropdown pick. Feeds pickTotals (featured
-                  // boost), picksByQuery (suggest) and product_aliases (BOQ).
+                  // boost), picksByQuery (suggest) and product_aliases.
                   const needle = dq.trim();
                   if (needle.length >= 2) logSearch({ q: needle, source: "search", picked: `product:${p.id}` });
                 }}

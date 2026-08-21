@@ -39,7 +39,7 @@ const BREADCRUMB_LD = {
 const BENEFITS: { icon: string; title: string; body: string }[] = [
   { icon: "🏷️", title: "Real wholesale pricing", body: "A wholesale rate applies automatically from 15 units on the site; on project volumes we quote sharper still, line by line." },
   { icon: "🧮", title: "One quote, every brand", body: "Wires, switchgear, lighting, fans and modular from 24+ brands and 9,000+ listings, consolidated into a single priced quote." },
-  { icon: "📋", title: "Send a BOQ as-is", body: "Paste or attach your BOQ the way it is written. Our team (and our Smart BOM engine) matches every line to exact catalogue items and flags anything we cannot supply, honestly." },
+  { icon: "📋", title: "Send a BOQ as-is", body: "Paste or attach your BOQ the way it is written. Our team matches every line to exact catalogue items and flags anything we cannot supply, honestly." },
   { icon: "🧾", title: "GST invoice, input credit", body: "Every order is invoiced by Elume Nuvotech Private Limited with the tax split shown, so your business claims input tax credit without follow-ups." },
   { icon: "🚚", title: "Pan-India project delivery", body: "Doorstep delivery across India, typically 3-7 working days, including heavy freight like wire coils and distribution boards." },
   { icon: "🏷️", title: "Prices checked daily", body: "Every quote starts from our published price list, which is checked against brand and marketplace pricing daily, so you never negotiate blind." },

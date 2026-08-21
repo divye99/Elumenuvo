@@ -15,8 +15,7 @@
  * vocabulary derived live from our own 9,000-listing catalogue (see
  * buildVocabulary), and (3) our search logs, which record what buyers typed
  * and what they picked. Everything here is pure and dependency-free so it
- * can run identically in the suggest API, the catalogue browser and the
- * BOQ matcher.
+ * can run identically in the suggest API and the catalogue browser.
  */
 
 /* ── Token-level synonym expansions ──────────────────────────────────────

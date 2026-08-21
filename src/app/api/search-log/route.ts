@@ -37,9 +37,9 @@ export async function POST(request: Request) {
 
   // Cross-learning (owner, Aug 2026): a pick - from the suggest dropdown OR
   // a results-page card click - is a human confirming
-  // "this phrasing means this product" - exactly what the Smart BOM alias
-  // table stores. Feed it there too, so the BOQ matcher learns from every
-  // storefront search and vice versa. Best-effort: never delays the beacon.
+  // "this phrasing means this product" - exactly what the product_aliases
+  // table stores. Feed it there too, so suggest and ranking learn from every
+  // storefront search. Best-effort: never delays the beacon.
   if (picked?.startsWith("product:") && q.length >= 4) {
     const { normalizeSearchText } = await import("@/lib/search-normalize");
     const alias_norm = normalizeSearchText(q).slice(0, 300);

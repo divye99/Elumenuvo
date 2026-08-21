@@ -121,7 +121,7 @@ export default async function PriceListPage({ params }: { params: Promise<{ slug
       <p style={{ fontSize: 13, color: "#5B6474", lineHeight: 1.6, maxWidth: 780, margin: "18px 0 0" }}>
         Need bulk or project quantities? <Link href="/wholesale" style={{ color: "#4053B8" }}>Wholesale rates</Link> apply
         automatically above the threshold quantities, and our <Link href="/business" style={{ color: "#4053B8" }}>business accounts</Link> add
-        BOQ tools and credit options. Browse the full {" "}
+        bulk enquiry and credit options. Browse the full {" "}
         <Link href={`/category/${slugify(combo.cat)}?facet=${encodeURIComponent(combo.brand)}`} style={{ color: "#4053B8" }}>
           {combo.brand} {combo.cat} range
         </Link>{" "}with photos and filters.

@@ -71,7 +71,6 @@ page/query keeps working unchanged.
 
 - Auth + login (Supabase) replacing the demo tenant resolver
 - BOM editor: add/swap line items against live multi-brand pricing
-- Smart BOM upload (BOQ parse → catalogue match)
 - Purchase-order generation + approval flow inside the schedule
 - NBFC credit application flow inside the order
 - Admin panel for catalogue + pricing management
